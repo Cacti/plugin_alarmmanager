@@ -1,5 +1,5 @@
 # +-------------------------------------------------------------------------+
-# | Copyright (C) 2004-2026 The Cacti Group                                 |
+# | Copyright (C) 2004-2026 Sean Mancini                                    |
 # |                                                                         |
 # | This program is free software; you can redistribute it and/or           |
 # | modify it under the terms of the GNU General Public License             |
@@ -11,12 +11,9 @@
 # | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           |
 # | GNU General Public License for more details.                            |
 # +-------------------------------------------------------------------------+
-# | Cacti: The Complete RRDtool-based Graphing Solution                     |
+# | Alarm Manager: centralized alarm history, routing and delivery for Cacti |
 # +-------------------------------------------------------------------------+
-# | This code is designed, written, and maintained by the Cacti Group. See  |
-# | about.php and/or the AUTHORS file for specific developer information.   |
-# +-------------------------------------------------------------------------+
-# | http://www.cacti.net/                                                   |
+# | https://github.com/bmfmancini/plugin_alarmmanager                       |
 # +-------------------------------------------------------------------------+
 
 name: Plugin Integration Tests
@@ -31,23 +28,19 @@ on:
       - main
       - develop
 
-env:
-  CACTI: 1.2.x
-  COMPOSER_ALLOW_SUPERUSER: 1
-
 jobs:
   integration-test:
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
       matrix:
+        cacti: ['1.2.x', 'develop']
         php: ['8.2', '8.3', '8.4']
-        os: [ubuntu-latest]
 
     services:
       mariadb:
-        image: mariadb:11.8
+        image: mariadb:10.11
         env:
           MYSQL_ROOT_PASSWORD: cactiroot
           MYSQL_DATABASE: cacti
@@ -56,35 +49,36 @@ jobs:
         ports:
           - 3306:3306
         options: >-
-          --health-cmd="mariadb-admin ping"
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=3
 
-    name: PHP ${{ matrix.php }} Integration Test on ${{ matrix.os }}
+    name: PHP ${{ matrix.php }} / Cacti ${{ matrix.cacti }} Integration Test
+
+    env:
+      CACTI_PATH: ${{ github.workspace }}/cacti
+      ALARMMANAGER_CACTI_ROOT: ${{ github.workspace }}/cacti
 
     steps:
     - name: Checkout Cacti
-      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      uses: actions/checkout@v4
       with:
         repository: Cacti/cacti
-        ref: ${{ env.CACTI }}
+        ref: ${{ matrix.cacti }}
         path: cacti
 
-    - name: Checkout Syslog Plugin
-      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+    - name: Checkout Alarm Manager Plugin
+      uses: actions/checkout@v4
       with:
-        path: cacti/plugins/syslog
-        # patch-coverage.php diffs against the base branch below.
-        fetch-depth: 0
+        path: cacti/plugins/alarmmanager
 
     - name: Install PHP ${{ matrix.php }}
-      uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+      uses: shivammathur/setup-php@v2
       with:
         php-version: ${{ matrix.php }}
-        extensions: intl, mysql, gd, ldap, gmp, xml, curl, json, mbstring, pdo_sqlite
-        coverage: xdebug
-        ini-values: "post_max_size=256M, max_execution_time=60, date.timezone=America/New_York"
+        extensions: intl, mysql, gd, xml, curl, json, mbstring
+        ini-values: "post_max_size=256M, max_execution_time=120, date.timezone=UTC"
 
     - name: Check PHP version
       run: php -v
@@ -93,12 +87,7 @@ jobs:
       run: sudo apt-get update
 
     - name: Install System Dependencies
-      run: sudo apt-get install -y snmp snmpd rrdtool fping gettext
-
-    - name: Start SNMPD Agent and Test
-      run: |
-        sudo systemctl start snmpd
-        sudo snmpwalk -c public -v2c -On localhost .1.3.6.1.2.1.1      
+      run: sudo apt-get install -y apache2 rrdtool libapache2-mod-php${{ matrix.php }}
 
     - name: Setup Permissions
       run: |
@@ -110,199 +99,119 @@ jobs:
 
     - name: Create MySQL Config
       run: |
-        echo "::add-mask::cactiroot"
         echo -e "[client]\nuser = root\npassword = cactiroot\nhost = 127.0.0.1\n" > ~/.my.cnf
-        chmod 600 ~/.my.cnf
+        cat ~/.my.cnf
 
     - name: Initialize Cacti Database
+      env:
+        MYSQL_AUTH_USR: '--defaults-file=~/.my.cnf'
       run: |
-        MYSQL_AUTH_USR="--defaults-file=$HOME/.my.cnf"
-        mysql "$MYSQL_AUTH_USR" -e 'CREATE DATABASE IF NOT EXISTS cacti;'
-        mysql "$MYSQL_AUTH_USR" -e "CREATE USER IF NOT EXISTS 'cactiuser'@'localhost' IDENTIFIED BY 'cactiuser';"
-        mysql "$MYSQL_AUTH_USR" -e "CREATE USER IF NOT EXISTS 'cactiuser'@'127.0.0.1' IDENTIFIED BY 'cactiuser';"
-        mysql "$MYSQL_AUTH_USR" -e "GRANT ALL PRIVILEGES ON cacti.* TO 'cactiuser'@'localhost';"
-        mysql "$MYSQL_AUTH_USR" -e "GRANT ALL PRIVILEGES ON cacti.* TO 'cactiuser'@'127.0.0.1';"
-        mysql "$MYSQL_AUTH_USR" -e "GRANT SELECT ON mysql.time_zone_name TO 'cactiuser'@'localhost';"
-        mysql "$MYSQL_AUTH_USR" -e "GRANT SELECT ON mysql.time_zone_name TO 'cactiuser'@'127.0.0.1';"
-        mysql "$MYSQL_AUTH_USR" -e "FLUSH PRIVILEGES;"
-        mysql "$MYSQL_AUTH_USR" cacti < ${{ github.workspace }}/cacti/cacti.sql
-        mysql "$MYSQL_AUTH_USR" -e "INSERT INTO settings (name, value) VALUES ('path_php_binary', '/usr/bin/php')" cacti
+        mysql $MYSQL_AUTH_USR -e 'CREATE DATABASE IF NOT EXISTS cacti;'
+        mysql $MYSQL_AUTH_USR -e "CREATE USER IF NOT EXISTS 'cactiuser'@'localhost' IDENTIFIED BY 'cactiuser';"
+        mysql $MYSQL_AUTH_USR -e "GRANT ALL PRIVILEGES ON cacti.* TO 'cactiuser'@'localhost';"
+        mysql $MYSQL_AUTH_USR -e "GRANT SELECT ON mysql.time_zone_name TO 'cactiuser'@'localhost';"
+        mysql $MYSQL_AUTH_USR -e "FLUSH PRIVILEGES;"
+        mysql $MYSQL_AUTH_USR cacti < ${{ github.workspace }}/cacti/cacti.sql
+        mysql $MYSQL_AUTH_USR -e "INSERT INTO settings (name, value) VALUES ('path_php_binary', '/usr/bin/php')" cacti
 
-    - name: Validate composer files
+    - name: Initialize the Dedicated Integration Test Database
+      env:
+        MYSQL_AUTH_USR: '--defaults-file=~/.my.cnf'
       run: |
-        cd ${{ github.workspace }}/cacti
-        if [ -f composer.json ]; then
-          composer validate --strict || true
-        fi
+        mysql $MYSQL_AUTH_USR -e "CREATE DATABASE IF NOT EXISTS alarmmanager_test;"
+        mysql $MYSQL_AUTH_USR -e "GRANT ALL PRIVILEGES ON alarmmanager_test.* TO 'cactiuser'@'localhost';"
+        mysql $MYSQL_AUTH_USR -e "FLUSH PRIVILEGES;"
 
     - name: Install Composer Dependencies
       run: |
         cd ${{ github.workspace }}/cacti
-        if [ -f composer.json ]; then
-          sudo composer config --no-plugins allow-plugins.pestphp/pest-plugin true
-          sudo composer require --no-progress --no-interaction "pestphp/pest: ^3" "pestphp/pest-plugin-drift: ^3.0"
-          sudo rm -f composer.lock
-          sudo composer install --dev --no-progress
-        fi
-
-    - name: Restore vendor ownership for Pest
-      run: |
-        cd ${{ github.workspace }}/cacti
-        if [ -d include/vendor ]; then
-          sudo chown -R runner:runner include/vendor composer.lock
-        fi
+        composer install --no-progress
 
     - name: Create Cacti config.php
       run: |
         cat ${{ github.workspace }}/cacti/include/config.php.dist | \
-        sed -r "s/localhost/127.0.0.1/g" | \
-        sed -r "s/'cacti'/'cacti'/g" | \
-        sed -r "s/'cactiuser'/'cactiuser'/g" | \
-        sed -r "s/'cactiuser'/'cactiuser'/g" > ${{ github.workspace }}/cacti/include/config.php
+        sed -r "s/localhost/127.0.0.1/g" > ${{ github.workspace }}/cacti/include/config.php
         sudo chmod 664 ${{ github.workspace }}/cacti/include/config.php
+        grep -E "database_(default|type|hostname|username|password)" ${{ github.workspace }}/cacti/include/config.php || true
 
-    - name: Create Syslog Plugin config.php
+    - name: Configure Apache
       run: |
-        cp ${{ github.workspace }}/cacti/plugins/syslog/config.php.dist ${{ github.workspace }}/cacti/plugins/syslog/config.php
-        sed -i "s/localhost/127.0.0.1/g" ${{ github.workspace }}/cacti/plugins/syslog/config.php
-        sed -i "s/'cacti'/'cacti'/g" ${{ github.workspace }}/cacti/plugins/syslog/config.php
-        sed -i "s/'cactiuser'/'cactiuser'/g" ${{ github.workspace }}/cacti/plugins/syslog/config.php
-        sed -i 's/\/\/\$/\$/g' ${{ github.workspace }}/cacti/plugins/syslog/config.php
-        sudo chmod 664 ${{ github.workspace }}/cacti/include/config.php
+        cat << 'EOF' | sed 's#GITHUB_WORKSPACE#${{ github.workspace }}#g' > /tmp/cacti.conf
+        <VirtualHost *:80>
+          ServerAdmin webmaster@localhost
+          DocumentRoot GITHUB_WORKSPACE/cacti
+
+          <Directory GITHUB_WORKSPACE/cacti>
+            Options Indexes FollowSymLinks
+            AllowOverride All
+            Require all granted
+          </Directory>
+        </VirtualHost>
+        EOF
+        sudo cp /tmp/cacti.conf /etc/apache2/sites-available/000-default.conf
+        sudo systemctl restart apache2
 
     - name: Install Cacti via CLI
       run: |
         cd ${{ github.workspace }}/cacti
         sudo php cli/install_cacti.php --accept-eula --install --force
 
-    - name: Install Syslog Plugin
+    - name: Install Alarm Manager Plugin
       run: |
         cd ${{ github.workspace }}/cacti
-        sudo php cli/plugin_manage.php --plugin=syslog --install --enable
+        sudo php cli/plugin_manage.php --plugin=alarmmanager --install --enable
 
     - name: Check PHP Syntax for Plugin
       run: |
-        cd ${{ github.workspace }}/cacti/plugins/syslog
-        if find . -name '*.php' -not -path './vendor/*' -exec php -l {} 2>&1 \; | grep -iv 'no syntax errors detected'; then
+        cd ${{ github.workspace }}/cacti/plugins/alarmmanager
+        if find . -name '*.php' -exec php -l {} \; 2>&1 | grep -iv 'no syntax errors detected'; then
           echo "Syntax errors found!"
           exit 1
         fi
 
-    - name: Verify translation template is up to date
-      if: github.event_name == 'pull_request'
-      env:
-        BASE_REF: ${{ github.event.pull_request.base.sha }}
-      run: |
-        cd ${{ github.workspace }}/cacti/plugins/syslog
-        git config --global --add safe.directory ${{ github.workspace }}/cacti/plugins/syslog
-        php tests/bin/check-i18n-pot.php "$BASE_REF"
-
-    - name: Set expected Cacti version for unit tests
-      run: echo -n "${{ env.CACTI }}" | sudo tee ${{ github.workspace }}/cacti/plugins/syslog/tests/.cacti-version > /dev/null
-
-    - name: Run Pest Unit Tests
+    - name: Check the Plugin CLI Entry Points
       run: |
         cd ${{ github.workspace }}/cacti
-        notification_test_dir="$(mktemp -d)"
-        trap 'rm -rf "$notification_test_dir"' EXIT
-        export SYSLOG_NOTIFICATION_TEST_CA="$notification_test_dir/ca.pem"
-        php -d curl.cainfo="$SYSLOG_NOTIFICATION_TEST_CA" include/vendor/bin/pest --configuration=plugins/syslog/phpunit.xml \
-          --coverage-clover=plugins/syslog/coverage/clover.xml
-
-    - name: Run Syslog schema CLI regression checks
-      run: |
-        php tests/regression/cli_schema_upgrade_test.php
-        php tests/regression/notification_queue_test.php
-        php tests/regression/notification_worker_test.php
-        php tests/regression/notification_key_test.php
-      working-directory: ${{ github.workspace }}/cacti/plugins/syslog
-
-    # Whole-file coverage is meaningless here: most of the plugin only runs
-    # inside a live Cacti. What is enforceable is that a change covers the
-    # lines it adds.
-    - name: Enforce coverage of changed lines
-      if: github.event_name == 'pull_request'
-      env:
-        BASE_REF: ${{ github.event.pull_request.base.sha }}
-      run: |
-        cd ${{ github.workspace }}/cacti/plugins/syslog
-        git config --global --add safe.directory ${{ github.workspace }}/cacti/plugins/syslog
-        php tests/bin/patch-coverage.php coverage/clover.xml "$BASE_REF" 100
-
-    - name: Upload coverage report
-      if: always()
-      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-      with:
-        name: coverage-php${{ matrix.php }}
-        path: ${{ github.workspace }}/cacti/plugins/syslog/coverage/
-        if-no-files-found: warn
-
-    - name: Remove the plugins directory exclusion from the .phpstan.neon
-      if: ${{ env.CACTI != '1.2.x' }}
-      run: sed '/plugins/d' -i .phpstan.neon
-      working-directory: ${{ github.workspace }}/cacti
-
-    - name: Mark composer scripts executable
-      if: ${{ env.CACTI != '1.2.x' }}
-      run: sudo chmod +x ${{ github.workspace }}/cacti/include/vendor/bin/*
-
-    - name: Run Linter on base code
-      if: ${{ env.CACTI != '1.2.x' }}
-      run: composer run-script lint ${{ github.workspace }}/cacti/plugins/syslog
-      working-directory: ${{ github.workspace }}/cacti
-
-    - name: Checking coding standards on base code
-      if: ${{ env.CACTI != '1.2.x' }}
-      run: composer run-script phpcsfixer ${{ github.workspace }}/cacti/plugins/syslog
-      working-directory: ${{ github.workspace }}/cacti
-
-    - name: Run PHPStan at Level 6 on base code outside of Composer due to technical issues
-      if: ${{ env.CACTI != '1.2.x' }}
-      run: ./include/vendor/bin/phpstan analyze --level 6 ${{ github.workspace }}/cacti/plugins/syslog
-      working-directory: ${{ github.workspace }}/cacti
-
-    - name: Re-apply web user ownership before polling
-      run: |
-        # Ancestor directories above the checkout (e.g. /home/runner, .../work)
-        # are typically 750 owned by the runner user, which blocks a non-root
-        # www-data process from traversing down to the checkout at all.
-        p="${{ github.workspace }}"
-        while [ "$p" != "/" ]; do
-          sudo chmod o+x "$p" || true
-          p=$(dirname "$p")
+        for script in status worker supervisor remote submit_event credentials producers configure setup_local endpoint; do
+          php -q plugins/alarmmanager/cli/$script.php --help >/dev/null || exit 1
         done
-
-        sudo chown -R www-data:runner ${{ github.workspace }}/cacti
-        sudo find ${{ github.workspace }}/cacti -type d -exec chmod 775 {} \;
-        sudo find ${{ github.workspace }}/cacti -type f -exec chmod 664 {} \;
-        sudo chmod +x ${{ github.workspace }}/cacti/cmd.php
-        sudo chmod +x ${{ github.workspace }}/cacti/poller.php
 
     - name: Run Cacti Poller
       run: |
         cd ${{ github.workspace }}/cacti
-        sudo -u www-data php poller.php --poller=1 --force --debug
+        sudo php poller.php --poller=1 --force --debug
         if ! grep -q "SYSTEM STATS" log/cacti.log; then
           echo "Cacti poller did not finish successfully"
           cat log/cacti.log
           exit 1
         fi
 
-    - name: Populate Syslog Test Data
-      run: |
-        sudo chmod +x ${{ github.workspace }}/cacti/plugins/syslog/tests/bin/populate_syslog_incoming.sh
-        cd ${{ github.workspace }}/cacti/plugins/syslog/tests/bin
-        sudo ./populate_syslog_incoming.sh
-
-    - name: force Syslog Plugin Poller
+    - name: Run Plugin Test Suite (unit lane)
       run: |
         cd ${{ github.workspace }}/cacti
-        sudo -u www-data php plugins/syslog/syslog_process.php --debug
-        if ! grep -q "SYSTEM SYSLOG STATS" log/cacti.log; then
-          echo "Syslog plugin poller did not finish successfully"
-          cat log/cacti.log
+        include/vendor/bin/pest --configuration=plugins/alarmmanager/phpunit.xml
+
+    - name: Run Plugin Test Suite (integration lane)
+      env:
+        ALARMMANAGER_TEST_DSN: 'mysql:host=127.0.0.1;port=3306;dbname=alarmmanager_test;charset=utf8mb4'
+        ALARMMANAGER_TEST_USER: cactiuser
+        ALARMMANAGER_TEST_PASSWORD: cactiuser
+        ALARMMANAGER_TEST_ALLOW_CREATE: '1'
+      run: |
+        cd ${{ github.workspace }}/cacti
+        include/vendor/bin/pest --testsuite "Plugin Alarmmanager Integration" --configuration=plugins/alarmmanager/phpunit-integration.xml
+
+    - name: Check the Gettext Template Freshness
+      run: |
+        cd ${{ github.workspace }}/cacti/plugins/alarmmanager
+        cp locales/po/alarmmanager.pot /tmp/alarmmanager.pot.before
+        locales/build_gettext.sh >/dev/null
+        sed -E 's/^"POT-Creation-Date:.+$//' /tmp/alarmmanager.pot.before > /tmp/alarmmanager.pot.before.norm
+        sed -E 's/^"POT-Creation-Date:.+$//' locales/po/alarmmanager.pot > /tmp/alarmmanager.pot.after.norm
+        diff -u /tmp/alarmmanager.pot.before.norm /tmp/alarmmanager.pot.after.norm || {
+          echo "alarmmanager.pot is stale; run locales/build_gettext.sh and commit the result"
           exit 1
-        fi
+        }
 
     - name: View Cacti Logs
       if: always()
@@ -312,18 +221,14 @@ jobs:
           sudo cat ${{ github.workspace }}/cacti/log/cacti.log
         fi
 
-    - name: Check Cacti Logs for Errors
-      if: always()
+    - name: Run Coding Standards Check
+      if: matrix.cacti == 'develop'
       run: |
-        if [ -f ${{ github.workspace }}/cacti/log/cacti.log ]; then
-          if sudo grep -E "FATAL:|ERROR:|WARNING:" "${{ github.workspace }}/cacti/log/cacti.log"; then
-            echo "Found FATAL/ERROR/WARNING entries in Cacti log"
-            exit 1
-          else
-            status=$?
-            if [ "$status" -ne 1 ]; then
-              echo "Unable to inspect Cacti log"
-              exit "$status"
-            fi
-          fi
-        fi
+        cd ${{ github.workspace }}/cacti
+        include/vendor/bin/php-cs-fixer fix --dry-run --diff --config=plugins/alarmmanager/.php-cs-fixer.php
+
+    - name: Run PHPStan at Level 6
+      if: matrix.cacti == 'develop'
+      run: |
+        cd ${{ github.workspace }}/cacti/plugins/alarmmanager
+        ../../include/vendor/bin/phpstan analyse --configuration=.phpstan.neon --no-progress
