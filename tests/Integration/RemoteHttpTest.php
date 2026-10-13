@@ -133,6 +133,30 @@ final class RemoteHttpTest extends AlarmManagerTestCase {
 				}
 				usleep(100000);
 			}
+			// Transport-level endpoint guards, against the plain HTTP backend.
+			$backend = 'http://127.0.0.1:38570/plugins/alarmmanager/alarmmanager_sync.php';
+
+			for ($i = 0; $i < 50; $i++) {
+				[$probe] = $this->hfetch($backend, 'POST', ['Content-Type' => 'application/json'], '{}');
+
+				if ($probe > 0) {
+					break;
+				}
+				usleep(100000);
+			}
+			[$status, $payload] = $this->hfetch($backend, 'GET', ['Content-Type' => 'application/json'], '{}');
+			$this->assertSame(403, $status, 'non-POST transport rejected');
+			$this->assertStringStartsWith('{"status":"rejected"}', $payload, 'non-POST transport payload');
+			[$status] = $this->hfetch($backend, 'POST', ['Content-Type' => 'text/plain'], '{}');
+			$this->assertSame(403, $status, 'non-JSON transport rejected');
+			[$status] = $this->hfetch($backend, 'POST', ['Content-Type' => 'application/json'], str_repeat('x', 1048577) . '{}');
+			$this->assertSame(403, $status, 'oversize transport rejected');
+			$this->huse(2);
+			[$status, $payload] = $this->hfetch($backend, 'POST', ['Content-Type' => 'application/json', 'X-AlarmManager-Poller' => '2', 'X-AlarmManager-Time' => (string) time(), 'X-AlarmManager-Signature' => str_repeat('a', 64)], json_encode(['version' => 1]));
+			$this->assertSame(403, $status, 'tampered body rejected at the receiver');
+			$this->assertStringStartsWith('{"status":"rejected"}', $payload, 'tampered body payload');
+			[$status] = $this->hfetch($backend, 'POST', ['Content-Type' => 'application/json', 'X-AlarmManager-Poller' => '9', 'X-AlarmManager-Time' => (string) time(), 'X-AlarmManager-Signature' => str_repeat('b', 64)], json_encode(['version' => 1]));
+			$this->assertSame(403, $status, 'unregistered poller rejected');
 			$this->huse(2);
 			$base = 'https://127.0.0.1:38569';
 			$url  = $base . '/plugins/alarmmanager/alarmmanager_sync.php';
@@ -225,6 +249,32 @@ final class RemoteHttpTest extends AlarmManagerTestCase {
 				rmdir($fixture);
 			}
 		}
+	}
+
+	/**
+	 * One request to a loopback fixture; returns the HTTP status and body.
+	 */
+	private function hfetch(string $url, string $method, array $headers, string $body): array {
+		$raw = '';
+
+		foreach ($headers as $name => $value) {
+			$raw .= "$name: $value\r\n";
+		}
+
+		if ($body !== '') {
+			$raw .= 'Content-Length: ' . strlen($body) . "\r\n";
+		}
+		$context = stream_context_create(['http' => ['method' => $method, 'header' => $raw, 'content' => $body, 'timeout' => 5, 'ignore_errors' => true, 'protocol_version' => 1.1]]);
+		$data    = @file_get_contents($url, false, $context);
+		$status  = 0;
+
+		foreach ($http_response_header ?? [] as $line) {
+			if (preg_match('/\AHTTP\/\S+ ([0-9]{3})/', $line, $matches)) {
+				$status = (int) $matches[1];
+			}
+		}
+
+		return [$status, is_string($data) ? $data : ''];
 	}
 
 	/**

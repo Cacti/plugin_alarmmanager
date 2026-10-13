@@ -68,6 +68,18 @@ function alarmmanager_remote_private_write(string $path, string $data): void {
 		fclose($stream);
 	}
 }
+/** Receiver gate for the sync endpoint: plugin enabled, schema present, main poller only. */
+function alarmmanager_sync_receiver_ready(): bool {
+	try {
+		if (!alarmmanager_runtime_enabled() || alarmmanager_local_poller() !== 1) {
+			return false;
+		}
+
+		return (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?', ['plugin_alarmmanager_sync_peers'], '', false) === 1;
+	} catch (Throwable) {
+		return false;
+	}
+}
 function alarmmanager_sync_key(string $file): string {
 	return alarmmanager_decode_key(trim(alarmmanager_remote_private_read($file, 128)));
 }
