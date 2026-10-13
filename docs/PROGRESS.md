@@ -167,3 +167,6 @@ Specification audit completed in docs/SPEC_AUDIT.md: the shared brief and prompt
 Final gate: pest 20 passed / 19 skipped (146 assertions); phpstan [OK]; php-cs-fixer --dry-run 0 of 102 fixable; php -l clean.
 
 Conformance plan complete. Remaining user-facing follow-ups (unverified without further environment): provide ALARMMANAGER_TEST_DSN to run the DB-gated integration lane, pin thold/syslog checkouts to enable the 19 skipped producer-branch tests, run in a live Cacti lab for visual/permission verification, push to enable the first CI run.
+## CI fix — 2026-10-13 UTC (first CI run)
+
+First CI run 38463565028 failed in "Install System Dependencies" on every job: ubuntu-24.04 runners provide libapache2-mod-php only for the runner's PHP 8.3, so libapache2-mod-php8.2/8.4 do not exist (E: Unable to locate package). Apache was only carried over from the servcheck template for browser testing this workflow does not perform — the Cacti install and plugin install are CLI-driven. Removed apache2/libapache2-mod-php and the unused Configure Apache step; system dependencies now install rrdtool only.

@@ -87,7 +87,7 @@ jobs:
       run: sudo apt-get update
 
     - name: Install System Dependencies
-      run: sudo apt-get install -y apache2 rrdtool libapache2-mod-php${{ matrix.php }}
+      run: sudo apt-get install -y rrdtool
 
     - name: Setup Permissions
       run: |
@@ -133,23 +133,6 @@ jobs:
         sed -r "s/localhost/127.0.0.1/g" > ${{ github.workspace }}/cacti/include/config.php
         sudo chmod 664 ${{ github.workspace }}/cacti/include/config.php
         grep -E "database_(default|type|hostname|username|password)" ${{ github.workspace }}/cacti/include/config.php || true
-
-    - name: Configure Apache
-      run: |
-        cat << 'EOF' | sed 's#GITHUB_WORKSPACE#${{ github.workspace }}#g' > /tmp/cacti.conf
-        <VirtualHost *:80>
-          ServerAdmin webmaster@localhost
-          DocumentRoot GITHUB_WORKSPACE/cacti
-
-          <Directory GITHUB_WORKSPACE/cacti>
-            Options Indexes FollowSymLinks
-            AllowOverride All
-            Require all granted
-          </Directory>
-        </VirtualHost>
-        EOF
-        sudo cp /tmp/cacti.conf /etc/apache2/sites-available/000-default.conf
-        sudo systemctl restart apache2
 
     - name: Install Cacti via CLI
       run: |
