@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 require_once(__DIR__ . '/events.php');
 require_once(__DIR__ . '/runtime.php');
+require_once(__DIR__ . '/transport_config.php');
 
 function alarmmanager_config_int($value, int $minimum, int $maximum): int {
 	if (!is_int($value) || $value < $minimum || $value > $maximum) {
@@ -127,7 +128,7 @@ function alarmmanager_configuration(array $configuration): array {
 			}
 			$enabled = alarmmanager_config_bool($item['enabled'] ?? true);
 			if ($section === 'endpoints') {
-				alarmmanager_event_keys($item, ['id', 'name', 'type', 'enabled', 'max_concurrency', 'min_interval_ms', 'timeout_seconds', 'max_attempts']);
+				alarmmanager_event_keys($item, ['id', 'name', 'type', 'enabled', 'max_concurrency', 'min_interval_ms', 'timeout_seconds', 'max_attempts', 'transport']);
 				if (!in_array($item['type'] ?? null, ['restapi', 'webhook', 'email', 'script', 'websocket'], true)) {
 					throw new InvalidArgumentException('invalid_destination');
 				}
@@ -135,7 +136,8 @@ function alarmmanager_configuration(array $configuration): array {
 					'max_concurrency' => alarmmanager_config_int($item['max_concurrency'] ?? 1, 1, 64),
 					'min_interval_ms' => alarmmanager_config_int($item['min_interval_ms'] ?? 0, 0, 3600000),
 					'timeout_seconds' => alarmmanager_config_int($item['timeout_seconds'] ?? 10, 1, 120),
-					'max_attempts' => alarmmanager_config_int($item['max_attempts'] ?? 5, 1, 20)];
+					'max_attempts' => alarmmanager_config_int($item['max_attempts'] ?? 5, 1, 20),
+					'transport' => alarmmanager_transport_configuration($item['type'], $item['transport'] ?? [])];
 			} elseif ($section === 'profiles') {
 				alarmmanager_event_keys($item, ['id', 'name', 'enabled', 'endpoints']);
 				$destinations = alarmmanager_config_list($item['endpoints'] ?? [], 32);
@@ -185,6 +187,9 @@ function alarmmanager_apply_configuration(array $configuration): void {
 				VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE name = VALUES(name), type = VALUES(type), enabled = VALUES(enabled),
 				max_concurrency = VALUES(max_concurrency), min_interval_ms = VALUES(min_interval_ms), timeout_seconds = VALUES(timeout_seconds), max_attempts = VALUES(max_attempts)',
 				[$endpoint['id'], $endpoint['name'], $endpoint['type'], (int) $endpoint['enabled'], $endpoint['max_concurrency'], $endpoint['min_interval_ms'], $endpoint['timeout_seconds'], $endpoint['max_attempts']]);
+		}
+		foreach ($settings['endpoints'] as $endpoint) {
+			alarmmanager_db_write('INSERT INTO plugin_alarmmanager_transports (endpoint_id, definition) VALUES (?, ?) ON DUPLICATE KEY UPDATE definition = VALUES(definition)', [$endpoint['id'], json_encode($endpoint['transport'], JSON_THROW_ON_ERROR)]);
 		}
 		foreach ($settings['profiles'] as $profile) {
 			alarmmanager_db_write('INSERT INTO plugin_alarmmanager_profiles (id, name, enabled, endpoints_json) VALUES (?, ?, ?, ?)

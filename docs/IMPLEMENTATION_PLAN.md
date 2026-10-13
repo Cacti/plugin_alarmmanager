@@ -8,7 +8,7 @@ Read this file, DECISIONS.md and PROGRESS.md before each phase. The detailed acc
 | 2 | Event envelope, indexed InnoDB schema, durable idempotent ingestion | Implemented; 30 real MariaDB checks plus offline validation pass; full Cacti/MySQL/remote qualification pending |
 | 3 | Episodes, routing, suppression, multiple destinations | Implemented; lifecycle, suppression, fan-out and ordering tests pass; live Cacti qualification pending |
 | 4 | Supervisor and bounded local workers on main and remote | Implemented; real DB lease/fencing, crash/retry/fairness/shutdown tests pass; full remote Cacti outage qualification pending |
-| 5 | REST API/webhook/email/script mappings and credentials | Authenticated encryption, backup/rotation, remote key provisioning, per-endpoint fan-out/retry evidence |
+| 5 | REST API/webhook/email/script mappings and credentials | Implemented; mapping/AEAD/backup/rotation/provisioning, real HTTP/TLS/script and pinned Cacti SMTP checks pass; full deployed Cacti qualification pending |
 | 6 | Management UI and adapted syslog dashboard | Realms/CSRF, browser theme/accessibility/network/query checks |
 | 7 | Separate opt-in thold/syslog patches | Legacy parity, acceptance ownership and source-state preservation |
 | 8 | Confirmed core transitions and autonomous remote operation | Main outage, independent routing/delivery, reconnect without redispatch, collector reassignment fencing |

@@ -8,6 +8,9 @@ Use PHP 8.2 or 8.3 CLI with OpenSSL. From the repository root:
 find . -name '*.php' -print0 | xargs -0 -n1 php -l
 php tests/Unit/Plugin/SetupTest.php
 php tests/Unit/Ingestion/ContractTest.php
+php tests/Unit/Lifecycle/LifecycleTest.php
+php tests/Unit/Plugin/SupervisorTest.php
+php tests/Unit/Delivery/MappingCredentialTest.php
 ```
 
 The test is a separate PHP process with in-memory database doubles. It is not evidence of DB concurrency, Cacti authentication or remote replication. No network/dependency downloads occur at plugin runtime.
@@ -37,3 +40,9 @@ php tests/Integration/IngestionTest.php
 ```
 
 This actually exercises repeat schema installation/upgrade, local owner identity, committed event/job acceptance, duplicate/conflicting submissions, independent observe/centralized identities, disabled/missing installation, database availability failure, invalid UTF-8, rollback after a real missing-job-table error, an injected unconfirmed commit, caller-owned transaction preservation, eight competing submissions and uninstall preservation. It is not an end-to-end Cacti install or a throughput benchmark.
+
+## Transport and credential lanes
+
+Use the same disposable MariaDB DSN/create opt-in for tests/Integration/RuntimeTest.php and tests/Integration/TransportTest.php. The transport test also requires PHP cURL/pcntl/posix, Python 3, openssl CLI and /usr/bin/setsid. It creates its own disposable databases, self-signed TLS fixture files and loopback HTTP/HTTPS servers. It exercises field mappings, methods, trusted self-signed certificates/hostname checks, redirect rejection, response/timeout bounds, status criteria, Retry-After, worker-only test sends, simultaneous REST API/webhook retries and stable receiver keys. A separate local database demonstrates key-plus-ciphertext provisioning; it is not a full Cacti remote install. Script fixtures verify literal argv, stdin, filtered environment, exit policies and group cleanup. Credential fixtures cover wrong/missing/tampered keys/records, setup preservation, rollback, backup/restore and rotation.
+
+For the actual Cacti email boundary, set ALARMMANAGER_CACTI_ROOT to the pinned Cacti reference directory and run tests/Integration/CactiMailerTest.php with Cacti's required CLI PHP modules (including mbstring) available through its normal php.ini. It creates a minimal disposable offline bootstrap pointing at the pinned Cacti functions and bundled PHPMailer, sends only synthetic loopback SMTP messages, checks recipients/HTML/attachments/idempotency header and kills a stalled child at its deadline. It does not exercise the full Cacti installer, authenticated UI or real SMTP deployment. All temporary fixtures are removed and no certificate/private key is committed.

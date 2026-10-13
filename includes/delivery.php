@@ -2,10 +2,11 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 require_once(__DIR__ . '/queue.php');
 require_once(__DIR__ . '/events.php');
+require_once(__DIR__ . '/transports.php');
 
 /** Trusted code registry only; configuration cannot name/evaluate PHP callbacks. */
 function alarmmanager_delivery_handlers(): array {
-	$handlers = $GLOBALS['alarmmanager_transport_handlers'] ?? [];
+	$handlers = ($GLOBALS['alarmmanager_transport_handlers'] ?? []) + ['restapi' => 'alarmmanager_http_transport', 'webhook' => 'alarmmanager_http_transport', 'email' => 'alarmmanager_email_transport', 'script' => 'alarmmanager_script_transport'];
 	$result = [];
 	foreach (['restapi', 'webhook', 'email', 'script', 'websocket'] as $type) {
 		if (isset($handlers[$type]) && is_callable($handlers[$type])) {
@@ -20,6 +21,8 @@ function alarmmanager_run_delivery(array $claim): bool {
 	if (!$handler) {
 		return alarmmanager_finish_delivery($claim, ['outcome' => 'retry', 'code' => 'adapter_unavailable']);
 	}
+	// A delayed/stale worker must not begin a new external effect with an expired lease.
+	if (!alarmmanager_db_row("SELECT id FROM plugin_alarmmanager_deliveries WHERE id = ? AND status = 'leased' AND lease_token = ? AND lease_until > DATE_ADD(UTC_TIMESTAMP(6), INTERVAL ? SECOND)", [$claim['id'], $claim['lease_token'], (int) $claim['endpoint']['timeout_seconds']])) { return false; }
 	$started = hrtime(true);
 	$previous_handler = null;
 	$previous_async = null;
@@ -39,8 +42,11 @@ function alarmmanager_run_delivery(array $claim): bool {
 		if (!is_array($result)) {
 			$result = ['outcome' => 'retry', 'code' => 'invalid_transport_result'];
 		}
+	} catch (InvalidArgumentException | JsonException $error) {
+		$result = ['outcome' => 'failure', 'code' => 'transport_config_invalid'];
 	} catch (Throwable $error) {
 		$result = ['outcome' => 'retry', 'code' => $error instanceof RuntimeException && $error->getMessage() === 'transport_timeout' ? 'transport_timeout' : 'transport_exception'];
+		if (str_starts_with($error->getMessage(), 'credential') || str_contains($error->getMessage(), 'credential key')) { $result = ['outcome' => 'failure', 'code' => 'credential_unavailable']; }
 	} finally {
 		if ($armed) {
 			pcntl_alarm(0);

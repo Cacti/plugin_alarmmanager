@@ -17,7 +17,7 @@ function db_fetch_cell_prepared($sql, $params = [], $column = '', $log = true) {
 	if (str_contains($sql, 'information_schema')) {
 		if (str_contains($sql, "TABLE_NAME = 'plugin_alarmmanager_credentials'")) { return $GLOBALS['alarmmanager_test_credentials'] > 0 ? 1 : 0; }
 		if (str_contains($sql, 'COLUMNS') || str_contains($sql, 'STATISTICS')) { return 1; }
-		return str_contains($sql, "ENGINE <> 'InnoDB'") ? 0 : 3;
+		return str_contains($sql, "ENGINE <> 'InnoDB'") ? 0 : (str_contains($sql, "plugin_alarmmanager_transports") ? 2 : 3);
 	}
 	if (str_contains($sql, 'COUNT(*) FROM plugin_alarmmanager_credentials')) {
 		return $GLOBALS['alarmmanager_test_credentials'];
@@ -46,7 +46,7 @@ function db_execute_prepared($sql, $params = [], $log = true) {
 		return true;
 	}
 	if (str_starts_with($sql, 'UPDATE plugin_alarmmanager_jobs')) { return true; }
-	if (str_starts_with($sql, 'UPDATE plugin_alarmmanager_schema')) { $GLOBALS['alarmmanager_test_schema'] = 2; return true; }
+	if (str_starts_with($sql, 'UPDATE plugin_alarmmanager_schema')) { $GLOBALS['alarmmanager_test_schema'] = str_contains($sql, 'version = 3') ? 3 : max(2, $GLOBALS['alarmmanager_test_schema']); return true; }
 	if (str_starts_with($sql, 'UPDATE plugin_alarmmanager_events')) { return true; }
 	if (str_starts_with($sql, 'UPDATE plugin_config')) {
 		$GLOBALS['alarmmanager_test_version'] = $params[0];

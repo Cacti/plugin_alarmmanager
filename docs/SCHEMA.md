@@ -1,6 +1,6 @@
-# Schema v2
+# Schema v3
 
-Install/upgrade creates indexed InnoDB tables directly through prepared Cacti DB helpers, then records schema version 2. CREATE IF NOT EXISTS is repeatable; engine checks refuse non-transactional existing tables. No external migration runner or runtime dependency download is needed. Later schema revisions need explicit forward migrations; this version does not repair arbitrarily malformed preexisting tables.
+Install/upgrade creates indexed InnoDB tables directly through prepared Cacti DB helpers, then records schema version 3. CREATE IF NOT EXISTS is repeatable; engine checks refuse non-transactional existing tables. No external migration runner or runtime dependency download is needed. Later schema revisions need explicit forward migrations; this version does not repair arbitrarily malformed preexisting tables.
 
 | Table | Purpose | Key indexes |
 | --- | --- | --- |
@@ -32,3 +32,7 @@ Host-crash durability also depends on the database/storage configuration: use in
 | workers | Local worker heartbeat and current-job diagnostics |
 
 Events gain stream_key; jobs gain lease token/expiry, attempts, priority, error and update timestamps. Migration backfills stream hashes, adds named indexes idempotently and stamps v2 only after successful completion. The schema row also stores configuration revision. Versions newer than this implementation are refused. MariaDB >=10.11 is required for the qualified SKIP LOCKED claim path; MySQL and older MariaDB are refused. Upgrades preserve the setup key and event history. Endpoint/profile/rule IDs omitted from replacement configuration are disabled rather than deleted.
+
+## Version 3 additions
+
+plugin_alarmmanager_credentials stores endpoint_id, authenticated ciphertext and updated_at. plugin_alarmmanager_transports stores the endpoint's non-secret bounded definition. Direct InnoDB DDL preserves uninstall behavior; neither table is registered for destructive framework cleanup. Forward migration retains v2 routing/state/history and the existing setup key, then stamps v3 only when both new tables use InnoDB. Repeated migrations do not replace keys or credential records. Older code refuses this newer schema; rollback requires stopping workers, retaining a protected matching key/database backup and restoring a compatible code/database pair. Do not reset the version stamp to disguise an unsupported downgrade.

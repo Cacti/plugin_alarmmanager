@@ -20,3 +20,11 @@
 - Preserve processing stream order across retries and terminal processing failures; isolate blocked streams. Allow later recovery after terminal destination failure.
 - Use mode-separated observation state and immutable configuration revision snapshots for reviewable routing outcomes.
 - Force offline/local Cacti CLI bootstrap and spawn fresh PHP worker processes; local endpoint limits apply to one queue database, not all pollers. Leave production handlers empty until phase 5.
+
+## Phase 5 additions
+
+- Follow servcheck's encrypted JSON/settings_user ownership pattern with plugin-specific setup keys, versioned AES-256-GCM and endpoint-bound additional authenticated data. Do not use servcheck's CBC/lazy timestamp-key behavior.
+- Credentials are separate from configuration/history/previews; explicit local CLI backup/rotation/restore provisions matching keys and records. No automatic cross-poller secret replication.
+- Trust self-signed/private-CA certificates through an endpoint ca_bundle PEM path while retaining certificate/hostname checks. Refuse redirects, ambient proxies/netrc and credential-bearing URL/HTTP configurations.
+- Encode mapping payloads structurally with typed conversions and bounded safe field names. Endpoint current transport/credential resolution at attempt time is explicit; original routing revisions remain in decisions.
+- Use Cacti's existing mailer in a deadline-controlled fresh offline child; preserve its recipient/HTML/attachment contract. Scripts receive structured argv/stdin and a filtered environment, with bounded output and ordinary descendant group cleanup.

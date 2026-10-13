@@ -26,7 +26,7 @@ Always initialize status to unhandled. Cacti returns the original parameter if n
 | accepted | This event/mode and its processing job committed durably | Centralized mode hands off delivery; observe does not |
 | already_accepted | Same event/mode/payload already committed; job is not reopened | Same ownership semantics as accepted |
 
-On confirmed centralized acceptance, later delivery failure belongs to Alarm Manager retry policy. Do not independently send from the source. A lost commit acknowledgment may return failed even if the database committed; stable event IDs allow retry to resolve it. Exact-once external effects cannot be guaranteed without endpoint idempotency. Because production transport adapters are not implemented yet, **do not enable centralized delivery in production with this build**.
+On confirmed centralized acceptance, later delivery failure belongs to Alarm Manager retry policy. Do not independently send from the source. A lost commit acknowledgment may return failed even if the database committed; stable event IDs allow retry to resolve it. Exact-once external effects cannot be guaranteed without endpoint idempotency. Because opt-in producer integrations and complete deployment qualification remain pending, **do not enable centralized delivery in production with this build**.
 
 ## Event fields
 
@@ -62,7 +62,7 @@ Each row records UTC occurred/received times and processing_poller_id from the l
 
 Ingestion uses an InnoDB transaction containing event insertion and job insertion. A uniqueness constraint and locking current read resolve concurrent retries; a random insertion token distinguishes the winning insert from duplicates without relying on connection-specific affected-row settings. Completed jobs remain completed on retry. Producers must invoke outside their own transaction; an already active transaction is refused without committing/rolling it back. If source state and ingestion need an atomic boundary, design a producer outbox rather than treating an uncommitted nested write as durable acceptance.
 
-Remote ingestion uses the local DB. Local routing and queue processing are implemented with offline Cacti CLI bootstrap. Production transports, configuration/key provisioning and central history reconciliation remain pending qualification/implementation. Reconciliation must preserve original identity and remotely completed delivery ownership instead of redispatching these rows.
+Remote ingestion uses the local DB. Local routing and queue processing are implemented with offline Cacti CLI bootstrap. HTTP/email/script adapters and explicit configuration/key provisioning are implemented; full Cacti remote qualification and central history reconciliation remain pending. Reconciliation must preserve original identity and remotely completed delivery ownership instead of redispatching these rows.
 
 ## CLI fixture
 

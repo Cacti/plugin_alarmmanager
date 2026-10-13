@@ -62,9 +62,11 @@ function alarmmanager_schema_install(): bool {
 		ON DUPLICATE KEY UPDATE version = GREATEST(version, VALUES(version))', [], false);
 	if (!$base) { return false; }
 	require_once(__DIR__ . '/schema_runtime.php');
-	return alarmmanager_schema_runtime();
+	if (!alarmmanager_schema_runtime()) { return false; }
+	require_once(__DIR__ . '/schema_delivery.php');
+	return alarmmanager_schema_delivery();
 }
 
 function alarmmanager_schema_ready(): bool {
-	return (int) db_fetch_cell_prepared('SELECT version FROM plugin_alarmmanager_schema WHERE id = 1', [], '', false) === 2;
+	return (int) db_fetch_cell_prepared('SELECT version FROM plugin_alarmmanager_schema WHERE id = 1', [], '', false) === 3;
 }

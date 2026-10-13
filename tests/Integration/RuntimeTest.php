@@ -227,7 +227,7 @@ try {
 	alarmmanager_finish_delivery($fast, ['outcome' => 'success', 'code' => 'ok']);
 	$GLOBALS['alarmmanager_transport_handlers'] = [];
 	$metrics = alarmmanager_metrics();
-	am_check(isset($metrics['queues']['processing'], $metrics['queues']['delivery']) && $metrics['blocked_destination_types'], 'Queue health/adapter status missing.');
+	am_check(isset($metrics['queues']['processing'], $metrics['queues']['delivery']) && !$metrics['blocked_destination_types'], 'Queue health/adapter status missing.');
 	alarmmanager_db_write('UPDATE plugin_config SET status = 4');
 	am_check(alarmmanager_claim_processing() === null && alarmmanager_claim_delivery(['webhook']) === null, 'Disable allowed new claims.');
 	alarmmanager_db_write('UPDATE plugin_config SET status = 1');

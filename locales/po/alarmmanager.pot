@@ -1,6 +1,6 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: Alarm Manager 0.4.0\n"
+"Project-Id-Version: Alarm Manager 0.5.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 
 msgid "Alarm Manager"
@@ -9,5 +9,5 @@ msgstr ""
 msgid "Alarm Manager View"
 msgstr ""
 
-msgid "Development build: alarm processing and worker queues are available; notification transports are not implemented yet."
+msgid "Development build: alarm processing, worker queues and delivery adapters are available. Administration UI and producer integrations are pending."
 msgstr ""

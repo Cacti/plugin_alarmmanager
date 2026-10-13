@@ -1,0 +1,152 @@
+{
+  "version": 1,
+  "endpoints": [
+    {
+      "id": 1,
+      "name": "REST API",
+      "type": "restapi",
+      "max_concurrency": 2,
+      "max_attempts": 5,
+      "transport": {
+        "url": "https://api1.example.test/v1/alarms",
+        "method": "POST",
+        "credential": true,
+        "ca_bundle": "/etc/cacti/alarmmanager/internal-ca.pem",
+        "mapping": {
+          "default": [
+            {
+              "to": "hostname",
+              "source": "device.id",
+              "type": "string",
+              "required": true
+            },
+            {
+              "to": "alarm.summary",
+              "source": "alarm.summary"
+            },
+            {
+              "to": "alarm.severity",
+              "source": "alarm.severity"
+            },
+            {
+              "to": "alarm.status",
+              "source": "alarm.transition"
+            }
+          ],
+          "recovered": [
+            {
+              "to": "hostname",
+              "source": "device.id",
+              "type": "string",
+              "required": true
+            },
+            {
+              "to": "alarm.summary",
+              "source": "alarm.summary"
+            },
+            {
+              "to": "alarm.severity",
+              "source": "alarm.severity"
+            },
+            {
+              "to": "alarm.status",
+              "constant": "resolved"
+            }
+          ]
+        },
+        "success_codes": [
+          200,
+          201,
+          202,
+          204
+        ]
+      }
+    },
+    {
+      "id": 2,
+      "name": "Webhook",
+      "type": "webhook",
+      "max_concurrency": 2,
+      "max_attempts": 5,
+      "transport": {
+        "url": "https://api2.example.test/v1/alarms",
+        "method": "POST",
+        "credential": true,
+        "ca_bundle": "/etc/cacti/alarmmanager/internal-ca.pem",
+        "mapping": {
+          "default": [
+            {
+              "to": "host",
+              "source": "device.id",
+              "type": "string",
+              "required": true
+            },
+            {
+              "to": "alarm.summary",
+              "source": "alarm.summary"
+            },
+            {
+              "to": "alarm.severity",
+              "source": "alarm.severity"
+            },
+            {
+              "to": "alarm.status",
+              "source": "alarm.transition"
+            }
+          ],
+          "recovered": [
+            {
+              "to": "host",
+              "source": "device.id",
+              "type": "string",
+              "required": true
+            },
+            {
+              "to": "alarm.summary",
+              "source": "alarm.summary"
+            },
+            {
+              "to": "alarm.severity",
+              "source": "alarm.severity"
+            },
+            {
+              "to": "alarm.status",
+              "constant": "resolved"
+            }
+          ]
+        },
+        "success_codes": [
+          200,
+          201,
+          202,
+          204
+        ]
+      }
+    }
+  ],
+  "profiles": [
+    {
+      "id": 1,
+      "name": "Both destinations",
+      "endpoints": [
+        1,
+        2
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "id": 1,
+      "name": "All events",
+      "priority": 100,
+      "profile_id": 1,
+      "stop": true,
+      "policy": {
+        "match": {},
+        "suppress_acknowledged": true,
+        "cooldown_seconds": 0,
+        "duplicate_seconds": 0
+      }
+    }
+  ]
+}
