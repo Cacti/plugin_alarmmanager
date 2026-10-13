@@ -2,7 +2,7 @@
 
 Cacti plugin under development for alarm lifecycle/history, routing to multiple destinations and independent remote-poller processing. Detection remains in Cacti, thold and syslog. Legacy notifications remain unchanged until explicitly opted in.
 
-**Current state:** phase 6 development build (0.6.0). Durable ingestion feeds ordered episode/state processing, routing and independent destination queues. Bounded workers now deliver through REST API, webhook, Cacti email and controlled scripts. Endpoint-specific mappings and authenticated encrypted credentials support setup-key backup/rotation and explicit local-poller provisioning. Cacti pages now provide a syslog-style operational dashboard, permission-scoped logs and protected configuration/credential/test/replay actions. Producer integrations and remote reconciliation remain later work. Do not hand off production notification ownership before those integrations and qualification are complete.
+**Current state:** development build 0.8.0. Durable ingestion feeds ordered episode/state processing, routing and independent destination queues. Bounded workers deliver through REST API, webhook, Cacti email and controlled scripts. Endpoint-specific mappings and authenticated encrypted credentials support setup-key backup/rotation and explicit local-poller provisioning. Cacti pages provide a syslog-style operational dashboard, permission-scoped logs and protected configuration/credential/test/replay actions. Opt-in thold/syslog producer integrations and remote collector reconciliation ship with revision-pinned patches. WebSocket delivery and outage policies (spec phase 9) and the release package (spec phase 10) are not built; the remaining verification gaps are itemized in [SPEC_AUDIT](docs/SPEC_AUDIT.md). Do not hand off production notification ownership before qualification is complete.
 
 Primary source target: pinned Cacti 1.2.x with 1.2.32 version metadata; PHP >=8.2 with OpenSSL. Initial local checks use PHP 8.3.6. This build requires MariaDB >=10.11/InnoDB; MySQL is refused pending qualification. CLI workers require pcntl and posix; HTTP needs cURL; email/scripts require Linux /usr/bin/setsid. Cacti supplies its own local PHPMailer. See [discovery](docs/DISCOVERY.md) for exact revisions and limitations.
 
@@ -14,20 +14,26 @@ Disable Cacti DEBUG_SQL_FLOW tracing before installation or enablement: core tra
 
 ## Local verification
 
-```
-find . -name '*.php' -print0 | xargs -0 -n1 php -l
-php tests/Unit/Plugin/SetupTest.php
-php tests/Unit/Ingestion/ContractTest.php
-php tests/Unit/Lifecycle/LifecycleTest.php
-php tests/Unit/Plugin/SupervisorTest.php
-php tests/Unit/Delivery/MappingCredentialTest.php
+Tests are PHPUnit/Pest based; they run through a sibling Cacti checkout's
+`include/vendor/bin/*` (the plugin intentionally ships no composer.json). See
+[CLAUDE.md](CLAUDE.md) for the exact commands, the phpstan
+working-directory/CACTI_PATH requirements and the optional MariaDB-backed
+integration lane:
+
+```sh
+QA=<cacti-checkout>/include/vendor/bin
+$QA/pest -c phpunit.xml                                     # unit lane
+find . -name '*.php' -not -path './tests/*' -exec php -l {} \;
 ```
 
-The standalone setup test uses in-memory framework/database doubles. It does not require Composer, containers, Node.js or a live database. It verifies key length/strict decoding, persistence, failed storage, lifecycle readiness and absence of automatic producer interception. The explicitly invoked ingestion hook is registered; producers remain unchanged. Do not load its bootstrap into a running Cacti installation.
+The unit lane uses in-memory framework/database doubles and does not require
+Composer in this repository, containers, Node.js or a live database. The
+DB-backed integration lane (web pages, deliveries, remote synchronization) is
+DSN-gated and skips without a dedicated loopback-only test database.
 
 See the [event contract](docs/EVENT_CONTRACT.md) and [schema](docs/SCHEMA.md) for acceptance/duplicate/observation semantics and CLI usage.
 
-See [test setup](docs/TEST_SETUP.md), [implementation plan](docs/IMPLEMENTATION_PLAN.md), [decisions](docs/DECISIONS.md), [progress](docs/PROGRESS.md) and [focused prompts](alarmmanager-build-prompts.md). Dependencies/assets must be local and licensed; no CDN or runtime package download is permitted. REST API and webhook destinations have independent transports, mappings, credentials, jobs and retries. [Delivery configuration](docs/DELIVERY.md) includes self-signed certificate/private-CA support through endpoint ca_bundle files, preview and explicit worker-owned test sends. See [lifecycle/routing](docs/LIFECYCLE_ROUTING.md), [workers](docs/WORKERS.md) and [fixture benchmark](docs/benchmarks/README.md).
+See [test setup](docs/TEST_SETUP.md), [implementation plan](docs/IMPLEMENTATION_PLAN.md), [decisions](docs/DECISIONS.md), [progress](docs/PROGRESS.md), [spec audit](docs/SPEC_AUDIT.md) and [focused prompts](docs/BUILD_PROMPTS.md). Dependencies/assets must be local and licensed; no CDN or runtime package download is permitted. REST API and webhook destinations have independent transports, mappings, credentials, jobs and retries. [Delivery configuration](docs/DELIVERY.md) includes self-signed certificate/private-CA support through endpoint ca_bundle files, preview and explicit worker-owned test sends. See [lifecycle/routing](docs/LIFECYCLE_ROUTING.md), [workers](docs/WORKERS.md) and [fixture benchmark](docs/benchmarks/README.md).
 
 GPL-2.0-or-later. See LICENSE and [attribution](NOTICE.md).
 
