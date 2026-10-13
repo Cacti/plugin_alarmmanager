@@ -12,3 +12,11 @@
 9. Contract v1 uses explicit status in a functional hook envelope. Event uniqueness includes mode so observation cannot own delivery. Normalized payload conflicts fail closed. Persist episode and monotonic stream sequence; state application is phase 3.
 10. Ingestion refuses an already active producer transaction. Atomic event plus job commit is required before acceptance. Direct DDL keeps history outside Cacti plugin_db_changes destructive cleanup; no purge action exists yet.
 11. Setup guards lost keys over future encrypted credential records. Key/ingestion paths refuse SQL flow tracing because core can dump returned values.
+
+## Phases 3–4 additions
+
+- Require MariaDB >=10.11 for the qualified SKIP LOCKED queue path; refuse MySQL until a separate lane is qualified.
+- Fence claims and completion with random lease tokens and expiry; perform external calls outside transactions. Queue retries and receiver idempotency address separate failure boundaries.
+- Preserve processing stream order across retries and terminal processing failures; isolate blocked streams. Allow later recovery after terminal destination failure.
+- Use mode-separated observation state and immutable configuration revision snapshots for reviewable routing outcomes.
+- Force offline/local Cacti CLI bootstrap and spawn fresh PHP worker processes; local endpoint limits apply to one queue database, not all pollers. Leave production handlers empty until phase 5.

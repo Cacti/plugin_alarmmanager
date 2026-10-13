@@ -35,3 +35,11 @@ Validation actually run on PHP 8.3.6:
 Remaining qualification: full Cacti lifecycle/hook dispatch/browser permissions, PHP 8.2, MySQL, remote bootstrap/replication, daemon crash durability/ordering and endpoint delivery. No external delivery guarantees or production capacity are claimed. Core source no-handler semantics were inspected, not exercised through a running Cacti installation.
 
 Next phase: apply episodes and ordered state, build routing/suppression and idempotent per-destination delivery jobs (REST API plus webhook fan-out), keeping observe jobs non-dispatchable.
+
+## Phases 3–4 — 2026-10-13 UTC
+
+Implemented version 0.4.0: schema v2 migration; ordered stream/episode state; acknowledgment-aware suppression; bounded versioned routing configuration and history; immutable decisions; independent per-endpoint delivery jobs; fenced queue leases, retries and attempts; local offline CLI bootstrap; fresh-process supervisor, reload and graceful shutdown; diagnostics and lab service example. Production adapters remain phase 5; no external messages were sent. Upstream producer code is unchanged.
+
+Final verification after recovering the disconnected workspace: all PHP syntax checks passed; 22 setup, 30 event contract, 26 lifecycle/routing and 11 supervisor checks passed. Real MariaDB checks: 30 ingestion (including eight competing submitters), 61 lifecycle/queue (including configuration history, actual worker termination, stale fencing, independent retries, deadline, graceful completion, concurrency, aging, deadlock retry and failed-stream isolation). These database tests use Cacti-compatible PDO adapters, not a full Cacti bootstrap. The captured 2,000-event/4,000-job fixture benchmark is documented in benchmarks/README.md.
+
+Remaining qualification: full Cacti installation/upgrade/browser behavior, PHP 8.2 execution, live remote main-server outage and local configuration provisioning, production transports and endpoint idempotency, MySQL compatibility and reconciliation without redispatch. Main outage infrastructure is implemented locally; complete autonomous remote delivery is not yet demonstrated. Next phase: real transport/mapping and encrypted credential adapters with setup-key backup/rotation/provisioning.

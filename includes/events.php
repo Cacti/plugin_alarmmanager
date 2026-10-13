@@ -82,7 +82,7 @@ function alarmmanager_validate_event(array $event): array {
 		'description' => alarmmanager_event_text($device['description'] ?? '', 512),
 		'tags' => alarmmanager_event_tags($device['tags'] ?? [])
 	];
-	alarmmanager_event_keys($context, ['rule_name', 'rule_type', 'metric', 'metric_value', 'threshold', 'source_suppressed', 'suppression_reason', 'source_notification_channels']);
+	alarmmanager_event_keys($context, ['rule_name', 'rule_type', 'metric', 'metric_value', 'threshold', 'source_suppressed', 'suppression_reason', 'source_notification_channels', 'routing_profile_id']);
 	$safe_context = [];
 	foreach (['rule_name', 'rule_type', 'metric', 'metric_value', 'threshold', 'suppression_reason'] as $field) {
 		if (array_key_exists($field, $context)) {
@@ -97,6 +97,12 @@ function alarmmanager_validate_event(array $event): array {
 	}
 	if (array_key_exists('source_notification_channels', $context)) {
 		$safe_context['source_notification_channels'] = alarmmanager_event_tags($context['source_notification_channels']);
+	}
+	if (array_key_exists('routing_profile_id', $context)) {
+		if (!is_int($context['routing_profile_id']) || $context['routing_profile_id'] < 1 || $context['routing_profile_id'] > 2147483647) {
+			throw new InvalidArgumentException('Invalid routing profile.');
+		}
+		$safe_context['routing_profile_id'] = $context['routing_profile_id'];
 	}
 	return [
 		'event_id' => alarmmanager_event_token($event['event_id'] ?? null, 128),

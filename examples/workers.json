@@ -1,0 +1,8 @@
+{
+  "processing_workers": 2,
+  "delivery_workers": 4,
+  "lease_seconds": 180,
+  "idle_ms": 250,
+  "shutdown_seconds": 180,
+  "respawn_base_ms": 1000
+}

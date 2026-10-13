@@ -6,8 +6,8 @@ Read this file, DECISIONS.md and PROGRESS.md before each phase. The detailed acc
 | --- | --- | --- |
 | 1 | Pinned discovery, metadata/lifecycle skeleton, setup key, docs | Local syntax/setup checks; live install qualification pending |
 | 2 | Event envelope, indexed InnoDB schema, durable idempotent ingestion | Implemented; 30 real MariaDB checks plus offline validation pass; full Cacti/MySQL/remote qualification pending |
-| 3 | Episodes, routing, suppression, multiple destinations | Independent per-endpoint jobs, duplicate rule selection and ordering tests |
-| 4 | Supervisor and bounded local workers on main and remote | DB lease/fencing, crash/retry/fairness/shutdown and offline processing tests |
+| 3 | Episodes, routing, suppression, multiple destinations | Implemented; lifecycle, suppression, fan-out and ordering tests pass; live Cacti qualification pending |
+| 4 | Supervisor and bounded local workers on main and remote | Implemented; real DB lease/fencing, crash/retry/fairness/shutdown tests pass; full remote Cacti outage qualification pending |
 | 5 | REST API/webhook/email/script mappings and credentials | Authenticated encryption, backup/rotation, remote key provisioning, per-endpoint fan-out/retry evidence |
 | 6 | Management UI and adapted syslog dashboard | Realms/CSRF, browser theme/accessibility/network/query checks |
 | 7 | Separate opt-in thold/syslog patches | Legacy parity, acceptance ownership and source-state preservation |

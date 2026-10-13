@@ -33,7 +33,7 @@ $changes = [
 	['occurred_at', '0999-10-13T03:00:00Z'], ['occurred_at', '2026-10-13 03:00:00'], ['occurred_at', '2026-10-13T03:00:00+14:01'],
 	['device', ['hostname' => 'lab', 'snmp_community' => 'secret']],
 	['device', ['id' => '42']], ['device', ['tags' => array_fill(0, 33, 'tag')]],
-	['context', ['password' => 'secret']], ['context', ['source_suppressed' => 'yes']], ['raw_host', []]
+	['context', ['routing_profile_id' => '1']], ['context', ['password' => 'secret']], ['context', ['source_suppressed' => 'yes']], ['raw_host', []]
 ];
 foreach ($changes as [$field, $value]) {
 	$event = $sample;

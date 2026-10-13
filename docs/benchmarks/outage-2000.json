@@ -1,0 +1,80 @@
+{
+    "synthetic_only": true,
+    "php": "8.3.6",
+    "database": "10.11.14-MariaDB-0ubuntu0.24.04.1",
+    "events": 2000,
+    "destinations_per_event": 2,
+    "ingestion_seconds": 0.9859189987182617,
+    "ingestion_events_per_second": 2028.5642153159524,
+    "processing": {
+        "elapsed_seconds": 5.213139057159424,
+        "workers": [
+            {
+                "jobs": 497,
+                "database_queries": 17379,
+                "database_error_codes": {
+                    "1213": 1
+                },
+                "peak_memory_bytes": 2097152
+            },
+            {
+                "jobs": 499,
+                "database_queries": 17378,
+                "database_error_codes": [],
+                "peak_memory_bytes": 2097152
+            },
+            {
+                "jobs": 511,
+                "database_queries": 17834,
+                "database_error_codes": [],
+                "peak_memory_bytes": 2097152
+            },
+            {
+                "jobs": 493,
+                "database_queries": 17180,
+                "database_error_codes": [],
+                "peak_memory_bytes": 2097152
+            }
+        ]
+    },
+    "processing_events_per_second": 383.6460102197573,
+    "delivery": {
+        "elapsed_seconds": 13.432260036468506,
+        "workers": [
+            {
+                "jobs": 1026,
+                "database_queries": 30325,
+                "database_error_codes": [],
+                "peak_memory_bytes": 2097152
+            },
+            {
+                "jobs": 982,
+                "database_queries": 29449,
+                "database_error_codes": [],
+                "peak_memory_bytes": 2097152
+            },
+            {
+                "jobs": 981,
+                "database_queries": 29503,
+                "database_error_codes": [],
+                "peak_memory_bytes": 2097152
+            },
+            {
+                "jobs": 1011,
+                "database_queries": 29683,
+                "database_error_codes": [],
+                "peak_memory_bytes": 2097152
+            }
+        ]
+    },
+    "delivery_jobs_per_second": 297.79054225722433,
+    "innodb_row_lock_waits": 375,
+    "innodb_row_lock_time_ms": 32,
+    "parent_peak_memory_bytes": 2097152,
+    "event_count": 2000,
+    "completed_processing_jobs": 2000,
+    "completed_delivery_jobs": 4000,
+    "attempts": 4000,
+    "processing_retries": 0,
+    "oldest_remaining_age_seconds": 0
+}

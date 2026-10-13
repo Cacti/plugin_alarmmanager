@@ -26,7 +26,7 @@ Always initialize status to unhandled. Cacti returns the original parameter if n
 | accepted | This event/mode and its processing job committed durably | Centralized mode hands off delivery; observe does not |
 | already_accepted | Same event/mode/payload already committed; job is not reopened | Same ownership semantics as accepted |
 
-On confirmed centralized acceptance, later delivery failure belongs to Alarm Manager retry policy. Do not independently send from the source. A lost commit acknowledgment may return failed even if the database committed; stable event IDs allow retry to resolve it. Exact-once external effects cannot be guaranteed without endpoint idempotency. Because workers/transports do not exist yet, **do not enable centralized delivery in production with this build**.
+On confirmed centralized acceptance, later delivery failure belongs to Alarm Manager retry policy. Do not independently send from the source. A lost commit acknowledgment may return failed even if the database committed; stable event IDs allow retry to resolve it. Exact-once external effects cannot be guaranteed without endpoint idempotency. Because production transport adapters are not implemented yet, **do not enable centralized delivery in production with this build**.
 
 ## Event fields
 
@@ -50,19 +50,19 @@ See ../examples/event.json for a complete JSON fixture. Strings are UTF-8; IDs a
 | device | Optional safe metadata: integer id, hostname (255 bytes), description (512 bytes), tags |
 | context | Optional allowlisted source context below |
 
-Device IDs may be absent; raw host records are rejected. Tags/channels are lists of at most 32 strings of up to 128 bytes, sorted and deduplicated for stable hashing. Context permits rule_name, rule_type, metric, metric_value, threshold, suppression_reason (strings up to 512 bytes), source_suppressed (boolean), and source_notification_channels (bounded string list). Metric/threshold values are strings in v1 to preserve formatting/precision. Unknown event/device/context fields are rejected. Producers must not put credentials in summary/details/context. Total encoded normalized payload limit: 32768 bytes; no truncation.
+Device IDs may be absent; raw host records are rejected. Tags/channels are lists of at most 32 strings of up to 128 bytes, sorted and deduplicated for stable hashing. Context permits rule_name, rule_type, metric, metric_value, threshold, suppression_reason (strings up to 512 bytes), source_suppressed (boolean), source_notification_channels (bounded string list), and optional routing_profile_id (positive integer). Metric/threshold values are strings in v1 to preserve formatting/precision. Unknown event/device/context fields are rejected. Producers must not put credentials in summary/details/context. Total encoded normalized payload limit: 32768 bytes; no truncation.
 
-Episode/sequence information is persisted now. Stale-state rejection and occurrence-versus-active-condition behaviour are phase 3 responsibilities; ingestion itself does not change current alarm state.
+Episode/sequence information is persisted now. Workers now apply stale-state rejection and occurrence-versus-active-condition behaviour; ingestion itself does not change current alarm state.
 
 ## Durable identity, observation and local ownership
 
 Unique identity is (source, source_instance, event_id, mode). The stored SHA-256 is over the normalized event JSON. An identical retry returns already_accepted; changed data under the same identity returns failed/event_identity_conflict. Observation and centralized submissions deliberately occupy separate rows/jobs. Observing an event therefore cannot consume later centralized delivery ownership. Reporting must distinguish modes to avoid counting the same observed/centralized event twice.
 
-Each row records UTC occurred/received times and processing_poller_id from the local Cacti configuration, separately from original collector_id. Each mode gets one pending *processing* job. Observation jobs must be evaluated without creating dispatchable delivery jobs; this invariant must be implemented in phases 3-4. No destinations, processing daemon or delivery jobs exist in phase 2. Nothing calls an external endpoint during ingestion.
+Each row records UTC occurred/received times and processing_poller_id from the local Cacti configuration, separately from original collector_id. Each mode gets one pending *processing* job. Observation jobs evaluate shadow state and record decisions without creating dispatchable delivery jobs. Centralized jobs route to independent destination jobs. Nothing calls an external endpoint during ingestion.
 
 Ingestion uses an InnoDB transaction containing event insertion and job insertion. A uniqueness constraint and locking current read resolve concurrent retries; a random insertion token distinguishes the winning insert from duplicates without relying on connection-specific affected-row settings. Completed jobs remain completed on retry. Producers must invoke outside their own transaction; an already active transaction is refused without committing/rolling it back. If source state and ingestion need an atomic boundary, design a producer outbox rather than treating an uncommitted nested write as durable acceptance.
 
-Remote ingestion uses the local DB. Autonomous routing/delivery, configuration/key provisioning and central history reconciliation are not implemented yet. Reconciliation must preserve original identity and remotely completed delivery ownership instead of redispatching these rows.
+Remote ingestion uses the local DB. Local routing and queue processing are implemented with offline Cacti CLI bootstrap. Production transports, configuration/key provisioning and central history reconciliation remain pending qualification/implementation. Reconciliation must preserve original identity and remotely completed delivery ownership instead of redispatching these rows.
 
 ## CLI fixture
 

@@ -13,14 +13,17 @@ $GLOBALS['alarmmanager_test_credentials'] = 0;
 $GLOBALS['alarmmanager_test_version'] = '0.1.0';
 
 function db_fetch_cell_prepared($sql, $params = [], $column = '', $log = true) {
+	if ($sql === 'SELECT VERSION()') { return '10.11.14-MariaDB'; }
 	if (str_contains($sql, 'information_schema')) {
-		return str_contains($sql, "TABLE_NAME = 'plugin_alarmmanager_credentials'") ? ($GLOBALS['alarmmanager_test_credentials'] > 0 ? 1 : 0) : 3;
+		if (str_contains($sql, "TABLE_NAME = 'plugin_alarmmanager_credentials'")) { return $GLOBALS['alarmmanager_test_credentials'] > 0 ? 1 : 0; }
+		if (str_contains($sql, 'COLUMNS') || str_contains($sql, 'STATISTICS')) { return 1; }
+		return str_contains($sql, "ENGINE <> 'InnoDB'") ? 0 : 3;
 	}
 	if (str_contains($sql, 'COUNT(*) FROM plugin_alarmmanager_credentials')) {
 		return $GLOBALS['alarmmanager_test_credentials'];
 	}
 	if (str_contains($sql, 'plugin_alarmmanager_schema')) {
-		return $GLOBALS['alarmmanager_test_schema'] ? 1 : false;
+		return $GLOBALS['alarmmanager_test_schema'] ?: false;
 	}
 	if (str_contains($sql, 'SELECT version FROM plugin_config')) {
 		return $GLOBALS['alarmmanager_test_version'];
@@ -39,9 +42,12 @@ function db_execute_prepared($sql, $params = [], $log = true) {
 		return true;
 	}
 	if (str_contains($sql, 'INSERT INTO plugin_alarmmanager_schema')) {
-		$GLOBALS['alarmmanager_test_schema'] = true;
+		$GLOBALS['alarmmanager_test_schema'] = 1;
 		return true;
 	}
+	if (str_starts_with($sql, 'UPDATE plugin_alarmmanager_jobs')) { return true; }
+	if (str_starts_with($sql, 'UPDATE plugin_alarmmanager_schema')) { $GLOBALS['alarmmanager_test_schema'] = 2; return true; }
+	if (str_starts_with($sql, 'UPDATE plugin_alarmmanager_events')) { return true; }
 	if (str_starts_with($sql, 'UPDATE plugin_config')) {
 		$GLOBALS['alarmmanager_test_version'] = $params[0];
 		return true;

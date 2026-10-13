@@ -28,6 +28,8 @@ try {
 	exit(2);
 }
 // cli_check.php bootstraps Cacti's local poller configuration and DB helpers.
+// Force Cacti's documented local/offline bootstrap: never wait for the main DB.
+$conn_mode = 'offline';
 require_once(__DIR__ . '/../../../include/cli_check.php');
 $envelope = ['contract_version' => 1, 'mode' => $mode, 'status' => 'unhandled', 'event' => $event];
 $result = api_plugin_hook_function('alarmmanager_submit', $envelope);

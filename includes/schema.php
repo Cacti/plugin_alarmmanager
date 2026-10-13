@@ -3,6 +3,10 @@
 
 /** Direct DDL avoids Cacti's destructive plugin_db_changes registry. */
 function alarmmanager_schema_install(): bool {
+	$database_version = db_fetch_cell_prepared('SELECT VERSION()', [], '', false);
+	if (!is_string($database_version) || stripos($database_version, 'MariaDB') === false) { return false; }
+	$database_version = str_starts_with($database_version, '5.5.5-') ? substr($database_version, 6) : $database_version;
+	if (!preg_match('/\A(\d+\.\d+\.\d+)/', $database_version, $match) || version_compare($match[1], '10.11.0', '<')) { return false; }
 	$statements = [
 		'CREATE TABLE IF NOT EXISTS plugin_alarmmanager_schema (id TINYINT UNSIGNED NOT NULL PRIMARY KEY, version INT UNSIGNED NOT NULL) ENGINE=InnoDB',
 		"CREATE TABLE IF NOT EXISTS plugin_alarmmanager_events (
@@ -54,10 +58,13 @@ function alarmmanager_schema_install(): bool {
 	if ((int) $engines !== 3) {
 		return false;
 	}
-	return (bool) db_execute_prepared('INSERT INTO plugin_alarmmanager_schema (id, version) VALUES (1, 1)
+	$base = (bool) db_execute_prepared('INSERT INTO plugin_alarmmanager_schema (id, version) VALUES (1, 1)
 		ON DUPLICATE KEY UPDATE version = GREATEST(version, VALUES(version))', [], false);
+	if (!$base) { return false; }
+	require_once(__DIR__ . '/schema_runtime.php');
+	return alarmmanager_schema_runtime();
 }
 
 function alarmmanager_schema_ready(): bool {
-	return (int) db_fetch_cell_prepared('SELECT version FROM plugin_alarmmanager_schema WHERE id = 1', [], '', false) === 1;
+	return (int) db_fetch_cell_prepared('SELECT version FROM plugin_alarmmanager_schema WHERE id = 1', [], '', false) === 2;
 }

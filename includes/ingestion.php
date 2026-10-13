@@ -1,6 +1,7 @@
 <?php
 // SPDX-License-Identifier: GPL-2.0-or-later
 require_once(__DIR__ . '/events.php');
+require_once(__DIR__ . '/runtime.php');
 
 /** Functional hook: preserve the caller's envelope and explicitly signal ownership. */
 function alarmmanager_submit($envelope) {
@@ -52,14 +53,14 @@ function alarmmanager_submit($envelope) {
 		$sql = 'INSERT INTO plugin_alarmmanager_events
 			(contract_version, event_id, source, source_instance, resource_id, alarm_key,
 			episode_id, sequence, transition, severity, occurred_at, received_at,
-			collector_id, processing_poller_id, mode, payload, payload_hash, ingestion_token)
-			VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(6), ?, ?, ?, ?, ?, ?)
+			collector_id, processing_poller_id, mode, payload, payload_hash, ingestion_token, stream_key)
+			VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(6), ?, ?, ?, ?, ?, ?, ?)
 			ON DUPLICATE KEY UPDATE id = id';
 		if (!db_execute_prepared($sql, [
 			$event['event_id'], $event['source'], $event['source_instance'], $event['resource_id'],
 			$event['alarm_key'], $event['episode_id'], $event['sequence'], $event['transition'],
 			$event['severity'], str_replace(['T', 'Z'], [' ', ''], $event['occurred_at']),
-			$event['collector_id'], $poller_id, $envelope['mode'], $payload, $hash, $token
+			$event['collector_id'], $poller_id, $envelope['mode'], $payload, $hash, $token, alarmmanager_stream_key($event, $envelope['mode'])
 		], false)) {
 			throw new RuntimeException('Cannot persist event.');
 		}
@@ -73,8 +74,8 @@ function alarmmanager_submit($envelope) {
 		}
 		$id = (int) $row['id'];
 		// A retry may find a job already completed; do not reopen or reschedule it.
-		if (!db_execute_prepared('INSERT INTO plugin_alarmmanager_jobs (event_row_id, available_at, created_at)
-			VALUES (?, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)) ON DUPLICATE KEY UPDATE event_row_id = event_row_id', [$id], false)) {
+		if (!db_execute_prepared('INSERT INTO plugin_alarmmanager_jobs (event_row_id, available_at, created_at, updated_at, priority)
+			VALUES (?, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6), UTC_TIMESTAMP(6), ?) ON DUPLICATE KEY UPDATE event_row_id = event_row_id', [$id, match ($event['severity']) { 'critical' => 3, 'major' => 2, 'warning', 'minor' => 1, default => 0 }], false)) {
 			throw new RuntimeException('Cannot persist processing job.');
 		}
 		if (!db_execute_prepared('COMMIT', [], false)) {
