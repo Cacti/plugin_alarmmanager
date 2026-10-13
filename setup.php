@@ -66,25 +66,19 @@ function plugin_alarmmanager_upgrade(): bool {
 }
 
 function alarmmanager_registration_setup(bool $enable = false): bool {
-	// Cacti registration helpers return void on success. Verify persisted metadata.
-	foreach (['config_arrays' => ['alarmmanager_config_arrays', 'setup.php'], 'draw_navigation_text' => ['alarmmanager_draw_navigation_text', 'setup.php'], 'alarmmanager_submit' => ['alarmmanager_submit', 'includes/ingestion.php']] as $hook => [$callback, $file]) {
+	// Cacti registration helpers return void: register everything, then verify
+	// the persisted metadata once instead of after every individual call.
+	foreach ([['config_arrays', 'alarmmanager_config_arrays', 'setup.php'], ['draw_navigation_text', 'alarmmanager_draw_navigation_text', 'setup.php'], ['alarmmanager_submit', 'alarmmanager_submit', 'includes/ingestion.php']] as [$hook, $callback, $file]) {
 		api_plugin_register_hook('alarmmanager', $hook, $callback, $file, $enable);
-		$count = db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_hooks WHERE name = ? AND hook = ? AND `function` = ? AND file = ?', ['alarmmanager', $hook, $callback, $file], '', false);
-
-		if ((int) $count !== 1) {
-			return false;
-		}
 	}
 
-	foreach (['alarmmanager.php' => 'Alarm Manager View', 'alarmmanager_admin.php' => 'Alarm Manager Administration'] as $file => $label) {
-		api_plugin_register_realm('alarmmanager', $file, __($label, 'alarmmanager'), 1);
+	api_plugin_register_realm('alarmmanager', 'alarmmanager.php', __('Alarm Manager View', 'alarmmanager'), 1);
+	api_plugin_register_realm('alarmmanager', 'alarmmanager_admin.php', __('Alarm Manager Administration', 'alarmmanager'), 1);
 
-		if ((int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_realms WHERE plugin = ? AND file = ?', ['alarmmanager', $file], '', false) !== 1) {
-			return false;
-		}
-	}
+	$hooks  = (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_hooks WHERE name = ?', ['alarmmanager'], '', false);
+	$realms = (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_realms WHERE plugin = ?', ['alarmmanager'], '', false);
 
-	return true;
+	return $hooks === 3 && $realms === 2;
 }
 
 function plugin_alarmmanager_uninstall(): void {
@@ -95,10 +89,6 @@ function plugin_alarmmanager_uninstall(): void {
 function alarmmanager_config_arrays(): void {
 	global $menu;
 	$menu[__('Management')]['plugins/alarmmanager/alarmmanager.php'] = __('Alarm Manager', 'alarmmanager');
-
-	if (in_array(get_current_page(), ['index.php', 'plugins.php', 'alarmmanager.php'], true)) {
-		plugin_alarmmanager_check_config();
-	}
 }
 
 function alarmmanager_draw_navigation_text($navigation): array {

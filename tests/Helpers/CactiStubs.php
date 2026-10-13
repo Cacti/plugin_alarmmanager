@@ -52,11 +52,11 @@ if (!function_exists('db_fetch_cell_prepared')) {
 		}
 
 		if (str_contains($sql, 'COUNT(*) FROM plugin_hooks')) {
-			return in_array($params[1], $GLOBALS['alarmmanager_test_hooks'], true) ? 1 : 0;
+			return count(array_unique($GLOBALS['alarmmanager_test_hooks']));
 		}
 
 		if (str_contains($sql, 'COUNT(*) FROM plugin_realms')) {
-			return in_array($params[1], $GLOBALS['alarmmanager_test_realms'], true) ? 1 : 0;
+			return count(array_unique($GLOBALS['alarmmanager_test_realms']));
 		}
 
 		if ($sql === 'SELECT VERSION()') {
