@@ -95,3 +95,9 @@ Remaining qualification: full installed Cacti/thold device scheduler/bootstrap/r
 Aligned shared PHP placement with plugin_thold: moved the exception definitions into includes/exceptions.php, removed the plugin-local lib/ tree, and updated the runtime require path. Namespaces and exception behavior are unchanged. README, implementation guidance and decisions now specify the flat includes/ convention for future runtime code.
 
 Validation: all 81 plugin/test PHP files pass syntax checks; 116 existing setup/contract/lifecycle/mapping-credential assertions pass; a direct runtime smoke check loads and classifies both ordinary and transient storage exceptions through the new path. No remaining PHP reference targets lib/AlarmManager. This is a layout correction with no schema or feature-version change.
+
+## CLI layout correction — 2026-10-13 UTC
+
+Reviewed all eleven cli/ scripts: each was CLI-only, but mail_child.php was an internal stdin-driven worker subprocess rather than an administrator command. Moved it to includes/mail_child.php, updated its transport caller and mailer fixture, and documented that cli/ is reserved for the ten directly runnable administrator/worker entry points.
+
+Validation: all ten remaining CLI commands return --help successfully without Cacti bootstrap; the three changed PHP files pass syntax. A fresh subprocess smoke check through the actual email transport verifies the new path, offline bootstrap, native-mail argument forwarding and parent deadline using a mailer double. The full pinned Cacti SMTP fixture failed its delivery assertion in this runtime (mbstring is unavailable); full SMTP behavior is not requalified by this layout check.

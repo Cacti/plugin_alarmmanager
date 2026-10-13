@@ -44,3 +44,5 @@ Version 0.8.0/schema v6 adds separate pinned Cacti/thold device patches, explici
 ## Plugin layout
 
 Shared runtime PHP lives in flat lowercase files under `includes/`, following `plugin_thold`. Plugin metadata, setup and web entry points live at the root; assets use `css/`, `js/` and `locales/`. Development, integration and deployment resources remain in their dedicated folders. New runtime modules must use `includes/` rather than adding a plugin-local `lib/` hierarchy.
+
+`cli/` is reserved for supported command-line entry points: configuration, credentials, endpoint preview/test, producer recovery, remote synchronization, local setup, status, event submission, supervisor and workers. Each provides `--help` and rejects web execution. Internal subprocess helpers, including the email child process, live under `includes/` with the runtime code that invokes them.

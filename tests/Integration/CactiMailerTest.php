@@ -8,8 +8,8 @@ $checks = 0;
 function cmcheck(bool $condition, string $label): void { global $checks; if (!$condition) { throw new RuntimeException($label); } $checks++; }
 function db_fetch_assoc_prepared($sql, $params = [], $log = true) { return [['definition' => json_encode($GLOBALS['mail_transport_definition'], JSON_THROW_ON_ERROR)]]; }
 $tmp = sys_get_temp_dir() . '/alarmmanager-cacti-mail-' . bin2hex(random_bytes(6));
-mkdir($tmp, 0700); mkdir($tmp . '/include'); mkdir($tmp . '/plugins'); mkdir($tmp . '/plugins/alarmmanager'); mkdir($tmp . '/plugins/alarmmanager/cli'); mkdir($tmp . '/plugins/alarmmanager/includes');
-copy(__DIR__ . '/../../cli/mail_child.php', $tmp . '/plugins/alarmmanager/cli/mail_child.php');
+mkdir($tmp, 0700); mkdir($tmp . '/include'); mkdir($tmp . '/plugins'); mkdir($tmp . '/plugins/alarmmanager'); mkdir($tmp . '/plugins/alarmmanager/includes');
+copy(__DIR__ . '/../../includes/mail_child.php', $tmp . '/plugins/alarmmanager/includes/mail_child.php');
 copy(__DIR__ . '/../../includes/email_boundary.php', $tmp . '/plugins/alarmmanager/includes/email_boundary.php');
 $server = proc_open(['python3', __DIR__ . '/../fixtures/smtp_server.py', $tmp . '/message.json'], [0 => ['file', '/dev/null', 'r'], 1 => ['pipe', 'w'], 2 => ['file', '/dev/null', 'w']], $pipes);
 try {

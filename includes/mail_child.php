@@ -1,5 +1,6 @@
 <?php
 // SPDX-License-Identifier: GPL-2.0-or-later
+// Internal email worker subprocess; not an administrator command.
 if (PHP_SAPI !== 'cli') { http_response_code(403); exit; }
 try {
 	$input = stream_get_contents(STDIN, 1048577);
@@ -8,6 +9,6 @@ try {
 	if (!is_array($message)) { throw new RuntimeException('mail_input_invalid'); }
 	$conn_mode = 'offline';
 	require_once(__DIR__ . '/../../../include/cli_check.php');
-	require_once(__DIR__ . '/../includes/email_boundary.php');
+	require_once(__DIR__ . '/email_boundary.php');
 	print json_encode(alarmmanager_email_send($message), JSON_THROW_ON_ERROR);
 } catch (Throwable $error) { print '{"outcome":"retry","code":"email_failed"}'; exit(1); }

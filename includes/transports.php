@@ -76,7 +76,7 @@ function alarmmanager_email_transport(array $event, array $endpoint, string $ide
 	$message = ['to' => $settings['to'], 'from' => $settings['from'], 'subject' => $payload->subject, 'body' => $payload->body, 'attachments' => $settings['attachments'], 'html' => $settings['html'], 'idempotency' => $idempotency];
 	$command = [PHP_BINARY];
 	if (php_ini_loaded_file() !== false) { $command = [...$command, '-c', php_ini_loaded_file()]; }
-	$command[] = $config['base_path'] . '/plugins/alarmmanager/cli/mail_child.php';
+	$command[] = $config['base_path'] . '/plugins/alarmmanager/includes/mail_child.php';
 	$result = alarmmanager_transport_process($command, json_encode($message, JSON_THROW_ON_ERROR), (int) $endpoint['timeout_seconds']);
 	if ($result['code'] !== 'exited') { return ['outcome' => $result['code'] === 'timeout' ? 'retry' : 'failure', 'code' => 'email_' . $result['code']]; }
 	try { $response = json_decode($result['stdout'], true, 4, JSON_THROW_ON_ERROR); } catch (Throwable $error) { return ['outcome' => 'retry', 'code' => 'email_child_failed']; }
