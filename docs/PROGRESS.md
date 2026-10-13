@@ -101,3 +101,8 @@ Validation: all 81 plugin/test PHP files pass syntax checks; 116 existing setup/
 Reviewed all eleven cli/ scripts: each was CLI-only, but mail_child.php was an internal stdin-driven worker subprocess rather than an administrator command. Moved it to includes/mail_child.php, updated its transport caller and mailer fixture, and documented that cli/ is reserved for the ten directly runnable administrator/worker entry points.
 
 Validation: all ten remaining CLI commands return --help successfully without Cacti bootstrap; the three changed PHP files pass syntax. A fresh subprocess smoke check through the actual email transport verifies the new path, offline bootstrap, native-mail argument forwarding and parent deadline using a mailer double. The full pinned Cacti SMTP fixture failed its delivery assertion in this runtime (mbstring is unavailable); full SMTP behavior is not requalified by this layout check.
+## Cacti standards phase 0 — 2026-10-13 UTC
+
+Greenfield standards conformance pass approved (php-cs-fixer --fix, full PHPUnit port, full Cacti-helpers UI rewrite, no composer.json per plugin_thold tooling convention). Layout hygiene: added index.php directory guards to all 23 directories per Plugin-Reference, moved the build-prompt transcript to docs/BUILD_PROMPTS.md, restored NOTICE.md attribution, added CHANGELOG.md, kept the INFO compat line at 1.2.29 to match the pinned discovery target.
+
+Validation: git status clean of unexplained artifacts after commit; every added guard passes php -l. No PHP runtime changes.
