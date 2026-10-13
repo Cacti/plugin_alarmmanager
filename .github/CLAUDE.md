@@ -38,11 +38,13 @@ read `docs/PROGRESS.md`. The authoritative Cacti PHP style contract lives in
 - Errors and operational events are reported through `alarmmanager_log()` in
   `includes/runtime.php` (`cacti_log('[alarmmanager] …', false,
   'alarmmanager')`). The supervisor parent process (`includes/supervisor.php`,
-  `cli/supervisor.php`) never bootstraps Cacti — keep it stderr-only.
+  `alarmmanager_daemon.php`) never bootstraps Cacti — keep it stderr-only.
 - All user-visible strings are wrapped in `__()`/`__esc()`. After string
   changes run `locales/build_gettext.sh` so `locales/po/alarmmanager.pot`
   stays fresh (CI fails on a stale pot).
-- One ASCII GPL license box header per file, copyright `Sean Mancini`.
+- One ASCII GPL license box header per file, copyright `The Cacti Group`
+  (the standard Cacti header used by thold/syslog — same style on PHP,
+  shell and workflow files). Never re-introduce per-file copyright drift.
 
 ## Quality gates — run before every commit
 

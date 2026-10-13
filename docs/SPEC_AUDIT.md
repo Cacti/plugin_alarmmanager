@@ -68,7 +68,7 @@ Evidence markers:
   for overlapping rules, suppression reasons recorded per decision —
   includes/routing.php + Integration RuntimeTest/Lifecycle tests.
 - VERIFIED: observation mode previews without dispatchable jobs.
-- VERIFIED: config revision snapshots/lock for stale UI writes (schema_ui,
+- VERIFIED: config revision snapshots/lock for stale UI writes (includes/schema.php,
   admin actions).
 - NOT VERIFIED: timezone handling under non-UTC session timezones in a live
   UI (code is UTC-based; no lab run).
@@ -76,7 +76,7 @@ Evidence markers:
 ## Prompt 4 — multi-process daemon and queue recovery
 
 - VERIFIED (code): supervisor + worker pools (includes/supervisor.php,
-  includes/workers.php, cli/supervisor.php, cli/worker.php), fresh PHP worker
+  includes/workers.php, alarmmanager_daemon.php, cli/worker.php), fresh PHP worker
   processes with their own connections, systemd examples shipped
   (docs/WORKERS.md).
 - VERIFIED (code): SKIP LOCKED atomic batch claiming, ownership tokens,

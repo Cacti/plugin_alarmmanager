@@ -67,8 +67,7 @@ Run the sender on a schedule on each collector; it is a bounded batch that exits
 * * * * * cacti /usr/bin/php /var/www/html/cacti/plugins/alarmmanager/cli/remote.php --send --limit=100
 ```
 
-A systemd pair ships as `service/alarmmanager-sync-sender.service` plus `service/alarmmanager-sync-sender.timer`; systemd will not start a second activation of the oneshot service while the previous run is still active. Use cron or the timer, not both.
-```
+The bounded batch exits after one pass, so a per-minute cron entry cannot overlap harmfully beyond a still-running previous batch (the queue is bounded and idempotent); cron is the only scheduler shipped for the sender.
 
 The receiver is main-only, POST-only and HMAC-authenticated, independent of browser permissions. HTTPS peer/hostname verification is always enabled; private/self-signed certificates require a trust file, not disabling verification. Requests cannot redirect. Peer keys are random 32-byte secrets stored only in owner-private files; run HTTP receiver and sender under an account that can securely read its key. Key paths are metadata, never keys in database/output. Rotate by provisioning matching new files and peer records on both ends; pending packets remain available for retry.
 

@@ -1,7 +1,7 @@
 <?php
 /*
  +-------------------------------------------------------------------------+
- | Copyright (C) 2004-2026 Sean Mancini                                    |
+ | Copyright (C) 2004-2026 The Cacti Group                                 |
  |                                                                         |
  | This program is free software; you can redistribute it and/or           |
  | modify it under the terms of the GNU General Public License             |
@@ -13,9 +13,12 @@
  | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           |
  | GNU General Public License for more details.                            |
  +-------------------------------------------------------------------------+
- | Alarm Manager: centralized alarm history, routing and delivery for Cacti |
+ | Cacti: The Complete RRDTool-based Graphing Solution                     |
  +-------------------------------------------------------------------------+
- | https://github.com/bmfmancini/plugin_alarmmanager                       |
+ | This code is designed, written, and maintained by the Cacti Group. See  |
+ | about.php and/or the AUTHORS file for specific developer information.   |
+ +-------------------------------------------------------------------------+
+ | http://www.cacti.net/                                                   |
  +-------------------------------------------------------------------------+
 */
 if (PHP_SAPI !== 'cli') {
@@ -25,7 +28,7 @@ if (PHP_SAPI !== 'cli') {
 $options = getopt('', ['config:', 'help']);
 
 if (isset($options['help'])) {
-	print "Usage: php cli/supervisor.php [--config=/etc/cacti/alarmmanager-workers.json]\n";
+	print "Usage: php alarmmanager_daemon.php [--config=/etc/cacti/alarmmanager-workers.json]\n";
 	exit;
 }
 
@@ -33,7 +36,7 @@ if (isset($options['config']) && !is_string($options['config'])) {
 	fwrite(STDERR, "Invalid configuration path.\n");
 	exit(2);
 }
-require_once(__DIR__ . '/../includes/supervisor.php');
+require_once(__DIR__ . '/includes/supervisor.php');
 
 try {
 	alarmmanager_supervise($options['config'] ?? null);

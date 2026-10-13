@@ -1,5 +1,5 @@
 [Unit]
-Description=Cacti Alarm Manager worker supervisor
+Description=Cacti Alarm Manager daemon (processing and delivery workers)
 After=network.target mariadb.service
 
 [Service]
@@ -7,7 +7,7 @@ Type=simple
 User=cacti
 Group=cacti
 WorkingDirectory=/var/www/html/cacti/plugins/alarmmanager
-ExecStart=/usr/bin/php cli/supervisor.php --config=/etc/cacti/alarmmanager-workers.json
+ExecStart=/usr/bin/php alarmmanager_daemon.php --config=/etc/cacti/alarmmanager-workers.json
 ExecReload=/bin/kill -HUP $MAINPID
 Restart=on-failure
 RestartSec=5

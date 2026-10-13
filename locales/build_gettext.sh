@@ -1,6 +1,6 @@
 #!/bin/sh
 #+-------------------------------------------------------------------------+
-#| Copyright (C) 2004-2026 Sean Mancini                                    |
+#| Copyright (C) 2004-2026 The Cacti Group                                 |
 #|                                                                         |
 #| This program is free software; you can redistribute it and/or           |
 #| modify it under the terms of the GNU General Public License             |
@@ -12,9 +12,12 @@
 #| MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           |
 #| GNU General Public License for more details.                            |
 #+-------------------------------------------------------------------------+
-#| Alarm Manager: centralized alarm history, routing and delivery for Cacti |
+#| Cacti: The Complete RRDTool-based Graphing Solution                     |
 #+-------------------------------------------------------------------------+
-#| https://github.com/bmfmancini/plugin_alarmmanager                       |
+#| This code is designed, written, and maintained by the Cacti Group. See  |
+#| about.php and/or the AUTHORS file for specific developer information.   |
+#+-------------------------------------------------------------------------+
+#| http://www.cacti.net/                                                   |
 #+-------------------------------------------------------------------------+
 
 # get script name
@@ -47,7 +50,7 @@ fi
 echo "Updating Alarm Manager gettext language file..."
 cd ${BASE_PATH}
 
-${XGETTEXT_BIN} --no-wrap --from-code=UTF-8 --copyright-holder="Sean Mancini" --package-name="Alarm Manager" --package-version=`grep -E '^version' INFO | cut -d= -f2 | tr -d ' '` --msgid-bugs-address="https://github.com/bmfmancini/plugin_alarmmanager/issues" -F -k__gettext -k__ -k__n:1,2 -k__x:1c,2 -k__xn:1c,2,3 -k__esc -k__esc_n:1,2 -k__esc_x:1c,2 -k__esc_xn:1c,2,3 -k__date -o locales/po/alarmmanager.pot `find . -maxdepth 2 -name \*.php ! -path './tests/*'`
+${XGETTEXT_BIN} --no-wrap --from-code=UTF-8 --copyright-holder="The Cacti Group" --package-name="Alarm Manager" --package-version=`grep -E '^version' INFO | cut -d= -f2 | tr -d ' '` --msgid-bugs-address="https://github.com/bmfmancini/plugin_alarmmanager/issues" -F -k__gettext -k__ -k__n:1,2 -k__x:1c,2 -k__xn:1c,2,3 -k__esc -k__esc_n:1,2 -k__esc_x:1c,2 -k__esc_xn:1c,2,3 -k__date -o locales/po/alarmmanager.pot `find . -maxdepth 2 -name \*.php ! -path './tests/*'`
 
 sed -i 's|FULL NAME <EMAIL@ADDRESS>|Alarm Manager Developers <https://github.com/bmfmancini/plugin_alarmmanager>|g' locales/po/alarmmanager.pot
 sed -i 's|LANGUAGE <LL@li.org>|Alarm Manager Developers <https://github.com/bmfmancini/plugin_alarmmanager>|g' locales/po/alarmmanager.pot

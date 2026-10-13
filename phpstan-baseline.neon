@@ -811,18 +811,6 @@ parameters:
 			path: includes/runtime.php
 
 		-
-			message: '#^Function alarmmanager_accept_producer_receipt\(\) has parameter \$envelope with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: includes/schema_producers.php
-
-		-
-			message: '#^Function alarmmanager_accept_producer_receipt\(\) has parameter \$event with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: includes/schema_producers.php
-
-		-
 			message: '#^Function alarmmanager_supervisor_options\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1

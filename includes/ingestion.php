@@ -1,7 +1,7 @@
 <?php
 /*
  +-------------------------------------------------------------------------+
- | Copyright (C) 2004-2026 Sean Mancini                                    |
+ | Copyright (C) 2004-2026 The Cacti Group                                 |
  |                                                                         |
  | This program is free software; you can redistribute it and/or           |
  | modify it under the terms of the GNU General Public License             |
@@ -13,14 +13,16 @@
  | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           |
  | GNU General Public License for more details.                            |
  +-------------------------------------------------------------------------+
- | Alarm Manager: centralized alarm history, routing and delivery for Cacti |
+ | Cacti: The Complete RRDTool-based Graphing Solution                     |
  +-------------------------------------------------------------------------+
- | https://github.com/bmfmancini/plugin_alarmmanager                       |
+ | This code is designed, written, and maintained by the Cacti Group. See  |
+ | about.php and/or the AUTHORS file for specific developer information.   |
+ +-------------------------------------------------------------------------+
+ | http://www.cacti.net/                                                   |
  +-------------------------------------------------------------------------+
 */
 require_once(__DIR__ . '/events.php');
 require_once(__DIR__ . '/runtime.php');
-require_once(__DIR__ . '/schema_producers.php');
 require_once(__DIR__ . '/device.php');
 
 /** Functional hook: preserve the caller's envelope and explicitly signal ownership. */
@@ -159,4 +161,34 @@ function alarmmanager_persist_event(array $event, string $mode, int $poller_id, 
 	alarmmanager_accept_producer_receipt($envelope, $event, $id);
 
 	return ['status' => hash_equals($token, (string) $row['ingestion_token']) ? 'accepted' : 'already_accepted', 'event_row_id' => $id];
+}
+/**
+ * Called inside the ingestion transaction: acceptance and producer ownership
+ * commit together.
+ *
+ * @param array<string, mixed> $envelope
+ * @param array<string, mixed> $event
+ */
+function alarmmanager_accept_producer_receipt(array $envelope, array $event, int $id): void {
+	if (!isset($envelope['producer_receipt'])) {
+		return;
+	}
+	$receipt = $envelope['producer_receipt'];
+
+	if (!is_string($receipt) || !preg_match('/\A[a-f0-9]{64}\z/D', $receipt)) {
+		throw new InvalidArgumentException('invalid_producer_receipt');
+	}
+	$row = alarmmanager_db_row('SELECT status, stream_key, envelope FROM plugin_alarmmanager_producer_receipts WHERE receipt = ? FOR UPDATE', [$receipt]);
+
+	if (!$row || !in_array($row['status'], ['pending', 'accepted', 'observed'], true)) {
+		throw new RuntimeException('producer_receipt_unavailable');
+	}
+	$saved = json_decode($row['envelope'], true, 32, JSON_THROW_ON_ERROR);
+
+	if (($saved['mode'] ?? null) !== $envelope['mode'] || alarmmanager_validate_event($saved['event']) !== $event) {
+		throw new InvalidArgumentException('producer_receipt_conflict');
+	}
+	alarmmanager_db_write('UPDATE plugin_alarmmanager_producer_receipts SET status = ?, event_row_id = ?, updated_at = UTC_TIMESTAMP(6) WHERE receipt = ?', [$envelope['mode'] === 'centralized' ? 'accepted' : 'observed', $id, $receipt]);
+	// Duplicate receipts cannot rewind newer source ordering.
+	alarmmanager_db_write('UPDATE plugin_alarmmanager_producer_streams SET active = ?, episode_id = ?, severity = ?, updated_at = UTC_TIMESTAMP(6) WHERE stream_key = ? AND sequence = ?', [$event['transition'] === 'recovered' || $event['transition'] === 'occurrence' ? 0 : 1, $event['episode_id'], $event['severity'], $row['stream_key'], $event['sequence']]);
 }

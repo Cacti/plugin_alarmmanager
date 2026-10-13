@@ -2,7 +2,7 @@
 
 Requirements: PHP >=8.2 with OpenSSL, pcntl and posix; MariaDB >=10.11/InnoDB. Tests used PHP 8.3.6 and MariaDB 10.11.14. MySQL is not qualified and setup refuses it. HTTP needs cURL; email/scripts require /usr/bin/setsid. Run only in an isolated Cacti lab until producer integration and full deployment qualification are complete.
 
-All database CLI entry points set Cacti conn_mode=offline before cli_check.php. They use the poller's local database and do not bootstrap a main-server database connection. The supervisor opens no database connection; it spawns fresh PHP children. Local HTTP delivery and separate-database credential provisioning have fixture coverage; a complete Cacti remote outage deployment and reconciliation remain unqualified.
+All database CLI entry points set Cacti conn_mode=offline before cli_check.php. They use the poller's local database and do not bootstrap a main-server database connection. The daemon (`alarmmanager_daemon.php`) opens no database connection; it spawns fresh PHP workers (`cli/worker.php`) and supervises them. Local HTTP delivery and separate-database credential provisioning have fixture coverage; a complete Cacti remote outage deployment and reconciliation remain unqualified.
 
 From the installed plugins/alarmmanager directory, after Cacti plugin installation:
 
@@ -10,12 +10,12 @@ From the installed plugins/alarmmanager directory, after Cacti plugin installati
 php cli/setup_local.php --local
 php cli/configure.php --file=examples/routing.json
 php cli/status.php
-php cli/supervisor.php --config=examples/workers.json
+php alarmmanager_daemon.php --config=examples/workers.json
 ```
 
 Local setup creates that poller's schema and random setup key; it preserves installed enabled/disabled status. Configuration must be provisioned to each local database. Encrypted credential save/backup/rotation/provisioning is described in CREDENTIALS.md; history reconciliation remains phase 8. Disabled plugins pause worker claims. Source collector identity is distinct from local processing owner.
 
-The default supervisor starts two processing and four delivery workers. Settings bound each pool to 64, processing minimum one; delivery may be zero. SIGTERM/SIGINT finish in-flight work within the shutdown budget, then forcibly terminate remaining children. SIGHUP validates replacement JSON and resizes/restarts pools; invalid reload keeps prior settings. Crashed workers restart with bounded exponential backoff. Adapt paths, account and configuration in service/alarmmanager.service before installation; its stop budget includes the default grace period.
+The default daemon starts two processing and four delivery workers. Settings bound each pool to 64, processing minimum one; delivery may be zero. SIGTERM/SIGINT finish in-flight work within the shutdown budget, then forcibly terminate remaining children. SIGHUP validates replacement JSON and resizes/restarts pools; invalid reload keeps prior settings. Crashed workers restart with bounded exponential backoff. Adapt paths, account and configuration in service/alarmmanager.service before installation; its stop budget includes the default grace period. This is the same single-daemon deployment shape as plugin_thold's `thold_daemon.service` — one service unit, the daemon owns every worker pool.
 
 For scheduled bounded execution:
 
@@ -24,7 +24,7 @@ php cli/worker.php --role=processing --once --max-jobs=100 --max-seconds=30
 php cli/worker.php --role=delivery --once --max-jobs=100 --max-seconds=30
 ```
 
-Installations that cannot run the resident supervisor schedule those two commands with cron or a systemd timer. Each run is bounded; it exits after its job/time budget. Cacti's crontab pattern applies (the poller user, full PHP path):
+Installations that cannot run the resident daemon schedule those two commands with cron. Each run is bounded; it exits after its job/time budget. Cacti's crontab pattern applies (the poller user, full PHP path):
 
 ```cron
 # /etc/cron.d/alarmmanager-workers — scheduled bounded mode
@@ -32,7 +32,7 @@ Installations that cannot run the resident supervisor schedule those two command
 * * * * * cacti /usr/bin/php /var/www/html/cacti/plugins/alarmmanager/cli/worker.php --role=delivery  --once --max-jobs=100 --max-seconds=30
 ```
 
-A systemd timer example equivalent to this supervisor deployment ships as `service/alarmmanager-worker.timer`, or use the cron entries above. Use either the supervisor or the scheduled mode on one poller, not both: the queue lease/fencing makes interleaved claims safe, but two pools only double idle wake-ups. `cli/status.php` prints the same local queue/worker metrics the Administration → Workers page renders (`alarmmanager_metrics()` in `includes/workers.php` is the single implementation for both).
+A single systemd unit ships as `service/alarmmanager.service`; it runs the daemon, which spawns and supervises all worker pools itself — no separate worker units or timers are needed. For scheduled bounded execution without the resident daemon, use the cron entries below. Use either the daemon or the scheduled mode on one poller, not both: the queue lease/fencing makes interleaved claims safe, but two pools only double idle wake-ups. `cli/status.php` prints the same local queue/worker metrics the Administration → Workers page renders (`alarmmanager_metrics()` in `includes/workers.php` is the single implementation for both).
 
 Time budgets are checked between jobs; in-flight work can extend to its configured deadline. Claims take row locks with SKIP LOCKED, commit immediately and use random lease tokens. Processing waits behind earlier pending, leased or terminally failed jobs in its stream. A failed processing predecessor blocks only that stream and needs operator repair; no repair UI is implemented. Destination retries preserve stream order, but a terminal delivery failure does not prevent a later recovery. Priority ages to prevent starvation.
 

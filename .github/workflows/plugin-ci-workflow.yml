@@ -1,5 +1,5 @@
 # +-------------------------------------------------------------------------+
-# | Copyright (C) 2004-2026 Sean Mancini                                    |
+# | Copyright (C) 2004-2026 The Cacti Group                                 |
 # |                                                                         |
 # | This program is free software; you can redistribute it and/or           |
 # | modify it under the terms of the GNU General Public License             |
@@ -11,9 +11,12 @@
 # | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           |
 # | GNU General Public License for more details.                            |
 # +-------------------------------------------------------------------------+
-# | Alarm Manager: centralized alarm history, routing and delivery for Cacti |
+# | Cacti: The Complete RRDTool-based Graphing Solution                     |
 # +-------------------------------------------------------------------------+
-# | https://github.com/bmfmancini/plugin_alarmmanager                       |
+# | This code is designed, written, and maintained by the Cacti Group. See  |
+# | about.php and/or the AUTHORS file for specific developer information.   |
+# +-------------------------------------------------------------------------+
+# | http://www.cacti.net/                                                   |
 # +-------------------------------------------------------------------------+
 
 name: Plugin Integration Tests
@@ -37,6 +40,12 @@ jobs:
       matrix:
         cacti: ['1.2.x', 'develop']
         php: ['8.2', '8.3', '8.4']
+        # Cacti develop's composer lock now requires PHP >= 8.3 (its
+        # include/vendor/composer/platform_check.php refuses 8.2), so the
+        # develop lane only runs on 8.3+. The pinned 1.2.x lane keeps 8.2.
+        exclude:
+          - cacti: 'develop'
+            php: '8.2'
 
     services:
       mariadb:
@@ -86,8 +95,10 @@ jobs:
     - name: Run apt-get update
       run: sudo apt-get update
 
+    # fping is required by Cacti's pre-install path check (cli/install_cacti.php
+    # refuses to continue without it), so the Cacti install step needs it present.
     - name: Install System Dependencies
-      run: sudo apt-get install -y rrdtool
+      run: sudo apt-get install -y fping rrdtool
 
     - name: Setup Permissions
       run: |
@@ -127,6 +138,20 @@ jobs:
         cd ${{ github.workspace }}/cacti
         composer install --no-progress
 
+    # Cacti 1.2.x's composer require-dev is empty, so include/vendor/bin/pest
+    # does not exist after a plain composer install. Install it the same way
+    # plugin_thold's CI does; on develop the binary already ships and the step
+    # is a no-op.
+    - name: Install Testing Dependencies
+      run: |
+        cd ${{ github.workspace }}/cacti
+        if [ ! -f include/vendor/bin/pest ]; then
+          composer config --no-plugins allow-plugins.pestphp/pest-plugin true
+          composer require --no-progress --no-interaction "pestphp/pest: ^3" "pestphp/pest-plugin-drift: ^3.0"
+          rm -f composer.lock
+          composer install --dev --no-progress
+        fi
+
     - name: Create Cacti config.php
       run: |
         cat ${{ github.workspace }}/cacti/include/config.php.dist | \
@@ -155,9 +180,10 @@ jobs:
     - name: Check the Plugin CLI Entry Points
       run: |
         cd ${{ github.workspace }}/cacti
-        for script in status worker supervisor remote submit_event credentials producers configure setup_local endpoint; do
+        for script in status worker remote submit_event credentials producers configure setup_local endpoint; do
           php -q plugins/alarmmanager/cli/$script.php --help >/dev/null || exit 1
         done
+        php -q plugins/alarmmanager/alarmmanager_daemon.php --help >/dev/null || exit 1
 
     - name: Run Cacti Poller
       run: |
