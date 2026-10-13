@@ -15,7 +15,7 @@ Read this file, DECISIONS.md and PROGRESS.md before each phase. The detailed acc
 | 9 | WebSocket and outage policies | Authorized replay/backpressure/receiver acknowledgment and bounded load |
 | 10 | Release/lab rollout qualification | Install/upgrade/retention/restart/outage exercise and honest feature matrix |
 
-Proposed modules: includes/ for Cacti boundaries, lib/AlarmManager/ for domain/queue/transport classes, cli/ for submitter/supervisor/admin tasks, css/ and js/ for local UI, docs/ for contracts/configuration, integrations/ for revision-pinned upstream patches, tests/Unit/ and tests/Integration/ for behaviour. Create these only when their implementation lands.
+Follow plugin_thold's layout for shared plugin PHP: use flat, lowercase files in includes/ for Cacti boundaries, domain logic, queues, transports and exception classes. Keep plugin entry pages, setup.php and INFO at the root; css/, js/ and locales/ hold their respective assets. Do not introduce a plugin-local lib/ or lib/AlarmManager/ tree. Alarm Manager's cli/, docs/, examples/, integrations/, service/ and tests/ directories group its existing command-line tools, documentation, fixtures and deployment assets; these are project-specific additions, not replacements for Cacti's plugin runtime layout. See docs/DECISIONS.md for the reference and layout decision.
 
 Open qualification work: actual lab PHP/database versions, MySQL lane, live plugin install/enable/disable/uninstall, remote settings/key provisioning policy, persistent tables outside destructive framework cleanup, safe event identity across collectors and user-visible delivery ownership configuration.
 

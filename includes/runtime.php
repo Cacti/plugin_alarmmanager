@@ -1,7 +1,7 @@
 <?php
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-require_once(__DIR__ . '/../lib/AlarmManager/Exceptions.php');
+require_once(__DIR__ . '/exceptions.php');
 function alarmmanager_storage_error(): RuntimeException {
 	global $database_last_error;
 	$message = (string) ($database_last_error ?? '');

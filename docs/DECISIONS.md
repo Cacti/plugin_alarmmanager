@@ -57,3 +57,8 @@
 - Archive signed local history separately from processing/delivery; keep exact pending packets until signed ACK. Lock outbox prefixes under READ COMMITTED and read revisions/data atomically to handle reverse transaction commit order.
 - Use TLS-verified HTTPS POST with HMAC peer/audience/domain binding. Cacti cacti_http supports GET and global insecure-TLS settings, so it is unsuitable for this authenticated POST boundary.
 - Expose remote archive only to administrators; retain the local dashboard semantics. Installed remote Cacti qualification and retention remain separate gates.
+
+
+## Plugin layout correction — 2026-10-13
+
+Use plugin_thold (reference revision 6bbfb58492b1e8ce2aeee4690659e54ceb4d1226) as the folder-layout reference. Shared PHP belongs in flat lowercase includes/ files, matching thold's includes/functions.php, database.php and polling.php organization. Move the exception classes from lib/AlarmManager/Exceptions.php to includes/exceptions.php and update the runtime loader; preserve their namespace and behavior. Keep setup.php, INFO and web entry points at the plugin root, with assets in their conventional folders. Future implementation phases must follow this layout rather than adding a separate plugin-local library tree. References to Cacti core's lib/ directory and third-party source paths are upstream integration paths, not directories to recreate inside this plugin.

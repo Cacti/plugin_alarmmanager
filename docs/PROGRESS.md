@@ -88,3 +88,10 @@ Verification on PHP 8.3.6/MariaDB 10.11.14: 93 PHP syntax checks across plugin/t
 The remote checks cover usable re-encrypted credentials, preservation of keys/UUIDs/queues, atomic host/queue rollback, one core/thold receipt, duplicate/stale/same-second transitions, leases/epoch handoff with no new jobs, expired-owner no-send, signed history/ACK replay, independent local fan-out during main outage and reconnect without resend. A concurrent reverse-commit-order test verifies lower outbox IDs are not skipped. The 40-transition fixture measured 1.79 ms median, 2.70 ms p95 and 16 helper queries per confirmed edge; baseline native write averaged 0.083 ms and PHP peak was 2 MiB. See benchmarks/device-transition.json and REMOTE_COLLECTORS.md.
 
 Remaining qualification: full installed Cacti/thold device scheduler/bootstrap/replication/upgrade and browser lane; deployment cron/accounts, actual remote disconnect/reconnect with source plugins; PHP 8.2; production capacity/receiver idempotency; MySQL. Ownership is autonomous within provisioned leases, requires bounded clocks and a 735-second post-expiry handoff margin, and cannot instantly revoke unreachable collectors. Last acknowledged history is required for reassignment; precommit source loss and non-idempotent side-effect ambiguity remain boundaries. Archive/outbox retention remains phase 10. Next phase: WebSocket and outage policies.
+
+
+## Plugin layout correction — 2026-10-13 UTC
+
+Aligned shared PHP placement with plugin_thold: moved the exception definitions into includes/exceptions.php, removed the plugin-local lib/ tree, and updated the runtime require path. Namespaces and exception behavior are unchanged. README, implementation guidance and decisions now specify the flat includes/ convention for future runtime code.
+
+Validation: all 81 plugin/test PHP files pass syntax checks; 116 existing setup/contract/lifecycle/mapping-credential assertions pass; a direct runtime smoke check loads and classifies both ordinary and transient storage exceptions through the new path. No remaining PHP reference targets lib/AlarmManager. This is a layout correction with no schema or feature-version change.

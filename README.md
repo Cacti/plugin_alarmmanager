@@ -39,3 +39,8 @@ Version 0.7.0 includes revision-pinned thold/syslog patches, durable notificatio
 ## Device ownership and remote collectors (phase 8)
 
 Version 0.8.0/schema v6 adds separate pinned Cacti/thold device patches, explicit leased device ownership, private remote configuration/credential provisioning and signed history reconciliation without redispatch. See [REMOTE_COLLECTORS.md](docs/REMOTE_COLLECTORS.md) for setup, lease renewal/reassignment, local delivery during main outage and fixture-versus-deployment qualification.
+
+
+## Plugin layout
+
+Shared runtime PHP lives in flat lowercase files under `includes/`, following `plugin_thold`. Plugin metadata, setup and web entry points live at the root; assets use `css/`, `js/` and `locales/`. Development, integration and deployment resources remain in their dedicated folders. New runtime modules must use `includes/` rather than adding a plugin-local `lib/` hierarchy.
