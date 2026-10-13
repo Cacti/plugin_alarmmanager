@@ -99,7 +99,7 @@ function alarmmanager_report_table(string $kind, array $result, array $scope, ar
 		print '<th scope="col">' . alarmmanager_label($key === 'attempts' ? 'Attempts in current retry cycle' : ucfirst(str_replace('_', ' ', $key))) . '</th>';
 	}
 
-if ($scope['admin'] && in_array($kind, ['conditions', 'deliveries', 'processing'], true)) {
+	if ($scope['admin'] && in_array($kind, ['conditions', 'deliveries', 'processing'], true)) {
 		print '<th scope="col">' . alarmmanager_label('Action') . '</th>';
 	} print '</tr></thead><tbody>';
 

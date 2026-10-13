@@ -199,12 +199,12 @@ if (!class_exists('AlarmManagerProducerBridge', false)) {
 					}
 					$sequence = (int) $state['sequence'] + 1;
 					$event    = ['event_id' => $receipt, 'source' => $source, 'source_instance' => 'cacti-poller-' . (int) ($config['poller_id'] ?? 1),
-						'resource_id'       => (string) $resource, 'alarm_key' => $source . ':' . $resource . ':' . ($input['stream_suffix'] ?? ''),
-						'episode_id'        => $episode, 'sequence' => $sequence, 'transition' => $kind, 'severity' => $input['severity'],
-						'occurred_at'       => $input['occurred_at'], 'collector_id' => (int) ($config['poller_id'] ?? 1),
-						'device'            => $input['device'], 'summary' => self::text($input['summary'], 512), 'details' => self::text($input['details'] ?? '', 16384),
-						'context'           => ['rule_name' => self::text($input['rule_name'] ?? $input['summary'], 512), 'rule_type' => $input['rule_type'] ?? $source,
-							'source_suppressed'                => $input['suppressed'] ?? false, 'suppression_reason' => $input['suppression_reason'] ?? '', 'source_notification_channels' => $settings['channels']]];
+						'resource_id'          => (string) $resource, 'alarm_key' => $source . ':' . $resource . ':' . ($input['stream_suffix'] ?? ''),
+						'episode_id'           => $episode, 'sequence' => $sequence, 'transition' => $kind, 'severity' => $input['severity'],
+						'occurred_at'          => $input['occurred_at'], 'collector_id' => (int) ($config['poller_id'] ?? 1),
+						'device'               => $input['device'], 'summary' => self::text($input['summary'], 512), 'details' => self::text($input['details'] ?? '', 16384),
+						'context'              => ['rule_name' => self::text($input['rule_name'] ?? $input['summary'], 512), 'rule_type' => $input['rule_type'] ?? $source,
+							'source_suppressed'                   => $input['suppressed'] ?? false, 'suppression_reason' => $input['suppression_reason'] ?? '', 'source_notification_channels' => $settings['channels']]];
 
 					if (isset($input['metric_value'])) {
 						$event['context']['metric_value'] = (string) $input['metric_value'];
@@ -251,7 +251,7 @@ if (!class_exists('AlarmManagerProducerBridge', false)) {
 							return self::decision($saved);
 						}
 
-return self::fallback($receipt);
+						return self::fallback($receipt);
 					} catch (Throwable $ignored) {
 						if (function_exists('cacti_log')) {
 							cacti_log('ERROR: Alarm Manager producer ownership is unknown; retry pending producer receipts after database recovery.', false, 'ALARMMANAGER');

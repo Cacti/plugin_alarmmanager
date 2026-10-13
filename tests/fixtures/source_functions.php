@@ -36,12 +36,12 @@ function alarmmanager_test_source_function(string $file, string $name): string {
 				$j++;
 			}
 
-if (is_array($tokens[$j]) && $tokens[$j][1] === $name) {
+			if (is_array($tokens[$j]) && $tokens[$j][1] === $name) {
 				$collect = true;
 			}
 		}
 
-if ($collect) {
+		if ($collect) {
 			$code .= is_array($token) ? $token[1] : $token;
 
 			if ($token === '{') {
@@ -49,7 +49,7 @@ if ($collect) {
 				$depth++;
 			}
 
-if ($token === '}') {
+			if ($token === '}') {
 				$depth--;
 
 				if ($opened && $depth === 0) {

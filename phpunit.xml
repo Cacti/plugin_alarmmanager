@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="../../include/vendor/phpunit/phpunit/phpunit.xsd"
+	bootstrap="tests/bootstrap-unit.php"
+	cacheDirectory=".phpunit.cache"
+	colors="true"
+	failOnWarning="true"
+	failOnNotice="true"
+	failOnDeprecation="true"
+	beStrictAboutOutputDuringTests="false">
+	<php>
+		<ini name="error_reporting" value="-1"/>
+		<env name="CACTI_TEST_BOOTSTRAP" value="1"/>
+	</php>
+	<testsuites>
+		<testsuite name="Plugin Alarmmanager">
+			<directory>./tests/Unit</directory>
+		</testsuite>
+	</testsuites>
+	<!--
+		Pest/PHPUnit reads this configuration through the supported Cacti
+		installation's Composer-managed vendor tree:
+		  <cacti>/include/vendor/bin/pest -c plugins/alarmmanager/phpunit.xml
+		Unit tests run against AlarmManager's guarded recording doubles in
+		tests/Helpers/CactiStubs.php and share no process with the
+		db-backed integration suite (phpunit-integration.xml). Fixture files
+		under tests/Fixtures are not test classes.
+	-->
+	<source>
+		<include>
+			<file>setup.php</file>
+			<directory>includes</directory>
+			<directory>integrations</directory>
+		</include>
+	</source>
+</phpunit>

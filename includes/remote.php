@@ -165,7 +165,7 @@ function alarmmanager_sync_export(int $limit = 100): ?string {
 						throw new RuntimeException('sync_record_limit');
 					}
 
-break;
+					break;
 				}
 				$packet     = $candidate;
 				$seen[$key] = true;
@@ -378,7 +378,7 @@ function alarmmanager_sync_send(int $limit = 100): bool {
 			alarmmanager_sync_acknowledge($reply);
 		}
 
-return true;
+		return true;
 	} finally {
 		pcntl_alarm(0);
 		pcntl_signal(SIGALRM, $previous_handler);

@@ -112,9 +112,9 @@ try {
 		[$table] = $entities[$entity];
 		$rows    = alarmmanager_db_rows('SELECT id FROM plugin_alarmmanager_' . $table . ' WHERE id > ? ORDER BY id LIMIT ' . $limit, [$after]);
 		alarmmanager_transaction(static function () use ($rows, $entity): void {
-		foreach ($rows as $row) {
-			alarmmanager_db_write('INSERT IGNORE INTO plugin_alarmmanager_sync_outbox (entity, entity_id, seed, created_at) VALUES (?, ?, 1, UTC_TIMESTAMP(6))', [$entity, $row['id']]);
-		}
+			foreach ($rows as $row) {
+				alarmmanager_db_write('INSERT IGNORE INTO plugin_alarmmanager_sync_outbox (entity, entity_id, seed, created_at) VALUES (?, ?, 1, UTC_TIMESTAMP(6))', [$entity, $row['id']]);
+			}
 		});
 		print json_encode(['seeded' => count($rows), 'after' => $rows ? (int) end($rows)['id'] : $after]) . "\n";
 	}

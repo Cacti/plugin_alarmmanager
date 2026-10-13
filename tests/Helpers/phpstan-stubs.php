@@ -47,6 +47,7 @@ $cacti_root = null;
 foreach ($candidate_roots as $candidate_root) {
 	if (is_file($candidate_root . '/include/global.php') && is_file($candidate_root . '/include/vendor/autoload.php')) {
 		$cacti_root = $candidate_root;
+
 		break;
 	}
 }

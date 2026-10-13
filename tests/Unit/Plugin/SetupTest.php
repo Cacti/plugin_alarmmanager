@@ -18,91 +18,131 @@
  | https://github.com/bmfmancini/plugin_alarmmanager                       |
  +-------------------------------------------------------------------------+
 */
-if (PHP_SAPI !== 'cli') {
-	http_response_code(403);
-	exit;
-}
-require_once(__DIR__ . '/../../bootstrap.php');
-require_once(__DIR__ . '/../../../setup.php');
 
-$checks = 0;
-function alarmmanager_test_assert(bool $result, string $message): void {
-	global $checks;
+final class SetupTest extends AlarmManagerTestCase {
+	public function testKeyLifecycleAndRegistration(): void {
+		self::alarmmanager_test_load('setup.php');
 
-	if (!$result) {
-		throw new RuntimeException($message);
+		$this->assertTrue(plugin_alarmmanager_install(), 'Installation failed.');
+		$key = $GLOBALS['alarmmanager_test_store']['1:alarmmanager_key'];
+		$this->assertSame(32, strlen(alarmmanager_decode_key($key)), 'Key length must be 256 bits.');
+		$this->assertTrue(plugin_alarmmanager_install(), 'Repeat install failed.');
+		$this->assertSame($key, $GLOBALS['alarmmanager_test_store']['1:alarmmanager_key'], 'Repeat install changed the key.');
+		$this->assertTrue(plugin_alarmmanager_upgrade(), 'Upgrade readiness failed.');
+		$this->assertSame($key, $GLOBALS['alarmmanager_test_store']['1:alarmmanager_key'], 'Upgrade changed the key.');
+		$this->assertSame([], array_diff($GLOBALS['alarmmanager_test_hooks'], ['config_arrays', 'draw_navigation_text', 'alarmmanager_submit']), 'Unexpected producer/poller hook.');
+		plugin_alarmmanager_uninstall();
+		$this->assertSame($key, $GLOBALS['alarmmanager_test_store']['1:alarmmanager_key'], 'Uninstall removed the key.');
 	}
-	$checks++;
-}
 
-alarmmanager_test_assert(plugin_alarmmanager_install(), 'Installation failed.');
-$key = $GLOBALS['alarmmanager_test_store']['1:alarmmanager_key'];
-alarmmanager_test_assert(strlen(alarmmanager_decode_key($key)) === 32, 'Key length must be 256 bits.');
-alarmmanager_test_assert(plugin_alarmmanager_install(), 'Repeat install failed.');
-alarmmanager_test_assert($GLOBALS['alarmmanager_test_store']['1:alarmmanager_key'] === $key, 'Repeat install changed the key.');
-alarmmanager_test_assert(plugin_alarmmanager_upgrade(), 'Upgrade readiness failed.');
-alarmmanager_test_assert($GLOBALS['alarmmanager_test_store']['1:alarmmanager_key'] === $key, 'Upgrade changed the key.');
-alarmmanager_test_assert(array_diff($GLOBALS['alarmmanager_test_hooks'], ['config_arrays', 'draw_navigation_text', 'alarmmanager_submit']) === [], 'Unexpected producer/poller hook.');
-plugin_alarmmanager_uninstall();
-alarmmanager_test_assert($GLOBALS['alarmmanager_test_store']['1:alarmmanager_key'] === $key, 'Uninstall removed the key.');
+	public function testMalformedKeysAreRejected(): void {
+		self::alarmmanager_test_load('setup.php');
 
-foreach ([false, null, '', 'invalid!', base64_encode('short'), base64_encode(str_repeat('x', 33))] as $invalid) {
-	$rejected = false;
+		foreach ([false, null, '', 'invalid!', base64_encode('short'), base64_encode(str_repeat('x', 33))] as $invalid) {
+			$rejected = false;
 
-	try {
-		alarmmanager_decode_key($invalid);
-	} catch (RuntimeException $error) {
-		$rejected = true;
+			try {
+				alarmmanager_decode_key($invalid);
+			} catch (RuntimeException $error) {
+				$rejected = true;
+			}
+			$this->assertTrue($rejected, 'Malformed key was accepted.');
+		}
+
+		$GLOBALS['alarmmanager_test_store']['1:alarmmanager_key'] = 'broken';
+		$this->assertFalse(plugin_alarmmanager_check_config(), 'Malformed persisted key enabled plugin.');
+		$rejected = false;
+
+		try {
+			alarmmanager_setup_key();
+		} catch (RuntimeException $error) {
+			$rejected = true;
+		}
+		$this->assertTrue($rejected && $GLOBALS['alarmmanager_test_store']['1:alarmmanager_key'] === 'broken', 'Setup replaced a malformed key.');
+
+		$GLOBALS['alarmmanager_test_store']       = [];
+		$GLOBALS['alarmmanager_test_credentials'] = 1;
+		$rejected                                 = false;
+
+		try {
+			alarmmanager_setup_key();
+		} catch (RuntimeException $error) {
+			$rejected = true;
+		}
+		$this->assertTrue($rejected && $GLOBALS['alarmmanager_test_store'] === [], 'Lost key was recreated over stored credentials.');
+
+		$GLOBALS['alarmmanager_test_write_failure'] = true;
+		$rejected                                   = false;
+
+		try {
+			alarmmanager_setup_key();
+		} catch (RuntimeException $error) {
+			$rejected = true;
+		}
+		$this->assertTrue($rejected && $GLOBALS['alarmmanager_test_store'] === [], 'Failed storage was treated as success.');
+		$GLOBALS['alarmmanager_test_write_failure'] = false;
 	}
-	alarmmanager_test_assert($rejected, 'Malformed key was accepted.');
-}
 
-$GLOBALS['alarmmanager_test_store']['1:alarmmanager_key'] = 'broken';
-alarmmanager_test_assert(!plugin_alarmmanager_check_config(), 'Malformed persisted key enabled plugin.');
-$rejected = false;
+	/**
+	 * @return void
+	 */
+	public function testUpgradeRefusesLostKeysAndFailedWrites(): void {
+		self::alarmmanager_test_load('setup.php');
 
-try {
-	alarmmanager_setup_key();
-} catch (RuntimeException $error) {
-	$rejected = true;
-}
-alarmmanager_test_assert($rejected && $GLOBALS['alarmmanager_test_store']['1:alarmmanager_key'] === 'broken', 'Setup replaced a malformed key.');
-$GLOBALS['alarmmanager_test_store'] = [];
-alarmmanager_test_assert(!plugin_alarmmanager_upgrade(), 'Upgrade silently recreated a lost key.');
-$GLOBALS['alarmmanager_test_write_failure'] = true;
-$rejected                                   = false;
+		$GLOBALS['alarmmanager_test_store'] = [];
+		$this->assertFalse(plugin_alarmmanager_upgrade(), 'Upgrade silently recreated a lost key.');
+	}
 
-try {
-	alarmmanager_setup_key();
-} catch (RuntimeException $error) {
-	$rejected = true;
-}
-alarmmanager_test_assert($rejected && $GLOBALS['alarmmanager_test_store'] === [], 'Failed storage was treated as success.');
-$GLOBALS['alarmmanager_test_write_failure'] = false;
-alarmmanager_setup_key();
-alarmmanager_test_assert($GLOBALS['alarmmanager_test_store']['1:alarmmanager_key'] !== $key, 'Separate installation reused a key.');
-$saved_key                                = $GLOBALS['alarmmanager_test_store']['1:alarmmanager_key'];
-$GLOBALS['alarmmanager_test_store']       = [];
-$GLOBALS['alarmmanager_test_credentials'] = 1;
-$rejected                                 = false;
+	/**
+	 * @return void
+	 */
+	public function testSeparateInstallationsGenerateSeparateKeys(): void {
+		self::alarmmanager_test_load('setup.php');
 
-try {
-	alarmmanager_setup_key();
-} catch (RuntimeException $error) {
-	$rejected = true;
+		$GLOBALS['alarmmanager_test_store'] = [];
+		$this->assertTrue(plugin_alarmmanager_install(), 'Install with fresh store failed.');
+		$key                                = $GLOBALS['alarmmanager_test_store']['1:alarmmanager_key'];
+		$GLOBALS['alarmmanager_test_store'] = [];
+		alarmmanager_setup_key();
+		$this->assertNotSame($key, $GLOBALS['alarmmanager_test_store']['1:alarmmanager_key'], 'Separate installation reused a key.');
+	}
+
+	/**
+	 * @return void
+	 */
+	public function testSqlFlowDebugBlocksKeyAccess(): void {
+		self::alarmmanager_test_load('setup.php');
+
+		alarmmanager_setup_key();
+		$GLOBALS['config']['DEBUG_SQL_FLOW'] = true;
+		$this->assertFalse(alarmmanager_key_ready(), 'SQL flow tracing may expose keys.');
+		unset($GLOBALS['config']['DEBUG_SQL_FLOW']);
+	}
+
+	/**
+	 * @return void
+	 */
+	public function testRegistrationFailureIsDetected(): void {
+		self::alarmmanager_test_load('setup.php');
+
+		$this->assertTrue(plugin_alarmmanager_install(), 'Initial install failed.');
+		$saved_key                           = $GLOBALS['alarmmanager_test_store']['1:alarmmanager_key'];
+		$this->resetAlarmManagerTestState();
+		$GLOBALS['alarmmanager_test_store']['1:alarmmanager_key'] = $saved_key;
+		$GLOBALS['alarmmanager_test_registration_failure']        = true;
+		$this->assertFalse(plugin_alarmmanager_install(), 'Missing hook metadata was accepted after void registration.');
+		$this->assertSame($saved_key, $GLOBALS['alarmmanager_test_store']['1:alarmmanager_key'], 'Registration failure changed the key.');
+		$GLOBALS['alarmmanager_test_registration_failure'] = false;
+	}
+
+	/**
+	 * @return void
+	 */
+	public function testPluginMetadata(): void {
+		self::alarmmanager_test_load('setup.php');
+
+		$info = plugin_alarmmanager_version();
+		$this->assertSame('alarmmanager', $info['name'], 'Metadata name is invalid.');
+		$this->assertSame('1.2.29', $info['compat'], 'Metadata compat is invalid.');
+	}
 }
-alarmmanager_test_assert($rejected && $GLOBALS['alarmmanager_test_store'] === [], 'Lost key was recreated over stored credentials.');
-$GLOBALS['alarmmanager_test_store']['1:alarmmanager_key'] = $saved_key;
-$config['DEBUG_SQL_FLOW']                                 = true;
-alarmmanager_test_assert(!alarmmanager_key_ready(), 'SQL flow tracing may expose keys.');
-$config['DEBUG_SQL_FLOW']                          = false;
-$saved_hooks                                       = $GLOBALS['alarmmanager_test_hooks'];
-$GLOBALS['alarmmanager_test_hooks']                = [];
-$GLOBALS['alarmmanager_test_registration_failure'] = true;
-alarmmanager_test_assert(!plugin_alarmmanager_install(), 'Missing hook metadata was accepted after void registration.');
-alarmmanager_test_assert($GLOBALS['alarmmanager_test_store']['1:alarmmanager_key'] === $saved_key, 'Registration failure changed the key.');
-$GLOBALS['alarmmanager_test_registration_failure'] = false;
-$GLOBALS['alarmmanager_test_hooks']                = $saved_hooks;
-$info                                              = plugin_alarmmanager_version();
-alarmmanager_test_assert($info['name'] === 'alarmmanager' && $info['compat'] === '1.2.29', 'Metadata is invalid.');
-print "PASS: $checks setup checks (in-memory database double; no live Cacti/database).\n";

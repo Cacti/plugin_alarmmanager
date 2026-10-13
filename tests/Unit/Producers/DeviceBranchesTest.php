@@ -18,103 +18,132 @@
  | https://github.com/bmfmancini/plugin_alarmmanager                       |
  +-------------------------------------------------------------------------+
 */
-if (PHP_SAPI !== 'cli' || !getenv('ALARMMANAGER_CACTI_PATCHED_ROOT')) {
-	exit(2);
-}
-$root = getenv('ALARMMANAGER_CACTI_PATCHED_ROOT');
-require_once($root . '/include/global_constants.php');
-require_once(__DIR__ . '/../../fixtures/source_functions.php');
-$checks       = 0;
-$writes       = 0;
-$publications = [];
-$host         = ['id'=>42, 'status'=>HOST_UP, 'status_event_count'=>0, 'status_fail_date'=>'', 'status_rec_date'=>'', 'snmp_community'=>'CREDENTIAL_CANARY', 'snmp_version'=>2, 'failed_polls'=>0, 'total_polls'=>1, 'availability'=>100, 'status_last_error'=>'', 'min_time'=>0, 'max_time'=>0, 'cur_time'=>0, 'avg_time'=>0];
-function dcheck(bool $ok,string $label):void {
-	global $checks;
 
-	if (!$ok) {
-		throw new RuntimeException($label);
-	}$checks++;
-}
-function read_config_option($name) {
-	return in_array($name,['ping_failure_count', 'ping_recovery_count'],true) ? 2 : '';
-}
-function db_fetch_row_prepared($sql,$params = []) {
-	return $GLOBALS['host'];
-}
-function db_execute_prepared($sql,$params = []) {
-	if (str_contains($sql,'UPDATE host SET')) {
-		$columns = ['status', 'status_event_count', 'status_fail_date', 'status_rec_date', 'status_last_error', 'min_time', 'max_time', 'cur_time', 'avg_time', 'total_polls', 'failed_polls', 'availability'];
+final class DeviceBranchesTest extends AlarmManagerTestCase {
+	/**
+	 * @var array<int, string> Temporary fixture files removed in tearDown() and finally.
+	 */
+	private array $fixture_files = [];
 
-		foreach ($columns as $i=>$field) {
-			$GLOBALS['host'][$field] = in_array($field,['status_fail_date', 'status_rec_date'],true) ? gmdate('Y-m-d H:i:s',(int)$params[$i]) : $params[$i];
-		}$GLOBALS['writes']++;
+	protected function tearDown(): void {
+		$this->removeFixtures();
 	}
 
-return true;
-}
-function cacti_log(...$args) {
-}
-function alarmmanager_device_bridge_poll_allowed($id):bool {
-	return true;
-}
-function alarmmanager_device_bridge_core($safe,$previous,$write):bool {
-	$GLOBALS['publications'][] = [$safe, $previous];
-
-	return $write();
-}
-$fixture = sys_get_temp_dir() . '/alarmmanager_core_' . bin2hex(random_bytes(6));
-mkdir($fixture . '/lib',0700,true);
-file_put_contents($fixture . '/lib/alarmmanager_device_bridge.php','<?php');
-$code = alarmmanager_test_source_function($root . '/lib/functions.php','update_host_status');
-$code = str_replace('__DIR__',var_export($fixture . '/lib',true),$code);
-eval($code);
-$ping = (object)['ping_response'=>'Fixture ping', 'snmp_response'=>'Fixture SNMP', 'ping_time'=>1, 'snmp_time'=>1, 'ping_status'=>true, 'snmp_status'=>true];
-
-try {
-	update_host_status(HOST_DOWN,42,$ping,AVAIL_PING,false);
-	dcheck($host['status'] === HOST_UP && !$publications,'transient failure creates no alarm');
-	update_host_status(HOST_DOWN,42,$ping,AVAIL_PING,false);
-	dcheck($host['status'] === HOST_DOWN && count($publications) === 1,'configured failure count raises once');
-	dcheck($publications[0][0]['status'] === HOST_DOWN,'normalized down boundary');
-	dcheck(!str_contains(json_encode($publications),'CREDENTIAL_CANARY'),'host credentials excluded');
-	update_host_status(HOST_DOWN,42,$ping,AVAIL_PING,false);
-	dcheck(count($publications) === 1,'continued failure no per-sample publication');
-	update_host_status(HOST_UP,42,$ping,AVAIL_PING,false);
-	dcheck($host['status'] === HOST_RECOVERING && count($publications) === 1,'transient up not recovery');
-	update_host_status(HOST_DOWN,42,$ping,AVAIL_PING,false);
-	dcheck($host['status'] === HOST_DOWN && count($publications) === 1,'failed recovery no new outage');
-	update_host_status(HOST_UP,42,$ping,AVAIL_PING,false);
-	update_host_status(HOST_UP,42,$ping,AVAIL_PING,false);
-	dcheck($host['status'] === HOST_UP && count($publications) === 2,'configured recovery count publishes once');
-	dcheck($publications[1][0]['status'] === HOST_UP,'recovery boundary');
-	update_host_status(HOST_UP,42,$ping,AVAIL_PING,false);
-	dcheck(count($publications) === 2 && $writes === 8,'normal polling still persists native counters');
-	// Exercise the actual pinned custom functional-hook dispatch on a disconnected collector.
-	$config = ['poller_id'=>2, 'connection'=>'offline'];
-	eval(alarmmanager_test_source_function($root . '/lib/plugins.php','api_plugin_run_plugin_hook_function'));
-
-	foreach (['offline', 'recovery', 'online'] as $connection) {
-		$config['connection'] = $connection;
-		$called               = false;
-		$returned             = api_plugin_run_plugin_hook_function('alarmmanager_submit','alarmmanager',static function ($envelope) use (&$called) {
-			$called = true;
-
-			return $envelope;
-		},['status'=> 'unhandled']);
-		dcheck($called && $returned['status'] === 'unhandled','custom functional dispatch ' . $connection);
+	private function removeFixtures(): void {
+		foreach ($this->fixture_files as $file) {
+			if (is_file($file)) {
+				unlink($file);
+			} elseif (is_dir($file)) {
+				@rmdir($file);
+			}
+		}
 	}
-	print "PASS: $checks pinned Cacti transition/hook checks (framework/publication doubles).\n";
-} finally {
-	unlink($fixture . '/lib/alarmmanager_device_bridge.php');
-	rmdir($fixture . '/lib');
-	rmdir($fixture);
-}
-function api_plugin_remote_capabilities($plugin) {
-	return ['remote_collect'=>1, 'remote_poller'=>1];
-}
-function api_plugin_hook_is_remote_collect(...$args) {
-	return false;
-}
-function api_plugin_status_run(...$args) {
-	return true;
+
+	private static function loadDoubles(): void {
+		require_once __DIR__ . '/../../Helpers/ProducersDoubles.php';
+	}
+
+	private function requirePinnedCactiCheckout(): string {
+		$root = (string) (getenv('ALARMMANAGER_CACTI_PATCHED_ROOT') ?: '');
+
+		if ($root === '' || !is_file($root . '/include/global_constants.php') || !is_file($root . '/lib/functions.php') || !is_file($root . '/lib/plugins.php')) {
+			$this->markTestSkipped('Pinned cacti checkout unavailable; branch test skipped.');
+		}
+
+		return $root;
+	}
+
+	private function requirePinnedCactiConstants(string $root): void {
+		// The pinned checkout re-declares the poller verbosity constants the unit
+		// bootstrap already defines; a transient handler absorbs those redefinition
+		// warnings so the pinned file still loads verbatim.
+		set_error_handler(static function (): bool {
+			return true;
+		}, E_WARNING);
+
+		require_once($root . '/include/global_constants.php');
+		restore_error_handler();
+	}
+
+	public function testHostTransitionPublications(): void {
+		$root = $this->requirePinnedCactiCheckout();
+		self::loadDoubles();
+		$this->requirePinnedCactiConstants($root);
+		require_once __DIR__ . '/../../fixtures/source_functions.php';
+		$GLOBALS['alarmmanager_test_writes']                  = 0;
+		$GLOBALS['alarmmanager_test_publications']            = [];
+		$GLOBALS['alarmmanager_test_host']                    = ['id' => 42, 'status' => HOST_UP, 'status_event_count' => 0, 'status_fail_date' => '', 'status_rec_date' => '', 'snmp_community' => 'CREDENTIAL_CANARY', 'snmp_version' => 2, 'failed_polls' => 0, 'total_polls' => 1, 'availability' => 100, 'status_last_error' => '', 'min_time' => 0, 'max_time' => 0, 'cur_time' => 0, 'avg_time' => 0];
+		$GLOBALS['alarmmanager_test_producer_config_options'] = ['ping_failure_count' => 2, 'ping_recovery_count' => 2];
+		$fixture                                              = sys_get_temp_dir() . '/alarmmanager_core_' . bin2hex(random_bytes(6));
+		mkdir($fixture . '/lib', 0700, true);
+		file_put_contents($fixture . '/lib/alarmmanager_device_bridge.php', '<?php');
+		$this->fixture_files = [$fixture . '/lib/alarmmanager_device_bridge.php', $fixture . '/lib', $fixture];
+		$ping                = (object) ['ping_response' => 'Fixture ping', 'snmp_response' => 'Fixture SNMP', 'ping_time' => 1, 'snmp_time' => 1, 'ping_status' => true, 'snmp_status' => true];
+
+		if (!function_exists('AlarmManagerProducers\update_host_status')) {
+			$code = alarmmanager_test_source_function($root . '/lib/functions.php', 'update_host_status');
+			$code = str_replace('__DIR__', var_export($fixture . '/lib', true), $code);
+			alarmmanager_test_producer_eval($code);
+		}
+
+		try {
+			\AlarmManagerProducers\update_host_status(HOST_DOWN, 42, $ping, AVAIL_PING, false);
+
+			$this->assertTrue($GLOBALS['alarmmanager_test_host']['status'] === HOST_UP && $GLOBALS['alarmmanager_test_publications'] === [], 'transient failure creates no alarm');
+			\AlarmManagerProducers\update_host_status(HOST_DOWN, 42, $ping, AVAIL_PING, false);
+
+			$this->assertTrue($GLOBALS['alarmmanager_test_host']['status'] === HOST_DOWN && count($GLOBALS['alarmmanager_test_publications']) === 1, 'configured failure count raises once');
+			$this->assertSame(HOST_DOWN, $GLOBALS['alarmmanager_test_publications'][0][0]['status'], 'normalized down boundary');
+			$this->assertFalse(str_contains(json_encode($GLOBALS['alarmmanager_test_publications']), 'CREDENTIAL_CANARY'), 'host credentials excluded');
+			\AlarmManagerProducers\update_host_status(HOST_DOWN, 42, $ping, AVAIL_PING, false);
+
+			$this->assertSame(1, count($GLOBALS['alarmmanager_test_publications']), 'continued failure no per-sample publication');
+			\AlarmManagerProducers\update_host_status(HOST_UP, 42, $ping, AVAIL_PING, false);
+
+			$this->assertTrue($GLOBALS['alarmmanager_test_host']['status'] === HOST_RECOVERING && count($GLOBALS['alarmmanager_test_publications']) === 1, 'transient up not recovery');
+			\AlarmManagerProducers\update_host_status(HOST_DOWN, 42, $ping, AVAIL_PING, false);
+
+			$this->assertTrue($GLOBALS['alarmmanager_test_host']['status'] === HOST_DOWN && count($GLOBALS['alarmmanager_test_publications']) === 1, 'failed recovery no new outage');
+			\AlarmManagerProducers\update_host_status(HOST_UP, 42, $ping, AVAIL_PING, false);
+			\AlarmManagerProducers\update_host_status(HOST_UP, 42, $ping, AVAIL_PING, false);
+
+			$this->assertTrue($GLOBALS['alarmmanager_test_host']['status'] === HOST_UP && count($GLOBALS['alarmmanager_test_publications']) === 2, 'configured recovery count publishes once');
+			$this->assertSame(HOST_UP, $GLOBALS['alarmmanager_test_publications'][1][0]['status'], 'recovery boundary');
+			\AlarmManagerProducers\update_host_status(HOST_UP, 42, $ping, AVAIL_PING, false);
+
+			$this->assertTrue(count($GLOBALS['alarmmanager_test_publications']) === 2 && $GLOBALS['alarmmanager_test_writes'] === 8, 'normal polling still persists native counters');
+		} finally {
+			$this->removeFixtures();
+		}
+	}
+
+	public function testCustomFunctionalHookDispatch(): void {
+		$root = $this->requirePinnedCactiCheckout();
+		self::loadDoubles();
+		$this->requirePinnedCactiConstants($root);
+		require_once __DIR__ . '/../../fixtures/source_functions.php';
+		$saved_config      = $GLOBALS['config'];
+		$GLOBALS['config'] = ['poller_id' => 2, 'connection' => 'offline'];
+
+		// Exercise the actual pinned custom functional-hook dispatch on a disconnected collector.
+		if (!function_exists('AlarmManagerProducers\api_plugin_run_plugin_hook_function')) {
+			alarmmanager_test_producer_eval(alarmmanager_test_source_function($root . '/lib/plugins.php', 'api_plugin_run_plugin_hook_function'));
+		}
+
+		try {
+			foreach (['offline', 'recovery', 'online'] as $connection) {
+				$GLOBALS['config']['connection'] = $connection;
+				$called                          = false;
+				$returned                        = \AlarmManagerProducers\api_plugin_run_plugin_hook_function('alarmmanager_submit', 'alarmmanager', static function ($envelope) use (&$called) {
+					$called = true;
+
+					return $envelope;
+				}, ['status' => 'unhandled']);
+
+				$this->assertTrue($called && $returned['status'] === 'unhandled', 'custom functional dispatch ' . $connection);
+			}
+		} finally {
+			$GLOBALS['config'] = $saved_config;
+		}
+	}
 }

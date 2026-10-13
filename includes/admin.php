@@ -160,7 +160,7 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 				throw new InvalidArgumentException('invalid_endpoint');
 			}
 
-return json_encode(alarmmanager_delivery_preview($event, $endpoint), JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR);
+			return json_encode(alarmmanager_delivery_preview($event, $endpoint), JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR);
 		}
 
 		if (($input['confirmed'] ?? '') !== 'yes') {

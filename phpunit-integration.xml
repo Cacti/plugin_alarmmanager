@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="../../include/vendor/phpunit/phpunit/phpunit.xsd"
+	bootstrap="tests/Integration/bootstrap.php"
+	cacheDirectory=".phpunit.cache"
+	colors="true"
+	failOnWarning="true"
+	failOnNotice="true"
+	failOnDeprecation="true"
+	beStrictAboutOutputDuringTests="false">
+	<php>
+		<ini name="error_reporting" value="-1"/>
+	</php>
+	<testsuites>
+		<testsuite name="Plugin Alarmmanager Integration">
+			<directory>./tests/Integration</directory>
+		</testsuite>
+	</testsuites>
+	<!--
+		DB-backed lane, run separately from the unit suite so the PDO-backed
+		Cacti helper implementations live in their own process:
+		  ALARMMANAGER_TEST_DSN='mysql:host=127.0.0.1;port=3306' \
+		    <cacti>/include/vendor/bin/pest -c plugins/alarmmanager/phpunit-integration.xml
+		Tests declare @group db and mark themselves skipped (not failed) when
+		the disposable database DSN is absent. Tests create and drop only their
+		own randomly named alarmmanager_test_* databases. Never point this lane
+		at a production server.
+	-->
+	<source>
+		<include>
+			<file>setup.php</file>
+			<directory>includes</directory>
+		</include>
+	</source>
+</phpunit>
