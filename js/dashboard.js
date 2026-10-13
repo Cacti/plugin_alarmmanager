@@ -1,9 +1,20 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Dashboard grid/card/render conventions adapted from Cacti plugin_syslog
- * js/dashboard.js at be1a8151c21ff81684d0e8ca0f9f0a78a8d48f27.
- * Copyright (C) 2004-2026 The Cacti Group. Adaptation copyright 2026 Sean Mancini.
- * Uses Cacti's locally bundled d3/billboard; no syslog runtime dependency.
- */
+/*
+ +-------------------------------------------------------------------------+
+ | Dashboard grid/card/render conventions adapted from                     |
+ | Cacti plugin_syslog js/dashboard.js at                                  |
+ | be1a8151c21ff81684d0e8ca0f9f0a78a8d48f27.                               |
+ | Copyright (C) 2004-2026 The Cacti Group. Adaptation copyright 2026      |
+ | Sean Mancini, distributed under GPL-2.0-or-later.                       |
+ |                                                                         |
+ | This program is free software; you can redistribute it and/or           |
+ | modify it under the terms of the GNU General Public License             |
+ | as published by the Free Software Foundation; either version 2          |
+ | of the License, or (at your option) any later version.                  |
+ |                                                                         |
+ | Uses Cacti's locally bundled d3/billboard; no syslog runtime dependency.|
+ | https://github.com/bmfmancini/plugin_alarmmanager                       |
+ +-------------------------------------------------------------------------+
+*/
 (() => {
  'use strict';
  const sourceFields = ['event.id','event.source','event.source_instance','event.collector_id','event.occurred_at','alarm.resource_id','alarm.key','alarm.episode_id','alarm.sequence','alarm.transition','alarm.severity','alarm.summary','alarm.details','device.id','device.hostname','device.description','device.tags','context.rule_name','context.rule_type','context.metric','context.metric_value','context.threshold','context.suppression_reason','context.source_suppressed','context.source_notification_channels','context.ownership_epoch'];

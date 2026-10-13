@@ -1,15 +1,39 @@
 <?php
-// SPDX-License-Identifier: GPL-2.0-or-later
+/*
+ +-------------------------------------------------------------------------+
+ | Copyright (C) 2004-2026 Sean Mancini                                    |
+ |                                                                         |
+ | This program is free software; you can redistribute it and/or           |
+ | modify it under the terms of the GNU General Public License             |
+ | as published by the Free Software Foundation; either version 2          |
+ | of the License, or (at your option) any later version.                  |
+ |                                                                         |
+ | This program is distributed in the hope that it will be useful,         |
+ | but WITHOUT ANY WARRANTY; without even the implied warranty of          |
+ | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           |
+ | GNU General Public License for more details.                            |
+ +-------------------------------------------------------------------------+
+ | Alarm Manager: centralized alarm history, routing and delivery for Cacti |
+ +-------------------------------------------------------------------------+
+ | https://github.com/bmfmancini/plugin_alarmmanager                       |
+ +-------------------------------------------------------------------------+
+*/
 
 /** Direct DDL avoids Cacti's destructive plugin_db_changes registry. */
 function alarmmanager_schema_install(): bool {
 	$database_version = db_fetch_cell_prepared('SELECT VERSION()', [], '', false);
-	if (!is_string($database_version) || stripos($database_version, 'MariaDB') === false) { return false; }
+
+	if (!is_string($database_version) || stripos($database_version, 'MariaDB') === false) {
+		return false;
+	}
 	$database_version = str_starts_with($database_version, '5.5.5-') ? substr($database_version, 6) : $database_version;
-	if (!preg_match('/\A(\d+\.\d+\.\d+)/', $database_version, $match) || version_compare($match[1], '10.11.0', '<')) { return false; }
+
+	if (!preg_match('/\A(\d+\.\d+\.\d+)/', $database_version, $match) || version_compare($match[1], '10.11.0', '<')) {
+		return false;
+	}
 	$statements = [
 		'CREATE TABLE IF NOT EXISTS plugin_alarmmanager_schema (id TINYINT UNSIGNED NOT NULL PRIMARY KEY, version INT UNSIGNED NOT NULL) ENGINE=InnoDB',
-		"CREATE TABLE IF NOT EXISTS plugin_alarmmanager_events (
+		'CREATE TABLE IF NOT EXISTS plugin_alarmmanager_events (
 			id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
 			contract_version TINYINT UNSIGNED NOT NULL,
 			event_id VARCHAR(128) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
@@ -34,7 +58,7 @@ function alarmmanager_schema_install(): bool {
 			KEY alarm_stream (source, source_instance, alarm_key, episode_id, sequence),
 			KEY collector_time (collector_id, received_at, id),
 			KEY severity_time (severity, received_at, id)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci',
 		"CREATE TABLE IF NOT EXISTS plugin_alarmmanager_jobs (
 			id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
 			event_row_id BIGINT UNSIGNED NOT NULL,
@@ -46,6 +70,7 @@ function alarmmanager_schema_install(): bool {
 			CONSTRAINT plugin_alarmmanager_job_event FOREIGN KEY (event_row_id) REFERENCES plugin_alarmmanager_events (id)
 		) ENGINE=InnoDB"
 	];
+
 	foreach ($statements as $sql) {
 		if (!db_execute_prepared($sql, [], false)) {
 			return false;
@@ -55,21 +80,38 @@ function alarmmanager_schema_install(): bool {
 		WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME IN
 		('plugin_alarmmanager_schema', 'plugin_alarmmanager_events', 'plugin_alarmmanager_jobs')
 		AND ENGINE = 'InnoDB'", [], '', false);
+
 	if ((int) $engines !== 3) {
 		return false;
 	}
 	$base = (bool) db_execute_prepared('INSERT INTO plugin_alarmmanager_schema (id, version) VALUES (1, 1)
 		ON DUPLICATE KEY UPDATE version = GREATEST(version, VALUES(version))', [], false);
-	if (!$base) { return false; }
+
+	if (!$base) {
+		return false;
+	}
 	require_once(__DIR__ . '/schema_runtime.php');
-	if (!alarmmanager_schema_runtime()) { return false; }
+
+	if (!alarmmanager_schema_runtime()) {
+		return false;
+	}
 	require_once(__DIR__ . '/schema_delivery.php');
-	if (!alarmmanager_schema_delivery()) { return false; }
+
+	if (!alarmmanager_schema_delivery()) {
+		return false;
+	}
 	require_once(__DIR__ . '/schema_ui.php');
-	if (!alarmmanager_schema_ui()) { return false; }
+
+	if (!alarmmanager_schema_ui()) {
+		return false;
+	}
 	require_once(__DIR__ . '/schema_producers.php');
-	if (!alarmmanager_schema_producers()) { return false; }
+
+	if (!alarmmanager_schema_producers()) {
+		return false;
+	}
 	require_once(__DIR__ . '/schema_remote.php');
+
 	return alarmmanager_schema_remote();
 }
 

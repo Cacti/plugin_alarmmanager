@@ -31,3 +31,6 @@ Thumbs.db
 *.key
 __pycache__/
 *.pyc
+
+.php-cs-fixer.cache
+.phpstan-tmp-cache/

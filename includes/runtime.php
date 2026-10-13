@@ -1,10 +1,29 @@
 <?php
-// SPDX-License-Identifier: GPL-2.0-or-later
+/*
+ +-------------------------------------------------------------------------+
+ | Copyright (C) 2004-2026 Sean Mancini                                    |
+ |                                                                         |
+ | This program is free software; you can redistribute it and/or           |
+ | modify it under the terms of the GNU General Public License             |
+ | as published by the Free Software Foundation; either version 2          |
+ | of the License, or (at your option) any later version.                  |
+ |                                                                         |
+ | This program is distributed in the hope that it will be useful,         |
+ | but WITHOUT ANY WARRANTY; without even the implied warranty of          |
+ | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           |
+ | GNU General Public License for more details.                            |
+ +-------------------------------------------------------------------------+
+ | Alarm Manager: centralized alarm history, routing and delivery for Cacti |
+ +-------------------------------------------------------------------------+
+ | https://github.com/bmfmancini/plugin_alarmmanager                       |
+ +-------------------------------------------------------------------------+
+*/
 
 require_once(__DIR__ . '/exceptions.php');
 function alarmmanager_storage_error(): RuntimeException {
 	global $database_last_error;
 	$message = (string) ($database_last_error ?? '');
+
 	return preg_match('/(?:Error |errno[:= ]+)(?:1213|1205)\b/i', $message)
 		? new \AlarmManager\TransientStorageException('storage_contention') : new \AlarmManager\StorageException('storage_failure');
 }
@@ -15,32 +34,43 @@ function alarmmanager_db_write(string $sql, array $params = []): void {
 }
 function alarmmanager_db_row(string $sql, array $params = []): array {
 	$result = alarmmanager_db_rows($sql, $params);
+
 	return $result[0] ?? [];
 }
 function alarmmanager_db_rows(string $sql, array $params = []): array {
 	$result = db_fetch_assoc_prepared($sql, $params, false);
+
 	if ($result === false) {
 		throw alarmmanager_storage_error();
 	}
+
 	return $result;
 }
 function alarmmanager_transaction(callable $action) {
 	$active = db_fetch_cell_prepared('SELECT @@in_transaction', [], '', false);
+
 	if ($active === false || (int) $active !== 0) {
 		throw new RuntimeException('transaction_unavailable');
 	}
+
 	for ($try = 0; $try < 3; $try++) {
 		alarmmanager_db_write('START TRANSACTION');
+
 		try {
 			$result = $action();
 			alarmmanager_db_write('COMMIT');
+
 			return $result;
 		} catch (Throwable $error) {
 			db_execute_prepared('ROLLBACK', [], false);
-			if (!$error instanceof \AlarmManager\TransientStorageException || $try === 2) { throw $error; }
+
+			if (!$error instanceof \AlarmManager\TransientStorageException || $try === 2) {
+				throw $error;
+			}
 			usleep(random_int(10000, 30000));
 		}
 	}
+
 	throw new RuntimeException('storage_failure');
 }
 function alarmmanager_stream_key(array $event, string $mode): string {
@@ -48,13 +78,16 @@ function alarmmanager_stream_key(array $event, string $mode): string {
 }
 function alarmmanager_runtime_enabled(): bool {
 	global $config;
+
 	return empty($config['DEBUG_SQL_FLOW']) && (int) db_fetch_cell_prepared('SELECT status FROM plugin_config WHERE directory = ?', ['alarmmanager'], '', false) === 1;
 }
 function alarmmanager_local_poller(): int {
 	global $config;
 	$value = filter_var($config['poller_id'] ?? 1, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 2147483647]]);
+
 	if ($value === false) {
 		throw new RuntimeException('invalid_poller');
 	}
+
 	return $value;
 }

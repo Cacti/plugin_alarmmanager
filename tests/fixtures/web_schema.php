@@ -1,6 +1,27 @@
 <?php
-// SPDX-License-Identifier: GPL-2.0-or-later
-if (PHP_SAPI !== 'cli' || getenv('ALARMMANAGER_TEST_ALLOW_CREATE') !== '1') { http_response_code(403); exit; }
+/*
+ +-------------------------------------------------------------------------+
+ | Copyright (C) 2004-2026 Sean Mancini                                    |
+ |                                                                         |
+ | This program is free software; you can redistribute it and/or           |
+ | modify it under the terms of the GNU General Public License             |
+ | as published by the Free Software Foundation; either version 2          |
+ | of the License, or (at your option) any later version.                  |
+ |                                                                         |
+ | This program is distributed in the hope that it will be useful,         |
+ | but WITHOUT ANY WARRANTY; without even the implied warranty of          |
+ | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           |
+ | GNU General Public License for more details.                            |
+ +-------------------------------------------------------------------------+
+ | Alarm Manager: centralized alarm history, routing and delivery for Cacti |
+ +-------------------------------------------------------------------------+
+ | https://github.com/bmfmancini/plugin_alarmmanager                       |
+ +-------------------------------------------------------------------------+
+*/
+if (PHP_SAPI !== 'cli' || getenv('ALARMMANAGER_TEST_ALLOW_CREATE') !== '1') {
+	http_response_code(403);
+	exit;
+}
 function alarmmanager_test_web_schema(PDO $db): void {
 	$db->exec('CREATE TABLE settings_user (user_id INT, name VARCHAR(255), value TEXT, PRIMARY KEY(user_id, name)) ENGINE=InnoDB');
 	$db->exec('CREATE TABLE plugin_config (directory VARCHAR(64) PRIMARY KEY, version VARCHAR(32), status INT) ENGINE=InnoDB');
@@ -15,7 +36,8 @@ function alarmmanager_test_web_schema(PDO $db): void {
 	$db->exec('CREATE TABLE user_auth_group_perms (group_id INT, type INT, item_id INT, PRIMARY KEY(group_id,type,item_id)) ENGINE=InnoDB');
 	$db->exec("CREATE TABLE host (id INT PRIMARY KEY, hostname VARCHAR(128), description VARCHAR(128), disabled VARCHAR(4) DEFAULT '', deleted VARCHAR(4) DEFAULT '', host_template_id INT DEFAULT 1) ENGINE=InnoDB");
 	$db->exec("INSERT INTO host (id,hostname,description) VALUES (42, 'visible.example', 'Visible'), (43, 'hidden.example', 'Hidden')");
-	$db->exec('CREATE TABLE host_template (id INT PRIMARY KEY) ENGINE=InnoDB'); $db->exec('INSERT INTO host_template VALUES (1)');
+	$db->exec('CREATE TABLE host_template (id INT PRIMARY KEY) ENGINE=InnoDB');
+	$db->exec('INSERT INTO host_template VALUES (1)');
 	$db->exec('CREATE TABLE graph_local (id INT PRIMARY KEY, host_id INT, graph_template_id INT) ENGINE=InnoDB');
 	$db->exec('CREATE TABLE graph_templates (id INT PRIMARY KEY) ENGINE=InnoDB');
 	$db->exec('INSERT INTO user_auth_perms VALUES (2,3,42)');

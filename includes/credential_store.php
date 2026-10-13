@@ -1,65 +1,138 @@
 <?php
-// SPDX-License-Identifier: GPL-2.0-or-later
+/*
+ +-------------------------------------------------------------------------+
+ | Copyright (C) 2004-2026 Sean Mancini                                    |
+ |                                                                         |
+ | This program is free software; you can redistribute it and/or           |
+ | modify it under the terms of the GNU General Public License             |
+ | as published by the Free Software Foundation; either version 2          |
+ | of the License, or (at your option) any later version.                  |
+ |                                                                         |
+ | This program is distributed in the hope that it will be useful,         |
+ | but WITHOUT ANY WARRANTY; without even the implied warranty of          |
+ | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           |
+ | GNU General Public License for more details.                            |
+ +-------------------------------------------------------------------------+
+ | Alarm Manager: centralized alarm history, routing and delivery for Cacti |
+ +-------------------------------------------------------------------------+
+ | https://github.com/bmfmancini/plugin_alarmmanager                       |
+ +-------------------------------------------------------------------------+
+*/
 require_once(__DIR__ . '/credentials.php');
 require_once(__DIR__ . '/runtime.php');
 require_once(__DIR__ . '/events.php');
 
 function alarmmanager_secret_guard(): void {
 	global $config;
-	if (!empty($config['DEBUG_SQL_FLOW'])) { throw new RuntimeException('secret_tracing_enabled'); }
+
+	if (!empty($config['DEBUG_SQL_FLOW'])) {
+		throw new RuntimeException('secret_tracing_enabled');
+	}
 }
 function alarmmanager_secret_key(bool $lock = false): string {
 	alarmmanager_secret_guard();
+
 	return alarmmanager_decode_key(db_fetch_cell_prepared('SELECT value FROM settings_user WHERE user_id = ? AND name = ?' . ($lock ? ' FOR UPDATE' : ''), [1, 'alarmmanager_key'], '', false));
 }
 function alarmmanager_credential_validate(#[\SensitiveParameter] array $record): array {
 	alarmmanager_event_keys($record, ['headers', 'basic']);
 	$headers = $record['headers'] ?? [];
-	if (!is_array($headers) || count($headers) > 32) { throw new InvalidArgumentException('invalid_credentials'); }
+
+	if (!is_array($headers) || count($headers) > 32) {
+		throw new InvalidArgumentException('invalid_credentials');
+	}
 	$seen = [];
+
 	foreach ($headers as $name => $value) {
-		if (!is_string($name) || !preg_match('/\A[A-Za-z][A-Za-z0-9-]{0,63}\z/D', $name) || in_array(strtolower($name), ['host', 'content-length', 'content-type', 'idempotency-key', 'connection', 'transfer-encoding', 'expect', 'proxy-authorization'], true) || isset($seen[strtolower($name)])) { throw new InvalidArgumentException('invalid_credentials'); }
-		if (!is_string($value) || strlen($value) > 4096 || preg_match('/[\x00-\x1f\x7f]/', $value)) { throw new InvalidArgumentException('invalid_credentials'); }
+		if (!is_string($name) || !preg_match('/\A[A-Za-z][A-Za-z0-9-]{0,63}\z/D', $name) || in_array(strtolower($name), ['host', 'content-length', 'content-type', 'idempotency-key', 'connection', 'transfer-encoding', 'expect', 'proxy-authorization'], true) || isset($seen[strtolower($name)])) {
+			throw new InvalidArgumentException('invalid_credentials');
+		}
+
+		if (!is_string($value) || strlen($value) > 4096 || preg_match('/[\x00-\x1f\x7f]/', $value)) {
+			throw new InvalidArgumentException('invalid_credentials');
+		}
 		$seen[strtolower($name)] = true;
 	}
 	$result = ['headers' => $headers];
+
 	if (isset($record['basic'])) {
 		$basic = $record['basic'];
-		if (!is_array($basic)) { throw new InvalidArgumentException('invalid_credentials'); }
+
+		if (!is_array($basic)) {
+			throw new InvalidArgumentException('invalid_credentials');
+		}
 		alarmmanager_event_keys($basic, ['username', 'password']);
-		foreach (['username', 'password'] as $key) { if (!is_string($basic[$key] ?? null) || strlen($basic[$key]) > 4096 || preg_match('/[\x00-\x1f\x7f]/', $basic[$key])) { throw new InvalidArgumentException('invalid_credentials'); } }
-		if (str_contains($basic['username'], ':') || isset($seen['authorization'])) { throw new InvalidArgumentException('invalid_credentials'); }
+
+		foreach (['username', 'password'] as $key) {
+			if (!is_string($basic[$key] ?? null) || strlen($basic[$key]) > 4096 || preg_match('/[\x00-\x1f\x7f]/', $basic[$key])) {
+				throw new InvalidArgumentException('invalid_credentials');
+			}
+		}
+
+		if (str_contains($basic['username'], ':') || isset($seen['authorization'])) {
+			throw new InvalidArgumentException('invalid_credentials');
+		}
 		$result['basic'] = $basic;
 	}
-	if (strlen(json_encode($result, JSON_THROW_ON_ERROR)) > 65536) { throw new InvalidArgumentException('credential_limit'); }
+
+	if (strlen(json_encode($result, JSON_THROW_ON_ERROR)) > 65536) {
+		throw new InvalidArgumentException('credential_limit');
+	}
+
 	return $result;
 }
 function alarmmanager_encrypt_credential(#[\SensitiveParameter] array $record, int $endpoint_id, #[\SensitiveParameter] string $key): string {
-	if ($endpoint_id < 1 || strlen($key) !== 32) { throw new RuntimeException('credential_key_invalid'); }
-	$plain = json_encode(alarmmanager_credential_validate($record), JSON_THROW_ON_ERROR);
-	$nonce = random_bytes(12); $tag = '';
+	if ($endpoint_id < 1 || strlen($key) !== 32) {
+		throw new RuntimeException('credential_key_invalid');
+	}
+	$plain      = json_encode(alarmmanager_credential_validate($record), JSON_THROW_ON_ERROR);
+	$nonce      = random_bytes(12);
+	$tag        = '';
 	$ciphertext = openssl_encrypt($plain, 'aes-256-gcm', $key, OPENSSL_RAW_DATA, $nonce, $tag, 'alarmmanager:credential:v1:' . $endpoint_id, 16);
-	if ($ciphertext === false || strlen($tag) !== 16) { throw new RuntimeException('credential_encrypt_failed'); }
+
+	if ($ciphertext === false || strlen($tag) !== 16) {
+		throw new RuntimeException('credential_encrypt_failed');
+	}
+
 	return 'am1:' . base64_encode($nonce . $tag . $ciphertext);
 }
 function alarmmanager_decrypt_credential(#[\SensitiveParameter] string $encoded, int $endpoint_id, #[\SensitiveParameter] string $key): array {
-	if ($endpoint_id < 1 || strlen($key) !== 32 || !str_starts_with($encoded, 'am1:') || strlen($encoded) > 90000) { throw new RuntimeException('credential_invalid'); }
-	$body = substr($encoded, 4); $binary = base64_decode($body, true);
-	if ($binary === false || base64_encode($binary) !== $body || strlen($binary) < 29) { throw new RuntimeException('credential_invalid'); }
+	if ($endpoint_id < 1 || strlen($key) !== 32 || !str_starts_with($encoded, 'am1:') || strlen($encoded) > 90000) {
+		throw new RuntimeException('credential_invalid');
+	}
+	$body   = substr($encoded, 4);
+	$binary = base64_decode($body, true);
+
+	if ($binary === false || base64_encode($binary) !== $body || strlen($binary) < 29) {
+		throw new RuntimeException('credential_invalid');
+	}
 	$plain = openssl_decrypt(substr($binary, 28), 'aes-256-gcm', $key, OPENSSL_RAW_DATA, substr($binary, 0, 12), substr($binary, 12, 16), 'alarmmanager:credential:v1:' . $endpoint_id);
-	if ($plain === false) { throw new RuntimeException('credential_authentication_failed'); }
+
+	if ($plain === false) {
+		throw new RuntimeException('credential_authentication_failed');
+	}
 	$record = json_decode($plain, true, 8, JSON_THROW_ON_ERROR);
-	if (!is_array($record)) { throw new RuntimeException('credential_invalid'); }
+
+	if (!is_array($record)) {
+		throw new RuntimeException('credential_invalid');
+	}
+
 	return alarmmanager_credential_validate($record);
 }
 function alarmmanager_save_credential(int $endpoint_id, #[\SensitiveParameter] array $record, ?int $audit_user = null): void {
 	alarmmanager_secret_guard();
 	alarmmanager_transaction(function () use ($endpoint_id, $record, $audit_user): void {
 		$key = alarmmanager_secret_key(true);
-		if (!alarmmanager_db_row("SELECT id FROM plugin_alarmmanager_endpoints WHERE id = ? AND type IN ('restapi', 'webhook')", [$endpoint_id])) { throw new InvalidArgumentException('credential_endpoint_invalid'); }
+
+		if (!alarmmanager_db_row("SELECT id FROM plugin_alarmmanager_endpoints WHERE id = ? AND type IN ('restapi', 'webhook')", [$endpoint_id])) {
+			throw new InvalidArgumentException('credential_endpoint_invalid');
+		}
 		$ciphertext = alarmmanager_encrypt_credential($record, $endpoint_id, $key);
 		alarmmanager_db_write('INSERT INTO plugin_alarmmanager_credentials (endpoint_id, ciphertext, updated_at) VALUES (?, ?, UTC_TIMESTAMP(6)) ON DUPLICATE KEY UPDATE ciphertext = VALUES(ciphertext), updated_at = VALUES(updated_at)', [$endpoint_id, $ciphertext]);
-		if ($audit_user !== null) { alarmmanager_db_write('INSERT INTO plugin_alarmmanager_audit (user_id, action, resource_id, created_at) VALUES (?, ?, ?, UTC_TIMESTAMP(6))', [$audit_user, 'credential_save', $endpoint_id]); }
+
+		if ($audit_user !== null) {
+			alarmmanager_db_write('INSERT INTO plugin_alarmmanager_audit (user_id, action, resource_id, created_at) VALUES (?, ?, ?, UTC_TIMESTAMP(6))', [$audit_user, 'credential_save', $endpoint_id]);
+		}
 	});
 }
 function alarmmanager_load_credential(int $endpoint_id): array {
@@ -67,52 +140,92 @@ function alarmmanager_load_credential(int $endpoint_id): array {
 	return alarmmanager_transaction(function () use ($endpoint_id): array {
 		$key = alarmmanager_secret_key();
 		$row = alarmmanager_db_row('SELECT ciphertext FROM plugin_alarmmanager_credentials WHERE endpoint_id = ?', [$endpoint_id]);
-		if (!$row) { throw new RuntimeException('credential_missing'); }
+
+		if (!$row) {
+			throw new RuntimeException('credential_missing');
+		}
+
 		return alarmmanager_decrypt_credential($row['ciphertext'], $endpoint_id, $key);
 	});
 }
 function alarmmanager_rotate_key(?int $audit_user = null): void {
 	alarmmanager_transaction(function () use ($audit_user): void {
-		$old = alarmmanager_secret_key(true); $new = random_bytes(32);
+		$old  = alarmmanager_secret_key(true);
+		$new  = random_bytes(32);
 		$rows = alarmmanager_db_rows('SELECT endpoint_id, ciphertext FROM plugin_alarmmanager_credentials ORDER BY endpoint_id LIMIT 1001 FOR UPDATE');
-		if (count($rows) > 1000) { throw new RuntimeException('credential_limit'); }
+
+		if (count($rows) > 1000) {
+			throw new RuntimeException('credential_limit');
+		}
+
 		foreach ($rows as $row) {
-			$id = (int) $row['endpoint_id']; $plain = alarmmanager_decrypt_credential($row['ciphertext'], $id, $old);
+			$id    = (int) $row['endpoint_id'];
+			$plain = alarmmanager_decrypt_credential($row['ciphertext'], $id, $old);
 			alarmmanager_db_write('UPDATE plugin_alarmmanager_credentials SET ciphertext = ?, updated_at = UTC_TIMESTAMP(6) WHERE endpoint_id = ?', [alarmmanager_encrypt_credential($plain, $id, $new), $id]);
 		}
 		alarmmanager_db_write('UPDATE settings_user SET value = ? WHERE user_id = ? AND name = ?', [base64_encode($new), 1, 'alarmmanager_key']);
-		if ($audit_user !== null) { alarmmanager_db_write('INSERT INTO plugin_alarmmanager_audit (user_id, action, resource_id, created_at) VALUES (?, ?, 0, UTC_TIMESTAMP(6))', [$audit_user, 'key_rotate']); }
+
+		if ($audit_user !== null) {
+			alarmmanager_db_write('INSERT INTO plugin_alarmmanager_audit (user_id, action, resource_id, created_at) VALUES (?, ?, 0, UTC_TIMESTAMP(6))', [$audit_user, 'key_rotate']);
+		}
 	});
 }
 function alarmmanager_credential_backup(): array {
 	return alarmmanager_transaction(function (): array {
-		$key = alarmmanager_secret_key(true);
+		$key  = alarmmanager_secret_key(true);
 		$rows = alarmmanager_db_rows('SELECT endpoint_id, ciphertext FROM plugin_alarmmanager_credentials ORDER BY endpoint_id LIMIT 1001');
-		if (count($rows) > 1000) { throw new RuntimeException('credential_limit'); }
-		foreach ($rows as &$row) { $row['endpoint_id'] = (int) $row['endpoint_id']; alarmmanager_decrypt_credential($row['ciphertext'], $row['endpoint_id'], $key); } unset($row);
+
+		if (count($rows) > 1000) {
+			throw new RuntimeException('credential_limit');
+		}
+
+		foreach ($rows as &$row) {
+			$row['endpoint_id'] = (int) $row['endpoint_id'];
+			alarmmanager_decrypt_credential($row['ciphertext'], $row['endpoint_id'], $key);
+		} unset($row);
+
 		return ['key' => base64_encode($key), 'bundle' => ['version' => 1, 'credentials' => $rows]];
 	});
 }
 /** Explicit administrator restore/provisioning; replaces the entire local credential set. */
 function alarmmanager_credential_restore(#[\SensitiveParameter] array $bundle, #[\SensitiveParameter] string $encoded_key): void {
-	alarmmanager_secret_guard(); $key = alarmmanager_decode_key($encoded_key);
+	alarmmanager_secret_guard();
+	$key = alarmmanager_decode_key($encoded_key);
 	alarmmanager_event_keys($bundle, ['version', 'credentials']);
-	if (($bundle['version'] ?? null) !== 1 || !is_array($bundle['credentials'] ?? null) || !array_is_list($bundle['credentials']) || count($bundle['credentials']) > 1000) { throw new InvalidArgumentException('credential_bundle_invalid'); }
+
+	if (($bundle['version'] ?? null) !== 1 || !is_array($bundle['credentials'] ?? null) || !array_is_list($bundle['credentials']) || count($bundle['credentials']) > 1000) {
+		throw new InvalidArgumentException('credential_bundle_invalid');
+	}
 	$ids = [];
+
 	foreach ($bundle['credentials'] as $row) {
-		if (!is_array($row)) { throw new InvalidArgumentException('credential_bundle_invalid'); }
+		if (!is_array($row)) {
+			throw new InvalidArgumentException('credential_bundle_invalid');
+		}
 		alarmmanager_event_keys($row, ['endpoint_id', 'ciphertext']);
 		$id = $row['endpoint_id'] ?? null;
-		if (!is_int($id) || $id < 1 || $id > 2147483647 || isset($ids[$id]) || !is_string($row['ciphertext'] ?? null)) { throw new InvalidArgumentException('credential_bundle_invalid'); }
-		$ids[$id] = true; alarmmanager_decrypt_credential($row['ciphertext'], $id, $key);
+
+		if (!is_int($id) || $id < 1 || $id > 2147483647 || isset($ids[$id]) || !is_string($row['ciphertext'] ?? null)) {
+			throw new InvalidArgumentException('credential_bundle_invalid');
+		}
+		$ids[$id] = true;
+		alarmmanager_decrypt_credential($row['ciphertext'], $id, $key);
 	}
 	alarmmanager_transaction(function () use ($bundle, $encoded_key): void {
 		// Lock canonical key row even when recovering a missing key.
 		alarmmanager_db_write('INSERT IGNORE INTO settings_user (user_id, name, value) VALUES (?, ?, ?)', [1, 'alarmmanager_key', $encoded_key]);
 		alarmmanager_db_row('SELECT value FROM settings_user WHERE user_id = ? AND name = ? FOR UPDATE', [1, 'alarmmanager_key']);
-		foreach ($bundle['credentials'] as $row) { if (!alarmmanager_db_row("SELECT id FROM plugin_alarmmanager_endpoints WHERE id = ? AND type IN ('restapi', 'webhook')", [$row['endpoint_id']])) { throw new RuntimeException('credential_endpoint_invalid'); } }
+
+		foreach ($bundle['credentials'] as $row) {
+			if (!alarmmanager_db_row("SELECT id FROM plugin_alarmmanager_endpoints WHERE id = ? AND type IN ('restapi', 'webhook')", [$row['endpoint_id']])) {
+				throw new RuntimeException('credential_endpoint_invalid');
+			}
+		}
 		alarmmanager_db_write('DELETE FROM plugin_alarmmanager_credentials');
-		foreach ($bundle['credentials'] as $row) { alarmmanager_db_write('INSERT INTO plugin_alarmmanager_credentials (endpoint_id, ciphertext, updated_at) VALUES (?, ?, UTC_TIMESTAMP(6))', [$row['endpoint_id'], $row['ciphertext']]); }
+
+		foreach ($bundle['credentials'] as $row) {
+			alarmmanager_db_write('INSERT INTO plugin_alarmmanager_credentials (endpoint_id, ciphertext, updated_at) VALUES (?, ?, UTC_TIMESTAMP(6))', [$row['endpoint_id'], $row['ciphertext']]);
+		}
 		alarmmanager_db_write('UPDATE settings_user SET value = ? WHERE user_id = ? AND name = ?', [$encoded_key, 1, 'alarmmanager_key']);
 	});
 }

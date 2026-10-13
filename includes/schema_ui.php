@@ -1,5 +1,23 @@
 <?php
-// SPDX-License-Identifier: GPL-2.0-or-later
+/*
+ +-------------------------------------------------------------------------+
+ | Copyright (C) 2004-2026 Sean Mancini                                    |
+ |                                                                         |
+ | This program is free software; you can redistribute it and/or           |
+ | modify it under the terms of the GNU General Public License             |
+ | as published by the Free Software Foundation; either version 2          |
+ | of the License, or (at your option) any later version.                  |
+ |                                                                         |
+ | This program is distributed in the hope that it will be useful,         |
+ | but WITHOUT ANY WARRANTY; without even the implied warranty of          |
+ | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           |
+ | GNU General Public License for more details.                            |
+ +-------------------------------------------------------------------------+
+ | Alarm Manager: centralized alarm history, routing and delivery for Cacti |
+ +-------------------------------------------------------------------------+
+ | https://github.com/bmfmancini/plugin_alarmmanager                       |
+ +-------------------------------------------------------------------------+
+*/
 require_once(__DIR__ . '/schema_runtime.php');
 function alarmmanager_schema_ui(): bool {
 	try {
@@ -12,8 +30,14 @@ function alarmmanager_schema_ui(): bool {
 		alarmmanager_schema_index('plugin_alarmmanager_decisions', 'reason_report', 'reason, created_at, event_row_id');
 		alarmmanager_db_write('CREATE TABLE IF NOT EXISTS plugin_alarmmanager_audit (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, user_id INT UNSIGNED NOT NULL, action VARCHAR(32) CHARACTER SET ascii NOT NULL, resource_id BIGINT UNSIGNED NOT NULL DEFAULT 0, created_at DATETIME(6) NOT NULL, KEY audit_time (created_at, id)) ENGINE=InnoDB');
 		$engine = db_fetch_cell_prepared("SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'plugin_alarmmanager_audit' AND ENGINE = 'InnoDB'", [], '', false);
-		if ((int) $engine !== 1) { return false; }
+
+		if ((int) $engine !== 1) {
+			return false;
+		}
 		alarmmanager_db_write('UPDATE plugin_alarmmanager_schema SET version = 4 WHERE id = 1 AND version <= 4');
+
 		return true;
-	} catch (Throwable $error) { return false; }
+	} catch (Throwable $error) {
+		return false;
+	}
 }

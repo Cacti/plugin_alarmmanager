@@ -106,3 +106,10 @@ Validation: all ten remaining CLI commands return --help successfully without Ca
 Greenfield standards conformance pass approved (php-cs-fixer --fix, full PHPUnit port, full Cacti-helpers UI rewrite, no composer.json per plugin_thold tooling convention). Layout hygiene: added index.php directory guards to all 23 directories per Plugin-Reference, moved the build-prompt transcript to docs/BUILD_PROMPTS.md, restored NOTICE.md attribution, added CHANGELOG.md, kept the INFO compat line at 1.2.29 to match the pinned discovery target.
 
 Validation: git status clean of unexplained artifacts after commit; every added guard passes php -l. No PHP runtime changes.
+## Cacti standards phase 1 — 2026-10-13 UTC
+
+Tooling: added .php-cs-fixer.php adapted rule-for-rule from Cacti develop (tab indent, same-line braces, strict_param, single_quote, operator alignment; plugin paths exclude docs/locales/examples/integration patches; tests included). Converted all 81 SPDX one-line PHP headers to the Cacti boxed GPL header plus a boxed adaptation header on js/dashboard.js; new index.php guards already carry the box header. Formatted the whole tree with the fixer through a dedicated QA Cacti develop checkout (cacti-qa) so the user's own Cacti checkout stays untouched; vendor is gitignored. Added .php-cs-fixer.cache/.phpstan-tmp-cache to .gitignore.
+
+Validation: fixer --dry-run reports 0 of 98 files fixable; php -l passes on all 104 tracked PHP files; all five standalone unit suites pass (103 checks; SetupTest compat expectation aligned to INFO compat 1.2.29). strict_param review found no semantic in_array/array_search conversions.
+
+Validation environment: PHP 8.3.6, PHP-CS-Fixer 3.95.27 from Cacti develop vendor. No runtime PHP behavior changed beyond the header and formatting edits.

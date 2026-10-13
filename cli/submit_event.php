@@ -1,25 +1,47 @@
 <?php
-// SPDX-License-Identifier: GPL-2.0-or-later
+/*
+ +-------------------------------------------------------------------------+
+ | Copyright (C) 2004-2026 Sean Mancini                                    |
+ |                                                                         |
+ | This program is free software; you can redistribute it and/or           |
+ | modify it under the terms of the GNU General Public License             |
+ | as published by the Free Software Foundation; either version 2          |
+ | of the License, or (at your option) any later version.                  |
+ |                                                                         |
+ | This program is distributed in the hope that it will be useful,         |
+ | but WITHOUT ANY WARRANTY; without even the implied warranty of          |
+ | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           |
+ | GNU General Public License for more details.                            |
+ +-------------------------------------------------------------------------+
+ | Alarm Manager: centralized alarm history, routing and delivery for Cacti |
+ +-------------------------------------------------------------------------+
+ | https://github.com/bmfmancini/plugin_alarmmanager                       |
+ +-------------------------------------------------------------------------+
+*/
 if (PHP_SAPI !== 'cli') {
 	http_response_code(403);
 	exit;
 }
 $options = getopt('', ['file:', 'mode:', 'help']);
+
 if (isset($options['help']) || !isset($options['file'])) {
 	print "Usage: php cli/submit_event.php --file=examples/event.json [--mode=observe|centralized]\n";
 	exit(isset($options['help']) ? 0 : 2);
 }
 $mode = $options['mode'] ?? 'observe';
+
 if (!in_array($mode, ['observe', 'centralized'], true) || !is_string($options['file'])) {
 	fwrite(STDERR, "Invalid arguments.\n");
 	exit(2);
 }
 $input = @file_get_contents($options['file'], false, null, 0, 65537);
+
 try {
 	if ($input === false || strlen($input) > 65536) {
 		throw new RuntimeException('Invalid input.');
 	}
 	$event = json_decode($input, true, 32, JSON_THROW_ON_ERROR);
+
 	if (!is_array($event)) {
 		throw new RuntimeException('Invalid event.');
 	}
@@ -32,7 +54,7 @@ try {
 $conn_mode = 'offline';
 require_once(__DIR__ . '/../../../include/cli_check.php');
 $envelope = ['contract_version' => 1, 'mode' => $mode, 'status' => 'unhandled', 'event' => $event];
-$result = api_plugin_hook_function('alarmmanager_submit', $envelope);
-$status = is_array($result) ? ($result['status'] ?? 'failed') : 'failed';
+$result   = api_plugin_hook_function('alarmmanager_submit', $envelope);
+$status   = is_array($result) ? ($result['status'] ?? 'failed') : 'failed';
 print json_encode(['status' => $status, 'error' => $result['error'] ?? null, 'event_row_id' => $result['event_row_id'] ?? null], JSON_THROW_ON_ERROR) . "\n";
 exit(in_array($status, ['accepted', 'already_accepted'], true) ? 0 : 1);

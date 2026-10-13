@@ -1,5 +1,23 @@
 <?php
-// SPDX-License-Identifier: GPL-2.0-or-later
+/*
+ +-------------------------------------------------------------------------+
+ | Copyright (C) 2004-2026 Sean Mancini                                    |
+ |                                                                         |
+ | This program is free software; you can redistribute it and/or           |
+ | modify it under the terms of the GNU General Public License             |
+ | as published by the Free Software Foundation; either version 2          |
+ | of the License, or (at your option) any later version.                  |
+ |                                                                         |
+ | This program is distributed in the hope that it will be useful,         |
+ | but WITHOUT ANY WARRANTY; without even the implied warranty of          |
+ | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           |
+ | GNU General Public License for more details.                            |
+ +-------------------------------------------------------------------------+
+ | Alarm Manager: centralized alarm history, routing and delivery for Cacti |
+ +-------------------------------------------------------------------------+
+ | https://github.com/bmfmancini/plugin_alarmmanager                       |
+ +-------------------------------------------------------------------------+
+*/
 if (PHP_SAPI !== 'cli') {
 	http_response_code(403);
 	exit;
@@ -10,6 +28,7 @@ require_once(__DIR__ . '/../../../setup.php');
 $checks = 0;
 function alarmmanager_test_assert(bool $result, string $message): void {
 	global $checks;
+
 	if (!$result) {
 		throw new RuntimeException($message);
 	}
@@ -29,6 +48,7 @@ alarmmanager_test_assert($GLOBALS['alarmmanager_test_store']['1:alarmmanager_key
 
 foreach ([false, null, '', 'invalid!', base64_encode('short'), base64_encode(str_repeat('x', 33))] as $invalid) {
 	$rejected = false;
+
 	try {
 		alarmmanager_decode_key($invalid);
 	} catch (RuntimeException $error) {
@@ -40,6 +60,7 @@ foreach ([false, null, '', 'invalid!', base64_encode('short'), base64_encode(str
 $GLOBALS['alarmmanager_test_store']['1:alarmmanager_key'] = 'broken';
 alarmmanager_test_assert(!plugin_alarmmanager_check_config(), 'Malformed persisted key enabled plugin.');
 $rejected = false;
+
 try {
 	alarmmanager_setup_key();
 } catch (RuntimeException $error) {
@@ -49,7 +70,8 @@ alarmmanager_test_assert($rejected && $GLOBALS['alarmmanager_test_store']['1:ala
 $GLOBALS['alarmmanager_test_store'] = [];
 alarmmanager_test_assert(!plugin_alarmmanager_upgrade(), 'Upgrade silently recreated a lost key.');
 $GLOBALS['alarmmanager_test_write_failure'] = true;
-$rejected = false;
+$rejected                                   = false;
+
 try {
 	alarmmanager_setup_key();
 } catch (RuntimeException $error) {
@@ -59,10 +81,11 @@ alarmmanager_test_assert($rejected && $GLOBALS['alarmmanager_test_store'] === []
 $GLOBALS['alarmmanager_test_write_failure'] = false;
 alarmmanager_setup_key();
 alarmmanager_test_assert($GLOBALS['alarmmanager_test_store']['1:alarmmanager_key'] !== $key, 'Separate installation reused a key.');
-$saved_key = $GLOBALS['alarmmanager_test_store']['1:alarmmanager_key'];
-$GLOBALS['alarmmanager_test_store'] = [];
+$saved_key                                = $GLOBALS['alarmmanager_test_store']['1:alarmmanager_key'];
+$GLOBALS['alarmmanager_test_store']       = [];
 $GLOBALS['alarmmanager_test_credentials'] = 1;
-$rejected = false;
+$rejected                                 = false;
+
 try {
 	alarmmanager_setup_key();
 } catch (RuntimeException $error) {
@@ -70,16 +93,16 @@ try {
 }
 alarmmanager_test_assert($rejected && $GLOBALS['alarmmanager_test_store'] === [], 'Lost key was recreated over stored credentials.');
 $GLOBALS['alarmmanager_test_store']['1:alarmmanager_key'] = $saved_key;
-$config['DEBUG_SQL_FLOW'] = true;
+$config['DEBUG_SQL_FLOW']                                 = true;
 alarmmanager_test_assert(!alarmmanager_key_ready(), 'SQL flow tracing may expose keys.');
-$config['DEBUG_SQL_FLOW'] = false;
-$saved_hooks = $GLOBALS['alarmmanager_test_hooks'];
-$GLOBALS['alarmmanager_test_hooks'] = [];
+$config['DEBUG_SQL_FLOW']                          = false;
+$saved_hooks                                       = $GLOBALS['alarmmanager_test_hooks'];
+$GLOBALS['alarmmanager_test_hooks']                = [];
 $GLOBALS['alarmmanager_test_registration_failure'] = true;
 alarmmanager_test_assert(!plugin_alarmmanager_install(), 'Missing hook metadata was accepted after void registration.');
 alarmmanager_test_assert($GLOBALS['alarmmanager_test_store']['1:alarmmanager_key'] === $saved_key, 'Registration failure changed the key.');
 $GLOBALS['alarmmanager_test_registration_failure'] = false;
-$GLOBALS['alarmmanager_test_hooks'] = $saved_hooks;
-$info = plugin_alarmmanager_version();
-alarmmanager_test_assert($info['name'] === 'alarmmanager' && $info['compat'] === '1.2.32', 'Metadata is invalid.');
+$GLOBALS['alarmmanager_test_hooks']                = $saved_hooks;
+$info                                              = plugin_alarmmanager_version();
+alarmmanager_test_assert($info['name'] === 'alarmmanager' && $info['compat'] === '1.2.29', 'Metadata is invalid.');
 print "PASS: $checks setup checks (in-memory database double; no live Cacti/database).\n";
