@@ -23,13 +23,6 @@ require_once(__DIR__ . '/reports.php');
 
 const ALARMMANAGER_TABS = ['dashboard', 'conditions', 'events', 'deliveries', 'attempts', 'decisions', 'processing'];
 
-// Kept until the administration and remote pages adopt the shared helpers.
-function alarmmanager_escape($value): string {
-	return html_escape((string) $value);
-}
-function alarmmanager_label(string $text): string {
-	return html_escape(__($text, 'alarmmanager'));
-}
 function alarmmanager_web_assets(): void {
 	global $config;
 

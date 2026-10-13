@@ -75,10 +75,10 @@ function alarmmanager_producer_save(array $input, int $user): string {
 	return 'Producer policy saved. Apply the revision-pinned patch on each producer. Existing notification receipts keep their original delivery owner.';
 }
 function alarmmanager_producer_markup(int $revision): void {
-	print '<p>' . alarmmanager_label('Pending producer receipts') . ': ' . (int) db_fetch_cell_prepared("SELECT COUNT(*) FROM plugin_alarmmanager_producer_receipts WHERE status = 'pending'", [], '', false) . '. ' . alarmmanager_label('Use the producer CLI to retry pending receipts after database recovery.') . '</p>';
+	print '<p>' . __esc('Pending producer receipts', 'alarmmanager') . ': ' . (int) db_fetch_cell_prepared("SELECT COUNT(*) FROM plugin_alarmmanager_producer_receipts WHERE status = 'pending'", [], '', false) . '. ' . __esc('Use the producer CLI to retry pending receipts after database recovery.', 'alarmmanager') . '</p>';
 	$rows = alarmmanager_db_rows('SELECT source, scope, resource_id, revision, definition FROM plugin_alarmmanager_producer_config ORDER BY source, scope, resource_id LIMIT 257');
-	print '<p>' . alarmmanager_label('Legacy is the default. Resource overrides template overrides plugin default. Saved policy remains intact if Alarm Manager is disabled; new notifications then use legacy fallback. Accepted notifications retain centralized ownership.') . '</p>';
-	print '<p>' . alarmmanager_label('Centralized channel handoff replaces the selected source delivery with the routing profile endpoints. Configure recipients, templates, attachments and reviewed script wrappers on those endpoints before enabling it. Unselected source channels retain their existing behavior.') . '</p>';
+	print '<p>' . __esc('Legacy is the default. Resource overrides template overrides plugin default. Saved policy remains intact if Alarm Manager is disabled; new notifications then use legacy fallback. Accepted notifications retain centralized ownership.', 'alarmmanager') . '</p>';
+	print '<p>' . __esc('Centralized channel handoff replaces the selected source delivery with the routing profile endpoints. Configure recipients, templates, attachments and reviewed script wrappers on those endpoints before enabling it. Unselected source channels retain their existing behavior.', 'alarmmanager') . '</p>';
 
 	if (count($rows) > 256) {
 		throw new RuntimeException('producer_configuration_limit');
@@ -88,26 +88,26 @@ function alarmmanager_producer_markup(int $revision): void {
 	foreach ($rows as $row) {
 		$definition = AlarmManagerProducerBridge::validate(json_decode($row['definition'], true, 8, JSON_THROW_ON_ERROR));
 		$new        = (int) $row['revision'] === 0;
-		print '<details class="alarmmanagerDashboardCard" ' . ($new ? 'open' : '') . '><summary>' . alarmmanager_label($new ? 'New producer policy' : $row['source'] . ' ' . $row['scope'] . ' #' . $row['resource_id']) . '</summary>';
+		print '<details class="alarmmanagerDashboardCard" ' . ($new ? 'open' : '') . '><summary>' . __esc($new ? 'New producer policy' : $row['source'] . ' ' . $row['scope'] . ' #' . $row['resource_id'], 'alarmmanager') . '</summary>';
 		alarmmanager_form_start('producer_save', $revision, ['producer_revision' => $row['revision']]);
 
 		foreach (['source' => ['thold', 'syslog'], 'scope' => ['default', 'template', 'resource'], 'mode' => ['legacy', 'observe', 'centralized']] as $field => $options) {
 			$value = $field === 'mode' ? $definition['mode'] : $row[$field];
-			print '<label>' . alarmmanager_label(ucfirst($field)) . ' <select name="' . $field . '" ' . (!$new && $field !== 'mode' ? 'disabled' : '') . '>';
+			print '<label>' . __esc(ucfirst($field), 'alarmmanager') . ' <select name="' . $field . '" ' . (!$new && $field !== 'mode' ? 'disabled' : '') . '>';
 
 			foreach ($options as $option) {
 				print '<option ' . ($value === $option ? 'selected' : '') . '>' . $option . '</option>';
 			} print '</select></label>';
 
 			if (!$new && $field !== 'mode') {
-				print '<input type="hidden" name="' . $field . '" value="' . alarmmanager_escape($value) . '">';
+				print '<input type="hidden" name="' . $field . '" value="' . html_escape($value) . '">';
 			}
 		}
 		alarmmanager_input('resource_id', 'Resource or template ID (default uses 0)', $row['resource_id'], 'number', 'min="0" required' . ($new ? '' : ' readonly'));
 		alarmmanager_input('profile_id', 'Routing profile ID (0 uses ordinary matching rules in observe mode)', $definition['profile_id'], 'number', 'min="0" required');
 
 		foreach (['email', 'script', 'ticket'] as $channel) {
-			print '<label><input type="checkbox" name="channels[]" value="' . $channel . '" ' . (in_array($channel, $definition['channels'], true) ? 'checked' : '') . '> ' . alarmmanager_label('Hand off ' . $channel) . '</label>';
+			print '<label><input type="checkbox" name="channels[]" value="' . $channel . '" ' . (in_array($channel, $definition['channels'], true) ? 'checked' : '') . '> ' . __esc('Hand off ' . $channel, 'alarmmanager') . '</label>';
 		}
 		alarmmanager_checkbox('complete_history', 'Include source-logged suppressed notification events', $definition['complete_history']);
 		alarmmanager_checkbox('migration_confirmed', 'I have configured the replacement endpoints and reviewed recipient, template, attachment and script behavior');
@@ -115,6 +115,6 @@ function alarmmanager_producer_markup(int $revision): void {
 		if (!$new) {
 			alarmmanager_checkbox('inherit', 'Remove this override and inherit the parent policy');
 		}
-		print '<button type="submit">' . alarmmanager_label('Save producer policy') . '</button></form></details>';
+		print '<button type="submit">' . __esc('Save producer policy', 'alarmmanager') . '</button></form></details>';
 	}
 }

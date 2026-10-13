@@ -33,3 +33,7 @@ $themes        = ['modern' => 'Modern', 'dark' => 'Dark', 'classic' => 'Classic'
 require_once($cacti . '/include/global_constants.php');
 require_once($cacti . '/lib/functions.php');
 require_once($cacti . '/lib/auth.php');
+require_once($cacti . '/include/global_languages.php');
+require_once($cacti . '/lib/html.php');
+require_once($cacti . '/lib/html_utility.php');
+require_once($cacti . '/lib/html_form.php');

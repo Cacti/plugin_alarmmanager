@@ -59,4 +59,6 @@ if ($tab === 'dashboard') {
 	alarmmanager_report_table($tab, $data, $scope, $filters);
 }
 
+print '</main>';
+
 bottom_footer();

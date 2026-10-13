@@ -22,14 +22,25 @@ require_once(__DIR__ . '/../../include/auth.php');
 require_once(__DIR__ . '/includes/admin_view.php');
 header('Cache-Control: no-store');
 
+const ALARMMANAGER_SECTIONS = ['endpoints', 'profiles', 'producers', 'collectors', 'rules', 'credentials', 'test', 'configuration', 'health', 'audit'];
+
 try {
 	if (!alarmmanager_web_admin()) {
 		throw new RuntimeException('permission_denied');
 	}
 
 	if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
+		// Enumerate keys only; every value is read back through Cacti's
+		// unfiltered accessor before the action validates it.
+		$post = [];
+
+		foreach (array_keys($_POST) as $key) {
+			$post[$key] = get_nfilter_request_var((string) $key);
+		}
+
 		try {
-			$_SESSION['alarmmanager_notice'] = alarmmanager_admin_action($_POST);
+			alarmmanager_admin_action($post);
+			raise_message('alarmmanager_notice', __('The administration action succeeded.', 'alarmmanager'), MESSAGE_LEVEL_INFO);
 		} catch (Throwable $error) {
 			$message = match ($error->getMessage()) {
 				'configuration_changed' => 'Configuration changed. Reload before applying your edits.',
@@ -41,34 +52,25 @@ try {
 				'invalid_configuration' => 'Action failed. Configuration fields are invalid.',
 				default                 => 'Action failed. Check configuration, permissions and CSRF token. Submitted credential values were cleared.'
 			};
-			$_SESSION['alarmmanager_notice'] = __($message, 'alarmmanager');
+			raise_message('alarmmanager_notice', __($message, 'alarmmanager'), MESSAGE_LEVEL_ERROR);
 		}
-		header('Location: alarmmanager_admin.php');
-		exit;
+		cacti_redirect('alarmmanager_admin.php');
 	}
 
 	if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
 		throw new RuntimeException('permission_denied');
 	}
-	$section = $_GET['section'] ?? 'endpoints';
 
-	if (!is_string($section) || !in_array($section, ['endpoints', 'profiles', 'producers', 'collectors', 'rules', 'credentials', 'test', 'configuration', 'health', 'audit'], true)) {
-		throw new InvalidArgumentException('invalid_section');
-	}
-	$state = alarmmanager_admin_configuration();
+	$state   = alarmmanager_admin_configuration();
+	$section = (string) get_filter_request_var('section', FILTER_CALLBACK, ['options' => ['options' => static fn ($value) => in_array($value, ALARMMANAGER_SECTIONS, true) ? $value : false], 'default' => 'endpoints']);
 } catch (Throwable $error) {
 	http_response_code($error instanceof InvalidArgumentException ? 400 : ($error instanceof \AlarmManager\StorageException ? 503 : 403));
-	print alarmmanager_label('Administration unavailable or permission denied.');
+	print html_escape(__('Administration unavailable or permission denied.', 'alarmmanager'));
 	exit;
 }
 top_header();
+
 alarmmanager_web_assets();
 alarmmanager_web_open(['admin' => true], 'admin');
-
-if (isset($_SESSION['alarmmanager_notice'])) {
-	print '<pre role="status" class="alarmmanagerNotice">' . alarmmanager_escape($_SESSION['alarmmanager_notice']) . '</pre>';
-	unset($_SESSION['alarmmanager_notice']);
-}
 alarmmanager_admin_markup($state, $section);
-print '</main>';
 bottom_footer();
