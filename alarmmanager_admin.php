@@ -24,7 +24,7 @@ try {
 	}
 	if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') { throw new RuntimeException('permission_denied'); }
 	$section = $_GET['section'] ?? 'endpoints';
-	if (!is_string($section) || !in_array($section, ['endpoints', 'profiles', 'rules', 'credentials', 'test', 'configuration', 'health', 'audit'], true)) { throw new InvalidArgumentException('invalid_section'); }
+	if (!is_string($section) || !in_array($section, ['endpoints', 'profiles', 'producers', 'rules', 'credentials', 'test', 'configuration', 'health', 'audit'], true)) { throw new InvalidArgumentException('invalid_section'); }
 	$state = alarmmanager_admin_configuration();
 } catch (Throwable $error) { http_response_code($error instanceof InvalidArgumentException ? 400 : ($error instanceof \AlarmManager\StorageException ? 503 : 403)); print alarmmanager_label('Administration unavailable or permission denied.'); exit; }
 top_header(); alarmmanager_web_assets(); alarmmanager_web_open(['admin' => true], 'admin');

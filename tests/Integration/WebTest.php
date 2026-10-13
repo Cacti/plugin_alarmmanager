@@ -89,5 +89,18 @@ try {
  $measure=['events'=>401,'reader_visible_events'=>250,'dashboard_queries'=>$query_count,'dashboard_ms'=>round($duration,3),'php_peak_bytes'=>memory_get_peak_usage(true),'list_explain'=>$plan,'database'=>db_fetch_cell_prepared('SELECT VERSION()')];
  if(getenv('ALARMMANAGER_WEB_MEASUREMENT'))file_put_contents(getenv('ALARMMANAGER_WEB_MEASUREMENT'),json_encode($measure,JSON_PRETTY_PRINT|JSON_THROW_ON_ERROR)."\n");
  $deadline_start=microtime(true);wreject(fn()=>alarmmanager_report_rows('SELECT SLEEP(6)'),'Per-statement report timeout');wcheck(microtime(true)-$deadline_start<6,'Report timeout bounded');
+ wuser(2); wreject(fn()=>waction(['action'=>'producer_save','source'=>'thold','scope'=>'default','resource_id'=>0,'mode'=>'legacy']), 'reader producer save denied');
+ wuser(1); $_SERVER['REQUEST_METHOD']='POST'; $_POST=['__csrf_magic'=>'invalid']; wreject(fn()=>alarmmanager_admin_action(['action'=>'producer_save','source'=>'thold','scope'=>'default','resource_id'=>0,'mode'=>'legacy']), 'producer invalid CSRF denied');
+ $producer=['action'=>'producer_save','source'=>'thold','scope'=>'default','resource_id'=>0,'producer_revision'=>0,'mode'=>'centralized','profile_id'=>1,'channels'=>['email']];
+ wreject(fn()=>waction($producer), 'central producer migration confirmation required');
+ waction($producer+['migration_confirmed'=>'yes']);wcheck(AlarmManagerProducerBridge::configuration('thold',42)['mode']==='centralized','admin producer default saved');
+ wreject(fn()=>waction($producer+['migration_confirmed'=>'yes']), 'producer stale editor denied');
+ $override=['action'=>'producer_save','source'=>'thold','scope'=>'template','resource_id'=>10,'producer_revision'=>0,'mode'=>'observe','profile_id'=>0];
+ waction($override);wcheck(AlarmManagerProducerBridge::configuration('thold',42,10)['mode']==='observe','template override saved');
+ waction(['action'=>'producer_save','source'=>'thold','scope'=>'resource','resource_id'=>42,'producer_revision'=>0,'mode'=>'legacy','profile_id'=>0]);wcheck(AlarmManagerProducerBridge::configuration('thold',42,10)['mode']==='legacy','threshold override saved');
+ waction(['action'=>'producer_save','source'=>'thold','scope'=>'resource','resource_id'=>42,'producer_revision'=>1,'mode'=>'legacy','profile_id'=>0,'inherit'=>'yes']);wcheck(AlarmManagerProducerBridge::configuration('thold',42,10)['mode']==='observe','override removal restores inheritance');
+ wreject(fn()=>waction(['action'=>'producer_save','source'=>'syslog','scope'=>'template','resource_id'=>1,'mode'=>'observe']), 'syslog template rejected');
+ ob_start();alarmmanager_admin_markup(alarmmanager_admin_configuration(),'producers');$html=ob_get_clean();wcheck(str_contains($html,'Producer integrations')&&str_contains($html,'migration_confirmed')&&str_contains($html,'__csrf_magic'), 'producer admin controls and CSRF rendered');
+ wcheck((int)db_fetch_cell_prepared("SELECT COUNT(*) FROM plugin_alarmmanager_audit WHERE action LIKE 'producer_%'")===4,'producer changes audited');
  print "PASS: $checks database/Cacti policy/admin/replay checks; dashboard $query_count queries in ".round($duration,2)." ms.\n";
 } finally { if($alarmmanager_test_db->inTransaction())$alarmmanager_test_db->rollBack();$alarmmanager_test_db->exec("DROP DATABASE `$database`"); }

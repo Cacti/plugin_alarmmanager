@@ -61,3 +61,19 @@ php -d session.save_path="$ALARMMANAGER_WEB_ROOT/sessions" \
 Run tests/Browser/WebTest.cjs with ALARMMANAGER_BROWSER_URL=http://127.0.0.1:33078 and optionally ALARMMANAGER_BROWSER_BINARY pointing at a local Chrome headless shell. ALARMMANAGER_PLAYWRIGHT_MODULE may point at an installed Playwright package; ALARMMANAGER_BROWSER_SCREENSHOTS optionally saves review images. The fixture server and browser must share the local network namespace. Tests cover real local chart/theme assets, modern/dark/classic, desktop/390px, valid/invalid Cacti CSRF, direct read-only denial, no-code mapping edits, chart-to-log links, escaping and zero non-loopback page/asset requests. Fixture scripts refuse normal PHP-FPM/web execution; enable flags apply only to the disposable CLI server. Stop the server, drop only the regex-validated database named in the private database.txt file, and remove the disposable fixture/session files after testing. Never expose this fixture listener beyond loopback.
 
 Full Cacti install/login/LDAP/admin upgrade and real collector deployment remain a separate qualification lane. The minimal fixture uses Cacti's actual policy/CSRF/chart sources and a test authentication/header shell; it does not prove the full installer or production authentication boundary.
+
+
+## Phase 7 producer lane
+
+Run tests/Integration/ProducerTest.php with the same disposable MariaDB variables. It creates and drops only its randomly named test database. WebTest.php additionally exercises producer administration, CSRF/realm denial, migration confirmation, stale editing, inheritance and audit.
+
+Generate the patches from the pinned clean upstream checkouts and apply them to separate lab copies. For TholdBranchesTest.php set ALARMMANAGER_THOLD_ROOT to the clean reference and ALARMMANAGER_THOLD_PATCHED_ROOT to the patched plugin at a disposable <root>/plugins/thold path. Copy the reference includes/arrays.php there; the test reuses the upstream characterization helpers with framework doubles and requires no PHPUnit download. For SyslogBranchesTest.php set ALARMMANAGER_SYSLOG_PATCHED_ROOT to the patched syslog checkout and enable PHP tokenizer. It extracts the actual patched processing function, stubs delivery/framework boundaries and creates/removes a private temporary reports include.
+
+```sh
+php tests/Unit/Producers/TholdBranchesTest.php
+php tests/Unit/Producers/SyslogBranchesTest.php
+php tests/Integration/ProducerTest.php
+php tests/Integration/WebTest.php
+```
+
+Branch fixtures do not prove installed scheduler/graph/script/SMTP parity. Follow PRODUCER_INTEGRATIONS.md for explicit migrated ownership and the full installed lab lane.

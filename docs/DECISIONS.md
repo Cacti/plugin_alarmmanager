@@ -37,3 +37,13 @@
 - Use UTC DATETIME arithmetic for buckets independent of session timezone; keep current condition/queue counts separate from historical action windows and mode-separated observations.
 - Bound report rows, windows/categories and per-statement execution; record measured fixture queries and remaining large-installation qualification honestly.
 - Lock configuration revision to reject stale UI writes, audit safe metadata atomically, and preserve prior delivery attempts/idempotency while granting a fresh explicit replay retry budget.
+
+
+## Phase 7 additions
+
+- Ship separate revision-pinned thold/syslog patches; default legacy, functional observation and explicit per-channel centralized handoff. Manage source defaults, thold template/resource overrides and syslog rule overrides in the existing protected administration page.
+- Persist source envelopes/sequence/episode state and atomic ownership receipts separately from event/delivery attempts. Ingestion commits event/job/receipt together; committed receipts override disabled hooks or later transport failure. Never reopen legacy receipts.
+- Keep source email/template/BCC/graph/script/ticket behavior unchanged until that channel is explicitly migrated. Central handoff replaces those settings with administrator-configured endpoint contracts; require migration acknowledgment and document wrapper/recipient parity limits.
+- Preserve source suppression and local state/logging. Emit suppressed confirmed recoveries when a source recovery notification is disabled so central conditions close without sending traffic. Syslog remains an occurrence producer.
+- Hold selected channels when ownership cannot be read after durable reservation; recover pending saved envelopes using the bounded offline producer CLI. Receiver/script idempotency and source DB-loss boundaries remain explicit limitations.
+- Keep operational receipts/streams local and preserve them across uninstall. Full installed producer and remote reconciliation qualification remains separate from PDO/framework fixtures.

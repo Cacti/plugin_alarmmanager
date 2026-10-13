@@ -24,7 +24,7 @@ function alarmmanager_schema_index(string $table, string $name, string $columns)
 function alarmmanager_schema_runtime(): bool {
 	try {
 		$version = db_fetch_cell_prepared('SELECT version FROM plugin_alarmmanager_schema WHERE id = 1', [], '', false);
-		if ($version === false || (int) $version > 4) { return false; }
+		if ($version === false || (int) $version > 5) { return false; }
 		alarmmanager_schema_column('plugin_alarmmanager_schema', 'config_revision', 'BIGINT UNSIGNED NOT NULL DEFAULT 0');
 		alarmmanager_schema_column('plugin_alarmmanager_events', 'stream_key', "CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL DEFAULT ''");
 		alarmmanager_db_write("UPDATE plugin_alarmmanager_events SET stream_key = SHA2(CONCAT(source, '|', source_instance, '|', alarm_key, '|', mode), 256) WHERE stream_key = ''");

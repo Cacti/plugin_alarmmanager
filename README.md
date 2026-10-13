@@ -30,3 +30,8 @@ See the [event contract](docs/EVENT_CONTRACT.md) and [schema](docs/SCHEMA.md) fo
 See [test setup](docs/TEST_SETUP.md), [implementation plan](docs/IMPLEMENTATION_PLAN.md), [decisions](docs/DECISIONS.md), [progress](docs/PROGRESS.md) and [focused prompts](alarmmanager-build-prompts.md). Dependencies/assets must be local and licensed; no CDN or runtime package download is permitted. REST API and webhook destinations have independent transports, mappings, credentials, jobs and retries. [Delivery configuration](docs/DELIVERY.md) includes self-signed certificate/private-CA support through endpoint ca_bundle files, preview and explicit worker-owned test sends. See [lifecycle/routing](docs/LIFECYCLE_ROUTING.md), [workers](docs/WORKERS.md) and [fixture benchmark](docs/benchmarks/README.md).
 
 GPL-2.0-or-later. See LICENSE and [attribution](NOTICE.md).
+
+
+## Opt-in producer integrations (phase 7)
+
+Version 0.7.0 includes revision-pinned thold/syslog patches, durable notification ownership receipts and protected source policy controls. Apply the patches separately in a lab; source delivery remains legacy by default. See [PRODUCER_INTEGRATIONS.md](docs/PRODUCER_INTEGRATIONS.md) for exact revisions, policy inheritance, explicit email/script migration, pending receipt recovery and remaining installed/remote qualification. Device-status integration remains phase 8.

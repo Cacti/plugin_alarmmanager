@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 require_once(__DIR__ . '/events.php');
 require_once(__DIR__ . '/runtime.php');
+require_once(__DIR__ . '/schema_producers.php');
 
 /** Functional hook: preserve the caller's envelope and explicitly signal ownership. */
 function alarmmanager_submit($envelope) {
@@ -78,6 +79,7 @@ function alarmmanager_submit($envelope) {
 			VALUES (?, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6), UTC_TIMESTAMP(6), ?) ON DUPLICATE KEY UPDATE event_row_id = event_row_id', [$id, match ($event['severity']) { 'critical' => 3, 'major' => 2, 'warning', 'minor' => 1, default => 0 }], false)) {
 			throw new RuntimeException('Cannot persist processing job.');
 		}
+		alarmmanager_accept_producer_receipt($envelope, $event, $id);
 		if (!db_execute_prepared('COMMIT', [], false)) {
 			throw new RuntimeException('Cannot confirm ingestion commit.');
 		}

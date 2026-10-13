@@ -4,6 +4,7 @@ require_once(__DIR__ . '/web_auth.php');
 require_once(__DIR__ . '/routing.php');
 require_once(__DIR__ . '/credential_store.php');
 require_once(__DIR__ . '/test_delivery.php');
+require_once(__DIR__ . '/producer_admin.php');
 
 function alarmmanager_audit(int $user, string $action, int $resource = 0): void {
 	alarmmanager_db_write('INSERT INTO plugin_alarmmanager_audit (user_id, action, resource_id, created_at) VALUES (?, ?, ?, UTC_TIMESTAMP(6))', [$user, $action, $resource]);
@@ -44,6 +45,7 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 	alarmmanager_web_mutation_guard(); $user = alarmmanager_web_user();
 	$action = $input['action'] ?? '';
 	if (!is_string($action)) { throw new InvalidArgumentException('invalid_action'); }
+	if ($action === 'producer_save') { return alarmmanager_producer_save($input, $user); }
 	if ($action === 'credential_save') {
 		$id = alarmmanager_admin_int($input['id'] ?? null);
 		$record = ['headers' => alarmmanager_admin_json($input['headers'] ?? '{}', 65536)];

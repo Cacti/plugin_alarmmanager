@@ -1,0 +1,770 @@
+--- a/includes/functions.php
++++ b/includes/functions.php
+@@ -21,6 +21,8 @@
+  | http://www.cacti.net/                                                   |
+  +-------------------------------------------------------------------------+
+ */
++
++require_once(__DIR__ . '/alarmmanager_adapter.php');
+ 
+ /**
+  * Return the CSP nonce attribute for inline <script> tags, safely across
+@@ -3261,7 +3263,7 @@
+  *
+  * @return string The message that was sent, or '' when nothing was.
+  */
+-function thold_mail_notification($recipients, $bcc, $subject, $text_type, $list_id, $file_array, &$thold_data, &$h, $timespan = 7) {
++function thold_mail_notification($recipients, $bcc, $subject, $text_type, $list_id, $file_array, &$thold_data, &$h, $timespan = 7, $alarmmanager_delivery = []) {
+ 	$format_file = thold_get_thold_notification_format_file($thold_data['id'], $list_id);
+ 
+ 	if (trim($recipients) == '' || $thold_data['acknowledgment'] != '') {
+@@ -3283,7 +3285,9 @@
+ 			break;
+ 	}
+ 
+-	thold_mail($recipients, $bcc, '', $subject, $message, $file_array, '', $list_id, $h, $format_file, $timespan);
++	if (!AlarmManagerProducerBridge::owns($alarmmanager_delivery, 'email')) {
++		thold_mail($recipients, $bcc, '', $subject, $message, $file_array, '', $list_id, $h, $format_file, $timespan);
++	}
+ 
+ 	return $message;
+ }
+@@ -3531,6 +3535,8 @@
+ 
+ 				if ($notify) {
+ 					if (!$suspend_notify && !$maint_dev) {
++						$alarmmanager_delivery = alarmmanager_thold_begin($thold_data, $h, 'alert', $subject, (bool) $ra, ($thold_data['acknowledgment'] ?? '') !== '', 'source_acknowledged');
++
+ 						thold_debug('Alerting is necessary');
+ 
+ 						$notify_list_id = $thold_data['notify_alert'];
+@@ -3543,7 +3549,7 @@
+ 						if (trim($alert_emails) != '' && $thold_data['acknowledgment'] == '') {
+ 							$message = get_thold_alert_text($thold_data['data_source_name'], $thold_data, $h, $thold_data['lastread'], $thold_data['local_graph_id']);
+ 
+-							thold_mail($alert_emails, $alert_bcc_emails, '', $subject, $message, $file_array, '', $notify_list_id, $h, $format_file);
++							if (!AlarmManagerProducerBridge::owns($alarmmanager_delivery, 'email')) { thold_mail($alert_emails, $alert_bcc_emails, '', $subject, $message, $file_array, '', $notify_list_id, $h, $format_file); }
+ 						}
+ 
+ 						if ($notify_different) {
+@@ -3551,11 +3557,11 @@
+ 							$format_file    = thold_get_thold_notification_format_file($thold_data['id'], $notify_list_id);
+ 
+ 							if (trim($warning_emails) != '' && $thold_data['acknowledgment'] == '') {
+-								thold_mail($warning_emails, $warning_bcc_emails, '', $subject, $message, $file_array, '', $notify_list_id, $h, $format_file);
++								if (!AlarmManagerProducerBridge::owns($alarmmanager_delivery, 'email')) { thold_mail($warning_emails, $warning_bcc_emails, '', $subject, $message, $file_array, '', $notify_list_id, $h, $format_file); }
+ 							}
+ 						}
+ 
+-						thold_command_execution($thold_data, $h, $breach_up, $breach_down);
++						if (!AlarmManagerProducerBridge::owns($alarmmanager_delivery, 'script')) { thold_command_execution($thold_data, $h, $breach_up, $breach_down); }
+ 
+ 						$save = [
+ 							'class'               => 'alert',
+@@ -3593,7 +3599,7 @@
+ 						}
+ 					}
+ 
+-					thold_log([
++					alarmmanager_thold_log([
+ 						'type'            => 0,
+ 						'time'            => time(),
+ 						'host_id'         => $thold_data['host_id'],
+@@ -3604,7 +3610,7 @@
+ 						'status'          => ($ra ? ST_NOTIFYRA : ST_NOTIFYAL),
+ 						'description'     => ($maint_dev ? $subject . '. ' . __('Only logging, maint device', 'thold') : $subject),
+ 						'emails'          => $alert_emails,
+-						'bcc_emails'      => $alert_bcc_emails]
++						'bcc_emails'      => $alert_bcc_emails], $thold_data, $h, $maint_dev
+ 					);
+ 				}
+ 
+@@ -3667,13 +3673,15 @@
+ 
+ 				if ($notify) {
+ 					if (!$suspend_notify && !$maint_dev) {
++						$alarmmanager_delivery = alarmmanager_thold_begin($thold_data, $h, 'warn', $subject, (bool) $ra, ($thold_data['acknowledgment'] ?? '') !== '', 'source_acknowledged');
++
+ 						thold_debug('Alerting is necessary');
+ 
+ 						if ($syslog) {
+ 							logger($subject, $url, $syslog_priority, $syslog_facility);
+ 						}
+ 
+-						$message = thold_mail_notification($warning_emails, $warning_bcc_emails, $subject, 'warning', $thold_data['notify_warning'], $file_array, $thold_data, $h, $thold_data['graph_timespan']);
++						$message = thold_mail_notification($warning_emails, $warning_bcc_emails, $subject, 'warning', $thold_data['notify_warning'], $file_array, $thold_data, $h, $thold_data['graph_timespan'], $alarmmanager_delivery);
+ 
+ 						$save = [
+ 							'class'               => 'warn',
+@@ -3711,7 +3719,7 @@
+ 						}
+ 					}
+ 
+-					thold_log([
++					alarmmanager_thold_log([
+ 						'type'            => 0,
+ 						'time'            => time(),
+ 						'host_id'         => $thold_data['host_id'],
+@@ -3722,7 +3730,7 @@
+ 						'status'          => ($ra ? ST_NOTIFYRAW : ST_NOTIFYWA),
+ 						'description'     => ($maint_dev ? $subject . '. ' . __('Only logging, maint device', 'thold') : $subject),
+ 						'emails'          => $warning_emails,
+-						'bcc_emails'      => $warning_bcc_emails]
++						'bcc_emails'      => $warning_bcc_emails], $thold_data, $h, $maint_dev
+ 					);
+ 				} elseif (($thold_data['thold_warning_fail_count'] >= $warning_trigger) && ($thold_data['thold_fail_count'] >= $trigger)) {
+ 					$subject = get_email_subject('ALERT > WARNING', false, $lastread, $ra, $warning_breach_up, $thold_data);
+@@ -3735,14 +3743,16 @@
+ 					}
+ 
+ 					if (!$suspend_notify && !$maint_dev) {
+-						$message = thold_mail_notification($alert_emails, $alert_bcc_emails, $subject, 'warning', $thold_data['notify_alert'], $file_array, $thold_data, $h, $thold_data['graph_timespan']);
++						$alarmmanager_delivery = alarmmanager_thold_begin($thold_data, $h, 'alert2warn', $subject, (bool) $ra, ($thold_data['acknowledgment'] ?? '') !== '', 'source_acknowledged');
++
++						$message = thold_mail_notification($alert_emails, $alert_bcc_emails, $subject, 'warning', $thold_data['notify_alert'], $file_array, $thold_data, $h, $thold_data['graph_timespan'], $alarmmanager_delivery);
+ 
+ 						if ($notify_different) {
+ 							$notify_list_id = $thold_data['notify_warning'];
+ 							$format_file    = thold_get_thold_notification_format_file($thold_data['id'], $notify_list_id);
+ 
+ 							if (trim($warning_emails) != '' && $thold_data['acknowledgment'] == '') {
+-								thold_mail($warning_emails, $warning_bcc_emails, '', $subject, $message, $file_array, '', $notify_list_id, $h, $format_file);
++								if (!AlarmManagerProducerBridge::owns($alarmmanager_delivery, 'email')) { thold_mail($warning_emails, $warning_bcc_emails, '', $subject, $message, $file_array, '', $notify_list_id, $h, $format_file); }
+ 							}
+ 						}
+ 
+@@ -3781,7 +3791,7 @@
+ 						}
+ 					}
+ 
+-					thold_log([
++					alarmmanager_thold_log([
+ 						'type'            => 0,
+ 						'time'            => time(),
+ 						'host_id'         => $thold_data['host_id'],
+@@ -3792,7 +3802,7 @@
+ 						'status'          => ST_NOTIFYAW,
+ 						'description'     => ($maint_dev ? $subject . '. ' . __('Only logging, maint device', 'thold') : $subject),
+ 						'emails'          => $alert_emails,
+-						'bcc_emails'      => $alert_bcc_emails]
++						'bcc_emails'      => $alert_bcc_emails], $thold_data, $h, $maint_dev
+ 					);
+ 				}
+ 
+@@ -3825,6 +3835,8 @@
+ 					}
+ 
+ 					if ($thold_data['thold_warning_fail_count'] >= $warning_trigger && $thold_data['restored_alert'] != 'on' && !$maint_dev) {
++						$alarmmanager_delivery = alarmmanager_thold_begin($thold_data, $h, 'warn2normal', $subject, false, ($thold_data['acknowledgment'] ?? '') !== '', 'source_acknowledged');
++
+ 						if ($syslog) {
+ 							logger($subject, $url, $syslog_priority, $syslog_facility);
+ 						}
+@@ -3835,7 +3847,7 @@
+ 						if (trim($warning_emails) != '' && $thold_data['restored_alert'] != 'on' && $thold_data['acknowledgment'] == '') {
+ 							$message = get_thold_restoral_text($thold_data['data_source_name'], $thold_data, $h, $thold_data['lastread'], $thold_data['local_graph_id']);
+ 
+-							thold_mail($warning_emails, $warning_bcc_emails, '', $subject, $message, $file_array, '', $notify_list_id, $h, $format_file, $thold_data['graph_timespan']);
++							if (!AlarmManagerProducerBridge::owns($alarmmanager_delivery, 'email')) { thold_mail($warning_emails, $warning_bcc_emails, '', $subject, $message, $file_array, '', $notify_list_id, $h, $format_file, $thold_data['graph_timespan']); }
+ 						}
+ 
+ 						$save = [
+@@ -3863,7 +3875,7 @@
+ 							thold_snmptrap($thold_snmp_data, SNMPAGENT_EVENT_SEVERITY_MEDIUM, $overwrite);
+ 						}
+ 
+-						thold_log([
++						alarmmanager_thold_log([
+ 							'type'            => 0,
+ 							'time'            => time(),
+ 							'host_id'         => $thold_data['host_id'],
+@@ -3874,9 +3886,11 @@
+ 							'status'          => ST_NOTIFYRS,
+ 							'description'     => $subject,
+ 							'emails'          => $warning_emails,
+-							'bcc_emails'      => $warning_bcc_emails]
++							'bcc_emails'      => $warning_bcc_emails], $thold_data, $h, $maint_dev
+ 						);
+ 					} elseif ($thold_data['thold_fail_count'] >= $trigger && $thold_data['restored_alert'] != 'on' && !$maint_dev) {
++						$alarmmanager_delivery = alarmmanager_thold_begin($thold_data, $h, 'alert2normal', $subject, false, ($thold_data['acknowledgment'] ?? '') !== '', 'source_acknowledged');
++
+ 						if ($syslog) {
+ 							logger($subject, $url, $syslog_priority, $syslog_facility);
+ 						}
+@@ -3887,7 +3901,7 @@
+ 						if (trim($alert_emails) != '' && $thold_data['restored_alert'] != 'on' && $thold_data['acknowledgment'] == '') {
+ 							$message = get_thold_restoral_text($thold_data['data_source_name'], $thold_data, $h, $thold_data['lastread'], $thold_data['local_graph_id']);
+ 
+-							thold_mail($alert_emails, $alert_bcc_emails, '', $subject, $message, $file_array, '', $notify_list_id, $h, $format_file, $thold_data['graph_timespan']);
++							if (!AlarmManagerProducerBridge::owns($alarmmanager_delivery, 'email')) { thold_mail($alert_emails, $alert_bcc_emails, '', $subject, $message, $file_array, '', $notify_list_id, $h, $format_file, $thold_data['graph_timespan']); }
+ 						}
+ 
+ 						if ($notify_different) {
+@@ -3895,11 +3909,11 @@
+ 							$format_file    = thold_get_thold_notification_format_file($thold_data['id'], $notify_list_id);
+ 
+ 							if (trim($warning_emails) != '' && $thold_data['acknowledgment'] == '') {
+-								thold_mail($warning_emails, $warning_bcc_emails, '', $subject, $message, $file_array, '', $notify_list_id, $h, $format_file);
++								if (!AlarmManagerProducerBridge::owns($alarmmanager_delivery, 'email')) { thold_mail($warning_emails, $warning_bcc_emails, '', $subject, $message, $file_array, '', $notify_list_id, $h, $format_file); }
+ 							}
+ 						}
+ 
+-						thold_command_execution($thold_data, $h, false, false, true);
++						if (!AlarmManagerProducerBridge::owns($alarmmanager_delivery, 'script')) { thold_command_execution($thold_data, $h, false, false, true); }
+ 
+ 						$save = [
+ 							'class'               => 'alert2normal',
+@@ -3926,7 +3940,7 @@
+ 							thold_snmptrap($thold_snmp_data, SNMPAGENT_EVENT_SEVERITY_MEDIUM, $overwrite);
+ 						}
+ 
+-						thold_log([
++						alarmmanager_thold_log([
+ 							'type'            => 0,
+ 							'time'            => time(),
+ 							'host_id'         => $thold_data['host_id'],
+@@ -3937,12 +3951,12 @@
+ 							'status'          => ST_NOTIFYRS,
+ 							'description'     => $subject,
+ 							'emails'          => $alert_emails,
+-							'bcc_emails'      => $alert_bcc_emails]
++							'bcc_emails'      => $alert_bcc_emails], $thold_data, $h, $maint_dev
+ 						);
+ 					}
+ 
+ 					if ($maint_dev) {
+-						thold_log([
++						alarmmanager_thold_log([
+ 							'type'            => 0,
+ 							'time'            => time(),
+ 							'host_id'         => $thold_data['host_id'],
+@@ -3953,7 +3967,7 @@
+ 							'status'          => ST_NOTIFYRS,
+ 							'description'     => ($maint_dev ? $subject . '. ' . __('Only logging, maint device', 'thold') : $subject),
+ 							'emails'          => $alert_emails,
+-							'bcc_emails'      => $alert_bcc_emails]
++							'bcc_emails'      => $alert_bcc_emails], $thold_data, $h, $maint_dev
+ 						);
+ 					}
+ 				}
+@@ -3980,24 +3994,26 @@
+ 						$subject = get_email_subject('NORMAL', false, $lastread, false, false, $thold_data);
+ 
+ 						if ($thold_data['bl_fail_count'] >= $bl_fail_trigger && $thold_data['restored_alert'] != 'on' && !$maint_dev) {
++							$alarmmanager_delivery = alarmmanager_thold_begin($thold_data, $h, 'blnormal', $subject, false, ($thold_data['acknowledgment'] ?? '') !== '', 'source_acknowledged');
++
+ 							thold_debug('Threshold Baseline check returned to normal');
+ 
+ 							if ($syslog) {
+ 								logger($subject, $url, $syslog_priority, $syslog_facility);
+ 							}
+ 
+-							$message = thold_mail_notification($alert_emails, $alert_bcc_emails, $subject, 'restoral', $thold_data['notify_alert'], $file_array, $thold_data, $h, $thold_data['graph_timespan']);
++							$message = thold_mail_notification($alert_emails, $alert_bcc_emails, $subject, 'restoral', $thold_data['notify_alert'], $file_array, $thold_data, $h, $thold_data['graph_timespan'], $alarmmanager_delivery);
+ 
+ 							if ($notify_different) {
+ 								$notify_list_id = $thold_data['notify_warning'];
+ 								$format_file    = thold_get_thold_notification_format_file($thold_data['id'], $notify_list_id);
+ 
+ 								if (trim($warning_emails) != '' && $thold_data['acknowledgment'] == '') {
+-									thold_mail($warning_emails, $warning_bcc_emails, '', $subject, $message, $file_array, '', $notify_list_id, $h, $format_file);
++									if (!AlarmManagerProducerBridge::owns($alarmmanager_delivery, 'email')) { thold_mail($warning_emails, $warning_bcc_emails, '', $subject, $message, $file_array, '', $notify_list_id, $h, $format_file); }
+ 								}
+ 							}
+ 
+-							thold_command_execution($thold_data, $h, false, false, true);
++							if (!AlarmManagerProducerBridge::owns($alarmmanager_delivery, 'script')) { thold_command_execution($thold_data, $h, false, false, true); }
+ 
+ 							$save = [
+ 								'class'      => 'blnormal',
+@@ -4031,7 +4047,7 @@
+ 							// Set the return to normal time
+ 							db_execute_prepared('UPDATE thold_data SET lastchanged = NOW() WHERE id = ?', [$thold_data['id']]);
+ 
+-							thold_log([
++							alarmmanager_thold_log([
+ 								'type'            => 1,
+ 								'time'            => time(),
+ 								'host_id'         => $thold_data['host_id'],
+@@ -4042,7 +4058,7 @@
+ 								'status'          => ST_RESTORAL,
+ 								'description'     => ($maint_dev ? $subject . '. ' . __('Only logging, maint device', 'thold') : $subject),
+ 								'emails'          => $alert_emails,
+-								'bcc_emails'      => $alert_bcc_emails]
++								'bcc_emails'      => $alert_bcc_emails], $thold_data, $h, $maint_dev
+ 							);
+ 						}
+ 					}
+@@ -4091,24 +4107,26 @@
+ 						$subject = get_email_subject('ALERT', false, $lastread, $ra, $breach_up, $thold_data);
+ 
+ 						if (!$suspend_notify && !$maint_dev) {
++							$alarmmanager_delivery = alarmmanager_thold_begin($thold_data, $h, 'blalert', $subject, (bool) $ra, ($thold_data['acknowledgment'] ?? '') !== '', 'source_acknowledged');
++
+ 							thold_debug('Alerting is necessary');
+ 
+ 							if ($syslog) {
+ 								logger($subject, $url, $syslog_priority, $syslog_facility);
+ 							}
+ 
+-							$message = thold_mail_notification($alert_emails, $alert_bcc_emails, $subject, 'alert', $thold_data['notify_alert'], $file_array, $thold_data, $h, $thold_data['graph_timespan']);
++							$message = thold_mail_notification($alert_emails, $alert_bcc_emails, $subject, 'alert', $thold_data['notify_alert'], $file_array, $thold_data, $h, $thold_data['graph_timespan'], $alarmmanager_delivery);
+ 
+ 							if ($notify_different) {
+ 								$notify_list_id = $thold_data['notify_warning'];
+ 								$format_file    = thold_get_thold_notification_format_file($thold_data['id'], $notify_list_id);
+ 
+ 								if (trim($warning_emails) != '' && $thold_data['acknowledgment'] == '') {
+-									thold_mail($warning_emails, $warning_bcc_emails, '', $subject, $message, $file_array, '', $notify_list_id, $h, $format_file);
++									if (!AlarmManagerProducerBridge::owns($alarmmanager_delivery, 'email')) { thold_mail($warning_emails, $warning_bcc_emails, '', $subject, $message, $file_array, '', $notify_list_id, $h, $format_file); }
+ 								}
+ 							}
+ 
+-							thold_command_execution($thold_data, $h, $breach_up, $breach_down, false);
++							if (!AlarmManagerProducerBridge::owns($alarmmanager_delivery, 'script')) { thold_command_execution($thold_data, $h, $breach_up, $breach_down, false); }
+ 
+ 							$save = [
+ 								'class'               => 'blalert',
+@@ -4144,7 +4162,7 @@
+ 							}
+ 						}
+ 
+-						thold_log([
++						alarmmanager_thold_log([
+ 							'type'            => 1,
+ 							'time'            => time(),
+ 							'host_id'         => $thold_data['host_id'],
+@@ -4155,12 +4173,12 @@
+ 							'status'          => ($ra ? ST_NOTIFYRA : ST_NOTIFYAL),
+ 							'description'     => ($maint_dev ? $subject . '. ' . __('Only logging, maint device', 'thold') : $subject),
+ 							'emails'          => $alert_emails,
+-							'bcc_emails'      => $alert_bcc_emails]
++							'bcc_emails'      => $alert_bcc_emails], $thold_data, $h, $maint_dev
+ 						);
+ 					} else {
+ 						$subject = 'Thold Baseline Cache Log';
+ 
+-						thold_log([
++						alarmmanager_thold_log([
+ 							'type'            => 1,
+ 							'time'            => time(),
+ 							'host_id'         => $thold_data['host_id'],
+@@ -4171,7 +4189,7 @@
+ 							'status'          => ST_TRIGGERA,
+ 							'description'     => ($maint_dev ? $subject . '. ' . __('Only logging, maint device', 'thold') : $subject),
+ 							'emails'          => $alert_emails,
+-							'bcc_emails'      => $alert_bcc_emails]
++							'bcc_emails'      => $alert_bcc_emails], $thold_data, $h, $maint_dev
+ 						);
+ 					}
+ 
+@@ -4313,24 +4331,26 @@
+ 
+ 				if ($notify) {
+ 					if (!$suspend_notify && !$maint_dev) {
++						$alarmmanager_delivery = alarmmanager_thold_begin($thold_data, $h, 'alert', $subject, (bool) $ra, ($thold_data['acknowledgment'] ?? '') !== '', 'source_acknowledged');
++
+ 						thold_debug('Alerting is necessary');
+ 
+ 						if ($syslog) {
+ 							logger($subject, $url, $syslog_priority, $syslog_facility);
+ 						}
+ 
+-						$message = thold_mail_notification($alert_emails, $alert_bcc_emails, $subject, 'alert', $thold_data['notify_alert'], $file_array, $thold_data, $h, $thold_data['graph_timespan']);
++						$message = thold_mail_notification($alert_emails, $alert_bcc_emails, $subject, 'alert', $thold_data['notify_alert'], $file_array, $thold_data, $h, $thold_data['graph_timespan'], $alarmmanager_delivery);
+ 
+ 						if ($notify_different) {
+ 							$notify_list_id = $thold_data['notify_warning'];
+ 							$format_file    = thold_get_thold_notification_format_file($thold_data['id'], $notify_list_id);
+ 
+ 							if (trim($warning_emails) != '' && $thold_data['acknowledgment'] == '') {
+-								thold_mail($warning_emails, $warning_bcc_emails, '', $subject, $message, $file_array, '', $notify_list_id, $h, $format_file);
++								if (!AlarmManagerProducerBridge::owns($alarmmanager_delivery, 'email')) { thold_mail($warning_emails, $warning_bcc_emails, '', $subject, $message, $file_array, '', $notify_list_id, $h, $format_file); }
+ 							}
+ 						}
+ 
+-						thold_command_execution($thold_data, $h, $breach_up, $breach_down, false);
++						if (!AlarmManagerProducerBridge::owns($alarmmanager_delivery, 'script')) { thold_command_execution($thold_data, $h, $breach_up, $breach_down, false); }
+ 
+ 						$save = [
+ 							'class'               => 'alert',
+@@ -4363,7 +4383,7 @@
+ 						}
+ 					}
+ 
+-					thold_log([
++					alarmmanager_thold_log([
+ 						'type'            => 2,
+ 						'time'            => time(),
+ 						'host_id'         => $thold_data['host_id'],
+@@ -4374,10 +4394,10 @@
+ 						'status'          => ($ra ? ST_NOTIFYRA : ST_NOTIFYAL),
+ 						'description'     => ($maint_dev ? $subject . '. ' . __('Only logging, maint device', 'thold') : $subject),
+ 						'emails'          => $alert_emails,
+-						'bcc_emails'      => $alert_bcc_emails]
++						'bcc_emails'      => $alert_bcc_emails], $thold_data, $h, $maint_dev
+ 					);
+ 				} else {
+-					thold_log([
++					alarmmanager_thold_log([
+ 						'type'            => 2,
+ 						'time'            => time(),
+ 						'host_id'         => $thold_data['host_id'],
+@@ -4388,7 +4408,7 @@
+ 						'status'          => ST_TRIGGERA,
+ 						'description'     => ($maint_dev ? $subject . '. ' . __('Only logging, maint device', 'thold') : $subject),
+ 						'emails'          => $alert_emails,
+-						'bcc_emails'      => $alert_bcc_emails]
++						'bcc_emails'      => $alert_bcc_emails], $thold_data, $h, $maint_dev
+ 					);
+ 				}
+ 
+@@ -4461,6 +4481,8 @@
+ 
+ 				if ($notify) {
+ 					if (!$suspend_notify && !$maint_dev) {
++						$alarmmanager_delivery = alarmmanager_thold_begin($thold_data, $h, 'warn', $subject, (bool) $ra, ($thold_data['acknowledgment'] ?? '') !== '', 'source_acknowledged');
++
+ 						if ($syslog) {
+ 							logger($subject, $url, $syslog_priority, $syslog_facility);
+ 						}
+@@ -4471,7 +4493,7 @@
+ 							$notify_list_id = $thold_data['notify_warning'];
+ 							$format_file    = thold_get_thold_notification_format_file($thold_data['id'], $notify_list_id);
+ 
+-							thold_mail($warning_emails, $warning_bcc_emails, '', $subject, $message, $file_array, '', $notify_list_id, $h, $format_file, $thold_data['graph_timespan']);
++							if (!AlarmManagerProducerBridge::owns($alarmmanager_delivery, 'email')) { thold_mail($warning_emails, $warning_bcc_emails, '', $subject, $message, $file_array, '', $notify_list_id, $h, $format_file, $thold_data['graph_timespan']); }
+ 						}
+ 
+ 						$save = [
+@@ -4505,7 +4527,7 @@
+ 						}
+ 					}
+ 
+-					thold_log([
++					alarmmanager_thold_log([
+ 						'type'            => 2,
+ 						'time'            => time(),
+ 						'host_id'         => $thold_data['host_id'],
+@@ -4516,12 +4538,12 @@
+ 						'status'          => ($ra ? ST_NOTIFYRAW : ST_NOTIFYWA),
+ 						'description'     => ($maint_dev ? $subject . '. ' . __('Only logging, maint device', 'thold') : $subject),
+ 						'emails'          => $alert_emails,
+-						'bcc_emails'      => $alert_bcc_emails]
++						'bcc_emails'      => $alert_bcc_emails], $thold_data, $h, $maint_dev
+ 					);
+ 				} elseif ($alertstat != 0 && $warning_failures < $warning_trigger && $failures < $trigger) {
+ 					$subject = get_email_subject('ALERT > WARNING', false, $lastread, false, $warning_breach_up, $thold_data);
+ 
+-					thold_log([
++					alarmmanager_thold_log([
+ 						'type'            => 2,
+ 						'time'            => time(),
+ 						'host_id'         => $thold_data['host_id'],
+@@ -4532,10 +4554,10 @@
+ 						'status'          => ST_NOTIFYRAW,
+ 						'description'     => ($maint_dev ? $subject . '. ' . __('Only logging, maint device', 'thold') : $subject),
+ 						'emails'          => $alert_emails,
+-						'bcc_emails'      => $alert_bcc_emails]
++						'bcc_emails'      => $alert_bcc_emails], $thold_data, $h, $maint_dev
+ 					);
+ 				} else {
+-					thold_log([
++					alarmmanager_thold_log([
+ 						'type'            => 2,
+ 						'time'            => time(),
+ 						'host_id'         => $thold_data['host_id'],
+@@ -4546,7 +4568,7 @@
+ 						'status'          => ST_TRIGGERW,
+ 						'description'     => ($maint_dev ? $subject . '. ' . __('Only logging, maint device', 'thold') : $subject),
+ 						'emails'          => $warning_emails,
+-						'bcc_emails'      => $warning_bcc_emails]
++						'bcc_emails'      => $warning_bcc_emails], $thold_data, $h, $maint_dev
+ 					);
+ 				}
+ 
+@@ -4563,6 +4585,8 @@
+ 
+ 				if ($alertstat != 0 && $warning_failures >= $warning_trigger && $thold_data['restored_alert'] != 'on') {
+ 					if (!$maint_dev) {
++						$alarmmanager_delivery = alarmmanager_thold_begin($thold_data, $h, 'warn2normal', $subject, false, ($thold_data['acknowledgment'] ?? '') !== '', 'source_acknowledged');
++
+ 						if ($syslog) {
+ 							logger($subject, $url, $syslog_priority, $syslog_facility);
+ 						}
+@@ -4573,7 +4597,7 @@
+ 						if (trim($warning_emails) != '' && $thold_data['restored_alert'] != 'on') {
+ 							$message = get_thold_restoral_text($thold_data['data_source_name'], $thold_data, $h, $thold_data['lastread'], $thold_data['local_graph_id']);
+ 
+-							thold_mail($warning_emails, $warning_bcc_emails, '', $subject, $message, $file_array, '', $notify_list_id, $h, $format_file, $thold_data['graph_timespan']);
++							if (!AlarmManagerProducerBridge::owns($alarmmanager_delivery, 'email')) { thold_mail($warning_emails, $warning_bcc_emails, '', $subject, $message, $file_array, '', $notify_list_id, $h, $format_file, $thold_data['graph_timespan']); }
+ 						}
+ 
+ 						$save = [
+@@ -4602,7 +4626,7 @@
+ 						}
+ 					}
+ 
+-					thold_log([
++					alarmmanager_thold_log([
+ 						'type'            => 2,
+ 						'time'            => time(),
+ 						'host_id'         => $thold_data['host_id'],
+@@ -4613,7 +4637,7 @@
+ 						'status'          => ST_NOTIFYRS,
+ 						'description'     => ($maint_dev ? $subject . '. ' . __('Only logging, maint device', 'thold') : $subject),
+ 						'emails'          => $warning_emails,
+-						'bcc_emails'      => $warning_bcc_emails]
++						'bcc_emails'      => $warning_bcc_emails], $thold_data, $h, $maint_dev
+ 					);
+ 
+ 					db_execute_prepared('UPDATE thold_data
+@@ -4634,6 +4658,8 @@
+ 					$subject = get_email_subject('NORMAL', false, $lastread, false, false, $thold_data);
+ 
+ 					if (!$maint_dev) {
++						$alarmmanager_delivery = alarmmanager_thold_begin($thold_data, $h, 'alert2normal', $subject, false, ($thold_data['acknowledgment'] ?? '') !== '', 'source_acknowledged');
++
+ 						if ($syslog) {
+ 							logger($subject, $url, $syslog_priority, $syslog_facility);
+ 						}
+@@ -4644,7 +4670,7 @@
+ 						if (trim($alert_emails) != '' && $thold_data['restored_alert'] != 'on') {
+ 							$message = get_thold_restoral_text($thold_data['data_source_name'], $thold_data, $h, $thold_data['lastread'], $thold_data['local_graph_id']);
+ 
+-							thold_mail($alert_emails, $alert_bcc_emails, '', $subject, $message, $file_array, '', $notify_list_id, $h, $format_file, $thold_data['graph_timespan']);
++							if (!AlarmManagerProducerBridge::owns($alarmmanager_delivery, 'email')) { thold_mail($alert_emails, $alert_bcc_emails, '', $subject, $message, $file_array, '', $notify_list_id, $h, $format_file, $thold_data['graph_timespan']); }
+ 						}
+ 
+ 						if ($notify_different) {
+@@ -4652,11 +4678,11 @@
+ 							$format_file    = thold_get_thold_notification_format_file($thold_data['id'], $notify_list_id);
+ 
+ 							if (trim($warning_emails) != '' && $thold_data['acknowledgment'] == '') {
+-								thold_mail($warning_emails, $warning_bcc_emails, '', $subject, $message, $file_array, '', $notify_list_id, $h, $format_file);
++								if (!AlarmManagerProducerBridge::owns($alarmmanager_delivery, 'email')) { thold_mail($warning_emails, $warning_bcc_emails, '', $subject, $message, $file_array, '', $notify_list_id, $h, $format_file); }
+ 							}
+ 						}
+ 
+-						thold_command_execution($thold_data, $h, false, false, true);
++						if (!AlarmManagerProducerBridge::owns($alarmmanager_delivery, 'script')) { thold_command_execution($thold_data, $h, false, false, true); }
+ 
+ 						$save = [
+ 							'class'               => 'alert2normal',
+@@ -4684,7 +4710,7 @@
+ 						}
+ 					}
+ 
+-					thold_log([
++					alarmmanager_thold_log([
+ 						'type'            => 2,
+ 						'time'            => time(),
+ 						'host_id'         => $thold_data['host_id'],
+@@ -4695,7 +4721,7 @@
+ 						'status'          => ST_NOTIFYRS,
+ 						'description'     => ($maint_dev ? $subject . '. ' . __('Only logging, maint device', 'thold') : $subject),
+ 						'emails'          => $alert_emails,
+-						'bcc_emails'      => $alert_bcc_emails]
++						'bcc_emails'      => $alert_bcc_emails], $thold_data, $h, $maint_dev
+ 					);
+ 
+ 					db_execute_prepared('UPDATE thold_data
+@@ -4720,7 +4746,7 @@
+ 					 * the log, without re-sending a notification for a state
+ 					 * transition that never crossed its own trigger.
+ 					 */
+-					thold_log([
++					alarmmanager_thold_log([
+ 						'type'            => 2,
+ 						'time'            => time(),
+ 						'host_id'         => $thold_data['host_id'],
+@@ -4731,7 +4757,7 @@
+ 						'status'          => ST_NOTIFYRS,
+ 						'description'     => $subject,
+ 						'emails'          => '',
+-						'bcc_emails'      => '']
++						'bcc_emails'      => ''], $thold_data, $h, $maint_dev
+ 					);
+ 
+ 					db_execute_prepared('UPDATE thold_data
+@@ -4759,6 +4785,15 @@
+ 
+ 			break;
+ 	}
++	if (!isset($alarmmanager_delivery)) {
++		$alarmmanager_normal = (int) $thold_data['thold_type'] === 1
++			? (isset($bl_alert_prev) && $bl_alert_prev > 0 && (int) $thold_data['bl_alert'] === 0)
++			: ($alertstat != 0 && !($breach_up ?? false) && !($breach_down ?? false) && !($warning_breach_up ?? false) && !($warning_breach_down ?? false));
++		if ($alarmmanager_normal) {
++			alarmmanager_thold_begin($thold_data, $h, (int) $thold_data['thold_type'] === 1 ? 'blnormal' : 'alert2normal', $subject ?? 'Threshold recovered', false, true, 'source_recovery_notification_disabled');
++		}
++	}
++
+ }
+ 
+ /**
+--- /dev/null
++++ b/includes/alarmmanager_bridge.php
+@@ -0,0 +1,132 @@
++<?php
++// SPDX-License-Identifier: GPL-2.0-or-later
++// Copied into each patched producer. Deliberately independent of Alarm Manager files/lifecycle.
++if (!class_exists('AlarmManagerProducerBridge', false)) {
++final class AlarmManagerProducerBridge {
++	public static function validate(array $definition): array {
++		if (array_diff(array_keys($definition), ['mode', 'profile_id', 'channels', 'complete_history'])) { throw new InvalidArgumentException('invalid_producer_configuration'); }
++		$mode = $definition['mode'] ?? 'legacy'; $profile = $definition['profile_id'] ?? 0; $channels = $definition['channels'] ?? [];
++		if (!in_array($mode, ['legacy', 'observe', 'centralized'], true) || !is_int($profile) || $profile < 0 || $profile > 2147483647 || !is_array($channels) || !array_is_list($channels) || array_diff($channels, ['email', 'script', 'ticket']) || !is_bool($definition['complete_history'] ?? false)) { throw new InvalidArgumentException('invalid_producer_configuration'); }
++		if ($mode === 'centralized' && $profile < 1) { throw new InvalidArgumentException('producer_profile_required'); }
++		return ['mode' => $mode, 'profile_id' => $profile, 'channels' => array_values(array_unique($channels)), 'complete_history' => $definition['complete_history'] ?? false];
++	}
++	public static function configuration(string $source, int $resource, int $template = 0): array {
++		if (!in_array($source, ['thold', 'syslog'], true)) { throw new InvalidArgumentException('invalid_producer'); }
++		$rows = db_fetch_assoc_prepared('SELECT scope, resource_id, definition FROM plugin_alarmmanager_producer_config WHERE source = ? AND ((scope = ? AND resource_id = ?) OR (scope = ? AND resource_id = ?) OR (scope = ? AND resource_id = 0))', [$source, 'resource', $resource, 'template', $template, 'default'], false);
++		if (!is_array($rows)) { throw new RuntimeException('producer_configuration_unavailable'); }
++		$definitions = [];
++		foreach ($rows as $row) { $definitions[$row['scope']] = self::validate(json_decode($row['definition'], true, 8, JSON_THROW_ON_ERROR)); }
++		return $definitions['resource'] ?? ($template > 0 ? ($definitions['template'] ?? null) : null) ?? $definitions['default'] ?? self::validate([]);
++	}
++	public static function text(string $value, int $limit): string {
++		if (!preg_match('//u', $value)) { throw new InvalidArgumentException('invalid_producer_text'); }
++		$value = substr($value, 0, $limit);
++		while ($value !== '' && !preg_match('//u', $value)) { $value = substr($value, 0, -1); }
++		return $value;
++	}
++	public static function owns(array $decision, string $channel): bool { return ($decision['owned'] ?? false) === true && in_array($channel, $decision['channels'] ?? [], true); }
++	private static function write(string $sql, array $params = []): void { if (!db_execute_prepared($sql, $params, false)) { throw new RuntimeException('producer_storage_failure'); } }
++	private static function row(string $sql, array $params = []): array {
++		$rows = db_fetch_assoc_prepared($sql, $params, false);
++		if (!is_array($rows)) { throw new RuntimeException('producer_storage_failure'); }
++		return $rows[0] ?? [];
++	}
++	private static function decision(array $row): array {
++		return ['owned' => $row['status'] === 'accepted', 'status' => $row['status'], 'channels' => json_decode($row['channels'], true, 4, JSON_THROW_ON_ERROR)];
++	}
++	private static function fallback(string $receipt): array {
++		self::write("UPDATE plugin_alarmmanager_producer_receipts SET status = 'legacy', updated_at = UTC_TIMESTAMP(6) WHERE receipt = ? AND status = 'pending'", [$receipt]);
++		$row = self::row('SELECT status, channels FROM plugin_alarmmanager_producer_receipts WHERE receipt = ?', [$receipt]);
++		if (!$row) { throw new RuntimeException('producer_receipt_unavailable'); }
++		return self::decision($row);
++	}
++	/** Recovery never invokes source delivery: only retry still-pending saved envelopes. */
++	public static function retry(string $receipt, ?callable $submit = null): string {
++		if (!preg_match('/\A[a-f0-9]{64}\z/D', $receipt)) { throw new InvalidArgumentException('invalid_producer_receipt'); }
++		$row = self::row('SELECT status, envelope FROM plugin_alarmmanager_producer_receipts WHERE receipt = ?', [$receipt]);
++		if (!$row) { throw new RuntimeException('producer_receipt_unavailable'); }
++		if ($row['status'] !== 'pending') { return $row['status']; }
++		if ($submit !== null) { $submit(json_decode($row['envelope'], true, 32, JSON_THROW_ON_ERROR)); }
++		elseif (function_exists('api_plugin_is_enabled') && api_plugin_is_enabled('alarmmanager') && function_exists('api_plugin_hook_function')) {
++			api_plugin_hook_function('alarmmanager_submit', json_decode($row['envelope'], true, 32, JSON_THROW_ON_ERROR));
++		}
++		return self::row('SELECT status FROM plugin_alarmmanager_producer_receipts WHERE receipt = ?', [$receipt])['status'];
++	}
++	/** notification identity is producer-owned, stable across submission retries, and contains no credentials. */
++	public static function publish(string $source, int $resource, int $template, string $identity, array $input): array {
++		global $config;
++		$legacy = ['owned' => false, 'channels' => [], 'status' => 'legacy']; $started = false; $locked = false; $reserved = false;
++		$receipt = hash('sha256', $source . '|' . ($config['poller_id'] ?? 1) . '|' . $resource . '|' . $identity);
++		$lock = 'am-producer:' . substr(hash('sha256', $source . '|' . ($config['poller_id'] ?? 1) . '|' . $resource . '|' . ($input['stream_suffix'] ?? '')), 0, 48);
++		try {
++			$transaction = db_fetch_cell_prepared('SELECT @@in_transaction', [], '', false);
++			if ($transaction === false || $transaction === null) { return $legacy; }
++			if ((int) $transaction !== 0) {
++				$known = self::row('SELECT status, channels FROM plugin_alarmmanager_producer_receipts WHERE receipt = ?', [$receipt]);
++				return $known && $known['status'] !== 'pending' ? self::decision($known) : $legacy;
++			}
++			$acquired = db_fetch_cell_prepared('SELECT GET_LOCK(?, 2)', [$lock], '', false);
++			if ($acquired === false || $acquired === null) { return $legacy; }
++			if ((int) $acquired !== 1) { return ['owned' => true, 'channels' => ['email', 'script', 'ticket'], 'status' => 'busy']; }
++			$locked = true;
++			$row = self::row('SELECT status, envelope, channels, stream_key FROM plugin_alarmmanager_producer_receipts WHERE receipt = ?', [$receipt]);
++			if ($row && $row['status'] !== 'pending') { return self::decision($row); }
++			$reserved = (bool) $row;
++			$settings = self::configuration($source, $resource, $template);
++			if (!$row && ($settings['mode'] === 'legacy' || (($input['suppressed'] ?? false) && !$settings['complete_history'] && $input['transition'] !== 'recovered'))) { return $legacy; }
++			if (!$row) {
++				if (!function_exists('api_plugin_is_enabled') || !api_plugin_is_enabled('alarmmanager') || !function_exists('api_plugin_hook_function')) { return $legacy; }
++				$mode = $settings['mode'];
++				$stream = hash('sha256', $source . '|' . ($config['poller_id'] ?? 1) . '|' . $resource . '|' . ($input['stream_suffix'] ?? '') . '|' . $mode);
++				self::write('START TRANSACTION'); $started = true;
++				self::write('INSERT INTO plugin_alarmmanager_producer_streams (stream_key, updated_at) VALUES (?, UTC_TIMESTAMP(6)) ON DUPLICATE KEY UPDATE stream_key = stream_key', [$stream]);
++				$state = self::row('SELECT sequence, episode_id, active, severity FROM plugin_alarmmanager_producer_streams WHERE stream_key = ? FOR UPDATE', [$stream]);
++				$kind = $input['transition']; $episode = $state['episode_id'];
++				if ($kind === 'updated' && !(bool) $state['active']) { $kind = 'raised'; }
++				if ($kind === 'raised') {
++					if ((bool) $state['active']) {
++						if (($input['fresh_raise'] ?? false) && $state['severity'] === $input['severity']) { $episode = bin2hex(random_bytes(16)); }
++						else { $kind = ($input['repeat'] ?? false) ? 'reminder' : 'updated'; }
++					}
++					else { $episode = bin2hex(random_bytes(16)); }
++				}
++				if ($episode === '' || $kind === 'occurrence') { $episode = bin2hex(random_bytes(16)); }
++				$sequence = (int) $state['sequence'] + 1;
++				$event = ['event_id' => $receipt, 'source' => $source, 'source_instance' => 'cacti-poller-' . (int) ($config['poller_id'] ?? 1),
++					'resource_id' => (string) $resource, 'alarm_key' => $source . ':' . $resource . ':' . ($input['stream_suffix'] ?? ''),
++					'episode_id' => $episode, 'sequence' => $sequence, 'transition' => $kind, 'severity' => $input['severity'],
++					'occurred_at' => $input['occurred_at'], 'collector_id' => (int) ($config['poller_id'] ?? 1),
++					'device' => $input['device'], 'summary' => self::text($input['summary'], 512), 'details' => self::text($input['details'] ?? '', 16384),
++					'context' => ['rule_name' => self::text($input['rule_name'] ?? $input['summary'], 512), 'rule_type' => $input['rule_type'] ?? $source,
++						'source_suppressed' => $input['suppressed'] ?? false, 'suppression_reason' => $input['suppression_reason'] ?? '', 'source_notification_channels' => $settings['channels']]];
++				if (isset($input['metric_value'])) { $event['context']['metric_value'] = (string) $input['metric_value']; }
++				if ($settings['profile_id'] > 0) { $event['context']['routing_profile_id'] = $settings['profile_id']; }
++				$envelope = ['contract_version' => 1, 'mode' => $mode, 'status' => 'unhandled', 'event' => $event, 'producer_receipt' => $receipt];
++				self::write('UPDATE plugin_alarmmanager_producer_streams SET sequence = ? WHERE stream_key = ?', [$sequence, $stream]);
++				self::write('INSERT INTO plugin_alarmmanager_producer_receipts (receipt, source, stream_key, envelope, channels, created_at, updated_at) VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6))', [$receipt, $source, $stream, json_encode($envelope, JSON_THROW_ON_ERROR), json_encode($settings['channels'], JSON_THROW_ON_ERROR)]);
++				self::write('COMMIT'); $started = false; $reserved = true;
++				$row = ['status' => 'pending', 'envelope' => json_encode($envelope, JSON_THROW_ON_ERROR), 'channels' => json_encode($settings['channels'], JSON_THROW_ON_ERROR)];
++			}
++			$envelope = json_decode($row['envelope'], true, 32, JSON_THROW_ON_ERROR);
++			if (function_exists('api_plugin_is_enabled') && api_plugin_is_enabled('alarmmanager') && function_exists('api_plugin_hook_function')) {
++				// Ignore truthy values and claimed acceptance: the committed receipt is authoritative.
++				api_plugin_hook_function('alarmmanager_submit', $envelope);
++			}
++			$saved = self::row('SELECT status, channels FROM plugin_alarmmanager_producer_receipts WHERE receipt = ?', [$receipt]);
++			if ($saved && $saved['status'] !== 'pending') { return self::decision($saved); }
++			return self::fallback($receipt);
++		} catch (Throwable $error) {
++			if ($started) { try { self::write('ROLLBACK'); } catch (Throwable $ignored) {} }
++			// A hook can throw after committing. Recover ownership from its atomic receipt.
++			if ($locked && $reserved) {
++				try { $saved = self::row('SELECT status, channels FROM plugin_alarmmanager_producer_receipts WHERE receipt = ?', [$receipt]); if ($saved && $saved['status'] !== 'pending') { return self::decision($saved); } return self::fallback($receipt); }
++				catch (Throwable $ignored) {
++					if (function_exists('cacti_log')) { cacti_log('ERROR: Alarm Manager producer ownership is unknown; retry pending producer receipts after database recovery.', false, 'ALARMMANAGER'); }
++					return ['owned' => ($envelope['mode'] ?? 'centralized') === 'centralized', 'channels' => json_decode($row['channels'] ?? '[]', true, 4, JSON_THROW_ON_ERROR), 'status' => 'ownership_unknown'];
++				}
++			}
++			return $legacy;
++		} finally { if ($locked) { try { db_fetch_cell_prepared('SELECT RELEASE_LOCK(?)', [$lock], '', false); } catch (Throwable $ignored) {} } }
++	}
++}
++}
+--- /dev/null
++++ b/includes/alarmmanager_adapter.php
+@@ -0,0 +1,27 @@
++<?php
++// SPDX-License-Identifier: GPL-2.0-or-later
++require_once(__DIR__ . '/alarmmanager_bridge.php');
++function alarmmanager_thold_begin(array $data, array $host, string $class, string $subject, bool $repeat = false, bool $suppressed = false, string $reason = ''): array {
++	$sample = (int) ($data['lasttime'] ?? 0);
++	if ($sample < 1) { return ['owned' => false, 'channels' => [], 'status' => 'missing_sample_identity']; }
++	$recovery = in_array($class, ['warn2normal', 'alert2normal', 'blnormal'], true);
++	$severity = $recovery ? 'clear' : (in_array($class, ['warn', 'alert2warn'], true) ? 'warning' : 'major');
++	$identity = hash('sha256', json_encode([$sample, $class, $data['thold_fail_count'] ?? 0, $data['thold_warning_fail_count'] ?? 0, $data['bl_fail_count'] ?? 0], JSON_THROW_ON_ERROR));
++	$device = ['hostname' => (string) ($host['hostname'] ?? ''), 'description' => (string) ($host['description'] ?? ''), 'tags' => []];
++	if ((int) ($data['host_id'] ?? 0) > 0) { $device['id'] = (int) $data['host_id']; }
++	return AlarmManagerProducerBridge::publish('thold', (int) $data['id'], (int) ($data['thold_template_id'] ?? 0), $identity,
++		['transition' => $recovery ? 'recovered' : ($class === 'alert2warn' ? 'updated' : 'raised'), 'severity' => $severity, 'repeat' => $repeat, 'fresh_raise' => !$repeat && $class !== 'alert2warn',
++			'occurred_at' => gmdate('Y-m-d\TH:i:s\Z', $sample), 'device' => $device, 'summary' => $subject,
++			'details' => 'Threshold ' . ($data['name_cache'] ?? $data['id']) . '; value ' . ($data['lastread'] ?? ''),
++			'rule_name' => (string) ($data['name_cache'] ?? $data['id']), 'rule_type' => $class,
++			'suppressed' => $suppressed, 'suppression_reason' => $reason]);
++}
++/** Source logging remains unchanged. Only logged suppressed notification transitions are optionally published. */
++function alarmmanager_thold_log(array $save, array $data, array $host, bool $maintenance): void {
++	$status = $save['status'];
++	$classes = [ST_NOTIFYAL => 'alert', ST_NOTIFYRA => 'alert', ST_NOTIFYWA => 'warn', ST_NOTIFYRAW => 'warn', ST_NOTIFYAW => 'alert2warn', ST_NOTIFYRS => 'alert2normal'];
++	if (isset($classes[$status]) && ($maintenance || ($data['acknowledgment'] ?? '') !== '')) {
++		alarmmanager_thold_begin($data, $host, $classes[$status], (string) $save['description'], in_array($status, [ST_NOTIFYRA, ST_NOTIFYRAW], true), true, $maintenance ? 'source_maintenance' : 'source_acknowledged');
++	}
++	thold_log($save);
++}
