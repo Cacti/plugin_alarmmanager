@@ -75,6 +75,7 @@ function alarmmanager_run_delivery(array $claim): bool {
 			$result = ['outcome' => 'retry', 'code' => 'invalid_transport_result'];
 		}
 	} catch (InvalidArgumentException | JsonException $error) {
+		alarmmanager_log('delivery transport configuration invalid for job ' . $claim['id'] . ': ' . $error->getMessage());
 		$result = ['outcome' => 'failure', 'code' => 'transport_config_invalid'];
 	} catch (Throwable $error) {
 		$result = ['outcome' => 'retry', 'code' => $error instanceof RuntimeException && $error->getMessage() === 'transport_timeout' ? 'transport_timeout' : 'transport_exception'];
@@ -82,6 +83,7 @@ function alarmmanager_run_delivery(array $claim): bool {
 		if (str_starts_with($error->getMessage(), 'credential') || str_contains($error->getMessage(), 'credential key')) {
 			$result = ['outcome' => 'failure', 'code' => 'credential_unavailable'];
 		}
+		alarmmanager_log('delivery job ' . $claim['id'] . ' transport attempt failed: ' . $result['code']);
 	} finally {
 		if ($armed) {
 			pcntl_alarm(0);

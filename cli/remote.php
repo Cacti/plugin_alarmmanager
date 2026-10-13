@@ -119,6 +119,7 @@ try {
 		print json_encode(['seeded' => count($rows), 'after' => $rows ? (int) end($rows)['id'] : $after]) . "\n";
 	}
 } catch (Throwable $error) {
+	alarmmanager_log('remote command failed: ' . $error->getMessage());
 	fwrite(STDERR, "Remote action failed; no credentials, peer keys, payloads or network diagnostics displayed. Pending history remains available for retry.\n");
 	exit(1);
 }

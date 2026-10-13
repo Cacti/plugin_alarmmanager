@@ -113,7 +113,7 @@ function alarmmanager_dashboard_response(array $scope): void {
 	}
 }
 function alarmmanager_web_open(array $scope, string $tab): void {
-	print '<main id="alarmmanager_app" data-theme="' . html_escape(function_exists('get_selected_theme') ? (string) get_selected_theme() : 'modern') . '"><h1>' . __esc('Alarm Manager', 'alarmmanager') . '</h1><nav class="alarmmanagerTabs" aria-label="' . __esc('Alarm Manager pages', 'alarmmanager') . '">';
+	print '<main id="alarmmanager_app" data-theme="' . html_escape((string) get_selected_theme()) . '"><h1>' . __esc('Alarm Manager', 'alarmmanager') . '</h1><nav class="alarmmanagerTabs" aria-label="' . __esc('Alarm Manager pages', 'alarmmanager') . '">';
 
 	foreach ([
 		'dashboard'  => 'Dashboard',
@@ -284,10 +284,6 @@ function alarmmanager_event_detail_markup(array $event): void {
 	print '</dl></details>';
 }
 function alarmmanager_csrf_field(): void {
-	if (!function_exists('csrf_get_tokens')) {
-		throw new RuntimeException('csrf_unavailable');
-	}
-
 	print '<input type="hidden" name="__csrf_magic" value="' . html_escape(csrf_get_tokens()) . '">';
 }
 function alarmmanager_post_form(string $action, array $hidden, string $label, bool $confirm = false): void {

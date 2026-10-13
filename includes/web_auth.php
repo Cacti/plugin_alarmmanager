@@ -30,9 +30,6 @@ function alarmmanager_web_user(): int {
 	return $id;
 }
 function alarmmanager_web_realm(string $display): bool {
-	if (!function_exists('is_realm_allowed')) {
-		return false;
-	}
 	$file = match ($display) {
 		'Alarm Manager View' => 'alarmmanager.php', 'Alarm Manager Administration' => 'alarmmanager_admin.php', default => throw new InvalidArgumentException('invalid_realm')
 	};
@@ -49,14 +46,14 @@ function alarmmanager_web_realm(string $display): bool {
 function alarmmanager_web_admin(): bool {
 	$user = alarmmanager_web_user();
 
-	if (function_exists('get_guest_account') && (int) get_guest_account() === $user) {
+	if ((int) get_guest_account() === $user) {
 		return false;
 	}
 
-	return function_exists('read_config_option') && (int) read_config_option('auth_method') > 0 && is_realm_allowed(1) && alarmmanager_web_realm('Alarm Manager Administration');
+	return (int) read_config_option('auth_method') > 0 && is_realm_allowed(1) && alarmmanager_web_realm('Alarm Manager Administration');
 }
 function alarmmanager_web_mutation_guard(): void {
-	if (!alarmmanager_web_admin() || ($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST' || !function_exists('csrf_check') || !csrf_check(false)) {
+	if (!alarmmanager_web_admin() || ($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST' || !csrf_check(false)) {
 		throw new RuntimeException('permission_denied');
 	}
 }
@@ -73,11 +70,6 @@ function alarmmanager_web_scope(): array {
 		return ['user_id' => $user, 'admin' => true, 'device_sql' => '1 = 1'];
 	}
 
-	foreach (['get_policies', 'get_policy_where', 'read_user_setting'] as $function) {
-		if (!function_exists($function)) {
-			throw new RuntimeException('permission_unavailable');
-		}
-	}
 	$policies = get_policies($user);
 
 	if (!is_array($policies) || !$policies || count($policies) > 128) {

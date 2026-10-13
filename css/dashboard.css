@@ -159,7 +159,6 @@
 .alarmmanagerSummary a { padding:8px 12px; border:1px solid var(--search-border); border-radius:5px; background:var(--search-card); }
 .alarmmanagerLegend ul { margin:0; padding-left:20px; line-height:1.8; }
 .alarmmanagerHint { color:var(--search-muted); line-height:1.5; }
-.alarmmanagerNotice { padding:12px; border:1px solid var(--search-border); background:var(--search-tint); white-space:pre-wrap; overflow-wrap:anywhere; }
 .alarmmanagerTableScroll { overflow:auto; max-width:100%; border:1px solid var(--search-border); border-radius:6px; }
 .alarmmanagerTable { width:100%; border-collapse:collapse; color:var(--search-text); background:var(--search-card); }
 .alarmmanagerTable th { background:var(--search-tint); text-align:left; }

@@ -48,6 +48,8 @@ function alarmmanager_worker_step(string $role, string $worker_id, int $lease_se
 			alarmmanager_run_delivery($claim);
 		}
 	} catch (Throwable $error) {
+		alarmmanager_log('worker ' . $worker_id . ' claim ' . $role . ' failed: ' . $error->getMessage());
+
 		if ($role === 'processing') {
 			alarmmanager_fail_processing($claim, 'processing_error');
 		} else {

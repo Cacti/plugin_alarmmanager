@@ -1,178 +1,331 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Sean Mancini
+# This file is distributed under the same license as the Alarm Manager package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Alarm Manager 0.6.0\n"
+"Project-Id-Version: Alarm Manager 0.8.0\n"
+"Report-Msgid-Bugs-To: https://github.com/bmfmancini/plugin_alarmmanager/issues\n"
+"POT-Creation-Date: 2026-10-13 15:56-0400\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: Alarm Manager Developers <https://github.com/bmfmancini/plugin_alarmmanager>\n"
+"Language-Team: Alarm Manager Developers <https://github.com/bmfmancini/plugin_alarmmanager>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
 
-msgid "Action"
+#: alarmmanager_admin.php:43
+msgid "The administration action succeeded."
 msgstr ""
 
-msgid "Action failed. A required field is missing or outside its allowed range."
+#: alarmmanager_admin.php:68
+msgid "Administration unavailable or permission denied."
 msgstr ""
 
-msgid "Action failed. Administrator access, POST and a valid CSRF token are required."
+#: includes/admin_view.php:47
+msgid "New endpoint"
 msgstr ""
 
-msgid "Action failed. Check configuration, permissions and CSRF token. Submitted credential values were cleared."
-msgstr ""
-
-msgid "Action failed. Configuration fields are invalid."
-msgstr ""
-
-msgid "Action failed. Each mapping transition must contain a list of fields."
-msgstr ""
-
-msgid "Action failed. Transport settings do not match the endpoint type."
-msgstr ""
-
-msgid "Action failed. Use an HTTPS URL without credentials, query parameters or fragments."
-msgstr ""
-
-msgid "Add destination fields using normalized sources or constants. Each transition can replace the default payload. No PHP or string substitution is evaluated."
-msgstr ""
-
-msgid "Administration"
-msgstr ""
-
-msgid "Administration sections"
-msgstr ""
-
-msgid "Alarm Manager"
-msgstr ""
-
-msgid "Alarm Manager Administration"
-msgstr ""
-
-msgid "Alarm Manager View"
-msgstr ""
-
-msgid "Alarm Manager pages"
-msgstr ""
-
-msgid "All"
-msgstr ""
-
-msgid "Apply"
-msgstr ""
-
-msgid "Apply configuration"
-msgstr ""
-
-msgid "Certificate and hostname verification remain enabled. Provision the PEM file on every poller. Save secrets on the Credentials page."
-msgstr ""
-
-msgid "Collapse"
-msgstr ""
-
-msgid "Configuration changed. Reload before applying your edits."
-msgstr ""
-
-msgid "Confirm replay may repeat an external effect"
-msgstr ""
-
-msgid "Credential values are never loaded into this page. Saving replaces the endpoint record; blank values do not preserve an old password. Use the CLI for protected backup/restore and poller provisioning."
-msgstr ""
-
-msgid "Destinations (select multiple)"
-msgstr ""
-
-msgid "Device ID"
-msgstr ""
-
-msgid "Email requires to/from, html and attachments. Script requires an absolute executable, argument list and compatibility mode. WebSocket delivery is not implemented. Use the delivery documentation for option shapes."
-msgstr ""
-
-msgid "Endpoint"
-msgstr ""
-
-msgid "Failed deliveries and replay"
-msgstr ""
-
-msgid "Failed processing jobs and replay"
-msgstr ""
-
-msgid "HTTP settings (REST API or webhook)"
-msgstr ""
-
-msgid "Historical window uses UTC. Current conditions and queues ignore the time window. Observe mode never dispatches delivery jobs."
-msgstr ""
-
-msgid "Latest 50 administration actions"
-msgstr ""
-
-msgid "Loading statistics…"
-msgstr ""
-
-msgid "Local configuration revision"
-msgstr ""
-
-msgid "Local worker health"
-msgstr ""
-
-msgid "Method"
-msgstr ""
-
-msgid "Mode"
-msgstr ""
-
-msgid "Next"
-msgstr ""
-
-msgid "No matching records."
-msgstr ""
-
-msgid "Off"
-msgstr ""
-
-msgid "Page"
-msgstr ""
-
-msgid "Pages"
-msgstr ""
-
-msgid "Payload mappings"
-msgstr ""
-
-msgid "Previous"
-msgstr ""
-
-msgid "Profile"
-msgstr ""
-
-msgid "Refresh"
-msgstr ""
-
-msgid "Removed IDs are disabled, preserving history. Concurrent edits reject stale revisions. Provision each remote poller explicitly."
-msgstr ""
-
-msgid "Replace credential"
-msgstr ""
-
-msgid "Reset"
-msgstr ""
-
-msgid "Rotate local key"
-msgstr ""
-
-msgid "Save"
-msgstr ""
-
-msgid "Save endpoint"
-msgstr ""
-
-msgid "Severity"
-msgstr ""
-
-msgid "Showing at most 50 records per page."
-msgstr ""
-
-msgid "Source"
-msgstr ""
-
-msgid "Time range"
-msgstr ""
-
+#: includes/admin_view.php:52
 msgid "Type"
 msgstr ""
 
-msgid "endpoints"
+#: includes/admin_view.php:64
+msgid "HTTP settings (REST API or webhook)"
+msgstr ""
+
+#: includes/admin_view.php:66
+msgid "Method"
+msgstr ""
+
+#: includes/admin_view.php:74
+msgid "Certificate and hostname verification remain enabled. Provision the PEM file on every poller. Save secrets on the Credentials page."
+msgstr ""
+
+#: includes/admin_view.php:75
+msgid "Add destination fields using normalized sources or constants. Each transition can replace the default payload. No PHP or string substitution is evaluated."
+msgstr ""
+
+#: includes/admin_view.php:75
+msgid "Payload mappings"
+msgstr ""
+
+#: includes/admin_view.php:79
+msgid "Email requires to/from, html and attachments. Script requires an absolute executable, argument list and compatibility mode. WebSocket delivery is not implemented. Use the delivery documentation for option shapes."
+msgstr ""
+
+#: includes/admin_view.php:79
+msgid "Save endpoint"
+msgstr ""
+
+#: includes/admin_view.php:84
+msgid "Administration sections"
+msgstr ""
+
+#: includes/admin_view.php:88
+msgid "Local configuration revision"
+msgstr ""
+
+#: includes/admin_view.php:107
+msgid "New item"
+msgstr ""
+
+#: includes/admin_view.php:114
+msgid "Destinations (select multiple)"
+msgstr ""
+
+#: includes/admin_view.php:121
+msgid "Profile"
+msgstr ""
+
+#: includes/admin_view.php:129
+msgid "Save"
+msgstr ""
+
+#: includes/admin_view.php:133
+msgid "Credential values are never loaded into this page. Saving replaces the endpoint record; blank values do not preserve an old password. Use the CLI for protected backup/restore and poller provisioning."
+msgstr ""
+
+#: includes/admin_view.php:136
+msgid "Configured"
+msgstr ""
+
+#: includes/admin_view.php:141
+msgid "Replace credential"
+msgstr ""
+
+#: includes/admin_view.php:147
+msgid "Rotate local key"
+msgstr ""
+
+#: includes/admin_view.php:151
+msgid "Endpoint"
+msgstr ""
+
+#: includes/admin_view.php:165
+msgid "Apply configuration"
+msgstr ""
+
+#: includes/admin_view.php:165
+msgid "Removed IDs are disabled, preserving history. Concurrent edits reject stale revisions. Provision each remote poller explicitly."
+msgstr ""
+
+#: includes/admin_view.php:167
+msgid "Failed deliveries and replay"
+msgstr ""
+
+#: includes/admin_view.php:167
+msgid "Failed processing jobs and replay"
+msgstr ""
+
+#: includes/admin_view.php:167
+msgid "Local worker health"
+msgstr ""
+
+#: includes/admin_view.php:170
+msgid "Latest 50 administration actions"
+msgstr ""
+
+#: includes/producer_admin.php:78
+msgid "Pending producer receipts"
+msgstr ""
+
+#: includes/producer_admin.php:78
+msgid "Use the producer CLI to retry pending receipts after database recovery."
+msgstr ""
+
+#: includes/producer_admin.php:80
+msgid "Legacy is the default. Resource overrides template overrides plugin default. Saved policy remains intact if Alarm Manager is disabled; new notifications then use legacy fallback. Accepted notifications retain centralized ownership."
+msgstr ""
+
+#: includes/producer_admin.php:81
+msgid "Centralized channel handoff replaces the selected source delivery with the routing profile endpoints. Configure recipients, templates, attachments and reviewed script wrappers on those endpoints before enabling it. Unselected source channels retain their existing behavior."
+msgstr ""
+
+#: includes/producer_admin.php:91
+msgid "New producer policy"
+msgstr ""
+
+#: includes/producer_admin.php:110
+msgid "Hand off "
+msgstr ""
+
+#: includes/producer_admin.php:118
+msgid "Save producer policy"
+msgstr ""
+
+#: includes/remote_view.php:23
+msgid "Collectors and remote history"
+msgstr ""
+
+#: includes/remote_view.php:23
+msgid "Each collector owns its local delivery. Imported history records the original events and outcomes. Collector history does not create central delivery jobs."
+msgstr ""
+
+#: includes/remote_view.php:28 includes/remote_view.php:43
+msgid "Collector"
+msgstr ""
+
+#: includes/remote_view.php:31
+msgid "Device ownership grants (first 100)"
+msgstr ""
+
+#: includes/remote_view.php:34
+msgid "Collector (0 selects all)"
+msgstr ""
+
+#: includes/remote_view.php:34
+msgid "Record type"
+msgstr ""
+
+#: includes/remote_view.php:38
+msgid "Filter"
+msgstr ""
+
+#: includes/remote_view.php:40
+msgid "Latest 50 matching remote records; original IDs and delivery ownership are preserved."
+msgstr ""
+
+#: includes/web_view.php:83
+msgid "Report unavailable or permission denied."
+msgstr ""
+
+#: includes/web_view.php:109
+msgid "Statistics could not be rendered."
+msgstr ""
+
+#: includes/web_view.php:116 setup.php:91 setup.php:97
+msgid "Alarm Manager"
+msgstr ""
+
+#: includes/web_view.php:116
+msgid "Alarm Manager pages"
+msgstr ""
+
+#: includes/web_view.php:131
+msgid "Administration"
+msgstr ""
+
+#: includes/web_view.php:137 includes/web_view.php:140
+msgid "Alarm statistics"
+msgstr ""
+
+#: includes/web_view.php:137
+msgid "Filters"
+msgstr ""
+
+#: includes/web_view.php:140
+msgid "Time range"
+msgstr ""
+
+#: includes/web_view.php:146
+msgid "Off"
+msgstr ""
+
+#: includes/web_view.php:146
+msgid "Refresh"
+msgstr ""
+
+#: includes/web_view.php:147
+msgid "Mode"
+msgstr ""
+
+#: includes/web_view.php:154
+msgid "All"
+msgstr ""
+
+#: includes/web_view.php:154
+msgid "Severity"
+msgstr ""
+
+#: includes/web_view.php:154
+msgid "Source"
+msgstr ""
+
+#: includes/web_view.php:161
+msgid "Device ID"
+msgstr ""
+
+#: includes/web_view.php:165
+msgid "event_id"
+msgstr ""
+
+#: includes/web_view.php:170
+msgid "Apply"
+msgstr ""
+
+#: includes/web_view.php:170
+msgid "Reset"
+msgstr ""
+
+#: includes/web_view.php:172
+msgid "Historical window uses UTC. Current conditions and queues ignore the time window. Observe mode never dispatches delivery jobs."
+msgstr ""
+
+#: includes/web_view.php:180
+msgid "Loading statistics…"
+msgstr ""
+
+#: includes/web_view.php:193
+msgid "Collapse"
+msgstr ""
+
+#: includes/web_view.php:205
+msgid "conditions"
+msgstr ""
+
+#: includes/web_view.php:208
+msgid "No matching records."
+msgstr ""
+
+#: includes/web_view.php:218
+msgid "attempts"
+msgstr ""
+
+#: includes/web_view.php:222
+msgid "Action"
+msgstr ""
+
+#: includes/web_view.php:258
+msgid "Showing at most 50 records per page."
+msgstr ""
+
+#: includes/web_view.php:259
+msgid "Pages"
+msgstr ""
+
+#: includes/web_view.php:262
+msgid "Previous"
+msgstr ""
+
+#: includes/web_view.php:265
+#, php-format
+msgid "Page %d"
+msgstr ""
+
+#: includes/web_view.php:268
+msgid "Next"
+msgstr ""
+
+#: includes/web_view.php:274
+msgid "Selected event details"
+msgstr ""
+
+#: includes/web_view.php:299
+msgid "Confirm replay may repeat an external effect"
+msgstr ""
+
+#: setup.php:75
+msgid "Alarm Manager View"
+msgstr ""
+
+#: setup.php:76 setup.php:95
+msgid "Alarm Manager Administration"
+msgstr ""
+
+#: setup.php:91
+msgid "Management"
 msgstr ""

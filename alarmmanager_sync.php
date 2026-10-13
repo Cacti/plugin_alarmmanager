@@ -86,7 +86,7 @@ function alarmmanager_sync_log_rejection(string $reason): void {
 
 		$reason = preg_replace('/[^A-Za-z0-9_. :-]/', '', $reason);
 		$poller = preg_replace('/[^0-9]/', '', (string) ($_SERVER['HTTP_X_ALARMMANAGER_POLLER'] ?? 'unknown'));
-		cacti_log('[ALARMMANAGER] sync request rejected: ' . $reason . ' (poller: ' . $poller . ')', false, 'alarmmanager');
+		cacti_log('[alarmmanager] sync request rejected: ' . $reason . ' (poller: ' . $poller . ')', false, 'alarmmanager');
 	} catch (Throwable) {
 		// Logging is best-effort only; the response above already went out.
 	}

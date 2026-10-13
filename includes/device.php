@@ -184,9 +184,7 @@ function alarmmanager_device_core_commit(array $host, int $previous_status, call
 			return true;
 		});
 	} catch (Throwable $error) {
-		if (function_exists('cacti_log')) {
-			cacti_log('ERROR: Alarm Manager confirmed transition could not commit with local host state; next poll must retry detection.', false, 'ALARMMANAGER');
-		}
+		alarmmanager_log('ERROR: confirmed transition could not commit with local host state; next poll must retry detection: ' . $error->getMessage());
 
 		return false;
 	}

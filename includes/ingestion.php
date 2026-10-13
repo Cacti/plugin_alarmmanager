@@ -94,9 +94,12 @@ function alarmmanager_submit($envelope) {
 
 		return $envelope;
 	} catch (InvalidArgumentException | JsonException $error) {
+		alarmmanager_log('event ingestion rejected: ' . $error->getMessage());
 		$envelope['error'] = 'invalid_event';
 	} catch (Throwable $error) {
-		// Never expose SQL, payload contents, database diagnostics or credentials.
+		// Never expose SQL, payload contents, database diagnostics or credentials
+		// in the envelope; the reason code alone goes to the Cacti log.
+		alarmmanager_log('event ingestion failed: ' . $error->getMessage());
 		$envelope['error'] ??= $error->getMessage() === 'event_identity_conflict' ? 'event_identity_conflict' : 'storage_failure';
 	} finally {
 		if ($started) {

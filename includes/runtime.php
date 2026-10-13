@@ -91,3 +91,7 @@ function alarmmanager_local_poller(): int {
 
 	return $value;
 }
+/** One operational log line, tagged with the plugin directory name for grep and selective debugging. */
+function alarmmanager_log(string $message): void {
+	cacti_log('[alarmmanager] ' . $message, false, 'alarmmanager');
+}

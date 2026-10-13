@@ -56,6 +56,7 @@ require_once(__DIR__ . '/../includes/workers.php');
 try {
 	alarmmanager_worker_loop($role, $settings, static function () use (&$stop): bool { return $stop; });
 } catch (Throwable $error) {
+	alarmmanager_log('worker storage/runtime failure: ' . $error->getMessage());
 	fwrite(STDERR, "Alarm Manager worker storage/runtime failure.\n");
 	exit(1);
 }
