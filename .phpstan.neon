@@ -4,16 +4,20 @@
 # Cacti installation's core definitions loaded so helper signatures are
 # inferred from real code (see tests/Helpers/phpstan-stubs.php). A generated
 # baseline records pre-existing findings and is shrunk over time; new
-# suppressions are not permitted.
+# suppressions are not permitted. The baseline is resolved relative to the
+# process working directory, so run this command from this directory.
 #
-# Run from the Cacti root of a checkout that plugins/alarmmanager belongs to,
-# or with CACTI_PATH pointing at one:
-#   <cacti>/include/vendor/bin/phpstan analyse --configuration=plugins/alarmmanager/.phpstan.neon
+# Run with CACTI_PATH pointing at one:
+#   CACTI_PATH=<cacti> <cacti>/include/vendor/bin/phpstan \
+#     analyse --configuration=plugins/alarmmanager/.phpstan.neon
 includes:
 	- phpstan-baseline.neon
 
 parameters:
 	level: 6
+
+	bootstrapFiles:
+		- tests/Helpers/phpstan-stubs.php
 
 	paths:
 		- alarmmanager.php

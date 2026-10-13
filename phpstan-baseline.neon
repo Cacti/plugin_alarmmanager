@@ -1,36 +1,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Function bottom_footer not found\.$#'
-			identifier: function.notFound
-			count: 1
-			path: alarmmanager.php
-
-		-
-			message: '#^Function top_header not found\.$#'
-			identifier: function.notFound
-			count: 1
-			path: alarmmanager.php
-
-		-
-			message: '#^Function __ not found\.$#'
-			identifier: function.notFound
-			count: 1
-			path: alarmmanager_admin.php
-
-		-
-			message: '#^Function bottom_footer not found\.$#'
-			identifier: function.notFound
-			count: 1
-			path: alarmmanager_admin.php
-
-		-
-			message: '#^Function top_header not found\.$#'
-			identifier: function.notFound
-			count: 1
-			path: alarmmanager_admin.php
-
-		-
 			message: '#^Variable \$bundle might not be defined\.$#'
 			identifier: variable.undefined
 			count: 1
@@ -53,24 +23,6 @@ parameters:
 			identifier: variable.undefined
 			count: 1
 			path: cli/credentials.php
-
-		-
-			message: '#^Function db_execute_prepared not found\.$#'
-			identifier: function.notFound
-			count: 1
-			path: cli/setup_local.php
-
-		-
-			message: '#^Function db_fetch_cell_prepared not found\.$#'
-			identifier: function.notFound
-			count: 1
-			path: cli/setup_local.php
-
-		-
-			message: '#^Function api_plugin_hook_function not found\.$#'
-			identifier: function.notFound
-			count: 1
-			path: cli/submit_event.php
 
 		-
 			message: '#^Function alarmmanager_admin_action\(\) has parameter \$input with no value type specified in iterable type array\.$#'
@@ -101,12 +53,6 @@ parameters:
 			identifier: missingType.iterableValue
 			count: 1
 			path: includes/admin.php
-
-		-
-			message: '#^Function __ not found\.$#'
-			identifier: function.notFound
-			count: 2
-			path: includes/admin_view.php
 
 		-
 			message: '#^Function alarmmanager_admin_markup\(\) has parameter \$state with no value type specified in iterable type array\.$#'
@@ -187,27 +133,9 @@ parameters:
 			path: includes/credential_store.php
 
 		-
-			message: '#^Function db_fetch_cell_prepared not found\.$#'
-			identifier: function.notFound
-			count: 1
-			path: includes/credential_store.php
-
-		-
 			message: '#^Function alarmmanager_decode_key\(\) has parameter \$encoded with no type specified\.$#'
 			identifier: missingType.parameter
 			count: 1
-			path: includes/credentials.php
-
-		-
-			message: '#^Function db_execute_prepared not found\.$#'
-			identifier: function.notFound
-			count: 1
-			path: includes/credentials.php
-
-		-
-			message: '#^Function db_fetch_cell_prepared not found\.$#'
-			identifier: function.notFound
-			count: 5
 			path: includes/credentials.php
 
 		-
@@ -331,12 +259,6 @@ parameters:
 			path: includes/device.php
 
 		-
-			message: '#^Function db_fetch_cell_prepared not found\.$#'
-			identifier: function.notFound
-			count: 3
-			path: includes/device.php
-
-		-
 			message: '#^Function alarmmanager_email_send\(\) has parameter \$message with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -441,30 +363,6 @@ parameters:
 		-
 			message: '#^Function alarmmanager_submit\(\) has parameter \$envelope with no type specified\.$#'
 			identifier: missingType.parameter
-			count: 1
-			path: includes/ingestion.php
-
-		-
-			message: '#^Function db_execute_prepared not found\.$#'
-			identifier: function.notFound
-			count: 5
-			path: includes/ingestion.php
-
-		-
-			message: '#^Function db_fetch_assoc_prepared not found\.$#'
-			identifier: function.notFound
-			count: 1
-			path: includes/ingestion.php
-
-		-
-			message: '#^Function db_fetch_cell_prepared not found\.$#'
-			identifier: function.notFound
-			count: 1
-			path: includes/ingestion.php
-
-		-
-			message: '#^Function db_fetch_row_prepared not found\.$#'
-			identifier: function.notFound
 			count: 1
 			path: includes/ingestion.php
 
@@ -577,21 +475,9 @@ parameters:
 			path: includes/processor.php
 
 		-
-			message: '#^Function db_fetch_cell_prepared not found\.$#'
-			identifier: function.notFound
-			count: 1
-			path: includes/processor.php
-
-		-
 			message: '#^Function alarmmanager_producer_save\(\) has parameter \$input with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
-			path: includes/producer_admin.php
-
-		-
-			message: '#^Function db_fetch_cell_prepared not found\.$#'
-			identifier: function.notFound
-			count: 3
 			path: includes/producer_admin.php
 
 		-
@@ -676,12 +562,6 @@ parameters:
 			message: '#^Function alarmmanager_sync_normalize\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
-			path: includes/remote.php
-
-		-
-			message: '#^Function db_fetch_cell_prepared not found\.$#'
-			identifier: function.notFound
-			count: 5
 			path: includes/remote.php
 
 		-
@@ -889,12 +769,6 @@ parameters:
 			path: includes/routing.php
 
 		-
-			message: '#^Function db_fetch_cell_prepared not found\.$#'
-			identifier: function.notFound
-			count: 2
-			path: includes/routing.php
-
-		-
 			message: '#^Function alarmmanager_db_row\(\) has parameter \$params with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -937,42 +811,6 @@ parameters:
 			path: includes/runtime.php
 
 		-
-			message: '#^Function db_execute_prepared not found\.$#'
-			identifier: function.notFound
-			count: 2
-			path: includes/runtime.php
-
-		-
-			message: '#^Function db_fetch_assoc_prepared not found\.$#'
-			identifier: function.notFound
-			count: 1
-			path: includes/runtime.php
-
-		-
-			message: '#^Function db_fetch_cell_prepared not found\.$#'
-			identifier: function.notFound
-			count: 2
-			path: includes/runtime.php
-
-		-
-			message: '#^Function db_execute_prepared not found\.$#'
-			identifier: function.notFound
-			count: 2
-			path: includes/schema.php
-
-		-
-			message: '#^Function db_fetch_cell_prepared not found\.$#'
-			identifier: function.notFound
-			count: 3
-			path: includes/schema.php
-
-		-
-			message: '#^Function db_fetch_cell_prepared not found\.$#'
-			identifier: function.notFound
-			count: 1
-			path: includes/schema_delivery.php
-
-		-
 			message: '#^Function alarmmanager_accept_producer_receipt\(\) has parameter \$envelope with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -983,36 +821,6 @@ parameters:
 			identifier: missingType.iterableValue
 			count: 1
 			path: includes/schema_producers.php
-
-		-
-			message: '#^Function db_execute_prepared not found\.$#'
-			identifier: function.notFound
-			count: 2
-			path: includes/schema_producers.php
-
-		-
-			message: '#^Function db_execute_prepared not found\.$#'
-			identifier: function.notFound
-			count: 5
-			path: includes/schema_remote.php
-
-		-
-			message: '#^Function db_fetch_cell_prepared not found\.$#'
-			identifier: function.notFound
-			count: 2
-			path: includes/schema_remote.php
-
-		-
-			message: '#^Function db_fetch_cell_prepared not found\.$#'
-			identifier: function.notFound
-			count: 4
-			path: includes/schema_runtime.php
-
-		-
-			message: '#^Function db_fetch_cell_prepared not found\.$#'
-			identifier: function.notFound
-			count: 1
-			path: includes/schema_ui.php
 
 		-
 			message: '#^Function alarmmanager_supervisor_options\(\) return type has no value type specified in iterable type array\.$#'
@@ -1165,24 +973,6 @@ parameters:
 			path: includes/web_auth.php
 
 		-
-			message: '#^Function is_realm_allowed not found\.$#'
-			identifier: function.notFound
-			count: 1
-			path: includes/web_auth.php
-
-		-
-			message: '#^Function read_config_option not found\.$#'
-			identifier: function.notFound
-			count: 1
-			path: includes/web_auth.php
-
-		-
-			message: '#^Function __ not found\.$#'
-			identifier: function.notFound
-			count: 1
-			path: includes/web_view.php
-
-		-
 			message: '#^Function alarmmanager_escape\(\) has parameter \$value with no type specified\.$#'
 			identifier: missingType.parameter
 			count: 1
@@ -1255,12 +1045,6 @@ parameters:
 			path: includes/workers.php
 
 		-
-			message: '#^Function db_fetch_cell_prepared not found\.$#'
-			identifier: function.notFound
-			count: 2
-			path: includes/workers.php
-
-		-
 			message: '#^Function alarmmanager_device_bridge_core\(\) has parameter \$safe with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -1295,72 +1079,6 @@ parameters:
 			identifier: missingType.iterableValue
 			count: 1
 			path: integrations/device_bridge.php
-
-		-
-			message: '#^Function cacti_log not found\.$#'
-			identifier: function.notFound
-			count: 2
-			path: integrations/device_bridge.php
-
-		-
-			message: '#^Function cacti_sizeof not found\.$#'
-			identifier: function.notFound
-			count: 3
-			path: integrations/device_bridge.php
-
-		-
-			message: '#^Function db_execute_prepared not found\.$#'
-			identifier: function.notFound
-			count: 4
-			path: integrations/device_bridge.php
-
-		-
-			message: '#^Function db_fetch_assoc not found\.$#'
-			identifier: function.notFound
-			count: 2
-			path: integrations/device_bridge.php
-
-		-
-			message: '#^Function db_fetch_assoc_prepared not found\.$#'
-			identifier: function.notFound
-			count: 4
-			path: integrations/device_bridge.php
-
-		-
-			message: '#^Function db_fetch_cell_prepared not found\.$#'
-			identifier: function.notFound
-			count: 3
-			path: integrations/device_bridge.php
-
-		-
-			message: '#^Function db_table_exists not found\.$#'
-			identifier: function.notFound
-			count: 1
-			path: integrations/device_bridge.php
-
-		-
-			message: '#^Function replicate_out_table not found\.$#'
-			identifier: function.notFound
-			count: 1
-			path: integrations/device_bridge.php
-
-		-
-			message: '#^Function db_execute_prepared not found\.$#'
-			identifier: function.notFound
-			count: 1
-			path: integrations/producer_bridge.php
-
-		-
-			message: '#^Function db_fetch_assoc_prepared not found\.$#'
-			identifier: function.notFound
-			count: 2
-			path: integrations/producer_bridge.php
-
-		-
-			message: '#^Function db_fetch_cell_prepared not found\.$#'
-			identifier: function.notFound
-			count: 3
-			path: integrations/producer_bridge.php
 
 		-
 			message: '#^Method AlarmManagerProducerBridge\:\:configuration\(\) return type has no value type specified in iterable type array\.$#'
@@ -1531,12 +1249,6 @@ parameters:
 			path: integrations/thold_adapter.php
 
 		-
-			message: '#^Function __ not found\.$#'
-			identifier: function.notFound
-			count: 5
-			path: setup.php
-
-		-
 			message: '#^Function alarmmanager_draw_navigation_text\(\) has parameter \$navigation with no type specified\.$#'
 			identifier: missingType.parameter
 			count: 1
@@ -1545,36 +1257,6 @@ parameters:
 		-
 			message: '#^Function alarmmanager_draw_navigation_text\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
-			count: 1
-			path: setup.php
-
-		-
-			message: '#^Function api_plugin_register_hook not found\.$#'
-			identifier: function.notFound
-			count: 1
-			path: setup.php
-
-		-
-			message: '#^Function api_plugin_register_realm not found\.$#'
-			identifier: function.notFound
-			count: 1
-			path: setup.php
-
-		-
-			message: '#^Function db_execute_prepared not found\.$#'
-			identifier: function.notFound
-			count: 1
-			path: setup.php
-
-		-
-			message: '#^Function db_fetch_cell_prepared not found\.$#'
-			identifier: function.notFound
-			count: 4
-			path: setup.php
-
-		-
-			message: '#^Function get_current_page not found\.$#'
-			identifier: function.notFound
 			count: 1
 			path: setup.php
 

@@ -18,58 +18,165 @@
  | https://github.com/bmfmancini/plugin_alarmmanager                       |
  +-------------------------------------------------------------------------+
 */
+
 require_once(__DIR__ . '/reports.php');
 
+const ALARMMANAGER_TABS = ['dashboard', 'conditions', 'events', 'deliveries', 'attempts', 'decisions', 'processing'];
+
+// Kept until the administration and remote pages adopt the shared helpers.
 function alarmmanager_escape($value): string {
-	return htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+	return html_escape((string) $value);
 }
 function alarmmanager_label(string $text): string {
-	return alarmmanager_escape(__($text, 'alarmmanager'));
+	return html_escape(__($text, 'alarmmanager'));
 }
 function alarmmanager_web_assets(): void {
 	global $config;
-	print '<link rel="stylesheet" href="' . alarmmanager_escape($config['url_path'] . 'plugins/alarmmanager/css/dashboard.css') . '?v=0.6.0">';
-	print '<script src="' . alarmmanager_escape($config['url_path'] . 'plugins/alarmmanager/js/dashboard.js') . '?v=0.6.0" defer></script>';
+
+	print '<link rel="stylesheet" href="' . html_escape($config['url_path'] . 'plugins/alarmmanager/css/dashboard.css' . '?v=0.6.0') . '">';
+	print '<script src="' . html_escape($config['url_path'] . 'plugins/alarmmanager/js/dashboard.js' . '?v=0.6.0') . '" defer></script>';
+}
+/**
+ * Filters validated both by the Cacti request-var machinery (persistence in
+ * the session) and by the report engine's own whitelists.
+ *
+ * @return array<string, mixed>
+ */
+function alarmmanager_view_filters(): array {
+	$spec = [
+		'range'        => ['filter' => FILTER_VALIDATE_INT, 'pageset' => true, 'default' => 86400, 'options' => ['options' => ['min_range' => 0, 'max_range' => PHP_INT_MAX]]],
+		'mode'         => ['filter' => FILTER_CALLBACK, 'pageset' => true, 'default' => 'centralized', 'options' => ['options' => static fn ($value) => in_array($value, ['centralized', 'observe'], true) ? $value : false]],
+		'severity'     => ['filter' => FILTER_CALLBACK, 'pageset' => true, 'default' => '', 'options' => ['options' => static fn ($value) => in_array($value, ['critical', 'major', 'minor', 'warning', 'info', 'clear'], true) ? $value : false]],
+		'transition'   => ['filter' => FILTER_CALLBACK, 'pageset' => true, 'default' => '', 'options' => ['options' => static fn ($value) => in_array($value, ['raised', 'updated', 'reminder', 'recovered', 'occurrence'], true) ? $value : false]],
+		'status'       => ['filter' => FILTER_CALLBACK, 'pageset' => true, 'default' => '', 'options' => ['options' => static fn ($value) => in_array($value, ['pending', 'leased', 'completed', 'failed', 'success', 'retry', 'failure', 'abandoned', 'in_progress'], true) ? $value : false]],
+		'source'       => ['filter' => FILTER_VALIDATE_REGEXP, 'pageset' => true, 'default' => '', 'options' => ['options' => ['regexp' => '/\A[A-Za-z0-9_.:@\/-]*\z/D']]],
+		'reason'       => ['filter' => FILTER_VALIDATE_REGEXP, 'pageset' => true, 'default' => '', 'options' => ['options' => ['regexp' => '/\A[A-Za-z0-9_.:@\/-]*\z/D']]],
+		'device_id'    => ['filter' => FILTER_VALIDATE_INT, 'pageset' => true, 'default' => 0, 'options' => ['options' => ['min_range' => 0, 'max_range' => 2147483647]]],
+		'endpoint_id'  => ['filter' => FILTER_VALIDATE_INT, 'pageset' => true, 'default' => 0, 'options' => ['options' => ['min_range' => 0, 'max_range' => 2147483647]]],
+		'event_id'     => ['filter' => FILTER_VALIDATE_INT, 'pageset' => true, 'default' => 0, 'options' => ['options' => ['min_range' => 0, 'max_range' => PHP_INT_MAX]]],
+		'current'      => ['filter' => FILTER_CALLBACK, 'pageset' => true, 'default' => '0', 'options' => ['options' => static fn ($value) => in_array($value, ['0', '1'], true) ? $value : false]],
+		'acknowledged' => ['filter' => FILTER_CALLBACK, 'pageset' => true, 'default' => '', 'options' => ['options' => static fn ($value) => in_array($value, ['', '0', '1'], true) ? $value : false]],
+	];
+
+	validate_store_request_vars($spec, 'sess_am');
+
+	$values = [];
+
+	foreach (array_keys($spec) as $key) {
+		$values[$key] = get_request_var($key, $spec[$key]['default']);
+	}
+
+	$values['until'] = get_filter_request_var('until', FILTER_VALIDATE_INT, ['options' => ['min_range' => 946684800, 'max_range' => time() + 60], 'default' => time()]);
+	$values['page']  = get_filter_request_var('page', FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 200], 'default' => 1]);
+
+	return alarmmanager_report_filters($values);
+}
+/**
+ * The report tab, validated as an enum by Cacti's own filter machinery.
+ */
+function alarmmanager_view_tab(): string {
+	return (string) get_filter_request_var('tab', FILTER_CALLBACK, ['options' => ['options' => static fn ($value) => in_array($value, ALARMMANAGER_TABS, true) ? $value : false], 'default' => 'dashboard']);
+}
+/**
+ * Handle an uncaught page error: JSON payload for the dashboard endpoint, a
+ * bare translated notice otherwise. The Cacti chrome is deliberately skipped
+ * so a reporting failure cannot cascade into the shell.
+ *
+ * @return never
+ */
+function alarmmanager_view_error(Throwable $error): void {
+	http_response_code($error instanceof InvalidArgumentException ? 400 : ($error instanceof AlarmManager\StorageException ? 503 : 403));
+
+	$message = __('Report unavailable or permission denied.', 'alarmmanager');
+
+	if (get_nfilter_request_var('action') === 'dashboard_data') {
+		header('Content-Type: application/json');
+		print json_encode(['error' => $message]) . "\n";
+		exit;
+	}
+
+	print html_escape($message);
+	exit;
+}
+/**
+ * Dashboard statistics as JSON; the JS client drives this with
+ * action=dashboard_data so the page shell is never rendered.
+ *
+ * @param array<string, mixed> $scope
+ */
+function alarmmanager_dashboard_response(array $scope): void {
+	header('Content-Type: application/json');
+
+	try {
+		$filters = alarmmanager_view_filters();
+		print json_encode(alarmmanager_dashboard_data($scope, $filters), JSON_THROW_ON_ERROR);
+		exit;
+	} catch (JsonException $error) {
+		http_response_code(503);
+		print json_encode(['error' => __('Statistics could not be rendered.', 'alarmmanager')]) . "\n";
+		exit;
+	} catch (Throwable $error) {
+		alarmmanager_view_error($error);
+	}
 }
 function alarmmanager_web_open(array $scope, string $tab): void {
-	$theme = function_exists('get_selected_theme') ? get_selected_theme() : 'modern';
-	print '<main id="alarmmanager_app" data-theme="' . alarmmanager_escape($theme) . '"><h1>' . alarmmanager_label('Alarm Manager') . '</h1><nav class="alarmmanagerTabs" aria-label="' . alarmmanager_label('Alarm Manager pages') . '">';
+	print '<main id="alarmmanager_app" data-theme="' . html_escape(function_exists('get_selected_theme') ? (string) get_selected_theme() : 'modern') . '"><h1>' . __esc('Alarm Manager', 'alarmmanager') . '</h1><nav class="alarmmanagerTabs" aria-label="' . __esc('Alarm Manager pages', 'alarmmanager') . '">';
 
-	foreach (['dashboard' => 'Dashboard', 'conditions' => 'Active conditions', 'events' => 'Events', 'deliveries' => 'Delivery jobs', 'attempts' => 'Attempts', 'decisions' => 'Routing decisions'] as $key => $label) {
-		print '<a ' . ($tab === $key ? 'aria-current="page" ' : '') . 'href="alarmmanager.php?tab=' . $key . '">' . alarmmanager_label($label) . '</a>';
+	foreach ([
+		'dashboard'  => 'Dashboard',
+		'conditions' => 'Active conditions',
+		'events'     => 'Events',
+		'deliveries' => 'Delivery jobs',
+		'attempts'   => 'Attempts',
+		'decisions'  => 'Routing decisions',
+		'processing' => 'Processing'
+	] as $key => $label) {
+		print '<a ' . ($tab === $key ? 'aria-current="page" ' : '') . 'href="' . html_escape('alarmmanager.php?tab=' . $key) . '">' . __esc($label, 'alarmmanager') . '</a>';
 	}
 
 	if ($scope['admin']) {
-		print '<a href="alarmmanager_admin.php" ' . ($tab === 'admin' ? 'aria-current="page"' : '') . '>' . alarmmanager_label('Administration') . '</a>';
+		print '<a href="' . html_escape('alarmmanager_admin.php') . '" ' . ($tab === 'admin' ? 'aria-current="page"' : '') . '>' . __esc('Administration', 'alarmmanager') . '</a>';
 	}
+
 	print '</nav>';
 }
 function alarmmanager_web_filters(array $filters, string $tab, bool $dashboard = false): void {
-	print '<form id="alarmmanager_filters" method="get" action="alarmmanager.php" class="alarmmanagerDashboardBar"><input type="hidden" name="tab" value="' . alarmmanager_escape($tab) . '"><div class="alarmmanagerSearchHeader"><h2>' . alarmmanager_label($dashboard ? 'Alarm statistics' : 'Filters') . '</h2><div class="alarmmanagerDashboardTimespan"><label>' . alarmmanager_label('Time range') . ' <select name="range">';
+	html_start_box($dashboard ? __esc('Alarm statistics', 'alarmmanager') : __esc('Filters', 'alarmmanager'), '100%', false, 3, 'center', '');
+	print "<tr class='even noprint'><td class='noprint'><form id='alarmmanager_filters' method='get' action='alarmmanager.php' class='alarmmanagerDashboardBar'>";
+	print '<input type="hidden" name="tab" value="' . html_escape($tab) . '">';
+	print '<div class="alarmmanagerSearchHeader"><h2>' . __esc($dashboard ? 'Alarm statistics' : 'Filters', 'alarmmanager') . '</h2><div class="alarmmanagerDashboardTimespan"><label>' . __esc('Time range', 'alarmmanager') . ' <select name="range">';
 
 	foreach ([3600 => 'Last hour', 21600 => 'Last 6 hours', 86400 => 'Last 24 hours', 604800 => 'Last 7 days', 2592000 => 'Last 30 days'] as $value => $label) {
-		print '<option value="' . $value . '" ' . ($filters['range'] === $value ? 'selected' : '') . '>' . alarmmanager_label($label) . '</option>';
+		print '<option value="' . $value . '" ' . ($filters['range'] === $value ? 'selected' : '') . '>' . __esc($label, 'alarmmanager') . '</option>';
 	}
-	print '</select></label></div><label>' . alarmmanager_label('Refresh') . ' <select id="alarmmanager_refresh"><option value="0">' . alarmmanager_label('Off') . '</option><option value="30">30s</option><option value="60">60s</option><option value="300">5m</option></select></label></div><div class="alarmmanagerDashboardBarRow">';
-	print '<label>' . alarmmanager_label('Mode') . ' <select name="mode">';
+
+	print '</select></label></div><label>' . __esc('Refresh', 'alarmmanager') . ' <select id="alarmmanager_refresh"><option value="0">' . __esc('Off', 'alarmmanager') . '</option><option value="30">30s</option><option value="60">60s</option><option value="300">5m</option></select></label></div><div class="alarmmanagerDashboardBarRow">';
+	print '<label>' . __esc('Mode', 'alarmmanager') . ' <select name="mode">';
 
 	foreach (['centralized', 'observe'] as $mode) {
-		print '<option ' . ($filters['mode'] === $mode ? 'selected' : '') . '>' . $mode . '</option>';
-	} print '</select></label>';
-	print '<label>' . alarmmanager_label('Source') . ' <input name="source" maxlength="32" value="' . alarmmanager_escape($filters['source']) . '"></label><label>' . alarmmanager_label('Severity') . ' <select name="severity"><option value="">' . alarmmanager_label('All') . '</option>';
+		print '<option ' . ($filters['mode'] === $mode ? 'selected' : '') . '>' . html_escape($mode) . '</option>';
+	}
+
+	print '</select></label>';
+	print '<label>' . __esc('Source', 'alarmmanager') . ' <input name="source" maxlength="32" value="' . html_escape((string) $filters['source']) . '"></label><label>' . __esc('Severity', 'alarmmanager') . ' <select name="severity"><option value="">' . __esc('All', 'alarmmanager') . '</option>';
 
 	foreach (['critical', 'major', 'minor', 'warning', 'info', 'clear'] as $value) {
-		print '<option ' . ($filters['severity'] === $value ? 'selected' : '') . '>' . $value . '</option>';
-	} print '</select></label>';
-	print '<label>' . alarmmanager_label('Device ID') . ' <input name="device_id" type="number" min="0" max="2147483647" value="' . $filters['device_id'] . '"></label>';
+		print '<option ' . ($filters['severity'] === $value ? 'selected' : '') . '>' . html_escape($value) . '</option>';
+	}
+
+	print '</select></label>';
+	print '<label>' . __esc('Device ID', 'alarmmanager') . ' <input name="device_id" type="number" min="0" max="2147483647" value="' . html_escape((string) $filters['device_id']) . '"></label>';
 
 	if (!$dashboard) {
 		foreach (['transition', 'status', 'reason', 'endpoint_id', 'event_id', 'acknowledged'] as $key) {
-			print '<label>' . alarmmanager_label($key === 'event_id' ? 'Event row ID' : str_replace('_', ' ', ucfirst($key))) . ' <input name="' . $key . '" maxlength="32" value="' . alarmmanager_escape($filters[$key]) . '"></label>';
+			print '<label>' . __esc($key === 'event_id' ? 'Event row ID' : str_replace('_', ' ', ucfirst($key)), 'alarmmanager') . ' <input name="' . html_escape($key) . '" maxlength="32" value="' . html_escape((string) $filters[$key]) . '"></label>';
 		}
 	}
+
 	print '<input type="hidden" name="current" value="' . ($filters['current'] ? '1' : '0') . '">';
-	print '<button type="submit">' . alarmmanager_label('Apply') . '</button><a href="alarmmanager.php?tab=' . alarmmanager_escape($tab) . '">' . alarmmanager_label('Reset') . '</a></div></form><p class="alarmmanagerHint">' . alarmmanager_label('Historical window uses UTC. Current conditions and queues ignore the time window. Observe mode never dispatches delivery jobs.') . '</p>';
+	print '<button type="submit">' . __esc('Apply', 'alarmmanager') . '</button><a href="' . html_escape('alarmmanager.php?tab=' . $tab . '&clear=1') . '">' . __esc('Reset', 'alarmmanager') . '</a></div></form></td></tr>';
+	html_end_box(false);
+	print '<p class="alarmmanagerHint">' . __esc('Historical window uses UTC. Current conditions and queues ignore the time window. Observe mode never dispatches delivery jobs.', 'alarmmanager') . '</p>';
 }
 function alarmmanager_report_url(array $filters, string $tab, array $extra = []): string {
 	$values = array_intersect_key($filters, array_flip(['range', 'until', 'mode', 'source', 'severity', 'transition', 'status', 'reason', 'device_id', 'endpoint_id', 'event_id', 'current', 'acknowledged']));
@@ -77,95 +184,131 @@ function alarmmanager_report_url(array $filters, string $tab, array $extra = [])
 	return 'alarmmanager.php?' . http_build_query(array_merge($values, ['tab' => $tab], $extra));
 }
 function alarmmanager_dashboard_markup(): void {
-	print '<div id="alarmmanager_dashboard" aria-live="polite"><p id="alarmmanager_dashboard_status" role="status">' . alarmmanager_label('Loading statistics…') . '</p><div id="alarmmanager_current" class="alarmmanagerSummary"></div><div id="alarmmanager_historical" class="alarmmanagerSummary"></div><div class="alarmmanagerDashboardGrid">';
+	print '<div id="alarmmanager_dashboard" aria-live="polite"><p id="alarmmanager_dashboard_status" role="status">' . __esc('Loading statistics…', 'alarmmanager') . '</p><div id="alarmmanager_current" class="alarmmanagerSummary"></div><div id="alarmmanager_historical" class="alarmmanagerSummary"></div><div class="alarmmanagerDashboardGrid">';
 
-	foreach (['transitions' => 'Transitions received', 'severity' => 'Severity breakdown', 'source' => 'Source breakdown (top 10)', 'deliveries' => 'Delivery jobs created', 'attempts' => 'Attempts started', 'suppression' => 'Routing and suppression decisions', 'endpoints' => 'Endpoint performance (top 10)', 'queues' => 'Current queues', 'workers' => 'Current worker health'] as $id => $label) {
-		print '<article class="alarmmanagerDashboardCard" id="alarmmanager_panel_' . $id . '"><header class="alarmmanagerDashboardCardHeader"><h3 class="alarmmanagerDashboardCardTitle">' . alarmmanager_label($label) . '</h3><button type="button" class="alarmmanagerCardToggle" aria-expanded="true">' . alarmmanager_label('Collapse') . '</button></header><div class="alarmmanagerCardBody"><div class="alarmmanagerChart" id="alarmmanager_chart_' . $id . '" ' . (in_array($id, ['endpoints', 'queues', 'workers'], true) ? 'hidden' : '') . '></div><div class="alarmmanagerLegend" id="alarmmanager_legend_' . $id . '"></div></div></article>';
+	foreach ([
+		'transitions' => 'Transitions received',
+		'severity'    => 'Severity breakdown',
+		'source'      => 'Source breakdown (top 10)',
+		'deliveries'  => 'Delivery jobs created',
+		'attempts'    => 'Attempts started',
+		'suppression' => 'Routing and suppression decisions',
+		'endpoints'   => 'Endpoint performance (top 10)',
+		'queues'      => 'Current queues',
+		'workers'     => 'Current worker health'
+	] as $id => $label) {
+		print '<article class="alarmmanagerDashboardCard" id="alarmmanager_panel_' . html_escape($id) . '"><header class="alarmmanagerDashboardCardHeader"><h3 class="alarmmanagerDashboardCardTitle">' . __esc($label, 'alarmmanager') . '</h3><button type="button" class="alarmmanagerCardToggle" aria-expanded="true">' . __esc('Collapse', 'alarmmanager') . '</button></header><div class="alarmmanagerCardBody"><div class="alarmmanagerChart" id="alarmmanager_chart_' . html_escape($id) . '" ' . (in_array($id, ['endpoints', 'queues', 'workers'], true) ? 'hidden' : '') . '></div><div class="alarmmanagerLegend" id="alarmmanager_legend_' . html_escape($id) . '"></div></div></article>';
 	}
+
 	print '</div></div>';
 }
+/**
+ * Report headers are derived from the row column aliases; the action column
+ * is appended for administrative users on interactive kinds.
+ */
 function alarmmanager_report_table(string $kind, array $result, array $scope, array $filters): void {
-	print '<h2>' . alarmmanager_label($kind === 'conditions' ? 'Current active conditions' : ucfirst($kind)) . '</h2><p>' . alarmmanager_label('Showing at most 50 records per page.') . '</p>';
+	$action_kinds = ['conditions', 'deliveries', 'processing'];
+
+	html_start_box(__esc($kind === 'conditions' ? 'Current active conditions' : ucfirst($kind), 'alarmmanager'), '100%', false, 3, 'center', '');
 
 	if (!$result['rows']) {
-		print '<p class="alarmmanagerEmpty">' . alarmmanager_label('No matching records.') . '</p>';
+		print "<tr class='odd'><td>" . __esc('No matching records.', 'alarmmanager') . '</td></tr>';
+		html_end_box(true);
 
 		return;
 	}
-	$headers = array_keys($result['rows'][0]);
-	print '<div class="alarmmanagerTableScroll" tabindex="0"><table class="cactiTable alarmmanagerTable"><thead><tr>';
+
+	$headers          = array_keys($result['rows'][0]);
+	$display_text     = [];
 
 	foreach ($headers as $key) {
-		print '<th scope="col">' . alarmmanager_label($key === 'attempts' ? 'Attempts in current retry cycle' : ucfirst(str_replace('_', ' ', $key))) . '</th>';
+		$display_text[$key] = __esc($key === 'attempts' ? 'Attempts in current retry cycle' : ucfirst(str_replace('_', ' ', $key)), 'alarmmanager');
 	}
 
-	if ($scope['admin'] && in_array($kind, ['conditions', 'deliveries', 'processing'], true)) {
-		print '<th scope="col">' . alarmmanager_label('Action') . '</th>';
-	} print '</tr></thead><tbody>';
+	if ($scope['admin'] && in_array($kind, $action_kinds, true)) {
+		$display_text['action'] = __esc('Action', 'alarmmanager');
+	}
+
+	html_header(array_values($display_text), 1);
 
 	foreach ($result['rows'] as $row) {
-		print '<tr>';
+		form_alternate_row();
 
 		foreach ($headers as $key) {
-			print '<td>';
+			$value = html_escape((string) ($row[$key] ?? '—'));
 
-			if (($key === 'event_row_id' || ($key === 'id' && in_array($kind, ['events', 'conditions'], true)))) {
-				print '<a href="' . alarmmanager_escape(alarmmanager_report_url($filters, 'events', ['event_id' => $row[$key]])) . '">' . alarmmanager_escape($row[$key]) . '</a>';
+			if ($key === 'event_row_id' || ($key === 'id' && in_array($kind, ['events', 'conditions'], true))) {
+				$link = '<a class="linkOverDark" href="' . html_escape(alarmmanager_report_url($filters, 'events', ['event_id' => $row[$key]])) . '">' . html_escape((string) $row[$key]) . '</a>';
 			} else {
-				print alarmmanager_escape($row[$key] ?? '—');
-			} print '</td>';
+				$link = $value;
+			}
+
+			form_selectable_cell($link, (int) ($row['id'] ?? 0), '', 'left');
 		}
 
-		if ($scope['admin'] && in_array($kind, ['conditions', 'deliveries', 'processing'], true)) {
+		if ($scope['admin'] && in_array($kind, $action_kinds, true)) {
 			print '<td>';
 
 			if ($kind === 'conditions') {
 				alarmmanager_post_form('acknowledge', ['stream_key' => $row['stream_key'], 'acknowledged' => $row['acknowledged'] ? 'no' : 'yes'], $row['acknowledged'] ? 'Clear acknowledgment' : 'Acknowledge');
 			} elseif ($row['status'] === 'failed') {
 				alarmmanager_post_form('replay', ['queue' => $kind === 'processing' ? 'processing' : 'delivery', 'id' => $row['id']], 'Replay failed job', true);
-			} print '</td>';
-		} print '</tr>';
+			}
+
+			print '</td>';
+		}
+
+		form_end_row();
 	}
-	print '</tbody></table></div><nav class="alarmmanagerPagination" aria-label="' . alarmmanager_label('Pages') . '">';
+
+	html_end_box(true);
+	print '<p class="alarmmanagerHint">' . __esc('Showing at most 50 records per page.', 'alarmmanager') . '</p>';
+	print '<nav class="alarmmanagerPagination" aria-label="' . __esc('Pages', 'alarmmanager') . '">';
 
 	if ($result['page'] > 1) {
-		print '<a href="' . alarmmanager_escape(alarmmanager_report_url($filters, $kind, ['page' => $result['page'] - 1])) . '">' . alarmmanager_label('Previous') . '</a>';
+		print '<a class="linkEdit" href="' . html_escape(alarmmanager_report_url($filters, $kind, ['page' => $result['page'] - 1])) . '">' . __esc('Previous', 'alarmmanager') . '</a>';
 	}
-	print '<span>' . alarmmanager_label('Page') . ' ' . $result['page'] . '</span>';
+
+	print '<span>' . __esc('Page %d', $result['page'], 'alarmmanager') . '</span>';
 
 	if ($result['more'] && $result['page'] < 200) {
-		print '<a href="' . alarmmanager_escape(alarmmanager_report_url($filters, $kind, ['page' => $result['page'] + 1])) . '">' . alarmmanager_label('Next') . '</a>';
-	} print '</nav>';
+		print '<a class="linkEdit" href="' . html_escape(alarmmanager_report_url($filters, $kind, ['page' => $result['page'] + 1])) . '">' . __esc('Next', 'alarmmanager') . '</a>';
+	}
+
+	print '</nav>';
 }
 function alarmmanager_event_detail_markup(array $event): void {
-	print '<details open class="alarmmanagerDashboardCard"><summary>' . alarmmanager_label('Selected event details') . '</summary><dl class="alarmmanagerEventDetail">';
+	print '<details open class="alarmmanagerDashboardCard"><summary>' . __esc('Selected event details', 'alarmmanager') . '</summary><dl class="alarmmanagerEventDetail">';
 
 	foreach (['event_id' => 'Source event ID', 'source' => 'Source', 'source_instance' => 'Source instance', 'resource_id' => 'Resource', 'alarm_key' => 'Alarm key', 'episode_id' => 'Episode', 'sequence' => 'Sequence', 'transition' => 'Transition', 'severity' => 'Severity', 'occurred_at' => 'Occurred at (UTC)', 'summary' => 'Summary', 'details' => 'Details'] as $key => $label) {
-		print '<dt>' . alarmmanager_label($label) . '</dt><dd>' . alarmmanager_escape($event[$key]) . '</dd>';
+		print '<dt>' . __esc($label, 'alarmmanager') . '</dt><dd>' . html_escape((string) ($event[$key] ?? '—')) . '</dd>';
 	}
 
 	foreach (['device' => 'Device metadata', 'context' => 'Source context'] as $key => $label) {
-		print '<dt>' . alarmmanager_label($label) . '</dt><dd><pre>' . alarmmanager_escape(json_encode($event[$key], JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR)) . '</pre></dd>';
+		print '<dt>' . __esc($label, 'alarmmanager') . '</dt><dd><pre>' . html_escape(json_encode($event[$key], JSON_PRETTY_PRINT)) . '</pre></dd>';
 	}
+
 	print '</dl></details>';
 }
 function alarmmanager_csrf_field(): void {
 	if (!function_exists('csrf_get_tokens')) {
 		throw new RuntimeException('csrf_unavailable');
 	}
-	print '<input type="hidden" name="__csrf_magic" value="' . alarmmanager_escape(csrf_get_tokens()) . '">';
+
+	print '<input type="hidden" name="__csrf_magic" value="' . html_escape(csrf_get_tokens()) . '">';
 }
 function alarmmanager_post_form(string $action, array $hidden, string $label, bool $confirm = false): void {
 	print '<form method="post" action="alarmmanager_admin.php" class="alarmmanagerInlineForm">';
 	alarmmanager_csrf_field();
-	print '<input type="hidden" name="action" value="' . alarmmanager_escape($action) . '">';
+	print '<input type="hidden" name="action" value="' . html_escape($action) . '">';
 
 	foreach ($hidden as $key => $value) {
-		print '<input type="hidden" name="' . alarmmanager_escape($key) . '" value="' . alarmmanager_escape($value) . '">';
+		print '<input type="hidden" name="' . html_escape($key) . '" value="' . html_escape((string) $value) . '">';
 	}
 
 	if ($confirm) {
-		print '<label><input type="checkbox" name="confirmed" value="yes" required> ' . alarmmanager_label('Confirm replay may repeat an external effect') . '</label>';
+		print '<label><input type="checkbox" name="confirmed" value="yes" required> ' . __esc('Confirm replay may repeat an external effect', 'alarmmanager') . '</label>';
 	}
-	print '<button type="submit">' . alarmmanager_label($label) . '</button></form>';
+
+	print '<button type="submit">' . __esc($label, 'alarmmanager') . '</button></form>';
 }
