@@ -68,9 +68,11 @@ function alarmmanager_schema_install(): bool {
 	require_once(__DIR__ . '/schema_ui.php');
 	if (!alarmmanager_schema_ui()) { return false; }
 	require_once(__DIR__ . '/schema_producers.php');
-	return alarmmanager_schema_producers();
+	if (!alarmmanager_schema_producers()) { return false; }
+	require_once(__DIR__ . '/schema_remote.php');
+	return alarmmanager_schema_remote();
 }
 
 function alarmmanager_schema_ready(): bool {
-	return (int) db_fetch_cell_prepared('SELECT version FROM plugin_alarmmanager_schema WHERE id = 1', [], '', false) === 5;
+	return (int) db_fetch_cell_prepared('SELECT version FROM plugin_alarmmanager_schema WHERE id = 1', [], '', false) === 6;
 }

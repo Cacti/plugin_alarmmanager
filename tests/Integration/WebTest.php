@@ -88,7 +88,7 @@ try {
  [$where,$params]=alarmmanager_report_where($scope,$filters);$plan=alarmmanager_db_rows("EXPLAIN SELECT e.id FROM plugin_alarmmanager_events AS e WHERE $where ORDER BY e.id DESC LIMIT 51",$params);
  $measure=['events'=>401,'reader_visible_events'=>250,'dashboard_queries'=>$query_count,'dashboard_ms'=>round($duration,3),'php_peak_bytes'=>memory_get_peak_usage(true),'list_explain'=>$plan,'database'=>db_fetch_cell_prepared('SELECT VERSION()')];
  if(getenv('ALARMMANAGER_WEB_MEASUREMENT'))file_put_contents(getenv('ALARMMANAGER_WEB_MEASUREMENT'),json_encode($measure,JSON_PRETTY_PRINT|JSON_THROW_ON_ERROR)."\n");
- $deadline_start=microtime(true);wreject(fn()=>alarmmanager_report_rows('SELECT SLEEP(6)'),'Per-statement report timeout');wcheck(microtime(true)-$deadline_start<6,'Report timeout bounded');
+ $deadline_start=hrtime(true);wreject(fn()=>alarmmanager_report_rows('SELECT SLEEP(10)'),'Per-statement report timeout');wcheck((hrtime(true)-$deadline_start)/1e9<9 && str_contains($GLOBALS['database_last_error'] ?? '', '1969'),'Report timeout bounded');
  wuser(2); wreject(fn()=>waction(['action'=>'producer_save','source'=>'thold','scope'=>'default','resource_id'=>0,'mode'=>'legacy']), 'reader producer save denied');
  wuser(1); $_SERVER['REQUEST_METHOD']='POST'; $_POST=['__csrf_magic'=>'invalid']; wreject(fn()=>alarmmanager_admin_action(['action'=>'producer_save','source'=>'thold','scope'=>'default','resource_id'=>0,'mode'=>'legacy']), 'producer invalid CSRF denied');
  $producer=['action'=>'producer_save','source'=>'thold','scope'=>'default','resource_id'=>0,'producer_revision'=>0,'mode'=>'centralized','profile_id'=>1,'channels'=>['email']];
@@ -102,5 +102,6 @@ try {
  wreject(fn()=>waction(['action'=>'producer_save','source'=>'syslog','scope'=>'template','resource_id'=>1,'mode'=>'observe']), 'syslog template rejected');
  ob_start();alarmmanager_admin_markup(alarmmanager_admin_configuration(),'producers');$html=ob_get_clean();wcheck(str_contains($html,'Producer integrations')&&str_contains($html,'migration_confirmed')&&str_contains($html,'__csrf_magic'), 'producer admin controls and CSRF rendered');
  wcheck((int)db_fetch_cell_prepared("SELECT COUNT(*) FROM plugin_alarmmanager_audit WHERE action LIKE 'producer_%'")===4,'producer changes audited');
+ ob_start();alarmmanager_admin_markup(alarmmanager_admin_configuration(),'collectors');$html=ob_get_clean();wcheck(str_contains($html,'Collectors and remote history')&&str_contains($html,'Latest 50'),'bounded collector history controls rendered');
  print "PASS: $checks database/Cacti policy/admin/replay checks; dashboard $query_count queries in ".round($duration,2)." ms.\n";
 } finally { if($alarmmanager_test_db->inTransaction())$alarmmanager_test_db->rollBack();$alarmmanager_test_db->exec("DROP DATABASE `$database`"); }

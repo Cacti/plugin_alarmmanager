@@ -33,6 +33,8 @@ function alarmmanager_run_delivery(array $claim): bool {
 			throw new RuntimeException('transport_unavailable');
 		}
 		$event = alarmmanager_validate_event(json_decode($row['payload'], true, 32, JSON_THROW_ON_ERROR));
+		require_once(__DIR__ . '/device.php');
+		if (!alarmmanager_device_event_authorized($event, (int) $claim['endpoint']['timeout_seconds'] + 5)) { return alarmmanager_finish_delivery($claim, ['outcome' => 'failure', 'code' => 'device_owner_fenced']); }
 		$previous_handler = pcntl_signal_get_handler(SIGALRM);
 		$previous_async = pcntl_async_signals(true);
 		pcntl_signal(SIGALRM, function (): void { throw new RuntimeException('transport_timeout'); });
@@ -57,3 +59,4 @@ function alarmmanager_run_delivery(array $claim): bool {
 	$result['duration_ms'] = (int) ((hrtime(true) - $started) / 1000000);
 	return alarmmanager_finish_delivery($claim, $result);
 }
+

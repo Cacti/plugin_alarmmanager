@@ -3,6 +3,7 @@
 require_once(__DIR__ . '/events.php');
 require_once(__DIR__ . '/runtime.php');
 require_once(__DIR__ . '/schema_producers.php');
+require_once(__DIR__ . '/device.php');
 
 /** Functional hook: preserve the caller's envelope and explicitly signal ownership. */
 function alarmmanager_submit($envelope) {
@@ -30,6 +31,7 @@ function alarmmanager_submit($envelope) {
 			throw new InvalidArgumentException('Invalid event envelope.');
 		}
 		$event = alarmmanager_validate_event($envelope['event']);
+		if (!alarmmanager_device_event_authorized($event, 0, $envelope['mode'])) { throw new RuntimeException('device_owner_invalid'); }
 		$payload = json_encode($event, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 		if (strlen($payload) > 32768) {
 			throw new InvalidArgumentException('Event payload is too large.');
@@ -50,48 +52,19 @@ function alarmmanager_submit($envelope) {
 			throw new RuntimeException('Cannot start ingestion.');
 		}
 		$started = true;
-		$token = bin2hex(random_bytes(16));
-		$sql = 'INSERT INTO plugin_alarmmanager_events
-			(contract_version, event_id, source, source_instance, resource_id, alarm_key,
-			episode_id, sequence, transition, severity, occurred_at, received_at,
-			collector_id, processing_poller_id, mode, payload, payload_hash, ingestion_token, stream_key, device_id)
-			VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(6), ?, ?, ?, ?, ?, ?, ?, ?)
-			ON DUPLICATE KEY UPDATE id = id';
-		if (!db_execute_prepared($sql, [
-			$event['event_id'], $event['source'], $event['source_instance'], $event['resource_id'],
-			$event['alarm_key'], $event['episode_id'], $event['sequence'], $event['transition'],
-			$event['severity'], str_replace(['T', 'Z'], [' ', ''], $event['occurred_at']),
-			$event['collector_id'], $poller_id, $envelope['mode'], $payload, $hash, $token, alarmmanager_stream_key($event, $envelope['mode']), $event['device']['id']
-		], false)) {
-			throw new RuntimeException('Cannot persist event.');
-		}
-		// A locking current read sees the winner even under REPEATABLE READ.
-		$row = db_fetch_row_prepared('SELECT id, payload_hash, ingestion_token FROM plugin_alarmmanager_events
-			WHERE source = ? AND source_instance = ? AND event_id = ? AND mode = ? FOR UPDATE',
-			[$event['source'], $event['source_instance'], $event['event_id'], $envelope['mode']], false);
-		if (!is_array($row) || !hash_equals($hash, (string) $row['payload_hash'])) {
-			$envelope['error'] = 'event_identity_conflict';
-			throw new RuntimeException('Conflicting event identity.');
-		}
-		$id = (int) $row['id'];
-		// A retry may find a job already completed; do not reopen or reschedule it.
-		if (!db_execute_prepared('INSERT INTO plugin_alarmmanager_jobs (event_row_id, available_at, created_at, updated_at, priority)
-			VALUES (?, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6), UTC_TIMESTAMP(6), ?) ON DUPLICATE KEY UPDATE event_row_id = event_row_id', [$id, match ($event['severity']) { 'critical' => 3, 'major' => 2, 'warning', 'minor' => 1, default => 0 }], false)) {
-			throw new RuntimeException('Cannot persist processing job.');
-		}
-		alarmmanager_accept_producer_receipt($envelope, $event, $id);
+		$persisted = alarmmanager_persist_event($event, $envelope['mode'], $poller_id, $envelope);
 		if (!db_execute_prepared('COMMIT', [], false)) {
 			throw new RuntimeException('Cannot confirm ingestion commit.');
 		}
 		$started = false;
-		$envelope['status'] = hash_equals($token, (string) $row['ingestion_token']) ? 'accepted' : 'already_accepted';
-		$envelope['event_row_id'] = $id;
+		$envelope['status'] = $persisted['status'];
+		$envelope['event_row_id'] = $persisted['event_row_id'];
 		return $envelope;
 	} catch (InvalidArgumentException | JsonException $error) {
 		$envelope['error'] = 'invalid_event';
 	} catch (Throwable $error) {
 		// Never expose SQL, payload contents, database diagnostics or credentials.
-		$envelope['error'] ??= 'storage_failure';
+		$envelope['error'] ??= $error->getMessage() === 'event_identity_conflict' ? 'event_identity_conflict' : 'storage_failure';
 	} finally {
 		if ($started) {
 			try {
@@ -103,4 +76,41 @@ function alarmmanager_submit($envelope) {
 	}
 	$envelope['status'] = 'failed';
 	return $envelope;
+}
+
+/** Internal caller owns the transaction; never returns durable acceptance before its commit. */
+function alarmmanager_persist_event(array $event, string $mode, int $poller_id, array $envelope = []): array {
+	$payload = json_encode($event, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+	if (strlen($payload) > 32768) { throw new InvalidArgumentException('Event payload is too large.'); }
+	$hash = hash('sha256', $payload);
+	$token = bin2hex(random_bytes(16));
+		$sql = 'INSERT INTO plugin_alarmmanager_events
+			(contract_version, event_id, source, source_instance, resource_id, alarm_key,
+			episode_id, sequence, transition, severity, occurred_at, received_at,
+			collector_id, processing_poller_id, mode, payload, payload_hash, ingestion_token, stream_key, device_id)
+			VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(6), ?, ?, ?, ?, ?, ?, ?, ?)
+			ON DUPLICATE KEY UPDATE id = id';
+		if (!db_execute_prepared($sql, [
+			$event['event_id'], $event['source'], $event['source_instance'], $event['resource_id'],
+			$event['alarm_key'], $event['episode_id'], $event['sequence'], $event['transition'],
+			$event['severity'], str_replace(['T', 'Z'], [' ', ''], $event['occurred_at']),
+			$event['collector_id'], $poller_id, $mode, $payload, $hash, $token, alarmmanager_stream_key($event, $mode), $event['device']['id']
+		], false)) {
+			throw new RuntimeException('Cannot persist event.');
+		}
+		// A locking current read sees the winner even under REPEATABLE READ.
+		$row = db_fetch_row_prepared('SELECT id, payload_hash, ingestion_token FROM plugin_alarmmanager_events
+			WHERE source = ? AND source_instance = ? AND event_id = ? AND mode = ? FOR UPDATE',
+			[$event['source'], $event['source_instance'], $event['event_id'], $mode], false);
+		if (!is_array($row) || !hash_equals($hash, (string) $row['payload_hash'])) {
+			throw new RuntimeException('event_identity_conflict');
+		}
+		$id = (int) $row['id'];
+		// A retry may find a job already completed; do not reopen or reschedule it.
+		if (!db_execute_prepared('INSERT INTO plugin_alarmmanager_jobs (event_row_id, available_at, created_at, updated_at, priority)
+			VALUES (?, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6), UTC_TIMESTAMP(6), ?) ON DUPLICATE KEY UPDATE event_row_id = event_row_id', [$id, match ($event['severity']) { 'critical' => 3, 'major' => 2, 'warning', 'minor' => 1, default => 0 }], false)) {
+			throw new RuntimeException('Cannot persist processing job.');
+		}
+		alarmmanager_accept_producer_receipt($envelope, $event, $id);
+	return ['status' => hash_equals($token, (string) $row['ingestion_token']) ? 'accepted' : 'already_accepted', 'event_row_id' => $id];
 }

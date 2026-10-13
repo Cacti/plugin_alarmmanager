@@ -18,7 +18,7 @@ function alarmmanager_schema_producers(): bool {
 		 KEY receipt_status (status, updated_at), KEY source_stream (source, stream_key)) ENGINE=InnoDB"
 	];
 	foreach ($queries as $sql) { if (!db_execute_prepared($sql, [], false)) { return false; } }
-	return (bool) db_execute_prepared('UPDATE plugin_alarmmanager_schema SET version = 5 WHERE id = 1', [], false);
+	return (bool) db_execute_prepared('UPDATE plugin_alarmmanager_schema SET version = GREATEST(version, 5) WHERE id = 1', [], false);
 }
 /** Called inside the ingestion transaction: acceptance and producer ownership commit together. */
 function alarmmanager_accept_producer_receipt(array $envelope, array $event, int $id): void {

@@ -35,3 +35,7 @@ GPL-2.0-or-later. See LICENSE and [attribution](NOTICE.md).
 ## Opt-in producer integrations (phase 7)
 
 Version 0.7.0 includes revision-pinned thold/syslog patches, durable notification ownership receipts and protected source policy controls. Apply the patches separately in a lab; source delivery remains legacy by default. See [PRODUCER_INTEGRATIONS.md](docs/PRODUCER_INTEGRATIONS.md) for exact revisions, policy inheritance, explicit email/script migration, pending receipt recovery and remaining installed/remote qualification. Device-status integration remains phase 8.
+
+## Device ownership and remote collectors (phase 8)
+
+Version 0.8.0/schema v6 adds separate pinned Cacti/thold device patches, explicit leased device ownership, private remote configuration/credential provisioning and signed history reconciliation without redispatch. See [REMOTE_COLLECTORS.md](docs/REMOTE_COLLECTORS.md) for setup, lease renewal/reassignment, local delivery during main outage and fixture-versus-deployment qualification.

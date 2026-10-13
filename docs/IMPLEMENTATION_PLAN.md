@@ -11,7 +11,7 @@ Read this file, DECISIONS.md and PROGRESS.md before each phase. The detailed acc
 | 5 | REST API/webhook/email/script mappings and credentials | Implemented; mapping/AEAD/backup/rotation/provisioning, real HTTP/TLS/script and pinned Cacti SMTP checks pass; full deployed Cacti qualification pending |
 | 6 | Management UI and adapted syslog dashboard | Implemented; scoped real DB/Cacti policies and browser modern/dark/classic/narrow/CSRF/escaping/network checks pass; full installed Cacti qualification pending |
 | 7 | Separate opt-in thold/syslog patches | Implemented; pinned source branch tests, durable receipt/fallback/concurrency and protected admin checks pass; full installed producer/remote qualification pending |
-| 8 | Confirmed core transitions and autonomous remote operation | Main outage, independent routing/delivery, reconnect without redispatch, collector reassignment fencing |
+| 8 | Confirmed core transitions and autonomous remote operation | Implemented; three-database and real TLS outage/reconnect/ACK replay, source transition/cache and reassignment fencing fixtures pass; installed remote Cacti qualification pending |
 | 9 | WebSocket and outage policies | Authorized replay/backpressure/receiver acknowledgment and bounded load |
 | 10 | Release/lab rollout qualification | Install/upgrade/retention/restart/outage exercise and honest feature matrix |
 

@@ -26,3 +26,8 @@ Thumbs.db
 .phpunit.cache/
 
 # Vendored libraries must remain tracked; do not ignore vendor/.
+
+# Locally provisioned private keys and Python bytecode
+*.key
+__pycache__/
+*.pyc

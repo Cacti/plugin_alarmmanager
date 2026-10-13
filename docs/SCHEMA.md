@@ -42,3 +42,8 @@ plugin_alarmmanager_credentials stores endpoint_id, authenticated ciphertext and
 Events gain an indexed nullable device_id, backfilled only from integer normalized payload fields, with device_received and mode_received indexes. Delivery created-time, attempt delivery/time and decision reason/time report indexes bound common filters. plugin_alarmmanager_audit stores user/action/resource/time, without secret/request payloads, under InnoDB. Schema v4 readiness is stamped only after successful migration and audit engine verification. These tables continue to bypass destructive plugin_db_changes registration. Stored event JSON and duplicate hashes are unchanged by the metadata backfill.
 
 Replay resets a failed job's current retry-budget counter. Delivery attempt numbering is derived from indexed MAX(attempt_number) under the locked claim transaction, so previous history is retained and numbering remains unique across replay cycles. All original event/endpoint/idempotency identity remains stable.
+
+
+## Schema v6 (phase 8)
+
+Adds node identity, leased device owners/canonical receipts, transactional synchronization outbox/sender state, provisioned peers, imported remote history and acknowledged batch digests. Eight INSERT/UPDATE triggers require TRIGGER privilege and capture event/processing/decision/delivery/attempt changes in the committing transaction. Operational records and local keys are excluded from ordinary configuration replication. Imported history is an archive, not an ingestion queue; it creates no central jobs. Version gating preserves the existing setup key and fails setup if an established v6 node identity is missing. See REMOTE_COLLECTORS.md for initial bounded backfill, provisioning, handoff seeds and retention limits.

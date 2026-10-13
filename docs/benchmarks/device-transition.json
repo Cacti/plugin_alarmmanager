@@ -1,0 +1,10 @@
+{
+    "fixture": "PHP 8.3.6 \/ MariaDB 10.11.14 \/ PDO adapters; no installed poller",
+    "confirmed_transitions": 40,
+    "median_ms": 1.790561,
+    "p95_ms": 2.699087,
+    "queries_per_transition": 16,
+    "native_status_write_mean_ms": 0.08313912500000001,
+    "php_peak_bytes": 2097152,
+    "normal_samples": "Source cache fixture verifies one grant lookup per cache window and zero per-sample configuration queries."
+}

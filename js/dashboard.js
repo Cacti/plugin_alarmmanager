@@ -6,7 +6,7 @@
  */
 (() => {
  'use strict';
- const sourceFields = ['event.id','event.source','event.source_instance','event.collector_id','event.occurred_at','alarm.resource_id','alarm.key','alarm.episode_id','alarm.sequence','alarm.transition','alarm.severity','alarm.summary','alarm.details','device.id','device.hostname','device.description','device.tags','context.rule_name','context.rule_type','context.metric','context.metric_value','context.threshold','context.suppression_reason','context.source_suppressed','context.source_notification_channels'];
+ const sourceFields = ['event.id','event.source','event.source_instance','event.collector_id','event.occurred_at','alarm.resource_id','alarm.key','alarm.episode_id','alarm.sequence','alarm.transition','alarm.severity','alarm.summary','alarm.details','device.id','device.hostname','device.description','device.tags','context.rule_name','context.rule_type','context.metric','context.metric_value','context.threshold','context.suppression_reason','context.source_suppressed','context.source_notification_channels','context.ownership_epoch'];
  function node(tag, text, className) { const el=document.createElement(tag); if(text!==undefined) el.textContent=text; if(className) el.className=className; return el; }
  const palette=['#2278ad','#e67e22','#329c60','#d43f3a','#8e63aa','#19a2a5','#ad795b','#7b8994','#c4a132','#5d88b3'];
  const colorMaps={transitions:{raised:'#d43f3a',recovered:'#329c60',occurrence:'#2278ad',updated:'#8e63aa',reminder:'#e67e22'},severity:{critical:'#d43f3a',major:'#e67e22',minor:'#b89822',warning:'#c39b13',info:'#2278ad',clear:'#329c60'},deliveries:{completed:'#329c60',failed:'#d43f3a',pending:'#7b8994',leased:'#2278ad'},attempts:{success:'#329c60',failure:'#d43f3a',retry:'#e67e22',abandoned:'#7b8994',in_progress:'#2278ad'}};
@@ -90,3 +90,4 @@
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
+

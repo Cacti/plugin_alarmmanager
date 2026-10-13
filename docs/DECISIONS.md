@@ -47,3 +47,13 @@
 - Preserve source suppression and local state/logging. Emit suppressed confirmed recoveries when a source recovery notification is disabled so central conditions close without sending traffic. Syslog remains an occurrence producer.
 - Hold selected channels when ownership cannot be read after durable reservation; recover pending saved envelopes using the bounded offline producer CLI. Receiver/script idempotency and source DB-loss boundaries remain explicit limitations.
 - Keep operational receipts/streams local and preserve them across uninstall. Full installed producer and remote reconciliation qualification remains separate from PDO/framework fixtures.
+
+## Phase 8 additions
+
+- Preserve native confirmed-device detection; commit core host state, event, job and receipt together. Use deployment/device/epoch/durable-counter identity and one core/thold notification owner.
+- Provision selected local configuration and re-encrypt usable credentials under each remote setup key, without overwriting operational state. Keep private exports/peer keys outside the plugin tree.
+- Use bounded leases, higher ownership epochs, a 735-second clock/transport handoff margin and acknowledged last-state seeds; pause expired managed devices and fence old deliveries. Do not promise instantaneous disconnected revocation.
+- Protect enrolled remote host state from destructive native replication. Cache grant checks rather than probing configuration for each sample.
+- Archive signed local history separately from processing/delivery; keep exact pending packets until signed ACK. Lock outbox prefixes under READ COMMITTED and read revisions/data atomically to handle reverse transaction commit order.
+- Use TLS-verified HTTPS POST with HMAC peer/audience/domain binding. Cacti cacti_http supports GET and global insecure-TLS settings, so it is unsuitable for this authenticated POST boundary.
+- Expose remote archive only to administrators; retain the local dashboard semantics. Installed remote Cacti qualification and retention remain separate gates.

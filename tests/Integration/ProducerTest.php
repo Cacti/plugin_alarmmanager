@@ -34,7 +34,7 @@ try {
 	$alarmmanager_test_db->exec("INSERT INTO plugin_config VALUES ('alarmmanager', '0.6.0', 1)");
 	producer_assert(AlarmManagerProducerBridge::text(str_repeat('é', 300), 511) === str_repeat('é', 255), 'UTF-8 truncation retains complete characters');
 	producer_assert(plugin_alarmmanager_install(), 'install'); producer_assert(plugin_alarmmanager_install(), 'repeat install');
-	producer_assert((int) db_fetch_cell_prepared('SELECT version FROM plugin_alarmmanager_schema') === 5, 'schema v5');
+	producer_assert((int) db_fetch_cell_prepared('SELECT version FROM plugin_alarmmanager_schema') === 6, 'schema v6');
 	producer_assert(!producer_publish('legacy-default')['owned'], 'legacy default');
 	producer_assert((int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_events') === 0, 'legacy no events');
 	producer_policy('thold', 'default', 0, 'observe');

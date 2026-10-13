@@ -6,7 +6,7 @@ function alarmmanager_mapping_fields(array $event): array {
 	$fields = [];
 	foreach (['event_id' => 'event.id', 'source' => 'event.source', 'source_instance' => 'event.source_instance', 'collector_id' => 'event.collector_id', 'occurred_at' => 'event.occurred_at', 'resource_id' => 'alarm.resource_id', 'alarm_key' => 'alarm.key', 'episode_id' => 'alarm.episode_id', 'sequence' => 'alarm.sequence', 'transition' => 'alarm.transition', 'severity' => 'alarm.severity', 'summary' => 'alarm.summary', 'details' => 'alarm.details'] as $key => $name) { $fields[$name] = $event[$key] ?? null; }
 	foreach (['id', 'hostname', 'description', 'tags'] as $key) { $fields['device.' . $key] = $event['device'][$key] ?? null; }
-	foreach (['rule_name', 'rule_type', 'metric', 'metric_value', 'threshold', 'suppression_reason', 'source_suppressed', 'source_notification_channels'] as $key) { $fields['context.' . $key] = $event['context'][$key] ?? null; }
+	foreach (['rule_name', 'rule_type', 'metric', 'metric_value', 'threshold', 'suppression_reason', 'source_suppressed', 'source_notification_channels', 'ownership_epoch'] as $key) { $fields['context.' . $key] = $event['context'][$key] ?? null; }
 	return $fields;
 }
 function alarmmanager_mapping_validate($mapping): array {
@@ -81,3 +81,4 @@ function alarmmanager_map_payload(array $mapping, array $event): stdClass {
 	if (strlen(json_encode($payload, JSON_THROW_ON_ERROR)) > 65536) { throw new InvalidArgumentException('mapping_limit'); }
 	return $payload;
 }
+

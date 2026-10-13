@@ -14,6 +14,7 @@ $GLOBALS['alarmmanager_test_credentials'] = 0;
 $GLOBALS['alarmmanager_test_version'] = '0.1.0';
 
 function db_fetch_cell_prepared($sql, $params = [], $column = '', $log = true) {
+	if (str_contains($sql, 'SELECT instance_uuid FROM plugin_alarmmanager_node')) { return str_repeat('a', 32); }
 	if (str_contains($sql, 'COUNT(*) FROM plugin_hooks')) { return in_array($params[1], $GLOBALS['alarmmanager_test_hooks'], true) ? 1 : 0; }
 	if (str_contains($sql, 'COUNT(*) FROM plugin_realms')) { return in_array($params[1], $GLOBALS['alarmmanager_test_realms'], true) ? 1 : 0; }
 	if ($sql === 'SELECT VERSION()') { return '10.11.14-MariaDB'; }
@@ -42,15 +43,16 @@ function db_execute_prepared($sql, $params = [], $log = true) {
 	if ($GLOBALS['alarmmanager_test_write_failure']) {
 		return false;
 	}
-	if (str_starts_with($sql, 'CREATE TABLE')) {
+	if (str_starts_with($sql, 'CREATE TABLE') || str_starts_with($sql, 'CREATE TRIGGER')) {
 		return true;
 	}
 	if (str_contains($sql, 'INSERT INTO plugin_alarmmanager_schema')) {
 		$GLOBALS['alarmmanager_test_schema'] = 1;
 		return true;
 	}
+	if (str_starts_with($sql, 'INSERT IGNORE INTO plugin_alarmmanager_node') || str_starts_with($sql, 'INSERT IGNORE INTO plugin_alarmmanager_sync_sender')) { return true; }
 	if (str_starts_with($sql, 'UPDATE plugin_alarmmanager_jobs')) { return true; }
-	if (str_starts_with($sql, 'UPDATE plugin_alarmmanager_schema')) { $GLOBALS['alarmmanager_test_schema'] = str_contains($sql, 'version = 5') ? 5 : (str_contains($sql, 'version = 4') ? 4 : (str_contains($sql, 'GREATEST(version, 3)') ? 3 : max(2, $GLOBALS['alarmmanager_test_schema']))); return true; }
+	if (str_starts_with($sql, 'UPDATE plugin_alarmmanager_schema')) { $GLOBALS['alarmmanager_test_schema'] = str_contains($sql, 'version = 6') ? 6 : (str_contains($sql, 'GREATEST(version, 5)') ? max(5, $GLOBALS['alarmmanager_test_schema']) : (str_contains($sql, 'version = 4') ? 4 : (str_contains($sql, 'GREATEST(version, 3)') ? 3 : max(2, $GLOBALS['alarmmanager_test_schema'])))); return true; }
 	if (str_starts_with($sql, 'UPDATE plugin_alarmmanager_events')) { return true; }
 	if (str_starts_with($sql, 'UPDATE plugin_config')) {
 		$GLOBALS['alarmmanager_test_version'] = $params[0];

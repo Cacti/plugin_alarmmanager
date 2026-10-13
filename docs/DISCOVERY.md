@@ -63,3 +63,10 @@ Required architecture: each configured poller has local durable ingestion, alarm
 ## Repository instructions
 
 Read Cacti develop AGENTS.md, .github/copilot-instructions.md and CLAUDE.md, Cacti 1.2.x CLAUDE.md, and syslog AGENTS.md. Syslog's graphify-out graph is absent, so its conditional graph query does not apply. No reference repository was modified. Cacti's upstream no-vendoring rule conflicts with the explicit plugin packaging requirement; the user's locally shipped dependency requirement governs this plugin. No dependency was introduced in phase 1.
+
+
+## Phase 8 source boundaries
+
+At the pinned Cacti 1.2 revision, lib/functions.php update_host_status applies ping_failure_count/ping_recovery_count and commits host status after confirmed detection. The separate device patch wraps that final status write with atomic local publication, preserves native counters, and copies only safe host metadata. The custom hook dispatcher in lib/plugins.php was exercised for offline/recovery/online contexts with framework doubles. No new assumption that INFO flags alone enable remote hooks is made; source device publication calls the copied local bridge directly.
+
+lib/poller.php's remote host replication invokes replicate_out_table for host configuration. Enrolled peers use an explicit upsert boundary preserving local status/counters/dates instead of destructive replacement; schema mismatch fails safely. No Alarm Manager replicate_out hook is registered. thold includes/polling.php thold_update_host_status has separate down/recover hooks before device mail and script execution; the device patch gates only selected notification effects there. Threshold integration remains a separate patch. Installed scheduler/remote bootstrap qualification is still pending.

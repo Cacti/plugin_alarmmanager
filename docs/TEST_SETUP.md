@@ -77,3 +77,9 @@ php tests/Integration/WebTest.php
 ```
 
 Branch fixtures do not prove installed scheduler/graph/script/SMTP parity. Follow PRODUCER_INTEGRATIONS.md for explicit migrated ownership and the full installed lab lane.
+
+## Phase 8 remote/device fixtures
+
+Run tests/Integration/RemoteTest.php and RemoteHttpTest.php against an explicitly permitted disposable MariaDB server using the existing database environment variables. The TLS fixture also needs Python 3 and openssl, free loopback ports 38569/38570, PHP openssl/PDO/mysqlnd/pdo_mysql/ctype/posix and ALARMMANAGER_TEST_EXTENSION_DIR. It uses copied plugin files, a bootstrap fixture and HTTPS notification adapters, not an installed remote poller. Set ALARMMANAGER_DEVICE_MEASUREMENT to capture the bounded transition measurement.
+
+Apply device patches to clean exact pins. Run DeviceBranchesTest.php with ALARMMANAGER_CACTI_PATCHED_ROOT and PHP tokenizer; run DeviceReplicationTest.php with the framework doubles. Both thold threshold and device patches must compose and reverse-check. WebTest.php needs ALARMMANAGER_CACTI_ROOT and checks the admin collector section. Full installed source/device notification and remote bootstrap/replication/outage exercises remain mandatory before rollout; see REMOTE_COLLECTORS.md.

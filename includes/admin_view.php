@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 require_once(__DIR__ . '/web_view.php');
 require_once(__DIR__ . '/admin.php');
+require_once(__DIR__ . '/remote_view.php');
 
 function alarmmanager_form_start(string $action, int $revision, array $hidden = []): void {
 	print '<form method="post" action="alarmmanager_admin.php" class="alarmmanagerEditor">'; alarmmanager_csrf_field();
@@ -39,8 +40,9 @@ function alarmmanager_endpoint_editor(array $endpoint, int $revision, bool $new 
 }
 function alarmmanager_admin_markup(array $state, string $section): void {
 	$config = $state['configuration']; $revision = $state['revision'];
-	print '<nav class="alarmmanagerTabs" aria-label="' . alarmmanager_label('Administration sections') . '">'; foreach (['endpoints' => 'Endpoints and mappings', 'profiles' => 'Routing profiles', 'producers' => 'Producer integrations', 'rules' => 'Rules and suppression', 'credentials' => 'Credentials', 'test' => 'Preview and test', 'configuration' => 'Configuration', 'health' => 'Workers and failed processing', 'audit' => 'Audit'] as $key => $label) { print '<a href="alarmmanager_admin.php?section=' . $key . '" ' . ($section === $key ? 'aria-current="page"' : '') . '>' . alarmmanager_label($label) . '</a>'; } print '</nav><p>' . alarmmanager_label('Local configuration revision') . ': ' . $revision . '</p>';
-	if ($section === 'producers') { alarmmanager_producer_markup($revision); }
+	print '<nav class="alarmmanagerTabs" aria-label="' . alarmmanager_label('Administration sections') . '">'; foreach (['endpoints' => 'Endpoints and mappings', 'profiles' => 'Routing profiles', 'producers' => 'Producer integrations', 'collectors' => 'Collectors and history', 'rules' => 'Rules and suppression', 'credentials' => 'Credentials', 'test' => 'Preview and test', 'configuration' => 'Configuration', 'health' => 'Workers and failed processing', 'audit' => 'Audit'] as $key => $label) { print '<a href="alarmmanager_admin.php?section=' . $key . '" ' . ($section === $key ? 'aria-current="page"' : '') . '>' . alarmmanager_label($label) . '</a>'; } print '</nav><p>' . alarmmanager_label('Local configuration revision') . ': ' . $revision . '</p>';
+	if ($section === 'collectors') { alarmmanager_remote_markup(); }
+	elseif ($section === 'producers') { alarmmanager_producer_markup($revision); }
 	elseif ($section === 'endpoints') {
 		foreach ($config['endpoints'] as $item) { alarmmanager_endpoint_editor($item, $revision); }
 		$ids = array_column($config['endpoints'], 'id'); $id = $ids ? max($ids) + 1 : 1;
