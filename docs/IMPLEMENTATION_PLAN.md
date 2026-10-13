@@ -5,7 +5,7 @@ Read this file, DECISIONS.md and PROGRESS.md before each phase. The detailed acc
 | Phase | Scope | Gate |
 | --- | --- | --- |
 | 1 | Pinned discovery, metadata/lifecycle skeleton, setup key, docs | Local syntax/setup checks; live install qualification pending |
-| 2 | Event envelope, indexed InnoDB schema, durable idempotent ingestion | Transactions/concurrent duplicates/rollback; preserve history against core uninstall cleanup; prevent key regeneration over existing secrets |
+| 2 | Event envelope, indexed InnoDB schema, durable idempotent ingestion | Implemented; 30 real MariaDB checks plus offline validation pass; full Cacti/MySQL/remote qualification pending |
 | 3 | Episodes, routing, suppression, multiple destinations | Independent per-endpoint jobs, duplicate rule selection and ordering tests |
 | 4 | Supervisor and bounded local workers on main and remote | DB lease/fencing, crash/retry/fairness/shutdown and offline processing tests |
 | 5 | REST API/webhook/email/script mappings and credentials | Authenticated encryption, backup/rotation, remote key provisioning, per-endpoint fan-out/retry evidence |

@@ -1,0 +1,30 @@
+{
+  "event_id": "sample-event-0001",
+  "source": "sample",
+  "source_instance": "lab-cacti",
+  "resource_id": "device:42",
+  "alarm_key": "device:42:reachability",
+  "episode_id": "sample-outage-0001",
+  "sequence": 1,
+  "transition": "raised",
+  "severity": "major",
+  "occurred_at": "2026-10-13T03:00:00Z",
+  "collector_id": 1,
+  "device": {
+    "id": 42,
+    "hostname": "router.example.test",
+    "description": "Sample router",
+    "tags": [
+      "network",
+      "lab"
+    ]
+  },
+  "summary": "Sample device down",
+  "details": "Synthetic event for local ingestion checks.",
+  "context": {
+    "source_suppressed": false,
+    "source_notification_channels": [
+      "email"
+    ]
+  }
+}

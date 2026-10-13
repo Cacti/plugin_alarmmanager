@@ -8,3 +8,7 @@
 6. Legacy producers retain delivery by default; observe and centralized modes require explicit handoff semantics. thold_action is unsuitable for interception. There is no interception in the skeleton.
 7. Adapt syslog's actual dashboard toolbar, grid/cards and billboard conventions later. Namespace copied code and preserve source notices; do not require syslog installation. Ship pinned dependencies locally or reuse guaranteed Cacti assets. No Node.js runtime or container requirement.
 8. Phase 1 creates no event tables, queues or transports. Its setup checks use a standalone database double and cannot establish live installation/replication correctness.
+
+9. Contract v1 uses explicit status in a functional hook envelope. Event uniqueness includes mode so observation cannot own delivery. Normalized payload conflicts fail closed. Persist episode and monotonic stream sequence; state application is phase 3.
+10. Ingestion refuses an already active producer transaction. Atomic event plus job commit is required before acceptance. Direct DDL keeps history outside Cacti plugin_db_changes destructive cleanup; no purge action exists yet.
+11. Setup guards lost keys over future encrypted credential records. Key/ingestion paths refuse SQL flow tracing because core can dump returned values.

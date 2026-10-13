@@ -1,5 +1,9 @@
 <?php
 // SPDX-License-Identifier: GPL-2.0-or-later
+if (PHP_SAPI !== 'cli') {
+	http_response_code(403);
+	exit;
+}
 require_once(__DIR__ . '/../../bootstrap.php');
 require_once(__DIR__ . '/../../../setup.php');
 
@@ -19,7 +23,7 @@ alarmmanager_test_assert(plugin_alarmmanager_install(), 'Repeat install failed.'
 alarmmanager_test_assert($GLOBALS['alarmmanager_test_store']['1:alarmmanager_key'] === $key, 'Repeat install changed the key.');
 alarmmanager_test_assert(plugin_alarmmanager_upgrade(), 'Upgrade readiness failed.');
 alarmmanager_test_assert($GLOBALS['alarmmanager_test_store']['1:alarmmanager_key'] === $key, 'Upgrade changed the key.');
-alarmmanager_test_assert(array_diff($GLOBALS['alarmmanager_test_hooks'], ['config_arrays', 'draw_navigation_text']) === [], 'Unexpected producer/poller hook.');
+alarmmanager_test_assert(array_diff($GLOBALS['alarmmanager_test_hooks'], ['config_arrays', 'draw_navigation_text', 'alarmmanager_submit']) === [], 'Unexpected producer/poller hook.');
 plugin_alarmmanager_uninstall();
 alarmmanager_test_assert($GLOBALS['alarmmanager_test_store']['1:alarmmanager_key'] === $key, 'Uninstall removed the key.');
 
@@ -55,6 +59,17 @@ alarmmanager_test_assert($rejected && $GLOBALS['alarmmanager_test_store'] === []
 $GLOBALS['alarmmanager_test_write_failure'] = false;
 alarmmanager_setup_key();
 alarmmanager_test_assert($GLOBALS['alarmmanager_test_store']['1:alarmmanager_key'] !== $key, 'Separate installation reused a key.');
+$saved_key = $GLOBALS['alarmmanager_test_store']['1:alarmmanager_key'];
+$GLOBALS['alarmmanager_test_store'] = [];
+$GLOBALS['alarmmanager_test_credentials'] = 1;
+$rejected = false;
+try {
+	alarmmanager_setup_key();
+} catch (RuntimeException $error) {
+	$rejected = true;
+}
+alarmmanager_test_assert($rejected && $GLOBALS['alarmmanager_test_store'] === [], 'Lost key was recreated over stored credentials.');
+$GLOBALS['alarmmanager_test_store']['1:alarmmanager_key'] = $saved_key;
 $config['DEBUG_SQL_FLOW'] = true;
 alarmmanager_test_assert(!alarmmanager_key_ready(), 'SQL flow tracing may expose keys.');
 $config['DEBUG_SQL_FLOW'] = false;

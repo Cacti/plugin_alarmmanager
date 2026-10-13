@@ -1,26 +1,59 @@
 <?php
 // SPDX-License-Identifier: GPL-2.0-or-later
-// Dedicated standalone process. These doubles never load into Cacti/Pest.
+if (PHP_SAPI !== 'cli') {
+	http_response_code(403);
+	exit;
+}
+// Standalone test doubles; never load in a live Cacti/Pest process.
 $GLOBALS['alarmmanager_test_store'] = [];
 $GLOBALS['alarmmanager_test_hooks'] = [];
 $GLOBALS['alarmmanager_test_write_failure'] = false;
+$GLOBALS['alarmmanager_test_schema'] = false;
+$GLOBALS['alarmmanager_test_credentials'] = 0;
+$GLOBALS['alarmmanager_test_version'] = '0.1.0';
 
-function db_fetch_cell_prepared($sql, $params, $column = '', $log = true) {
+function db_fetch_cell_prepared($sql, $params = [], $column = '', $log = true) {
+	if (str_contains($sql, 'information_schema')) {
+		return str_contains($sql, "TABLE_NAME = 'plugin_alarmmanager_credentials'") ? ($GLOBALS['alarmmanager_test_credentials'] > 0 ? 1 : 0) : 3;
+	}
+	if (str_contains($sql, 'COUNT(*) FROM plugin_alarmmanager_credentials')) {
+		return $GLOBALS['alarmmanager_test_credentials'];
+	}
+	if (str_contains($sql, 'plugin_alarmmanager_schema')) {
+		return $GLOBALS['alarmmanager_test_schema'] ? 1 : false;
+	}
+	if (str_contains($sql, 'SELECT version FROM plugin_config')) {
+		return $GLOBALS['alarmmanager_test_version'];
+	}
+	if (str_contains($sql, 'SELECT status FROM plugin_config')) {
+		return 1;
+	}
 	return $GLOBALS['alarmmanager_test_store'][$params[0] . ':' . $params[1]] ?? false;
 }
 
-function db_execute_prepared($sql, $params, $log = true) {
+function db_execute_prepared($sql, $params = [], $log = true) {
 	if ($GLOBALS['alarmmanager_test_write_failure']) {
 		return false;
 	}
-	if (!str_starts_with($sql, 'INSERT IGNORE')) {
+	if (str_starts_with($sql, 'CREATE TABLE')) {
+		return true;
+	}
+	if (str_contains($sql, 'INSERT INTO plugin_alarmmanager_schema')) {
+		$GLOBALS['alarmmanager_test_schema'] = true;
+		return true;
+	}
+	if (str_starts_with($sql, 'UPDATE plugin_config')) {
+		$GLOBALS['alarmmanager_test_version'] = $params[0];
+		return true;
+	}
+	if (!str_starts_with($sql, 'INSERT IGNORE INTO settings_user')) {
 		throw new RuntimeException('Unexpected test write.');
 	}
 	$GLOBALS['alarmmanager_test_store'][$params[0] . ':' . $params[1]] ??= $params[2];
 	return true;
 }
 
-function api_plugin_register_hook($plugin, $hook, $callback, $file) {
+function api_plugin_register_hook($plugin, $hook, $callback, $file, $enable = false) {
 	$GLOBALS['alarmmanager_test_hooks'][] = $hook;
 	return true;
 }
