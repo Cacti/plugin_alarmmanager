@@ -88,7 +88,8 @@ function alarmmanager_claim_delivery(array $supported_types, int $lease_seconds 
 		$lease = max($lease_seconds, (int) $endpoint['timeout_seconds'] + 15);
 		alarmmanager_db_write("UPDATE plugin_alarmmanager_deliveries SET status = 'leased', attempts = attempts + 1, lease_token = ?, lease_until = DATE_ADD(UTC_TIMESTAMP(6), INTERVAL ? SECOND), updated_at = UTC_TIMESTAMP(6) WHERE id = ? AND status = 'pending'", [$token, $lease, $job['id']]);
 		alarmmanager_db_write('UPDATE plugin_alarmmanager_endpoints SET last_claim_at = UTC_TIMESTAMP(6), next_start_at = DATE_ADD(UTC_TIMESTAMP(6), INTERVAL ? MICROSECOND) WHERE id = ?', [(int) $endpoint['min_interval_ms'] * 1000, $endpoint['id']]);
-		alarmmanager_db_write('INSERT INTO plugin_alarmmanager_attempts (delivery_id, attempt_number, lease_token, started_at) VALUES (?, ?, ?, UTC_TIMESTAMP(6))', [$job['id'], (int) $job['attempts'] + 1, $token]);
+		$next_attempt = alarmmanager_db_row('SELECT COALESCE(MAX(attempt_number), 0) + 1 AS number FROM plugin_alarmmanager_attempts WHERE delivery_id = ?', [$job['id']]);
+		alarmmanager_db_write('INSERT INTO plugin_alarmmanager_attempts (delivery_id, attempt_number, lease_token, started_at) VALUES (?, ?, ?, UTC_TIMESTAMP(6))', [$job['id'], (int) $next_attempt['number'], $token]);
 		return ['id' => (int) $job['id'], 'event_row_id' => (int) $job['event_row_id'], 'lease_token' => $token,
 			'attempts' => (int) $job['attempts'] + 1, 'idempotency_key' => $job['idempotency_key'], 'endpoint' => $endpoint];
 	});

@@ -1,13 +1,178 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: Alarm Manager 0.5.0\n"
+"Project-Id-Version: Alarm Manager 0.6.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 
+msgid "Action"
+msgstr ""
+
+msgid "Action failed. A required field is missing or outside its allowed range."
+msgstr ""
+
+msgid "Action failed. Administrator access, POST and a valid CSRF token are required."
+msgstr ""
+
+msgid "Action failed. Check configuration, permissions and CSRF token. Submitted credential values were cleared."
+msgstr ""
+
+msgid "Action failed. Configuration fields are invalid."
+msgstr ""
+
+msgid "Action failed. Each mapping transition must contain a list of fields."
+msgstr ""
+
+msgid "Action failed. Transport settings do not match the endpoint type."
+msgstr ""
+
+msgid "Action failed. Use an HTTPS URL without credentials, query parameters or fragments."
+msgstr ""
+
+msgid "Add destination fields using normalized sources or constants. Each transition can replace the default payload. No PHP or string substitution is evaluated."
+msgstr ""
+
+msgid "Administration"
+msgstr ""
+
+msgid "Administration sections"
+msgstr ""
+
 msgid "Alarm Manager"
+msgstr ""
+
+msgid "Alarm Manager Administration"
 msgstr ""
 
 msgid "Alarm Manager View"
 msgstr ""
 
-msgid "Development build: alarm processing, worker queues and delivery adapters are available. Administration UI and producer integrations are pending."
+msgid "Alarm Manager pages"
+msgstr ""
+
+msgid "All"
+msgstr ""
+
+msgid "Apply"
+msgstr ""
+
+msgid "Apply configuration"
+msgstr ""
+
+msgid "Certificate and hostname verification remain enabled. Provision the PEM file on every poller. Save secrets on the Credentials page."
+msgstr ""
+
+msgid "Collapse"
+msgstr ""
+
+msgid "Configuration changed. Reload before applying your edits."
+msgstr ""
+
+msgid "Confirm replay may repeat an external effect"
+msgstr ""
+
+msgid "Credential values are never loaded into this page. Saving replaces the endpoint record; blank values do not preserve an old password. Use the CLI for protected backup/restore and poller provisioning."
+msgstr ""
+
+msgid "Destinations (select multiple)"
+msgstr ""
+
+msgid "Device ID"
+msgstr ""
+
+msgid "Email requires to/from, html and attachments. Script requires an absolute executable, argument list and compatibility mode. WebSocket delivery is not implemented. Use the delivery documentation for option shapes."
+msgstr ""
+
+msgid "Endpoint"
+msgstr ""
+
+msgid "Failed deliveries and replay"
+msgstr ""
+
+msgid "Failed processing jobs and replay"
+msgstr ""
+
+msgid "HTTP settings (REST API or webhook)"
+msgstr ""
+
+msgid "Historical window uses UTC. Current conditions and queues ignore the time window. Observe mode never dispatches delivery jobs."
+msgstr ""
+
+msgid "Latest 50 administration actions"
+msgstr ""
+
+msgid "Loading statistics…"
+msgstr ""
+
+msgid "Local configuration revision"
+msgstr ""
+
+msgid "Local worker health"
+msgstr ""
+
+msgid "Method"
+msgstr ""
+
+msgid "Mode"
+msgstr ""
+
+msgid "Next"
+msgstr ""
+
+msgid "No matching records."
+msgstr ""
+
+msgid "Off"
+msgstr ""
+
+msgid "Page"
+msgstr ""
+
+msgid "Pages"
+msgstr ""
+
+msgid "Payload mappings"
+msgstr ""
+
+msgid "Previous"
+msgstr ""
+
+msgid "Profile"
+msgstr ""
+
+msgid "Refresh"
+msgstr ""
+
+msgid "Removed IDs are disabled, preserving history. Concurrent edits reject stale revisions. Provision each remote poller explicitly."
+msgstr ""
+
+msgid "Replace credential"
+msgstr ""
+
+msgid "Reset"
+msgstr ""
+
+msgid "Rotate local key"
+msgstr ""
+
+msgid "Save"
+msgstr ""
+
+msgid "Save endpoint"
+msgstr ""
+
+msgid "Severity"
+msgstr ""
+
+msgid "Showing at most 50 records per page."
+msgstr ""
+
+msgid "Source"
+msgstr ""
+
+msgid "Time range"
+msgstr ""
+
+msgid "Type"
+msgstr ""
+
+msgid "endpoints"
 msgstr ""

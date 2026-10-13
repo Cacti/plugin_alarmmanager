@@ -52,13 +52,14 @@ function alarmmanager_decrypt_credential(#[\SensitiveParameter] string $encoded,
 	if (!is_array($record)) { throw new RuntimeException('credential_invalid'); }
 	return alarmmanager_credential_validate($record);
 }
-function alarmmanager_save_credential(int $endpoint_id, #[\SensitiveParameter] array $record): void {
+function alarmmanager_save_credential(int $endpoint_id, #[\SensitiveParameter] array $record, ?int $audit_user = null): void {
 	alarmmanager_secret_guard();
-	alarmmanager_transaction(function () use ($endpoint_id, $record): void {
+	alarmmanager_transaction(function () use ($endpoint_id, $record, $audit_user): void {
 		$key = alarmmanager_secret_key(true);
 		if (!alarmmanager_db_row("SELECT id FROM plugin_alarmmanager_endpoints WHERE id = ? AND type IN ('restapi', 'webhook')", [$endpoint_id])) { throw new InvalidArgumentException('credential_endpoint_invalid'); }
 		$ciphertext = alarmmanager_encrypt_credential($record, $endpoint_id, $key);
 		alarmmanager_db_write('INSERT INTO plugin_alarmmanager_credentials (endpoint_id, ciphertext, updated_at) VALUES (?, ?, UTC_TIMESTAMP(6)) ON DUPLICATE KEY UPDATE ciphertext = VALUES(ciphertext), updated_at = VALUES(updated_at)', [$endpoint_id, $ciphertext]);
+		if ($audit_user !== null) { alarmmanager_db_write('INSERT INTO plugin_alarmmanager_audit (user_id, action, resource_id, created_at) VALUES (?, ?, ?, UTC_TIMESTAMP(6))', [$audit_user, 'credential_save', $endpoint_id]); }
 	});
 }
 function alarmmanager_load_credential(int $endpoint_id): array {
@@ -70,8 +71,8 @@ function alarmmanager_load_credential(int $endpoint_id): array {
 		return alarmmanager_decrypt_credential($row['ciphertext'], $endpoint_id, $key);
 	});
 }
-function alarmmanager_rotate_key(): void {
-	alarmmanager_transaction(function (): void {
+function alarmmanager_rotate_key(?int $audit_user = null): void {
+	alarmmanager_transaction(function () use ($audit_user): void {
 		$old = alarmmanager_secret_key(true); $new = random_bytes(32);
 		$rows = alarmmanager_db_rows('SELECT endpoint_id, ciphertext FROM plugin_alarmmanager_credentials ORDER BY endpoint_id LIMIT 1001 FOR UPDATE');
 		if (count($rows) > 1000) { throw new RuntimeException('credential_limit'); }
@@ -80,6 +81,7 @@ function alarmmanager_rotate_key(): void {
 			alarmmanager_db_write('UPDATE plugin_alarmmanager_credentials SET ciphertext = ?, updated_at = UTC_TIMESTAMP(6) WHERE endpoint_id = ?', [alarmmanager_encrypt_credential($plain, $id, $new), $id]);
 		}
 		alarmmanager_db_write('UPDATE settings_user SET value = ? WHERE user_id = ? AND name = ?', [base64_encode($new), 1, 'alarmmanager_key']);
+		if ($audit_user !== null) { alarmmanager_db_write('INSERT INTO plugin_alarmmanager_audit (user_id, action, resource_id, created_at) VALUES (?, ?, 0, UTC_TIMESTAMP(6))', [$audit_user, 'key_rotate']); }
 	});
 }
 function alarmmanager_credential_backup(): array {

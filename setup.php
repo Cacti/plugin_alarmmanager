@@ -18,11 +18,7 @@ function plugin_alarmmanager_install(): bool {
 	if (!alarmmanager_schema_install()) {
 		return false;
 	}
-	$menu = api_plugin_register_hook('alarmmanager', 'config_arrays', 'alarmmanager_config_arrays', 'setup.php');
-	$navigation = api_plugin_register_hook('alarmmanager', 'draw_navigation_text', 'alarmmanager_draw_navigation_text', 'setup.php');
-	$realm = api_plugin_register_realm('alarmmanager', 'alarmmanager.php', __('Alarm Manager View', 'alarmmanager'), 1);
-	$submission = api_plugin_register_hook('alarmmanager', 'alarmmanager_submit', 'alarmmanager_submit', 'includes/ingestion.php');
-	return $menu && $navigation && $realm && $submission;
+	return alarmmanager_registration_setup();
 }
 
 function plugin_alarmmanager_check_config(): bool {
@@ -38,10 +34,22 @@ function plugin_alarmmanager_upgrade(): bool {
 	if (!alarmmanager_key_ready() || !alarmmanager_schema_install()) {
 		return false;
 	}
-	if (!api_plugin_register_hook('alarmmanager', 'alarmmanager_submit', 'alarmmanager_submit', 'includes/ingestion.php', (int) db_fetch_cell_prepared('SELECT status FROM plugin_config WHERE directory = ?', ['alarmmanager'], '', false) === 1)) {
-		return false;
-	}
+	if (!alarmmanager_registration_setup((int) db_fetch_cell_prepared('SELECT status FROM plugin_config WHERE directory = ?', ['alarmmanager'], '', false) === 1)) { return false; }
 	return (bool) db_execute_prepared('UPDATE plugin_config SET version = ? WHERE directory = ?', [$version, 'alarmmanager'], false);
+}
+
+function alarmmanager_registration_setup(bool $enable = false): bool {
+	// Cacti registration helpers return void on success. Verify persisted metadata.
+	foreach (['config_arrays' => ['alarmmanager_config_arrays', 'setup.php'], 'draw_navigation_text' => ['alarmmanager_draw_navigation_text', 'setup.php'], 'alarmmanager_submit' => ['alarmmanager_submit', 'includes/ingestion.php']] as $hook => [$callback, $file]) {
+		api_plugin_register_hook('alarmmanager', $hook, $callback, $file, $enable);
+		$count = db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_hooks WHERE name = ? AND hook = ? AND `function` = ? AND file = ?', ['alarmmanager', $hook, $callback, $file], '', false);
+		if ((int) $count !== 1) { return false; }
+	}
+	foreach (['alarmmanager.php' => 'Alarm Manager View', 'alarmmanager_admin.php' => 'Alarm Manager Administration'] as $file => $label) {
+		api_plugin_register_realm('alarmmanager', $file, __($label, 'alarmmanager'), 1);
+		if ((int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_realms WHERE plugin = ? AND file = ?', ['alarmmanager', $file], '', false) !== 1) { return false; }
+	}
+	return true;
 }
 
 function plugin_alarmmanager_uninstall(): void {
@@ -58,6 +66,7 @@ function alarmmanager_config_arrays(): void {
 }
 
 function alarmmanager_draw_navigation_text($navigation): array {
+	$navigation['alarmmanager_admin.php:'] = ['title' => __('Alarm Manager Administration', 'alarmmanager'), 'mapping' => 'index.php:,alarmmanager.php:', 'url' => 'alarmmanager_admin.php', 'level' => '2'];
 	$navigation['alarmmanager.php:'] = [
 		'title' => __('Alarm Manager', 'alarmmanager'),
 		'mapping' => 'index.php:',

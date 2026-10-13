@@ -53,14 +53,14 @@ function alarmmanager_submit($envelope) {
 		$sql = 'INSERT INTO plugin_alarmmanager_events
 			(contract_version, event_id, source, source_instance, resource_id, alarm_key,
 			episode_id, sequence, transition, severity, occurred_at, received_at,
-			collector_id, processing_poller_id, mode, payload, payload_hash, ingestion_token, stream_key)
-			VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(6), ?, ?, ?, ?, ?, ?, ?)
+			collector_id, processing_poller_id, mode, payload, payload_hash, ingestion_token, stream_key, device_id)
+			VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(6), ?, ?, ?, ?, ?, ?, ?, ?)
 			ON DUPLICATE KEY UPDATE id = id';
 		if (!db_execute_prepared($sql, [
 			$event['event_id'], $event['source'], $event['source_instance'], $event['resource_id'],
 			$event['alarm_key'], $event['episode_id'], $event['sequence'], $event['transition'],
 			$event['severity'], str_replace(['T', 'Z'], [' ', ''], $event['occurred_at']),
-			$event['collector_id'], $poller_id, $envelope['mode'], $payload, $hash, $token, alarmmanager_stream_key($event, $envelope['mode'])
+			$event['collector_id'], $poller_id, $envelope['mode'], $payload, $hash, $token, alarmmanager_stream_key($event, $envelope['mode']), $event['device']['id']
 		], false)) {
 			throw new RuntimeException('Cannot persist event.');
 		}

@@ -28,3 +28,12 @@
 - Trust self-signed/private-CA certificates through an endpoint ca_bundle PEM path while retaining certificate/hostname checks. Refuse redirects, ambient proxies/netrc and credential-bearing URL/HTTP configurations.
 - Encode mapping payloads structurally with typed conversions and bounded safe field names. Endpoint current transport/credential resolution at attempt time is explicit; original routing revisions remain in decisions.
 - Use Cacti's existing mailer in a deadline-controlled fresh offline child; preserve its recipient/HTML/attachment contract. Scripts receive structured argv/stdin and a filtered environment, with bounded output and ordinary descendant group cleanup.
+
+## Phase 6 additions
+
+- Scope all viewer queries/aggregates to explicit Cacti policy SQL before grouping/pagination; reserve unmapped/global events, workers and configuration for administrators. Administrative actions require both plugin Administration and core realm 1, excluding guests/auth-disabled use.
+- Resolve plugin realm IDs by stable filenames rather than translated display labels. Cacti registration helpers return void on success; verify persisted hook/realm metadata instead of treating a missing return as failure.
+- Adapt the actual syslog shared controls, responsive panels and local Billboard chart conventions with attribution. Keep user labels in escaped/text-only elements and disable chart HTML tooltips.
+- Use UTC DATETIME arithmetic for buckets independent of session timezone; keep current condition/queue counts separate from historical action windows and mode-separated observations.
+- Bound report rows, windows/categories and per-statement execution; record measured fixture queries and remaining large-installation qualification honestly.
+- Lock configuration revision to reject stale UI writes, audit safe metadata atomically, and preserve prior delivery attempts/idempotency while granting a fresh explicit replay retry budget.

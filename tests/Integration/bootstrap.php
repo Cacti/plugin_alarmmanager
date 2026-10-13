@@ -1,6 +1,6 @@
 <?php
 // SPDX-License-Identifier: GPL-2.0-or-later
-if (PHP_SAPI !== 'cli') {
+if (PHP_SAPI !== 'cli' && !(PHP_SAPI === 'cli-server' && getenv('ALARMMANAGER_TEST_WEB') === '1')) {
 	http_response_code(403);
 	exit;
 }
@@ -57,10 +57,12 @@ function db_fetch_row_prepared($sql, $params = [], $log = true) {
 	}
 }
 function api_plugin_register_hook($plugin, $hook, $callback, $file, $enable = false) {
-	return true;
+	db_execute_prepared('CREATE TABLE IF NOT EXISTS plugin_hooks (name VARCHAR(64), hook VARCHAR(64), `function` VARCHAR(64), file VARCHAR(128), status INT, PRIMARY KEY(name, hook)) ENGINE=InnoDB');
+	db_execute_prepared('INSERT INTO plugin_hooks (name, hook, `function`, file, status) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE `function` = VALUES(`function`), file = VALUES(file)', [$plugin, $hook, $callback, $file, (int) $enable]);
 }
 function api_plugin_register_realm($plugin, $file, $name, $admin) {
-	return true;
+	db_execute_prepared('CREATE TABLE IF NOT EXISTS plugin_realms (id INT AUTO_INCREMENT PRIMARY KEY, plugin VARCHAR(64), file VARCHAR(128), display VARCHAR(128), UNIQUE KEY plugin_file (plugin, file)) ENGINE=InnoDB');
+	db_execute_prepared('INSERT INTO plugin_realms (plugin, file, display) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE display = VALUES(display)', [$plugin, $file, $name]);
 }
 function __($text, $domain = null) {
 	return $text;
@@ -79,4 +81,8 @@ function db_fetch_assoc_prepared($sql, $params = [], $log = true) {
 		$GLOBALS['alarmmanager_test_database_errors'][$code] = ($GLOBALS['alarmmanager_test_database_errors'][$code] ?? 0) + 1;
 		return false;
 	}
+}
+
+function db_table_exists($table): bool {
+	return (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?', [$table]) === 1;
 }

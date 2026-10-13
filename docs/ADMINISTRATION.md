@@ -1,0 +1,47 @@
+# Administration, permissions and dashboard
+
+Version 0.6.0/schema v4 provides Cacti pages at alarmmanager.php and alarmmanager_admin.php. Cacti's authenticated header/navigation/footer and page realm guard remain the entry points. Grant Alarm Manager View to readers. Administration additionally requires Alarm Manager Administration and Cacti's User Administration realm (realm 1), enabled authentication and a logged-in non-guest account. An administration realm grant alone is insufficient. Login and primary account/session lifecycle remain Cacti-owned.
+
+Readers see permitted device events, active conditions, jobs, attempts, routing decisions and scoped queue counts. A selected event reveals bounded normalized alarm/episode/order/timestamp/device/context/message details after the same SQL visibility filter; selecting a row ID ignores the historical window so older active alarms remain inspectable. Missing/unmapped devices and events without device.id are administrator-only. Device visibility uses validated Cacti user/group policies and the pinned get_policy_where() generator in a correlated EXISTS query against host/graph tables, before aggregate, ORDER BY or LIMIT. It enforces deleted-host and hide_disabled rules and explicit default-allow exceptions. It evaluates policies directly rather than relying on a core fast-path shortcut. No full device list is loaded into PHP. Worker PID/heartbeat details and configuration/credential records are administrator-only.
+
+## Dashboard reuse and data meaning
+
+The actual syslog dashboard was inspected at revision be1a8151c21ff81684d0e8ca0f9f0a78a8d48f27. The following components were adapted; no syslog installation is required:
+
+| Syslog source/component | Alarm Manager adaptation |
+| --- | --- |
+| css/dashboard.css shared header, timespan/refresh bar and filter row | Shared time range, refresh, mode, source, severity and device controls |
+| syslogDashboardGrid responsive auto-fill grid | Alarm Manager responsive grid, including single-column narrow layout |
+| syslogDashboardCard/Header/Title and status conventions | Named panels, card headers, collapse/expand, status/error feedback |
+| js/dashboard.js SyslogDashboardRenderChart | Cacti-local Billboard donut and transition chart configuration; linked count legends |
+| lib/syslog_dashboard.php bounded windows, breakdown and bucket conventions | Server time-window filters, fixed chart caps and coarse UTC buckets |
+
+Copyright/license attribution is retained in CSS/JS and NOTICE.md. D3, Billboard and their theme CSS come from the pinned supported Cacti header (lib/html.php::html_common_header). No new chart library is copied or downloaded. Missing chart assets show linked counts. Theme colors are scoped to the plugin and dark variants; charts use developer-owned IDs, disabled HTML tooltips and text-only user labels. The fixed operational panel set does not add syslog's personal panel creation, drag/resizing or shared-dashboard persistence.
+
+Current conditions are unique active stream states, not device counts or event counts. Current condition and queue totals ignore the historical window while honoring mode/source/severity/device filters. Queues count pending, leased and terminally failed jobs and their oldest receipt age. The worker panel is local current heartbeat/status, not historical throughput.
+
+Historical cards distinguish events received (including raised/recovered/occurrence transitions), delivery jobs created, attempts started and routing/suppression decisions created. Endpoint performance counts attempts and average recorded duration, not unique deliveries. Source and endpoint panels show the top ten; total event counts include all visible sources. Mode defaults to centralized; observe is separate and creates no deliveries. Time windows use UTC receipt/action timestamps. Bucket arithmetic uses UTC DATETIME differences and does not depend on DB session timezone. Chart labels and links retain the captured window; queue links set current=1 to include old outstanding jobs. Count links open matching filtered records. Severity/outcome colors and text legends remain understandable without color alone.
+
+## Administrative actions
+
+Endpoint forms edit identity, enabled state, queue limits, HTTP URL/method, credential use and self-signed/private-CA PEM path. A field editor maps safe normalized sources or constants to nested destinations, with conversion, required/default/value-map controls and transition overrides. Advanced mapping JSON remains editable for no-JavaScript clients. Transport options include bounded HTTP success criteria/timeouts, native Cacti email settings/attachments and controlled script arguments. See DELIVERY.md for the schemas. Certificate verification stays enabled; provision each referenced PEM file locally on every poller.
+
+Profile forms select multiple destinations. Rule forms edit priority, profile, stop policy and selectors/schedules/suppression JSON. Complete non-secret configuration can also be applied as validated JSON. Saves take a schema-row revision lock, reject stale revisions and store an immutable normalized revision with an audit entry in the same commit. Omitted IDs are disabled to preserve history. Credential material does not belong in configuration JSON or mapping constants.
+
+Credential pages fetch status only, never ciphertext/key/plaintext. Header/basic input fields start blank and explicitly replace the record. Clear, save and local-key rotation actions are authenticated POSTs checked with Cacti csrf_check(false). Secrets are cleared from failed responses and never copied into flash messages. Use the phase-5 credential CLI for protected backup/restore/provisioning; key material is not downloadable from a browser page. Preview requires administrator POST/CSRF and maps without decrypting credentials or sending traffic. Confirmed test-send enqueues one synthetic event/selected-destination delivery for the workers.
+
+Active conditions may be acknowledged or unacknowledged by administrators; detection/recovery state stays separate. Failed processing/delivery jobs can be explicitly replayed. Replay locks a failed job, refuses completed/pending/leased jobs, resets its retry budget and preserves original event and delivery idempotency. Delivery attempt numbers advance from indexed history so prior attempts remain intact after reset; displayed job attempt counts represent the current retry cycle. A confirmation explains that an external effect may repeat if the previous outcome was uncertain. Administrator actions record user/action/resource/time without secret values or request payloads.
+
+## Query bounds and measured behavior
+
+Lists fetch 51 rows, render at most 50, and use bounded server pagination (maximum page 200). Filters use fixed 1h/6h/24h/7d/30d windows, allowlisted modes/statuses/severities/transitions and prepared values. Current state/queue queries are aggregate counts, never full histories in PHP. Charts cap source/endpoints at ten, decision/outcome categories at twenty and transition groups at 1,205; presets produce at most 169 displayed time buckets. Each report SELECT has a MariaDB per-statement five-second deadline without changing worker connection settings. Timeouts return a generic unavailable response. This is not a fleet capacity guarantee.
+
+Schema v4 adds indexed event device_id (backfilled from safe normalized JSON), device/time and mode/time indexes, report indexes on delivery/attempt/decision tables, and an InnoDB administrator audit table. Existing history and setup keys remain intact. A historical JSON backfill may take time on a large installation; qualify migration duration with a protected backup and stopped workers before rollout.
+
+The captured disposable fixture in benchmarks/web-report-query.json used PHP 8.3.6 and MariaDB 10.11.14: 401 initial centralized events, 250 visible to a restricted reader, eleven dashboard report queries, 4 MiB PHP peak. Exact measured milliseconds and EXPLAIN rows are in the JSON. The event list used the device_received range index with a temporary/filesort step and materialized permission subqueries. Host/graph fixture tables are deliberately tiny; this does not predict enterprise query cost. Test realistic host/graph cardinality, dense 30-day history, selectivity and concurrent worker load before sizing or release.
+
+## Verification limits
+
+Real database tests use pinned Cacti policy/realm functions with a disposable Cacti-shaped schema. Browser tests use the actual plugin pages, Cacti's bundled chart/theme assets and real csrf-magic in a minimal local fixture header/auth/session bootstrap. Chrome headless checks modern/dark/classic, desktop and 390px, scoped pages, chart data, matching links, field editing, valid/invalid CSRF, direct read-only denial, escaping and network origin. Screenshots were inspected, and all page/asset requests remained loopback. Development browser/Python/Node dependencies are not runtime plugin requirements.
+
+A full installed Cacti UI with production login/LDAP, lifecycle/upgrade and remote collector provisioning still needs qualification. Other Cacti themes, PHP 8.2 and MySQL remain unqualified; MySQL is still refused. Producer handoff and remote disconnect/reconnect reconciliation remain phases 7–8. No production notification ownership is enabled by visiting these pages.

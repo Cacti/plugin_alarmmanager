@@ -1,0 +1,118 @@
+{
+    "events": 401,
+    "reader_visible_events": 250,
+    "dashboard_queries": 11,
+    "dashboard_ms": 10.135,
+    "php_peak_bytes": 4194304,
+    "list_explain": [
+        {
+            "id": 1,
+            "select_type": "PRIMARY",
+            "table": "e",
+            "type": "range",
+            "possible_keys": "received,device_received,mode_received",
+            "key": "device_received",
+            "key_len": "5",
+            "ref": null,
+            "rows": "402",
+            "Extra": "Using index condition; Using where; Using temporary; Using filesort"
+        },
+        {
+            "id": 1,
+            "select_type": "PRIMARY",
+            "table": "<subquery2>",
+            "type": "eq_ref",
+            "possible_keys": "distinct_key",
+            "key": "distinct_key",
+            "key_len": "4",
+            "ref": "func",
+            "rows": "1",
+            "Extra": "Using where"
+        },
+        {
+            "id": 2,
+            "select_type": "MATERIALIZED",
+            "table": "h",
+            "type": "ALL",
+            "possible_keys": "PRIMARY",
+            "key": null,
+            "key_len": null,
+            "ref": null,
+            "rows": "2",
+            "Extra": "Using where"
+        },
+        {
+            "id": 2,
+            "select_type": "MATERIALIZED",
+            "table": "gl",
+            "type": "ALL",
+            "possible_keys": null,
+            "key": null,
+            "key_len": null,
+            "ref": null,
+            "rows": "1",
+            "Extra": "Using where; Using join buffer (flat, BNL join)"
+        },
+        {
+            "id": 2,
+            "select_type": "MATERIALIZED",
+            "table": "gt",
+            "type": "eq_ref",
+            "possible_keys": "PRIMARY",
+            "key": "PRIMARY",
+            "key_len": "4",
+            "ref": "alarmmanager_test_32958bb45ad4.gl.graph_template_id",
+            "rows": "1",
+            "Extra": "Using where; Using index"
+        },
+        {
+            "id": 2,
+            "select_type": "MATERIALIZED",
+            "table": "ht",
+            "type": "eq_ref",
+            "possible_keys": "PRIMARY",
+            "key": "PRIMARY",
+            "key_len": "4",
+            "ref": "alarmmanager_test_32958bb45ad4.h.host_template_id",
+            "rows": "1",
+            "Extra": "Using where; Using index"
+        },
+        {
+            "id": 5,
+            "select_type": "MATERIALIZED",
+            "table": "user_auth_perms",
+            "type": "ref",
+            "possible_keys": "PRIMARY",
+            "key": "PRIMARY",
+            "key_len": "8",
+            "ref": "const,const",
+            "rows": "1",
+            "Extra": "Using index"
+        },
+        {
+            "id": 4,
+            "select_type": "MATERIALIZED",
+            "table": "user_auth_perms",
+            "type": "ref",
+            "possible_keys": "PRIMARY",
+            "key": "PRIMARY",
+            "key_len": "8",
+            "ref": "const,const",
+            "rows": "1",
+            "Extra": "Using index"
+        },
+        {
+            "id": 3,
+            "select_type": "MATERIALIZED",
+            "table": "user_auth_perms",
+            "type": "ref",
+            "possible_keys": "PRIMARY",
+            "key": "PRIMARY",
+            "key_len": "8",
+            "ref": "const,const",
+            "rows": "1",
+            "Extra": "Using index"
+        }
+    ],
+    "database": "10.11.14-MariaDB-0ubuntu0.24.04.1"
+}

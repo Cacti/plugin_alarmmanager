@@ -176,9 +176,11 @@ function alarmmanager_configuration(array $configuration): array {
 	if (strlen(json_encode($result, JSON_THROW_ON_ERROR)) > 1048576) { throw new InvalidArgumentException('configuration_limit'); }
 	return $result;
 }
-function alarmmanager_apply_configuration(array $configuration): void {
+function alarmmanager_apply_configuration(array $configuration, ?int $expected_revision = null, ?int $audit_user = null): void {
 	$settings = alarmmanager_configuration($configuration);
-	alarmmanager_transaction(function () use ($settings): void {
+	alarmmanager_transaction(function () use ($settings, $expected_revision, $audit_user): void {
+		$locked_revision = alarmmanager_db_row('SELECT config_revision FROM plugin_alarmmanager_schema WHERE id = 1 FOR UPDATE');
+		if ($expected_revision !== null && (int) ($locked_revision['config_revision'] ?? -1) !== $expected_revision) { throw new InvalidArgumentException('configuration_changed'); }
 		foreach (['endpoints', 'profiles', 'rules'] as $section) {
 			alarmmanager_db_write('UPDATE plugin_alarmmanager_' . $section . ' SET enabled = 0');
 		}
@@ -207,6 +209,7 @@ function alarmmanager_apply_configuration(array $configuration): void {
 		$history = $settings;
 		foreach (['endpoints', 'profiles', 'rules'] as $section) { $history[$section] = array_values($history[$section]); }
 		alarmmanager_db_write('INSERT INTO plugin_alarmmanager_configuration_history (revision, definition, created_at) VALUES (?, ?, UTC_TIMESTAMP(6))', [(int) $revision, json_encode($history, JSON_THROW_ON_ERROR)]);
+		if ($audit_user !== null) { alarmmanager_db_write('INSERT INTO plugin_alarmmanager_audit (user_id, action, resource_id, created_at) VALUES (?, ?, ?, UTC_TIMESTAMP(6))', [$audit_user, 'configuration_save', (int) $revision]); }
 	});
 	unset($GLOBALS['alarmmanager_route_cache']);
 }

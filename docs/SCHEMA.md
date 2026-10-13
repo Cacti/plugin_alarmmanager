@@ -1,6 +1,6 @@
-# Schema v3
+# Schema v4
 
-Install/upgrade creates indexed InnoDB tables directly through prepared Cacti DB helpers, then records schema version 3. CREATE IF NOT EXISTS is repeatable; engine checks refuse non-transactional existing tables. No external migration runner or runtime dependency download is needed. Later schema revisions need explicit forward migrations; this version does not repair arbitrarily malformed preexisting tables.
+Install/upgrade creates indexed InnoDB tables directly through prepared Cacti DB helpers, then records schema version 4. CREATE IF NOT EXISTS is repeatable; engine checks refuse non-transactional existing tables. No external migration runner or runtime dependency download is needed. Later schema revisions need explicit forward migrations; this version does not repair arbitrarily malformed preexisting tables.
 
 | Table | Purpose | Key indexes |
 | --- | --- | --- |
@@ -36,3 +36,9 @@ Events gain stream_key; jobs gain lease token/expiry, attempts, priority, error 
 ## Version 3 additions
 
 plugin_alarmmanager_credentials stores endpoint_id, authenticated ciphertext and updated_at. plugin_alarmmanager_transports stores the endpoint's non-secret bounded definition. Direct InnoDB DDL preserves uninstall behavior; neither table is registered for destructive framework cleanup. Forward migration retains v2 routing/state/history and the existing setup key, then stamps v3 only when both new tables use InnoDB. Repeated migrations do not replace keys or credential records. Older code refuses this newer schema; rollback requires stopping workers, retaining a protected matching key/database backup and restoring a compatible code/database pair. Do not reset the version stamp to disguise an unsupported downgrade.
+
+## Version 4 additions
+
+Events gain an indexed nullable device_id, backfilled only from integer normalized payload fields, with device_received and mode_received indexes. Delivery created-time, attempt delivery/time and decision reason/time report indexes bound common filters. plugin_alarmmanager_audit stores user/action/resource/time, without secret/request payloads, under InnoDB. Schema v4 readiness is stamped only after successful migration and audit engine verification. These tables continue to bypass destructive plugin_db_changes registration. Stored event JSON and duplicate hashes are unchanged by the metadata backfill.
+
+Replay resets a failed job's current retry-budget counter. Delivery attempt numbering is derived from indexed MAX(attempt_number) under the locked claim transaction, so previous history is retained and numbering remains unique across replay cycles. All original event/endpoint/idempotency identity remains stable.

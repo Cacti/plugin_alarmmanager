@@ -13,7 +13,7 @@ php cli/credentials.php --save=1 --file=/secure/endpoint1.json
 php cli/credentials.php --save=2 --file=php://stdin
 ```
 
-An input shape is {"headers":{"Authorization":"Bearer REPLACE_WITH_REAL_TOKEN"}}. The placeholder is not a usable credential. Set transport.credential=true only after provisioning. Neither action prints secrets. No browser credential editor exists until phase 6.
+An input shape is {"headers":{"Authorization":"Bearer REPLACE_WITH_REAL_TOKEN"}}. The placeholder is not a usable credential. Set transport.credential=true only after provisioning. Neither action prints secrets. Phase 6 provides an administrator-only POST/CSRF credential editor showing configuration status and blank replacement inputs. It never returns saved secrets or keys; backup/restore/provisioning remains CLI-only.
 
 ## Backup, restore and rotation
 
