@@ -1,0 +1,17 @@
+[Unit]
+Description=Cacti Alarm Manager scheduled bounded workers (service)
+After=network.target mariadb.service
+
+[Service]
+Type=oneshot
+User=cacti
+Group=cacti
+WorkingDirectory=/var/www/html/cacti/plugins/alarmmanager
+# Adapt the paths and limits to the deployment; each activation is bounded.
+ExecStart=/usr/bin/php cli/worker.php --role=processing --once --max-jobs=100 --max-seconds=30
+ExecStart=/usr/bin/php cli/worker.php --role=delivery --once --max-jobs=100 --max-seconds=30
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

@@ -21,6 +21,7 @@
 require_once(__DIR__ . '/web_view.php');
 require_once(__DIR__ . '/admin.php');
 require_once(__DIR__ . '/remote_view.php');
+require_once(__DIR__ . '/workers.php');
 
 function alarmmanager_form_start(string $action, int $revision, array $hidden = []): void {
 	print '<form method="post" action="alarmmanager_admin.php" class="alarmmanagerEditor">';
@@ -164,9 +165,75 @@ function alarmmanager_admin_markup(array $state, string $section): void {
 		alarmmanager_textarea('configuration_json', 'Complete local routing configuration (no secrets)', alarmmanager_json_text($config), 1048576);
 		print '<button type="submit">' . __esc('Apply configuration', 'alarmmanager') . '</button></form><p>' . __esc('Removed IDs are disabled, preserving history. Concurrent edits reject stale revisions. Provision each remote poller explicitly.', 'alarmmanager') . '</p>';
 	} elseif ($section === 'health') {
-		print '<h2>' . __esc('Local worker health', 'alarmmanager') . '</h2><pre>' . html_escape(json_encode(alarmmanager_db_rows('SELECT role, poller_id, pid, status, current_job_id, heartbeat_at FROM plugin_alarmmanager_workers WHERE poller_id = ? ORDER BY heartbeat_at DESC LIMIT 32', [alarmmanager_local_poller()]), JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR)) . '</pre><p><a href="alarmmanager.php?tab=processing&status=failed">' . __esc('Failed processing jobs and replay', 'alarmmanager') . '</a></p><p><a href="alarmmanager.php?tab=deliveries&status=failed">' . __esc('Failed deliveries and replay', 'alarmmanager') . '</a></p>';
+		// Same shared metrics used by cli/status.php; rendered as Cacti tables.
+		$metrics = alarmmanager_metrics();
+		html_start_box(__esc('Local queue health', 'alarmmanager'), '100%', false, 3, 'center', '');
+		html_header([__esc('Queue', 'alarmmanager'), __esc('Status', 'alarmmanager'), __esc('Jobs', 'alarmmanager'), __esc('Oldest job age (seconds)', 'alarmmanager'), __esc('Retries', 'alarmmanager')], 1);
+
+		if ($metrics['queues'] !== []) {
+			foreach ($metrics['queues'] as $queue => $statuses) {
+				foreach ($statuses as $row) {
+					form_alternate_row();
+					form_selectable_cell(html_escape($queue), 0, '', 'left');
+					form_selectable_cell(html_escape((string) $row['status']), 0, '', 'left');
+					form_selectable_cell(html_escape((string) $row['jobs']), 0, '', 'right');
+					form_selectable_cell(html_escape((string) $row['oldest_age_seconds']), 0, '', 'right');
+					form_selectable_cell(html_escape((string) $row['retries']), 0, '', 'right');
+					form_end_row();
+				}
+			}
+		} else {
+			print "<tr class='odd'><td>" . __esc('No queue activity recorded.', 'alarmmanager') . '</td></tr>';
+		}
+		html_end_box(true);
+		html_start_box(__esc('Local worker health', 'alarmmanager'), '100%', false, 3, 'center', '');
+		html_header([__esc('Worker', 'alarmmanager'), __esc('Role', 'alarmmanager'), __esc('Poller', 'alarmmanager'), __esc('PID', 'alarmmanager'), __esc('Status', 'alarmmanager'), __esc('Current job', 'alarmmanager'), __esc('Heartbeat age (seconds)', 'alarmmanager')], 1);
+
+		if ($metrics['workers'] !== []) {
+			foreach ($metrics['workers'] as $row) {
+				form_alternate_row();
+				form_selectable_cell(html_escape((string) $row['worker_id']), 0, '', 'left');
+				form_selectable_cell(html_escape((string) $row['role']), 0, '', 'left');
+				form_selectable_cell(html_escape((string) $row['poller_id']), 0, '', 'right');
+				form_selectable_cell(html_escape((string) $row['pid']), 0, '', 'right');
+				form_selectable_cell(html_escape((string) $row['status']), 0, '', 'left');
+				form_selectable_cell(html_escape((string) ($row['current_job_id'] ?? '—')), 0, '', 'right');
+				form_selectable_cell(html_escape((string) $row['heartbeat_age_seconds']), 0, '', 'right');
+				form_end_row();
+			}
+		} else {
+			print "<tr class='odd'><td>" . __esc('No local worker heartbeats recorded.', 'alarmmanager') . '</td></tr>';
+		}
+		html_end_box(true);
+		print '<p class="alarmmanagerHint">' . __esc('Completed processing jobs in the last 300 seconds', 'alarmmanager') . ': ' . $metrics['completed_last_300_seconds']['processing'] . ' — ' . __esc('Completed delivery jobs in the last 300 seconds', 'alarmmanager') . ': ' . $metrics['completed_last_300_seconds']['delivery'] . ' — ' . __esc('Processing streams blocked behind a failed predecessor', 'alarmmanager') . ': ' . $metrics['processing_blocked_by_failed_predecessor'] . '</p>';
+
+		if ($metrics['blocked_destination_types'] !== []) {
+			print '<p class="alarmmanagerHint">' . __esc('Pending jobs for destination types without a qualified transport', 'alarmmanager') . ': ';
+
+			foreach ($metrics['blocked_destination_types'] as $index => $row) {
+				print ($index > 0 ? ', ' : '') . html_escape((string) $row['type']) . ' (' . (int) $row['pending_jobs'] . ')';
+			}
+			print '</p>';
+		}
+		print '<p><a href="alarmmanager.php?tab=processing&status=failed">' . __esc('Failed processing jobs and replay', 'alarmmanager') . '</a></p><p><a href="alarmmanager.php?tab=deliveries&status=failed">' . __esc('Failed deliveries and replay', 'alarmmanager') . '</a></p>';
 	} else {
 		$rows = alarmmanager_db_rows('SELECT id, user_id, action, resource_id, created_at FROM plugin_alarmmanager_audit ORDER BY id DESC LIMIT 50');
-		print '<h2>' . __esc('Latest 50 administration actions', 'alarmmanager') . '</h2><pre>' . html_escape(json_encode($rows, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR)) . '</pre>';
+		html_start_box(__esc('Latest 50 administration actions', 'alarmmanager'), '100%', false, 3, 'center', '');
+		html_header([__esc('ID', 'alarmmanager'), __esc('User ID', 'alarmmanager'), __esc('Action', 'alarmmanager'), __esc('Resource ID', 'alarmmanager'), __esc('Recorded at', 'alarmmanager')], 1);
+
+		if ($rows !== []) {
+			foreach ($rows as $row) {
+				form_alternate_row();
+				form_selectable_cell(html_escape((string) $row['id']), 0, '', 'right');
+				form_selectable_cell(html_escape((string) $row['user_id']), 0, '', 'right');
+				form_selectable_cell(html_escape((string) $row['action']), 0, '', 'left');
+				form_selectable_cell(html_escape((string) $row['resource_id']), 0, '', 'right');
+				form_selectable_cell(html_escape((string) $row['created_at']), 0, '', 'left');
+				form_end_row();
+			}
+		} else {
+			print "<tr class='odd'><td>" . __esc('No administration actions recorded.', 'alarmmanager') . '</td></tr>';
+		}
+		html_end_box(true);
 	}
 }

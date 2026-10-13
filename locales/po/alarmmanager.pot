@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Alarm Manager 0.8.0\n"
 "Report-Msgid-Bugs-To: https://github.com/bmfmancini/plugin_alarmmanager/issues\n"
-"POT-Creation-Date: 2026-10-13 15:57-0400\n"
+"POT-Creation-Date: 2026-10-13 16:40-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alarm Manager Developers <https://github.com/bmfmancini/plugin_alarmmanager>\n"
 "Language-Team: Alarm Manager Developers <https://github.com/bmfmancini/plugin_alarmmanager>\n"
@@ -25,108 +25,204 @@ msgstr ""
 msgid "Administration unavailable or permission denied."
 msgstr ""
 
-#: includes/admin_view.php:47
+#: includes/admin_view.php:48
 msgid "New endpoint"
 msgstr ""
 
-#: includes/admin_view.php:52
+#: includes/admin_view.php:53
 msgid "Type"
 msgstr ""
 
-#: includes/admin_view.php:64
+#: includes/admin_view.php:65
 msgid "HTTP settings (REST API or webhook)"
 msgstr ""
 
-#: includes/admin_view.php:66
+#: includes/admin_view.php:67
 msgid "Method"
 msgstr ""
 
-#: includes/admin_view.php:74
+#: includes/admin_view.php:75
 msgid "Certificate and hostname verification remain enabled. Provision the PEM file on every poller. Save secrets on the Credentials page."
 msgstr ""
 
-#: includes/admin_view.php:75
+#: includes/admin_view.php:76
 msgid "Add destination fields using normalized sources or constants. Each transition can replace the default payload. No PHP or string substitution is evaluated."
 msgstr ""
 
-#: includes/admin_view.php:75
+#: includes/admin_view.php:76
 msgid "Payload mappings"
 msgstr ""
 
-#: includes/admin_view.php:79
+#: includes/admin_view.php:80
 msgid "Email requires to/from, html and attachments. Script requires an absolute executable, argument list and compatibility mode. WebSocket delivery is not implemented. Use the delivery documentation for option shapes."
 msgstr ""
 
-#: includes/admin_view.php:79
+#: includes/admin_view.php:80
 msgid "Save endpoint"
 msgstr ""
 
-#: includes/admin_view.php:84
+#: includes/admin_view.php:85
 msgid "Administration sections"
 msgstr ""
 
-#: includes/admin_view.php:88
+#: includes/admin_view.php:89
 msgid "Local configuration revision"
 msgstr ""
 
-#: includes/admin_view.php:107
+#: includes/admin_view.php:108
 msgid "New item"
 msgstr ""
 
-#: includes/admin_view.php:114
+#: includes/admin_view.php:115
 msgid "Destinations (select multiple)"
 msgstr ""
 
-#: includes/admin_view.php:121
+#: includes/admin_view.php:122
 msgid "Profile"
 msgstr ""
 
-#: includes/admin_view.php:129
+#: includes/admin_view.php:130
 msgid "Save"
 msgstr ""
 
-#: includes/admin_view.php:133
+#: includes/admin_view.php:134
 msgid "Credential values are never loaded into this page. Saving replaces the endpoint record; blank values do not preserve an old password. Use the CLI for protected backup/restore and poller provisioning."
 msgstr ""
 
-#: includes/admin_view.php:136
+#: includes/admin_view.php:137
 msgid "Configured"
 msgstr ""
 
-#: includes/admin_view.php:141
+#: includes/admin_view.php:142
 msgid "Replace credential"
 msgstr ""
 
-#: includes/admin_view.php:147
+#: includes/admin_view.php:148
 msgid "Rotate local key"
 msgstr ""
 
-#: includes/admin_view.php:151
+#: includes/admin_view.php:152
 msgid "Endpoint"
 msgstr ""
 
-#: includes/admin_view.php:165
+#: includes/admin_view.php:166
 msgid "Apply configuration"
 msgstr ""
 
-#: includes/admin_view.php:165
+#: includes/admin_view.php:166
 msgid "Removed IDs are disabled, preserving history. Concurrent edits reject stale revisions. Provision each remote poller explicitly."
 msgstr ""
 
-#: includes/admin_view.php:167
-msgid "Failed deliveries and replay"
+#: includes/admin_view.php:170
+msgid "Local queue health"
 msgstr ""
 
-#: includes/admin_view.php:167
-msgid "Failed processing jobs and replay"
+#: includes/admin_view.php:171
+msgid "Jobs"
 msgstr ""
 
-#: includes/admin_view.php:167
+#: includes/admin_view.php:171
+msgid "Oldest job age (seconds)"
+msgstr ""
+
+#: includes/admin_view.php:171
+msgid "Queue"
+msgstr ""
+
+#: includes/admin_view.php:171
+msgid "Retries"
+msgstr ""
+
+#: includes/admin_view.php:171 includes/admin_view.php:190
+msgid "Status"
+msgstr ""
+
+#: includes/admin_view.php:186
+msgid "No queue activity recorded."
+msgstr ""
+
+#: includes/admin_view.php:189
 msgid "Local worker health"
 msgstr ""
 
-#: includes/admin_view.php:170
+#: includes/admin_view.php:190
+msgid "Current job"
+msgstr ""
+
+#: includes/admin_view.php:190
+msgid "Heartbeat age (seconds)"
+msgstr ""
+
+#: includes/admin_view.php:190
+msgid "PID"
+msgstr ""
+
+#: includes/admin_view.php:190
+msgid "Poller"
+msgstr ""
+
+#: includes/admin_view.php:190
+msgid "Role"
+msgstr ""
+
+#: includes/admin_view.php:190
+msgid "Worker"
+msgstr ""
+
+#: includes/admin_view.php:205
+msgid "No local worker heartbeats recorded."
+msgstr ""
+
+#: includes/admin_view.php:208
+msgid "Completed delivery jobs in the last 300 seconds"
+msgstr ""
+
+#: includes/admin_view.php:208
+msgid "Completed processing jobs in the last 300 seconds"
+msgstr ""
+
+#: includes/admin_view.php:208
+msgid "Processing streams blocked behind a failed predecessor"
+msgstr ""
+
+#: includes/admin_view.php:211
+msgid "Pending jobs for destination types without a qualified transport"
+msgstr ""
+
+#: includes/admin_view.php:218
+msgid "Failed deliveries and replay"
+msgstr ""
+
+#: includes/admin_view.php:218
+msgid "Failed processing jobs and replay"
+msgstr ""
+
+#: includes/admin_view.php:221
 msgid "Latest 50 administration actions"
+msgstr ""
+
+#: includes/admin_view.php:222 includes/web_view.php:222
+msgid "Action"
+msgstr ""
+
+#: includes/admin_view.php:222
+msgid "ID"
+msgstr ""
+
+#: includes/admin_view.php:222
+msgid "Recorded at"
+msgstr ""
+
+#: includes/admin_view.php:222
+msgid "Resource ID"
+msgstr ""
+
+#: includes/admin_view.php:222
+msgid "User ID"
+msgstr ""
+
+#: includes/admin_view.php:235
+msgid "No administration actions recorded."
 msgstr ""
 
 #: includes/producer_admin.php:78
@@ -283,10 +379,6 @@ msgstr ""
 
 #: includes/web_view.php:218
 msgid "attempts"
-msgstr ""
-
-#: includes/web_view.php:222
-msgid "Action"
 msgstr ""
 
 #: includes/web_view.php:258

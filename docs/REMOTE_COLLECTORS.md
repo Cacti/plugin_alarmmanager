@@ -60,6 +60,16 @@ php cli/remote.php --peer=1 --instance=MAIN_UUID --key-file=/secure/poller-2.key
 php cli/remote.php --send --limit=100
 ```
 
+Run the sender on a schedule on each collector; it is a bounded batch that exits after one pass:
+
+```cron
+# /etc/cron.d/alarmmanager-sync-send (collector 2) — per-minute cadence
+* * * * * cacti /usr/bin/php /var/www/html/cacti/plugins/alarmmanager/cli/remote.php --send --limit=100
+```
+
+A systemd pair ships as `service/alarmmanager-sync-sender.service` plus `service/alarmmanager-sync-sender.timer`; systemd will not start a second activation of the oneshot service while the previous run is still active. Use cron or the timer, not both.
+```
+
 The receiver is main-only, POST-only and HMAC-authenticated, independent of browser permissions. HTTPS peer/hostname verification is always enabled; private/self-signed certificates require a trust file, not disabling verification. Requests cannot redirect. Peer keys are random 32-byte secrets stored only in owner-private files; run HTTP receiver and sender under an account that can securely read its key. Key paths are metadata, never keys in database/output. Rotate by provisioning matching new files and peer records on both ends; pending packets remain available for retry.
 
 Signed packets bind source poller/node, main node audience, body and timestamp; request and acknowledgment use separate signature domains with a 300-second timestamp bound. The sender retains its exact pending packet until matching signed acknowledgment. The exporter locks a committed outbox prefix under READ COMMITTED to prevent AUTO_INCREMENT commit-order gaps and reads entity data/revision in one read view. Requests are bounded to 500 records/1 MiB. Lost acknowledgment retries are idempotent. Heartbeats run even without history. Run the bounded sender at least once per minute in the lab and monitor failures; Administration → Collectors labels peers offline after 90 seconds without contact.
