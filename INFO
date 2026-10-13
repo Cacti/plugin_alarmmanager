@@ -1,0 +1,10 @@
+; SPDX-License-Identifier: GPL-2.0-or-later
+[info]
+name = alarmmanager
+version = 0.1.0
+longname = Alarm Manager
+author = Sean Mancini
+email =
+homepage = https://github.com/bmfmancini/plugin_alarmmanager
+compat = 1.2.32
+capabilities = online_view:1, online_mgmt:1, offline_view:1, offline_mgmt:0, remote_collect:1, remote_poller:1
