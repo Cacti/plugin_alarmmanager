@@ -1,0 +1,54 @@
+# Alarm Manager PHPStan configuration.
+#
+# Standard: PHPStan level 6 as used for Cacti plugins, with the supported
+# Cacti installation's core definitions loaded so helper signatures are
+# inferred from real code (see tests/Helpers/phpstan-stubs.php). A generated
+# baseline records pre-existing findings and is shrunk over time; new
+# suppressions are not permitted.
+#
+# Run from the Cacti root of a checkout that plugins/alarmmanager belongs to,
+# or with CACTI_PATH pointing at one:
+#   <cacti>/include/vendor/bin/phpstan analyse --configuration=plugins/alarmmanager/.phpstan.neon
+includes:
+	- phpstan-baseline.neon
+
+parameters:
+	level: 6
+
+	paths:
+		- alarmmanager.php
+		- alarmmanager_admin.php
+		- alarmmanager_sync.php
+		- setup.php
+		- cli
+		- includes
+		- integrations
+
+	excludePaths:
+		analyse:
+			- docs
+			- locales
+			- examples
+			- integrations/patches
+			- .php-cs-fixer.php
+		analyseAndScan:
+			- tests
+
+	reportUnmatchedIgnoredErrors: false
+	ignoreErrors:
+		# PHPStan gets confused about dynamic constants
+		- identifier: if.alwaysFalse
+		- identifier: notEqual.alwaysFalse
+		- identifier: notEqual.alwaysTrue
+		- identifier: notIdentical.alwaysTrue
+		- identifier: equal.alwaysTrue
+		- identifier: if.alwaysTrue
+		- identifier: while.alwaysTrue
+		- identifier: greater.alwaysFalse
+		- identifier: greaterOrEqual.alwaysFalse
+		- identifier: identical.alwaysTrue
+		- identifier: identical.alwaysFalse
+		- identifier: booleanAnd.leftAlwaysTrue
+		- identifier: booleanAnd.leftAlwaysFalse
+		- identifier: booleanAnd.alwaysFalse
+		- identifier: function.alreadyNarrowedType

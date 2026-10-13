@@ -113,3 +113,8 @@ Tooling: added .php-cs-fixer.php adapted rule-for-rule from Cacti develop (tab i
 Validation: fixer --dry-run reports 0 of 98 files fixable; php -l passes on all 104 tracked PHP files; all five standalone unit suites pass (103 checks; SetupTest compat expectation aligned to INFO compat 1.2.29). strict_param review found no semantic in_array/array_search conversions.
 
 Validation environment: PHP 8.3.6, PHP-CS-Fixer 3.95.27 from Cacti develop vendor. No runtime PHP behavior changed beyond the header and formatting edits.
+## Cacti standards phase 2 — 2026-10-13 UTC
+
+Static analysis: added .phpstan.neon at PHPStan level 6 (the Cacti plugin standard, versus level 8 for Cacti core), with tests/Helpers/phpstan-stubs.php loading the supported Cacti installation's real core definitions (CACTI_TEST_BOOTSTRAP armed, CACTI_PATH or plugins/<dir> layout resolution) instead of hand-written signatures, mirroring Cacti develop's own analysis bootstrap. Generated and committed phpstan-baseline.neon (264 message groups / 321 findings) so new findings fail CI; baseline shrinks over time and no new suppressions are permitted.
+
+Validation: phpstan analyse --configuration=plugins/alarmmanager/.phpstan.neon exits [OK] No errors against Cacti develop vendor (PHPStan 2.x, PHP 8.3.6). The QA checkout resolves CACTI_PATH=/home/sean/Documents/GitHub/cacti-qa.

@@ -1,0 +1,1585 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Function bottom_footer not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: alarmmanager.php
+
+		-
+			message: '#^Function top_header not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: alarmmanager.php
+
+		-
+			message: '#^Function __ not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: alarmmanager_admin.php
+
+		-
+			message: '#^Function bottom_footer not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: alarmmanager_admin.php
+
+		-
+			message: '#^Function top_header not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: alarmmanager_admin.php
+
+		-
+			message: '#^Variable \$bundle might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: cli/credentials.php
+
+		-
+			message: '#^Variable \$id might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: cli/credentials.php
+
+		-
+			message: '#^Variable \$key might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: cli/credentials.php
+
+		-
+			message: '#^Variable \$record might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: cli/credentials.php
+
+		-
+			message: '#^Function db_execute_prepared not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: cli/setup_local.php
+
+		-
+			message: '#^Function db_fetch_cell_prepared not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: cli/setup_local.php
+
+		-
+			message: '#^Function api_plugin_hook_function not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: cli/submit_event.php
+
+		-
+			message: '#^Function alarmmanager_admin_action\(\) has parameter \$input with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/admin.php
+
+		-
+			message: '#^Function alarmmanager_admin_configuration\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/admin.php
+
+		-
+			message: '#^Function alarmmanager_admin_int\(\) has parameter \$value with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: includes/admin.php
+
+		-
+			message: '#^Function alarmmanager_admin_json\(\) has parameter \$value with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: includes/admin.php
+
+		-
+			message: '#^Function alarmmanager_admin_json\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/admin.php
+
+		-
+			message: '#^Function __ not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: includes/admin_view.php
+
+		-
+			message: '#^Function alarmmanager_admin_markup\(\) has parameter \$state with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/admin_view.php
+
+		-
+			message: '#^Function alarmmanager_endpoint_editor\(\) has parameter \$endpoint with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/admin_view.php
+
+		-
+			message: '#^Function alarmmanager_form_start\(\) has parameter \$hidden with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/admin_view.php
+
+		-
+			message: '#^Function alarmmanager_input\(\) has parameter \$value with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: includes/admin_view.php
+
+		-
+			message: '#^Function alarmmanager_json_text\(\) has parameter \$value with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: includes/admin_view.php
+
+		-
+			message: '#^Function alarmmanager_credential_backup\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/credential_store.php
+
+		-
+			message: '#^Function alarmmanager_credential_restore\(\) has parameter \$bundle with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/credential_store.php
+
+		-
+			message: '#^Function alarmmanager_credential_validate\(\) has parameter \$record with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/credential_store.php
+
+		-
+			message: '#^Function alarmmanager_credential_validate\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/credential_store.php
+
+		-
+			message: '#^Function alarmmanager_decrypt_credential\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/credential_store.php
+
+		-
+			message: '#^Function alarmmanager_encrypt_credential\(\) has parameter \$record with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/credential_store.php
+
+		-
+			message: '#^Function alarmmanager_load_credential\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/credential_store.php
+
+		-
+			message: '#^Function alarmmanager_save_credential\(\) has parameter \$record with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/credential_store.php
+
+		-
+			message: '#^Function db_fetch_cell_prepared not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: includes/credential_store.php
+
+		-
+			message: '#^Function alarmmanager_decode_key\(\) has parameter \$encoded with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: includes/credentials.php
+
+		-
+			message: '#^Function db_execute_prepared not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: includes/credentials.php
+
+		-
+			message: '#^Function db_fetch_cell_prepared not found\.$#'
+			identifier: function.notFound
+			count: 5
+			path: includes/credentials.php
+
+		-
+			message: '#^Function alarmmanager_delivery_handlers\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/delivery.php
+
+		-
+			message: '#^Function alarmmanager_run_delivery\(\) has parameter \$claim with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/delivery.php
+
+		-
+			message: '#^Function alarmmanager_device_core_commit\(\) has parameter \$host with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/device.php
+
+		-
+			message: '#^Function alarmmanager_device_event_authorized\(\) has parameter \$event with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/device.php
+
+		-
+			message: '#^Function alarmmanager_device_grant\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/device.php
+
+		-
+			message: '#^Function alarmmanager_device_grant_validate\(\) has parameter \$grant with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/device.php
+
+		-
+			message: '#^Function alarmmanager_device_grant_validate\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/device.php
+
+		-
+			message: '#^Function alarmmanager_device_identity\(\) has parameter \$grant with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/device.php
+
+		-
+			message: '#^Function alarmmanager_device_identity\(\) has parameter \$host with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/device.php
+
+		-
+			message: '#^Function alarmmanager_device_live\(\) has parameter \$grant with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/device.php
+
+		-
+			message: '#^Function alarmmanager_device_persist\(\) has parameter \$grant with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/device.php
+
+		-
+			message: '#^Function alarmmanager_device_persist\(\) has parameter \$host with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/device.php
+
+		-
+			message: '#^Function alarmmanager_device_persist\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/device.php
+
+		-
+			message: '#^Function alarmmanager_device_receipt\(\) has parameter \$grant with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/device.php
+
+		-
+			message: '#^Function alarmmanager_device_receipt\(\) has parameter \$host with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/device.php
+
+		-
+			message: '#^Function alarmmanager_device_receipt\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/device.php
+
+		-
+			message: '#^Function alarmmanager_device_thold_decision\(\) has parameter \$host with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/device.php
+
+		-
+			message: '#^Function alarmmanager_device_thold_decision\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/device.php
+
+		-
+			message: '#^Function alarmmanager_device_times\(\) has parameter \$host with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/device.php
+
+		-
+			message: '#^Function alarmmanager_device_times\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/device.php
+
+		-
+			message: '#^Function db_fetch_cell_prepared not found\.$#'
+			identifier: function.notFound
+			count: 3
+			path: includes/device.php
+
+		-
+			message: '#^Function alarmmanager_email_send\(\) has parameter \$message with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/email_boundary.php
+
+		-
+			message: '#^Function alarmmanager_email_send\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/email_boundary.php
+
+		-
+			message: '#^Function alarmmanager_event_keys\(\) has parameter \$allowed with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/events.php
+
+		-
+			message: '#^Function alarmmanager_event_keys\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/events.php
+
+		-
+			message: '#^Function alarmmanager_event_tags\(\) has parameter \$tags with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: includes/events.php
+
+		-
+			message: '#^Function alarmmanager_event_tags\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/events.php
+
+		-
+			message: '#^Function alarmmanager_event_text\(\) has parameter \$value with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: includes/events.php
+
+		-
+			message: '#^Function alarmmanager_event_time\(\) has parameter \$value with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: includes/events.php
+
+		-
+			message: '#^Function alarmmanager_event_token\(\) has parameter \$value with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: includes/events.php
+
+		-
+			message: '#^Function alarmmanager_validate_event\(\) has parameter \$event with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/events.php
+
+		-
+			message: '#^Function alarmmanager_validate_event\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/events.php
+
+		-
+			message: '#^Offset 2 on array\{non\-falsy\-string, non\-falsy\-string, ''''\|numeric\-string, non\-falsy\-string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: includes/events.php
+
+		-
+			message: '#^Comparison operation "\<" between int\<1, 2147483647\> and 1 is always false\.$#'
+			identifier: smaller.alwaysFalse
+			count: 1
+			path: includes/ingestion.php
+
+		-
+			message: '#^Function alarmmanager_persist_event\(\) has parameter \$envelope with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/ingestion.php
+
+		-
+			message: '#^Function alarmmanager_persist_event\(\) has parameter \$event with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/ingestion.php
+
+		-
+			message: '#^Function alarmmanager_persist_event\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/ingestion.php
+
+		-
+			message: '#^Function alarmmanager_submit\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: includes/ingestion.php
+
+		-
+			message: '#^Function alarmmanager_submit\(\) has parameter \$envelope with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: includes/ingestion.php
+
+		-
+			message: '#^Function db_execute_prepared not found\.$#'
+			identifier: function.notFound
+			count: 5
+			path: includes/ingestion.php
+
+		-
+			message: '#^Function db_fetch_assoc_prepared not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: includes/ingestion.php
+
+		-
+			message: '#^Function db_fetch_cell_prepared not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: includes/ingestion.php
+
+		-
+			message: '#^Function db_fetch_row_prepared not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: includes/ingestion.php
+
+		-
+			message: '#^Function alarmmanager_transition\(\) has parameter \$event with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/lifecycle.php
+
+		-
+			message: '#^Function alarmmanager_transition\(\) has parameter \$state with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/lifecycle.php
+
+		-
+			message: '#^Function alarmmanager_transition\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/lifecycle.php
+
+		-
+			message: '#^Function alarmmanager_map_payload\(\) has parameter \$event with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/mapping.php
+
+		-
+			message: '#^Function alarmmanager_map_payload\(\) has parameter \$mapping with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/mapping.php
+
+		-
+			message: '#^Function alarmmanager_mapping_convert\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: includes/mapping.php
+
+		-
+			message: '#^Function alarmmanager_mapping_convert\(\) has parameter \$value with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: includes/mapping.php
+
+		-
+			message: '#^Function alarmmanager_mapping_fields\(\) has parameter \$event with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/mapping.php
+
+		-
+			message: '#^Function alarmmanager_mapping_fields\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/mapping.php
+
+		-
+			message: '#^Function alarmmanager_mapping_validate\(\) has parameter \$mapping with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: includes/mapping.php
+
+		-
+			message: '#^Function alarmmanager_mapping_validate\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/mapping.php
+
+		-
+			message: '#^Function alarmmanager_transport_process\(\) has parameter \$arguments with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/process_transport.php
+
+		-
+			message: '#^Function alarmmanager_transport_process\(\) has parameter \$environment with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/process_transport.php
+
+		-
+			message: '#^Function alarmmanager_transport_process\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/process_transport.php
+
+		-
+			message: '#^Function alarmmanager_process_job\(\) has parameter \$claim with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/processor.php
+
+		-
+			message: '#^Function alarmmanager_route_event\(\) has parameter \$event with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/processor.php
+
+		-
+			message: '#^Function alarmmanager_route_event\(\) has parameter \$record with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/processor.php
+
+		-
+			message: '#^Function alarmmanager_route_event\(\) has parameter \$state with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/processor.php
+
+		-
+			message: '#^Function db_fetch_cell_prepared not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: includes/processor.php
+
+		-
+			message: '#^Function alarmmanager_producer_save\(\) has parameter \$input with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/producer_admin.php
+
+		-
+			message: '#^Function db_fetch_cell_prepared not found\.$#'
+			identifier: function.notFound
+			count: 3
+			path: includes/producer_admin.php
+
+		-
+			message: '#^Function alarmmanager_claim_delivery\(\) has parameter \$supported_types with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/queue.php
+
+		-
+			message: '#^Function alarmmanager_claim_delivery\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/queue.php
+
+		-
+			message: '#^Function alarmmanager_claim_processing\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/queue.php
+
+		-
+			message: '#^Function alarmmanager_fail_processing\(\) has parameter \$claim with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/queue.php
+
+		-
+			message: '#^Function alarmmanager_finish_delivery\(\) has parameter \$claim with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/queue.php
+
+		-
+			message: '#^Function alarmmanager_finish_delivery\(\) has parameter \$result with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/queue.php
+
+		-
+			message: '#^Function alarmmanager_device_seed_local\(\) has parameter \$grant with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/remote.php
+
+		-
+			message: '#^Function alarmmanager_install_device_grant\(\) has parameter \$grant with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/remote.php
+
+		-
+			message: '#^Function alarmmanager_remote_export_configuration\(\) has parameter \$profiles with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/remote.php
+
+		-
+			message: '#^Function alarmmanager_remote_export_configuration\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/remote.php
+
+		-
+			message: '#^Function alarmmanager_remote_provision\(\) has parameter \$bundle with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/remote.php
+
+		-
+			message: '#^Function alarmmanager_sync_entities\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/remote.php
+
+		-
+			message: '#^Function alarmmanager_sync_normalize\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/remote.php
+
+		-
+			message: '#^Function alarmmanager_sync_normalize\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/remote.php
+
+		-
+			message: '#^Function db_fetch_cell_prepared not found\.$#'
+			identifier: function.notFound
+			count: 5
+			path: includes/remote.php
+
+		-
+			message: '#^Function alarmmanager_dashboard_data\(\) has parameter \$filters with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/reports.php
+
+		-
+			message: '#^Function alarmmanager_dashboard_data\(\) has parameter \$scope with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/reports.php
+
+		-
+			message: '#^Function alarmmanager_dashboard_data\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/reports.php
+
+		-
+			message: '#^Function alarmmanager_event_detail\(\) has parameter \$filters with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/reports.php
+
+		-
+			message: '#^Function alarmmanager_event_detail\(\) has parameter \$scope with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/reports.php
+
+		-
+			message: '#^Function alarmmanager_event_detail\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/reports.php
+
+		-
+			message: '#^Function alarmmanager_report_filters\(\) has parameter \$input with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/reports.php
+
+		-
+			message: '#^Function alarmmanager_report_filters\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/reports.php
+
+		-
+			message: '#^Function alarmmanager_report_list\(\) has parameter \$filters with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/reports.php
+
+		-
+			message: '#^Function alarmmanager_report_list\(\) has parameter \$scope with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/reports.php
+
+		-
+			message: '#^Function alarmmanager_report_list\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/reports.php
+
+		-
+			message: '#^Function alarmmanager_report_row\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/reports.php
+
+		-
+			message: '#^Function alarmmanager_report_row\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/reports.php
+
+		-
+			message: '#^Function alarmmanager_report_rows\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/reports.php
+
+		-
+			message: '#^Function alarmmanager_report_rows\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/reports.php
+
+		-
+			message: '#^Function alarmmanager_report_where\(\) has parameter \$filters with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/reports.php
+
+		-
+			message: '#^Function alarmmanager_report_where\(\) has parameter \$scope with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/reports.php
+
+		-
+			message: '#^Function alarmmanager_report_where\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/reports.php
+
+		-
+			message: '#^Function alarmmanager_apply_configuration\(\) has parameter \$configuration with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/routing.php
+
+		-
+			message: '#^Function alarmmanager_config_bool\(\) has parameter \$value with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: includes/routing.php
+
+		-
+			message: '#^Function alarmmanager_config_int\(\) has parameter \$value with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: includes/routing.php
+
+		-
+			message: '#^Function alarmmanager_config_list\(\) has parameter \$value with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: includes/routing.php
+
+		-
+			message: '#^Function alarmmanager_config_list\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/routing.php
+
+		-
+			message: '#^Function alarmmanager_configuration\(\) has parameter \$configuration with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/routing.php
+
+		-
+			message: '#^Function alarmmanager_configuration\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/routing.php
+
+		-
+			message: '#^Function alarmmanager_routing_snapshot\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/routing.php
+
+		-
+			message: '#^Function alarmmanager_rule_matches\(\) has parameter \$event with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/routing.php
+
+		-
+			message: '#^Function alarmmanager_rule_matches\(\) has parameter \$rule with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/routing.php
+
+		-
+			message: '#^Function alarmmanager_schedule_matches\(\) has parameter \$schedule with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/routing.php
+
+		-
+			message: '#^Function alarmmanager_validate_rule_definition\(\) has parameter \$rule with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/routing.php
+
+		-
+			message: '#^Function alarmmanager_validate_rule_definition\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/routing.php
+
+		-
+			message: '#^Function alarmmanager_validate_schedule\(\) has parameter \$schedule with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: includes/routing.php
+
+		-
+			message: '#^Function alarmmanager_validate_schedule\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/routing.php
+
+		-
+			message: '#^Function alarmmanager_write_configuration\(\) has parameter \$settings with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/routing.php
+
+		-
+			message: '#^Function db_fetch_cell_prepared not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: includes/routing.php
+
+		-
+			message: '#^Function alarmmanager_db_row\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/runtime.php
+
+		-
+			message: '#^Function alarmmanager_db_row\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/runtime.php
+
+		-
+			message: '#^Function alarmmanager_db_rows\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/runtime.php
+
+		-
+			message: '#^Function alarmmanager_db_rows\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/runtime.php
+
+		-
+			message: '#^Function alarmmanager_db_write\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/runtime.php
+
+		-
+			message: '#^Function alarmmanager_stream_key\(\) has parameter \$event with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/runtime.php
+
+		-
+			message: '#^Function alarmmanager_transaction\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: includes/runtime.php
+
+		-
+			message: '#^Function db_execute_prepared not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: includes/runtime.php
+
+		-
+			message: '#^Function db_fetch_assoc_prepared not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: includes/runtime.php
+
+		-
+			message: '#^Function db_fetch_cell_prepared not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: includes/runtime.php
+
+		-
+			message: '#^Function db_execute_prepared not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: includes/schema.php
+
+		-
+			message: '#^Function db_fetch_cell_prepared not found\.$#'
+			identifier: function.notFound
+			count: 3
+			path: includes/schema.php
+
+		-
+			message: '#^Function db_fetch_cell_prepared not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: includes/schema_delivery.php
+
+		-
+			message: '#^Function alarmmanager_accept_producer_receipt\(\) has parameter \$envelope with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/schema_producers.php
+
+		-
+			message: '#^Function alarmmanager_accept_producer_receipt\(\) has parameter \$event with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/schema_producers.php
+
+		-
+			message: '#^Function db_execute_prepared not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: includes/schema_producers.php
+
+		-
+			message: '#^Function db_execute_prepared not found\.$#'
+			identifier: function.notFound
+			count: 5
+			path: includes/schema_remote.php
+
+		-
+			message: '#^Function db_fetch_cell_prepared not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: includes/schema_remote.php
+
+		-
+			message: '#^Function db_fetch_cell_prepared not found\.$#'
+			identifier: function.notFound
+			count: 4
+			path: includes/schema_runtime.php
+
+		-
+			message: '#^Function db_fetch_cell_prepared not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: includes/schema_ui.php
+
+		-
+			message: '#^Function alarmmanager_supervisor_options\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/supervisor.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between null and null will always evaluate to false\.$#'
+			identifier: notIdentical.alwaysFalse
+			count: 1
+			path: includes/supervisor.php
+
+		-
+			message: '#^Function alarmmanager_enqueue_test\(\) has parameter \$sample with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/test_delivery.php
+
+		-
+			message: '#^Function alarmmanager_recipient_validate\(\) has parameter \$value with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: includes/transport_config.php
+
+		-
+			message: '#^Function alarmmanager_transport_configuration\(\) has parameter \$settings with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: includes/transport_config.php
+
+		-
+			message: '#^Function alarmmanager_transport_configuration\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/transport_config.php
+
+		-
+			message: '#^Function alarmmanager_transport_text\(\) has parameter \$value with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: includes/transport_config.php
+
+		-
+			message: '#^Function alarmmanager_delivery_preview\(\) has parameter \$endpoint with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/transports.php
+
+		-
+			message: '#^Function alarmmanager_delivery_preview\(\) has parameter \$event with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/transports.php
+
+		-
+			message: '#^Function alarmmanager_delivery_preview\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/transports.php
+
+		-
+			message: '#^Function alarmmanager_email_transport\(\) has parameter \$endpoint with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/transports.php
+
+		-
+			message: '#^Function alarmmanager_email_transport\(\) has parameter \$event with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/transports.php
+
+		-
+			message: '#^Function alarmmanager_email_transport\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/transports.php
+
+		-
+			message: '#^Function alarmmanager_endpoint_transport\(\) has parameter \$endpoint with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/transports.php
+
+		-
+			message: '#^Function alarmmanager_endpoint_transport\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/transports.php
+
+		-
+			message: '#^Function alarmmanager_http_result\(\) has parameter \$settings with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/transports.php
+
+		-
+			message: '#^Function alarmmanager_http_result\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/transports.php
+
+		-
+			message: '#^Function alarmmanager_http_transport\(\) has parameter \$endpoint with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/transports.php
+
+		-
+			message: '#^Function alarmmanager_http_transport\(\) has parameter \$event with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/transports.php
+
+		-
+			message: '#^Function alarmmanager_http_transport\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/transports.php
+
+		-
+			message: '#^Function alarmmanager_script_transport\(\) has parameter \$endpoint with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/transports.php
+
+		-
+			message: '#^Function alarmmanager_script_transport\(\) has parameter \$event with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/transports.php
+
+		-
+			message: '#^Function alarmmanager_script_transport\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/transports.php
+
+		-
+			message: '#^Parameter \#2 \$options of function curl_setopt_array expects array\{10002\: non\-empty\-string, 10036\: non\-empty\-string\|null, 10015\: array\|string, 10023\: array\<int, string\>, 52\: bool, 68\: int, 181\: int, 64\: bool, \.\.\.\}, array\{10002\: mixed, 10036\: mixed, 10015\: non\-empty\-string, 10023\: non\-empty\-list\<non\-falsy\-string\>, 52\: false, 68\: 0, 181\: 3, 64\: true, \.\.\.\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: includes/transports.php
+
+		-
+			message: '#^Function alarmmanager_web_scope\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/web_auth.php
+
+		-
+			message: '#^Function is_realm_allowed not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: includes/web_auth.php
+
+		-
+			message: '#^Function read_config_option not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: includes/web_auth.php
+
+		-
+			message: '#^Function __ not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: includes/web_view.php
+
+		-
+			message: '#^Function alarmmanager_escape\(\) has parameter \$value with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: includes/web_view.php
+
+		-
+			message: '#^Function alarmmanager_event_detail_markup\(\) has parameter \$event with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/web_view.php
+
+		-
+			message: '#^Function alarmmanager_post_form\(\) has parameter \$hidden with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/web_view.php
+
+		-
+			message: '#^Function alarmmanager_report_table\(\) has parameter \$filters with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/web_view.php
+
+		-
+			message: '#^Function alarmmanager_report_table\(\) has parameter \$result with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/web_view.php
+
+		-
+			message: '#^Function alarmmanager_report_table\(\) has parameter \$scope with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/web_view.php
+
+		-
+			message: '#^Function alarmmanager_report_url\(\) has parameter \$extra with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/web_view.php
+
+		-
+			message: '#^Function alarmmanager_report_url\(\) has parameter \$filters with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/web_view.php
+
+		-
+			message: '#^Function alarmmanager_web_filters\(\) has parameter \$filters with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/web_view.php
+
+		-
+			message: '#^Function alarmmanager_web_open\(\) has parameter \$scope with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/web_view.php
+
+		-
+			message: '#^Function alarmmanager_metrics\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/workers.php
+
+		-
+			message: '#^Function alarmmanager_worker_loop\(\) has parameter \$options with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/workers.php
+
+		-
+			message: '#^Function db_fetch_cell_prepared not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: includes/workers.php
+
+		-
+			message: '#^Function alarmmanager_device_bridge_core\(\) has parameter \$safe with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: integrations/device_bridge.php
+
+		-
+			message: '#^Function alarmmanager_device_bridge_decision\(\) has parameter \$host with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: integrations/device_bridge.php
+
+		-
+			message: '#^Function alarmmanager_device_bridge_decision\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: integrations/device_bridge.php
+
+		-
+			message: '#^Function alarmmanager_device_bridge_owns\(\) has parameter \$decision with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: integrations/device_bridge.php
+
+		-
+			message: '#^Function alarmmanager_device_bridge_replicate_hosts\(\) has parameter \$connection with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: integrations/device_bridge.php
+
+		-
+			message: '#^Function alarmmanager_device_bridge_replicate_hosts\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: integrations/device_bridge.php
+
+		-
+			message: '#^Function cacti_log not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: integrations/device_bridge.php
+
+		-
+			message: '#^Function cacti_sizeof not found\.$#'
+			identifier: function.notFound
+			count: 3
+			path: integrations/device_bridge.php
+
+		-
+			message: '#^Function db_execute_prepared not found\.$#'
+			identifier: function.notFound
+			count: 4
+			path: integrations/device_bridge.php
+
+		-
+			message: '#^Function db_fetch_assoc not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: integrations/device_bridge.php
+
+		-
+			message: '#^Function db_fetch_assoc_prepared not found\.$#'
+			identifier: function.notFound
+			count: 4
+			path: integrations/device_bridge.php
+
+		-
+			message: '#^Function db_fetch_cell_prepared not found\.$#'
+			identifier: function.notFound
+			count: 3
+			path: integrations/device_bridge.php
+
+		-
+			message: '#^Function db_table_exists not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: integrations/device_bridge.php
+
+		-
+			message: '#^Function replicate_out_table not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: integrations/device_bridge.php
+
+		-
+			message: '#^Function db_execute_prepared not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: integrations/producer_bridge.php
+
+		-
+			message: '#^Function db_fetch_assoc_prepared not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: integrations/producer_bridge.php
+
+		-
+			message: '#^Function db_fetch_cell_prepared not found\.$#'
+			identifier: function.notFound
+			count: 3
+			path: integrations/producer_bridge.php
+
+		-
+			message: '#^Method AlarmManagerProducerBridge\:\:configuration\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: integrations/producer_bridge.php
+
+		-
+			message: '#^Method AlarmManagerProducerBridge\:\:decision\(\) has parameter \$row with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: integrations/producer_bridge.php
+
+		-
+			message: '#^Method AlarmManagerProducerBridge\:\:decision\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: integrations/producer_bridge.php
+
+		-
+			message: '#^Method AlarmManagerProducerBridge\:\:fallback\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: integrations/producer_bridge.php
+
+		-
+			message: '#^Method AlarmManagerProducerBridge\:\:owns\(\) has parameter \$decision with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: integrations/producer_bridge.php
+
+		-
+			message: '#^Method AlarmManagerProducerBridge\:\:publish\(\) has parameter \$input with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: integrations/producer_bridge.php
+
+		-
+			message: '#^Method AlarmManagerProducerBridge\:\:publish\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: integrations/producer_bridge.php
+
+		-
+			message: '#^Method AlarmManagerProducerBridge\:\:row\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: integrations/producer_bridge.php
+
+		-
+			message: '#^Method AlarmManagerProducerBridge\:\:row\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: integrations/producer_bridge.php
+
+		-
+			message: '#^Method AlarmManagerProducerBridge\:\:validate\(\) has parameter \$definition with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: integrations/producer_bridge.php
+
+		-
+			message: '#^Method AlarmManagerProducerBridge\:\:validate\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: integrations/producer_bridge.php
+
+		-
+			message: '#^Method AlarmManagerProducerBridge\:\:write\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: integrations/producer_bridge.php
+
+		-
+			message: '#^Function alarmmanager_syslog_begin\(\) has parameter \$alert with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: integrations/syslog_adapter.php
+
+		-
+			message: '#^Function alarmmanager_syslog_begin\(\) has parameter \$records with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: integrations/syslog_adapter.php
+
+		-
+			message: '#^Function alarmmanager_syslog_begin\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: integrations/syslog_adapter.php
+
+		-
+			message: '#^Constant ST_NOTIFYAL not found\.$#'
+			identifier: constant.notFound
+			count: 1
+			path: integrations/thold_adapter.php
+
+		-
+			message: '#^Constant ST_NOTIFYAW not found\.$#'
+			identifier: constant.notFound
+			count: 1
+			path: integrations/thold_adapter.php
+
+		-
+			message: '#^Constant ST_NOTIFYRA not found\.$#'
+			identifier: constant.notFound
+			count: 2
+			path: integrations/thold_adapter.php
+
+		-
+			message: '#^Constant ST_NOTIFYRAW not found\.$#'
+			identifier: constant.notFound
+			count: 2
+			path: integrations/thold_adapter.php
+
+		-
+			message: '#^Constant ST_NOTIFYRS not found\.$#'
+			identifier: constant.notFound
+			count: 1
+			path: integrations/thold_adapter.php
+
+		-
+			message: '#^Constant ST_NOTIFYWA not found\.$#'
+			identifier: constant.notFound
+			count: 1
+			path: integrations/thold_adapter.php
+
+		-
+			message: '#^Function alarmmanager_thold_begin\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: integrations/thold_adapter.php
+
+		-
+			message: '#^Function alarmmanager_thold_begin\(\) has parameter \$host with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: integrations/thold_adapter.php
+
+		-
+			message: '#^Function alarmmanager_thold_begin\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: integrations/thold_adapter.php
+
+		-
+			message: '#^Function alarmmanager_thold_log\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: integrations/thold_adapter.php
+
+		-
+			message: '#^Function alarmmanager_thold_log\(\) has parameter \$host with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: integrations/thold_adapter.php
+
+		-
+			message: '#^Function alarmmanager_thold_log\(\) has parameter \$save with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: integrations/thold_adapter.php
+
+		-
+			message: '#^Function thold_log not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: integrations/thold_adapter.php
+
+		-
+			message: '#^Function __ not found\.$#'
+			identifier: function.notFound
+			count: 5
+			path: setup.php
+
+		-
+			message: '#^Function alarmmanager_draw_navigation_text\(\) has parameter \$navigation with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: setup.php
+
+		-
+			message: '#^Function alarmmanager_draw_navigation_text\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: setup.php
+
+		-
+			message: '#^Function api_plugin_register_hook not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: setup.php
+
+		-
+			message: '#^Function api_plugin_register_realm not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: setup.php
+
+		-
+			message: '#^Function db_execute_prepared not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: setup.php
+
+		-
+			message: '#^Function db_fetch_cell_prepared not found\.$#'
+			identifier: function.notFound
+			count: 4
+			path: setup.php
+
+		-
+			message: '#^Function get_current_page not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: setup.php
+
+		-
+			message: '#^Function plugin_alarmmanager_version\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: setup.php
