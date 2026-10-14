@@ -132,7 +132,7 @@
   app.querySelectorAll('form.alarmmanagerTemplatePicker').forEach(form => {
    const select=form.querySelector('[name=integration_template]');if(!select)return;
    const button=form.querySelector('button[type=submit]');if(button)button.hidden=true;
-   select.addEventListener('change',()=>form.submit());
+   jQuery(form).on('change','[name=integration_template]',()=>form.submit());
   });
  }
  function init() {
