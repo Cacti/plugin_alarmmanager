@@ -168,6 +168,8 @@
 .alarmmanagerEditor { padding:16px; display:flex; flex-wrap:wrap; gap:14px; align-items:flex-start; background:var(--search-card); border:1px solid var(--search-border); margin:8px 0 16px; border-radius:8px; }
 .alarmmanagerEditor label { min-width:140px; flex:1; }
 .alarmmanagerEditor input:not([type=checkbox]) { min-width:100px; flex:1; }
+#alarmmanager_app .alarmmanagerDestination > label { display:block; width:100%; }
+.alarmmanagerEditor input[type=url] { display:block; width:100%; }
 .alarmmanagerFullWidth { width:100%; flex-basis:100% !important; min-width:0 !important; }
 .alarmmanagerFullWidth textarea { width:100%; display:block; min-height:130px; font-family:monospace; }
 .alarmmanagerEditor fieldset { box-sizing:border-box; border:1px solid var(--search-border); padding:12px; }

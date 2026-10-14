@@ -67,7 +67,7 @@ function alarmmanager_endpoint_editor(array $endpoint, int $revision, bool $new 
 	if ($new && isset($endpoint['hint'])) {
 		print '<p class="alarmmanagerFullWidth">' . __esc($endpoint['hint'], 'alarmmanager') . '</p>';
 	}
-	print '<fieldset class="alarmmanagerFullWidth" data-endpoint-types="restapi webhook"><legend>' . __esc('Destination', 'alarmmanager') . '</legend>';
+	print '<fieldset class="alarmmanagerFullWidth alarmmanagerDestination" data-endpoint-types="restapi webhook"><legend>' . __esc('Destination', 'alarmmanager') . '</legend>';
 	alarmmanager_input('url', 'URL', $transport['url'] ?? '', 'url', 'maxlength="2048"');
 	print '</fieldset>';
 	print '<div class="alarmmanagerFullWidth" data-endpoint-types="restapi webhook">';
