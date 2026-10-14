@@ -31,7 +31,6 @@ $finder = PhpCsFixer\Finder::create()
 	->exclude('docs')
 	->exclude('locales')
 	->exclude('examples')
-	->exclude('integrations/patches')
 	->in(__DIR__)
 	->notPath('php-cs-fixer');
 
