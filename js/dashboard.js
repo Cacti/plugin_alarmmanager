@@ -28,6 +28,7 @@
    const textarea=fieldset.querySelector('[name=mapping_json]'), holder=fieldset.querySelector('.alarmmanagerMappingBuilder'), form=fieldset.closest('form'), endpointType=form.querySelector('[name=type]');
    const transition=node('select'); ['default','raised','updated','reminder','recovered','occurrence'].forEach((key,index)=>{const option=node('option',['All alarm states','New alarm','Updated alarm','Reminder','Recovery','Occurrence'][index]); option.value=key; transition.append(option);});
    const states=node('details'), summary=node('summary','Customize messages by alarm state'), add=node('button','Add field'), inherit=node('button','Use standard message'), status=node('p'); add.type=inherit.type='button';
+   states.className='alarmmanagerMappingState';
    const stateLabel=node('label','Message for ');stateLabel.append(transition);states.append(summary,stateLabel,inherit);const rows=node('div');holder.append(status,rows,add,states);
    let mapping={};
    const parseValue=text=>{try{return JSON.parse(text);}catch{return text;}};
@@ -128,6 +129,28 @@
    jQuery(form).on('change','[name=type]',update);update();
   });
  }
+ function initServiceNow(app) {
+  app.querySelectorAll('[data-servicenow-presets]').forEach(select=>{
+   const form=select.closest('form'), presets=JSON.parse(select.dataset.servicenowPresets), mapping=form.querySelector('[name=mapping_json]'), state=form.querySelector('.alarmmanagerMappingState select');
+   function showFields() {state.value=select.value==='incident'?'raised':'default';state.dispatchEvent(new Event('change',{bubbles:true}));}
+   jQuery(form).on('change','[name=servicenow_table]',()=>{
+    const preset=presets[select.value], url=form.querySelector('[name=url]'), raw=form.querySelector('[name=transport_json]');
+    let transport;try {transport=JSON.parse(raw.value);}catch{return;}
+    const destination=new URL(preset.transport.url);try{const current=new URL(url.value);destination.protocol=current.protocol;destination.host=current.host;}catch{}
+    url.value=destination.href;
+    delete transport.transition_overrides;delete transport.response_reference;
+    if(preset.transport.transition_overrides)transport.transition_overrides=Object.fromEntries(Object.entries(preset.transport.transition_overrides).map(([key,target])=>[key,{...target,url:url.value+'/{{integration.id}}'}]));
+    if(preset.transport.response_reference)transport.response_reference=preset.transport.response_reference;
+    raw.value=JSON.stringify(transport,null,2);
+    form.querySelector('[name=http_method]').value='POST';
+    form.querySelector('[name=reference_id_path]').value=preset.transport.response_reference?.id||'';
+    form.querySelector('[name=reference_url_path]').value='';
+    mapping.value=JSON.stringify(preset.transport.mapping,null,2);mapping.dispatchEvent(new Event('input',{bubbles:true}));showFields();
+    const hint=form.querySelector('[data-integration-hint]');if(hint)hint.textContent=preset.hint;
+   });
+   showFields();
+  });
+ }
  function initTemplatePicker(app) {
   app.querySelectorAll('form.alarmmanagerTemplatePicker').forEach(form => {
    const select=form.querySelector('[name=integration_template]');if(!select)return;
@@ -136,7 +159,7 @@
   });
  }
  function init() {
-  const app=document.getElementById('alarmmanager_app'); if(!app||app.dataset.initialized)return;app.dataset.initialized='yes';initMappings(app);initLists(app);initDeliveryIntervals(app);initAuthentication(app);initEndpointTypes(app);initTemplatePicker(app);
+  const app=document.getElementById('alarmmanager_app'); if(!app||app.dataset.initialized)return;app.dataset.initialized='yes';initMappings(app);initLists(app);initDeliveryIntervals(app);initAuthentication(app);initEndpointTypes(app);initServiceNow(app);initTemplatePicker(app);
   const dashboard=app.querySelector('#alarmmanager_dashboard');if(!dashboard)return;
   const form=app.querySelector('#alarmmanager_filters'), status=app.querySelector('#alarmmanager_dashboard_status'), refresh=app.querySelector('#alarmmanager_refresh');
   const charts={}; let inFlight=false, timer=null;

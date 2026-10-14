@@ -86,7 +86,7 @@ function alarmmanager_integration_templates(): array {
 					['to' => 'event_action', 'constant' => 'resolve', 'type' => 'string', 'required' => true],
 					['to' => 'dedup_key', 'source' => 'alarm.episode_id', 'required' => true]
 				]]]],
-		'servicenow' => ['name' => 'ServiceNow incidents', 'type' => 'webhook', 'auth' => 'basic',
+		'servicenow' => ['name' => 'ServiceNow incidents', 'provider' => 'servicenow', 'type' => 'webhook', 'auth' => 'basic',
 			'hint'                 => 'Replace the instance in the URL, add the Basic credentials after saving, and review the incident constants; recovery and update events resolve the created incident.',
 			'transport'            => ['url' => 'https://REPLACE-INSTANCE.service-now.com/api/now/table/incident', 'method' => 'POST', 'credential' => true, 'response_reference' => ['id' => 'result.sys_id'], 'transition_overrides' => [
 				'updated'    => $sn_target,
@@ -109,7 +109,7 @@ function alarmmanager_integration_templates(): array {
 					['to' => 'work_notes', 'source' => 'alarm.summary', 'type' => 'string', 'required' => true],
 					['to' => 'urgency', 'source' => 'alarm.severity', 'type' => 'integer', 'values' => $sn_urgency]
 				]]]],
-		'servicenow_events' => ['name' => 'ServiceNow events', 'type' => 'webhook', 'auth' => 'basic',
+		'servicenow_events' => ['name' => 'ServiceNow events', 'provider' => 'servicenow', 'type' => 'webhook', 'auth' => 'basic',
 			'hint' => 'Writes Event Management records to em_event. Replace the instance URL and enter credentials with permission to create events. Recovery posts severity 0 with the same message key; review the event fields for your instance.',
 			'transport' => ['url' => 'https://REPLACE-INSTANCE.service-now.com/api/now/table/em_event', 'method' => 'POST', 'credential' => true, 'mapping' => [
 				'default' => [...$sn_event_fields,

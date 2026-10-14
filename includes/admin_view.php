@@ -61,11 +61,18 @@ function alarmmanager_endpoint_editor(array $endpoint, int $revision, bool $new 
 	} print '</select></label>';
 
 	$transport = $endpoint['transport'] ?? [];
+	if (($endpoint['provider'] ?? '') === 'servicenow' || preg_match('~/api/now/table/(incident|em_event)(?:[/?]|$)~', $transport['url'] ?? '')) {
+		$templates = alarmmanager_integration_templates();
+		$presets = ['incident' => $templates['servicenow'], 'em_event' => $templates['servicenow_events']];
+		$events = str_contains($transport['url'] ?? '', '/api/now/table/em_event');
+		print '<label data-endpoint-types="restapi webhook">' . __esc('ServiceNow record type', 'alarmmanager') . ' <select name="servicenow_table" data-servicenow-presets="' . html_escape(json_encode($presets, JSON_THROW_ON_ERROR)) . '"><option value="incident" ' . (!$events ? 'selected' : '') . '>' . __esc('Incident', 'alarmmanager') . '</option><option value="em_event" ' . ($events ? 'selected' : '') . '>' . __esc('Event', 'alarmmanager') . '</option></select></label>';
+		print '<p class="alarmmanagerFullWidth">' . __esc('Changing the record type replaces the destination table, message fields and recovery settings with its defaults. Your instance and credentials are retained.', 'alarmmanager') . '</p>';
+	}
 	$mapping   = $transport['mapping'] ?? ($new ? ['default' => [['to' => 'hostname', 'source' => 'device.hostname'], ['to' => 'summary', 'source' => 'alarm.summary'], ['to' => 'severity', 'source' => 'alarm.severity'], ['to' => 'state', 'source' => 'alarm.transition']]] : ['default' => []]);
 	unset($transport['mapping']);
 
 	if ($new && isset($endpoint['hint'])) {
-		print '<p class="alarmmanagerFullWidth">' . __esc($endpoint['hint'], 'alarmmanager') . '</p>';
+		print '<p class="alarmmanagerFullWidth" data-integration-hint>' . __esc($endpoint['hint'], 'alarmmanager') . '</p>';
 	}
 	print '<fieldset class="alarmmanagerFullWidth alarmmanagerDestination" data-endpoint-types="restapi webhook"><legend>' . __esc('Destination', 'alarmmanager') . '</legend>';
 	alarmmanager_input('url', 'URL', $transport['url'] ?? '', 'url', 'maxlength="2048"');
@@ -139,7 +146,10 @@ function alarmmanager_admin_markup(array $state, string $section): void {
 		$selected  = (string) get_filter_request_var('integration_template', FILTER_CALLBACK, ['options' => static fn ($value) => is_string($value) && isset($templates[$value]) ? $value : false, 'default' => '']);
 
 		foreach ($templates as $key => $template) {
-			print '<option value="' . $key . '" ' . ($selected === $key ? 'selected' : '') . '>' . __esc($template['name'], 'alarmmanager') . '</option>';
+			if ($key === 'servicenow_events') {
+				continue;
+			}
+			print '<option value="' . $key . '" ' . ($selected === $key ? 'selected' : '') . '>' . __esc($key === 'servicenow' ? 'ServiceNow' : $template['name'], 'alarmmanager') . '</option>';
 		}
 		print '</select></label><button type="submit">' . __esc('Prepare new integration', 'alarmmanager') . '</button></form><p>' . __esc('Templates fill a new disabled draft only. Replace the example destination or executable before saving; existing endpoints and credentials are preserved.', 'alarmmanager') . '</p>';
 
