@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Alarm Manager 0.8.0\n"
 "Report-Msgid-Bugs-To: https://github.com/bmfmancini/plugin_alarmmanager/issues\n"
-"POT-Creation-Date: 2026-10-13 17:07-0400\n"
+"POT-Creation-Date: 2026-10-13 21:05-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alarm Manager Developers <https://github.com/bmfmancini/plugin_alarmmanager>\n"
 "Language-Team: Alarm Manager Developers <https://github.com/bmfmancini/plugin_alarmmanager>\n"
@@ -201,7 +201,7 @@ msgstr ""
 msgid "Latest 50 administration actions"
 msgstr ""
 
-#: includes/admin_view.php:225 includes/web_view.php:225
+#: includes/admin_view.php:225 includes/web_view.php:221
 msgid "Action"
 msgstr ""
 
@@ -293,7 +293,7 @@ msgstr ""
 msgid "Statistics could not be rendered."
 msgstr ""
 
-#: includes/web_view.php:119 setup.php:94 setup.php:100
+#: includes/web_view.php:119 setup.php:114
 msgid "Alarm Manager"
 msgstr ""
 
@@ -301,112 +301,108 @@ msgstr ""
 msgid "Alarm Manager pages"
 msgstr ""
 
-#: includes/web_view.php:134
-msgid "Administration"
-msgstr ""
-
-#: includes/web_view.php:140 includes/web_view.php:143
+#: includes/web_view.php:136 includes/web_view.php:139
 msgid "Alarm statistics"
 msgstr ""
 
-#: includes/web_view.php:140
+#: includes/web_view.php:136
 msgid "Filters"
 msgstr ""
 
-#: includes/web_view.php:143
+#: includes/web_view.php:139
 msgid "Time range"
 msgstr ""
 
-#: includes/web_view.php:149
+#: includes/web_view.php:145
 msgid "Off"
 msgstr ""
 
-#: includes/web_view.php:149
+#: includes/web_view.php:145
 msgid "Refresh"
 msgstr ""
 
-#: includes/web_view.php:150
+#: includes/web_view.php:146
 msgid "Mode"
 msgstr ""
 
-#: includes/web_view.php:157
+#: includes/web_view.php:153
 msgid "All"
 msgstr ""
 
-#: includes/web_view.php:157
+#: includes/web_view.php:153
 msgid "Severity"
 msgstr ""
 
-#: includes/web_view.php:157
+#: includes/web_view.php:153
 msgid "Source"
 msgstr ""
 
-#: includes/web_view.php:164
+#: includes/web_view.php:160
 msgid "Device ID"
 msgstr ""
 
-#: includes/web_view.php:168
+#: includes/web_view.php:164
 msgid "event_id"
 msgstr ""
 
-#: includes/web_view.php:173
+#: includes/web_view.php:169
 msgid "Apply"
 msgstr ""
 
-#: includes/web_view.php:173
+#: includes/web_view.php:169
 msgid "Reset"
 msgstr ""
 
-#: includes/web_view.php:175
+#: includes/web_view.php:171
 msgid "Historical window uses UTC. Current conditions and queues ignore the time window. Observe mode never dispatches delivery jobs."
 msgstr ""
 
-#: includes/web_view.php:183
+#: includes/web_view.php:179
 msgid "Loading statistics…"
 msgstr ""
 
-#: includes/web_view.php:196
+#: includes/web_view.php:192
 msgid "Collapse"
 msgstr ""
 
-#: includes/web_view.php:208
+#: includes/web_view.php:204
 msgid "conditions"
 msgstr ""
 
-#: includes/web_view.php:211
+#: includes/web_view.php:207
 msgid "No matching records."
 msgstr ""
 
-#: includes/web_view.php:221
+#: includes/web_view.php:217
 msgid "attempts"
 msgstr ""
 
-#: includes/web_view.php:261
+#: includes/web_view.php:257
 msgid "Showing at most 50 records per page."
 msgstr ""
 
-#: includes/web_view.php:262
+#: includes/web_view.php:258
 msgid "Pages"
 msgstr ""
 
-#: includes/web_view.php:265
+#: includes/web_view.php:261
 msgid "Previous"
 msgstr ""
 
-#: includes/web_view.php:268
+#: includes/web_view.php:264
 #, php-format
 msgid "Page %d"
 msgstr ""
 
-#: includes/web_view.php:271
+#: includes/web_view.php:267
 msgid "Next"
 msgstr ""
 
-#: includes/web_view.php:277
+#: includes/web_view.php:273
 msgid "Selected event details"
 msgstr ""
 
-#: includes/web_view.php:302
+#: includes/web_view.php:298
 msgid "Confirm replay may repeat an external effect"
 msgstr ""
 
@@ -414,10 +410,18 @@ msgstr ""
 msgid "Alarm Manager View"
 msgstr ""
 
-#: setup.php:79 setup.php:98
+#: setup.php:79
 msgid "Alarm Manager Administration"
 msgstr ""
 
-#: setup.php:94
-msgid "Management"
+#: setup.php:102
+msgid "Import/Export"
+msgstr ""
+
+#: setup.php:103
+msgid "Administration"
+msgstr ""
+
+#: setup.php:103 setup.php:108 setup.php:112
+msgid "Alarm Manager Settings"
 msgstr ""

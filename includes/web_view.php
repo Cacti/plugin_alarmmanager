@@ -130,10 +130,6 @@ function alarmmanager_web_open(array $scope, string $tab): void {
 		print '<a ' . ($tab === $key ? 'aria-current="page" ' : '') . 'href="' . html_escape('alarmmanager.php?tab=' . $key) . '">' . __esc($label, 'alarmmanager') . '</a>';
 	}
 
-	if ($scope['admin']) {
-		print '<a href="' . html_escape('alarmmanager_admin.php') . '" ' . ($tab === 'admin' ? 'aria-current="page"' : '') . '>' . __esc('Administration', 'alarmmanager') . '</a>';
-	}
-
 	print '</nav>';
 }
 function alarmmanager_web_filters(array $filters, string $tab, bool $dashboard = false): void {

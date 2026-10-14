@@ -90,12 +90,26 @@ function plugin_alarmmanager_uninstall(): void {
 }
 
 function alarmmanager_config_arrays(): void {
-	global $menu;
-	$menu[__('Management')]['plugins/alarmmanager/alarmmanager.php'] = __('Alarm Manager', 'alarmmanager');
+	global $menu, $menu_glyphs;
+
+	// Like the syslog plugin's Syslog Settings group, administration lives in
+	// its own console group instead of under the view page in Management.
+	$extended = [];
+
+	foreach ($menu as $header => $items) {
+		$extended[$header] = $items;
+
+		if ($header === __('Import/Export')) {
+			$extended[__('Alarm Manager Settings', 'alarmmanager')]['plugins/alarmmanager/alarmmanager_admin.php'] = __('Administration', 'alarmmanager');
+		}
+	}
+
+	$menu                                                        = $extended;
+	$menu_glyphs[__('Alarm Manager Settings', 'alarmmanager')]   = 'fa fa-bell';
 }
 
 function alarmmanager_draw_navigation_text($navigation): array {
-	$navigation['alarmmanager_admin.php:'] = ['title' => __('Alarm Manager Administration', 'alarmmanager'), 'mapping' => 'index.php:,alarmmanager.php:', 'url' => 'alarmmanager_admin.php', 'level' => '2'];
+	$navigation['alarmmanager_admin.php:'] = ['title' => __('Alarm Manager Settings', 'alarmmanager'), 'mapping' => 'index.php:', 'url' => 'alarmmanager_admin.php', 'level' => '1'];
 	$navigation['alarmmanager.php:']       = [
 		'title'   => __('Alarm Manager', 'alarmmanager'),
 		'mapping' => 'index.php:',
