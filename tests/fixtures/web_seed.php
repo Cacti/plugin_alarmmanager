@@ -30,7 +30,7 @@ require_once(__DIR__ . '/../../setup.php');
 require_once(__DIR__ . '/../../includes/ingestion.php');
 require_once(__DIR__ . '/../../includes/processor.php');
 require_once(__DIR__ . '/../../includes/queue.php');
-require_once(__DIR__ . '/../../includes/credential_store.php');
+require_once(__DIR__ . '/../../includes/credentials.php');
 $config = ['poller_id' => 2];
 $root   = getenv('ALARMMANAGER_WEB_ROOT');
 

@@ -23,7 +23,7 @@
 */
 require_once(__DIR__ . '/web_view.php');
 require_once(__DIR__ . '/admin.php');
-require_once(__DIR__ . '/remote_view.php');
+require_once(__DIR__ . '/remote.php');
 require_once(__DIR__ . '/workers.php');
 
 function alarmmanager_form_start(string $action, int $revision, array $hidden = []): void {
@@ -240,5 +240,75 @@ function alarmmanager_admin_markup(array $state, string $section): void {
 			print "<tr class='odd'><td>" . __esc('No administration actions recorded.', 'alarmmanager') . '</td></tr>';
 		}
 		html_end_box(true);
+	}
+}
+
+function alarmmanager_producer_markup(int $revision): void {
+	print '<p>' . __esc('Pending producer receipts', 'alarmmanager') . ': ' . (int) db_fetch_cell_prepared("SELECT COUNT(*) FROM plugin_alarmmanager_producer_receipts WHERE status = 'pending'", [], '', false) . '. ' . __esc('Use the producer CLI to retry pending receipts after database recovery.', 'alarmmanager') . '</p>';
+	$rows = alarmmanager_db_rows('SELECT source, scope, resource_id, revision, definition FROM plugin_alarmmanager_producer_config ORDER BY source, scope, resource_id LIMIT 257');
+	print '<p>' . __esc('Legacy is the default. Resource overrides template overrides plugin default. Saved policy remains intact if Alarm Manager is disabled; new notifications then use legacy fallback. Accepted notifications retain centralized ownership.', 'alarmmanager') . '</p>';
+	print '<p>' . __esc('Centralized channel handoff replaces the selected source delivery with the routing profile endpoints. Configure recipients, templates, attachments and reviewed script wrappers on those endpoints before enabling it. Unselected source channels retain their existing behavior.', 'alarmmanager') . '</p>';
+
+	if (count($rows) > 256) {
+		throw new RuntimeException('producer_configuration_limit');
+	}
+	$rows[] = ['source' => 'thold', 'scope' => 'default', 'resource_id' => 0, 'revision' => 0, 'definition' => '{}'];
+
+	foreach ($rows as $row) {
+		$definition = AlarmManagerProducerBridge::validate(json_decode($row['definition'], true, 8, JSON_THROW_ON_ERROR));
+		$new        = (int) $row['revision'] === 0;
+		print '<details class="alarmmanagerDashboardCard" ' . ($new ? 'open' : '') . '><summary>' . __esc($new ? 'New producer policy' : $row['source'] . ' ' . $row['scope'] . ' #' . $row['resource_id'], 'alarmmanager') . '</summary>';
+		alarmmanager_form_start('producer_save', $revision, ['producer_revision' => $row['revision']]);
+
+		foreach (['source' => ['thold', 'syslog'], 'scope' => ['default', 'template', 'resource'], 'mode' => ['legacy', 'observe', 'centralized']] as $field => $options) {
+			$value = $field === 'mode' ? $definition['mode'] : $row[$field];
+			print '<label>' . __esc(ucfirst($field), 'alarmmanager') . ' <select name="' . $field . '" ' . (!$new && $field !== 'mode' ? 'disabled' : '') . '>';
+
+			foreach ($options as $option) {
+				print '<option ' . ($value === $option ? 'selected' : '') . '>' . $option . '</option>';
+			} print '</select></label>';
+
+			if (!$new && $field !== 'mode') {
+				print '<input type="hidden" name="' . $field . '" value="' . html_escape($value) . '">';
+			}
+		}
+		alarmmanager_input('resource_id', 'Resource or template ID (default uses 0)', $row['resource_id'], 'number', 'min="0" required' . ($new ? '' : ' readonly'));
+		alarmmanager_input('profile_id', 'Routing profile ID (0 uses ordinary matching rules in observe mode)', $definition['profile_id'], 'number', 'min="0" required');
+
+		foreach (['email', 'script', 'ticket'] as $channel) {
+			print '<label><input type="checkbox" name="channels[]" value="' . $channel . '" ' . (in_array($channel, $definition['channels'], true) ? 'checked' : '') . '> ' . __esc('Hand off ' . $channel, 'alarmmanager') . '</label>';
+		}
+		alarmmanager_checkbox('complete_history', 'Include source-logged suppressed notification events', $definition['complete_history']);
+		alarmmanager_checkbox('migration_confirmed', 'I have configured the replacement endpoints and reviewed recipient, template, attachment and script behavior');
+
+		if (!$new) {
+			alarmmanager_checkbox('inherit', 'Remove this override and inherit the parent policy');
+		}
+		print '<button type="submit">' . __esc('Save producer policy', 'alarmmanager') . '</button></form></details>';
+	}
+}
+
+function alarmmanager_remote_markup(): void {
+	print '<h2>' . __esc('Collectors and remote history', 'alarmmanager') . '</h2><p>' . __esc('Each collector owns its local delivery. Imported history records the original events and outcomes. Collector history does not create central delivery jobs.', 'alarmmanager') . '</p>';
+	$peers = alarmmanager_db_rows('SELECT poller_id, instance_uuid, enabled, last_seen, TIMESTAMPDIFF(SECOND, last_seen, UTC_TIMESTAMP()) AS age_seconds FROM plugin_alarmmanager_sync_peers ORDER BY poller_id LIMIT 256');
+
+	foreach ($peers as $peer) {
+		$status = !$peer['enabled'] ? 'Disabled' : ($peer['last_seen'] === null ? 'Not yet seen' : ((int) $peer['age_seconds'] <= 90 ? 'Online' : 'Offline'));
+		print '<p>' . __esc('Collector', 'alarmmanager') . ' ' . (int) $peer['poller_id'] . ': ' . __esc($status, 'alarmmanager') . ' — ' . html_escape($peer['last_seen'] ?? '') . '</p>';
+	}
+	$grants = alarmmanager_db_rows('SELECT device_id, poller_id, epoch, owner, mode, valid_from, valid_until FROM plugin_alarmmanager_device_owners ORDER BY device_id LIMIT 100');
+	print '<details><summary>' . __esc('Device ownership grants (first 100)', 'alarmmanager') . '</summary><pre>' . html_escape(json_encode($grants, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR)) . '</pre></details>';
+	$poller = get_filter_request_var('collector', FILTER_VALIDATE_INT, ['options' => ['min_range' => 0, 'max_range' => 2147483647], 'default' => 0]);
+	$entity = get_filter_request_var('entity', FILTER_CALLBACK, ['options' => ['options' => static fn ($value) => is_string($value) && isset(alarmmanager_sync_entities()[$value]) ? $value : false], 'default' => 'event']);
+	print '<form method="get"><input type="hidden" name="section" value="collectors"><label>' . __esc('Collector (0 selects all)', 'alarmmanager') . ' <input name="collector" type="number" min="0" value="' . $poller . '"></label><label>' . __esc('Record type', 'alarmmanager') . ' <select name="entity">';
+
+	foreach (array_keys(alarmmanager_sync_entities()) as $type) {
+		print '<option ' . ($type === $entity ? 'selected' : '') . '>' . $type . '</option>';
+	} print '</select></label><button>' . __esc('Filter', 'alarmmanager') . '</button></form>';
+	$rows = alarmmanager_db_rows('SELECT poller_id, instance_uuid, entity_id, revision, definition, received_at FROM plugin_alarmmanager_remote_history WHERE entity = ?' . ($poller ? ' AND poller_id = ?' : '') . ' ORDER BY received_at DESC, entity_id DESC LIMIT 50', $poller ? [$entity, $poller] : [$entity]);
+	print '<p>' . __esc('Latest 50 matching remote records; original IDs and delivery ownership are preserved.', 'alarmmanager') . '</p>';
+
+	foreach ($rows as $row) {
+		print '<details class="alarmmanagerDashboardCard"><summary>' . __esc('Collector', 'alarmmanager') . ' ' . (int) $row['poller_id'] . ' / ' . html_escape($entity) . ' #' . (int) $row['entity_id'] . ' — ' . html_escape($row['received_at']) . '</summary><pre>' . html_escape(json_encode(json_decode($row['definition'], true, 32, JSON_THROW_ON_ERROR), JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR)) . '</pre></details>';
 	}
 }

@@ -25,7 +25,7 @@ require_once(__DIR__ . '/runtime.php');
 require_once(__DIR__ . '/events.php');
 require_once(__DIR__ . '/device.php');
 require_once(__DIR__ . '/routing.php');
-require_once(__DIR__ . '/credential_store.php');
+require_once(__DIR__ . '/credentials.php');
 require_once(__DIR__ . '/../integrations/producer_bridge.php');
 const ALARMMANAGER_SYNC_LIMIT = 1048576;
 function alarmmanager_node_uuid(): string {

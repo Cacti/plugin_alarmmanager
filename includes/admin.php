@@ -23,9 +23,9 @@
 */
 require_once(__DIR__ . '/web_auth.php');
 require_once(__DIR__ . '/routing.php');
-require_once(__DIR__ . '/credential_store.php');
-require_once(__DIR__ . '/test_delivery.php');
-require_once(__DIR__ . '/producer_admin.php');
+require_once(__DIR__ . '/credentials.php');
+require_once(__DIR__ . '/delivery.php');
+require_once(__DIR__ . '/../integrations/producer_bridge.php');
 
 function alarmmanager_audit(int $user, string $action, int $resource = 0): void {
 	alarmmanager_db_write('INSERT INTO plugin_alarmmanager_audit (user_id, action, resource_id, created_at) VALUES (?, ?, ?, UTC_TIMESTAMP(6))', [$user, $action, $resource]);
@@ -251,4 +251,60 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 	alarmmanager_apply_configuration($settings, $revision, $user);
 
 	return 'Configuration saved.';
+}
+
+function alarmmanager_producer_save(array $input, int $user): string {
+	if ((int) db_fetch_cell_prepared('SELECT status FROM plugin_config WHERE directory = ?', ['alarmmanager'], '', false) !== 1) {
+		throw new RuntimeException('producer_disabled');
+	}
+	$source = $input['source'] ?? '';
+	$scope  = $input['scope'] ?? '';
+
+	if (!in_array($source, ['thold', 'syslog'], true) || !in_array($scope, ['default', 'template', 'resource'], true) || ($source === 'syslog' && $scope === 'template')) {
+		throw new InvalidArgumentException('invalid_action');
+	}
+	$id = alarmmanager_admin_int($input['resource_id'] ?? null, $scope === 'default' ? 0 : 1);
+
+	if ($scope === 'default' && $id !== 0) {
+		throw new InvalidArgumentException('invalid_action');
+	}
+	$revision   = alarmmanager_admin_int($input['producer_revision'] ?? 0, 0);
+	$definition = AlarmManagerProducerBridge::validate(['mode' => $input['mode'] ?? '', 'profile_id' => alarmmanager_admin_int($input['profile_id'] ?? 0, 0), 'channels' => $input['channels'] ?? [], 'complete_history' => ($input['complete_history'] ?? '') === 'yes']);
+
+	if ($source === 'thold' && in_array('ticket', $definition['channels'], true)) {
+		throw new InvalidArgumentException('invalid_action');
+	}
+
+	if (($input['inherit'] ?? '') !== 'yes' && $definition['mode'] === 'centralized' && ($input['migration_confirmed'] ?? '') !== 'yes') {
+		throw new InvalidArgumentException('confirmation_required');
+	}
+	alarmmanager_transaction(function () use ($source, $scope, $id, $revision, $definition, $user, $input): void {
+		// Serialize configuration creation as well as edits to absent rows.
+		alarmmanager_db_row('SELECT config_revision FROM plugin_alarmmanager_schema WHERE id = 1 FOR UPDATE');
+		$row = alarmmanager_db_row('SELECT revision FROM plugin_alarmmanager_producer_config WHERE source = ? AND scope = ? AND resource_id = ? FOR UPDATE', [$source, $scope, $id]);
+
+		if ((int) ($row['revision'] ?? 0) !== $revision) {
+			throw new RuntimeException('configuration_changed');
+		}
+
+		if (($input['inherit'] ?? '') === 'yes') {
+			alarmmanager_db_write('DELETE FROM plugin_alarmmanager_producer_config WHERE source = ? AND scope = ? AND resource_id = ?', [$source, $scope, $id]);
+		} else {
+			if ($definition['profile_id'] > 0) {
+				$profile = alarmmanager_db_row('SELECT enabled FROM plugin_alarmmanager_profiles WHERE id = ?', [$definition['profile_id']]);
+
+				if (!$profile || !(bool) $profile['enabled']) {
+					throw new InvalidArgumentException('producer_profile_required');
+				}
+
+				if ($definition['mode'] === 'centralized' && !(int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_rules WHERE profile_id = ? AND enabled = 1', [$definition['profile_id']], '', false)) {
+					throw new InvalidArgumentException('producer_route_required');
+				}
+			}
+			alarmmanager_db_write('INSERT INTO plugin_alarmmanager_producer_config (source, scope, resource_id, revision, definition) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE revision = VALUES(revision), definition = VALUES(definition)', [$source, $scope, $id, $revision + 1, json_encode($definition, JSON_THROW_ON_ERROR)]);
+		}
+		alarmmanager_audit($user, 'producer_' . $source . '_' . $scope, $id);
+	});
+
+	return 'Producer policy saved. Apply the revision-pinned patch on each producer. Existing notification receipts keep their original delivery owner.';
 }

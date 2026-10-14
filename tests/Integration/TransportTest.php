@@ -62,7 +62,7 @@ final class TransportTest extends AlarmManagerTestCase {
 		self::alarmmanager_test_load('setup.php');
 		self::alarmmanager_test_load('includes/ingestion.php');
 		self::alarmmanager_test_load('includes/workers.php');
-		self::alarmmanager_test_load('includes/test_delivery.php');
+		self::alarmmanager_test_load('includes/delivery.php');
 		self::alarmmanager_test_load('includes/email_boundary.php');
 		$GLOBALS['config']               = ['poller_id' => 2];
 		$GLOBALS['alarmmanager_test_db'] = alarmmanager_test_connect();

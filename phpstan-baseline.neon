@@ -88,49 +88,49 @@ parameters:
 			message: '#^Function alarmmanager_credential_backup\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
-			path: includes/credential_store.php
+			path: includes/credentials.php
 
 		-
 			message: '#^Function alarmmanager_credential_restore\(\) has parameter \$bundle with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
-			path: includes/credential_store.php
+			path: includes/credentials.php
 
 		-
 			message: '#^Function alarmmanager_credential_validate\(\) has parameter \$record with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
-			path: includes/credential_store.php
+			path: includes/credentials.php
 
 		-
 			message: '#^Function alarmmanager_credential_validate\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
-			path: includes/credential_store.php
+			path: includes/credentials.php
 
 		-
 			message: '#^Function alarmmanager_decrypt_credential\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
-			path: includes/credential_store.php
+			path: includes/credentials.php
 
 		-
 			message: '#^Function alarmmanager_encrypt_credential\(\) has parameter \$record with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
-			path: includes/credential_store.php
+			path: includes/credentials.php
 
 		-
 			message: '#^Function alarmmanager_load_credential\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
-			path: includes/credential_store.php
+			path: includes/credentials.php
 
 		-
 			message: '#^Function alarmmanager_save_credential\(\) has parameter \$record with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
-			path: includes/credential_store.php
+			path: includes/credentials.php
 
 		-
 			message: '#^Function alarmmanager_decode_key\(\) has parameter \$encoded with no type specified\.$#'
@@ -436,19 +436,19 @@ parameters:
 			message: '#^Function alarmmanager_transport_process\(\) has parameter \$arguments with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
-			path: includes/process_transport.php
+			path: includes/transports.php
 
 		-
 			message: '#^Function alarmmanager_transport_process\(\) has parameter \$environment with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
-			path: includes/process_transport.php
+			path: includes/transports.php
 
 		-
 			message: '#^Function alarmmanager_transport_process\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
-			path: includes/process_transport.php
+			path: includes/transports.php
 
 		-
 			message: '#^Function alarmmanager_process_job\(\) has parameter \$claim with no value type specified in iterable type array\.$#'
@@ -478,7 +478,7 @@ parameters:
 			message: '#^Function alarmmanager_producer_save\(\) has parameter \$input with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
-			path: includes/producer_admin.php
+			path: includes/admin.php
 
 		-
 			message: '#^Function alarmmanager_claim_delivery\(\) has parameter \$supported_types with no value type specified in iterable type array\.$#'
@@ -826,7 +826,7 @@ parameters:
 			message: '#^Function alarmmanager_enqueue_test\(\) has parameter \$sample with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
-			path: includes/test_delivery.php
+			path: includes/delivery.php
 
 		-
 			message: '#^Function alarmmanager_recipient_validate\(\) has parameter \$value with no type specified\.$#'

@@ -2,6 +2,8 @@
 
 --- main (development) ---
 
+* Includes consolidation: merged five satellite modules into administration, credentials, delivery and transports; reduced includes/ from 33 PHP files to 28 while preserving all shared functions and subprocess boundaries.
+
 * Navigation cleanup: the report pages expose their seven tabs (Dashboard, Active conditions, Events, Delivery jobs, Attempts, Routing decisions, Processing) and the Administration page moved out of the view tab strip into its own console menu item — a top-level "Alarm Manager Settings" group placed like the syslog plugin's "Syslog Settings" — with the administration breadcrumb promoted to a first-level console page. The endpoint editor's HTTP-method control was renamed to `http_method` (a `method` form control shadows `form.method` and crashes `csrf-magic.js`).
 * 0.8.0: Alarm event contract and `alarmmanager_submit` producer hook; durable ingestion with idempotent schema; alarm lifecycle, routing profiles and suppression; multi-process supervisors and delivery workers with lease recovery; endpoint mapping plus REST API, webhook, email and script transports; syslog-style dashboard and administration UI; opt-in thold and syslog producer integrations; device status publication and remote collector reconciliation with signed history sync.
 * Standards: repository conformance work — Cacti license headers, request validation and Cacti UI helpers, PHPStan/PHP-CS-Fixer/PHPUnit toolchain, hardened sync endpoint, simplified setup, Cacti logging and gettext conventions, rewritten CI workflow, agent documentation, and the specification audit (docs/SPEC_AUDIT.md) with a dated evidence matrix.

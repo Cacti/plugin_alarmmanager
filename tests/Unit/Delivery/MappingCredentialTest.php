@@ -51,7 +51,7 @@ final class MappingCredentialTest extends AlarmManagerTestCase {
 	 */
 	public function testMapsPayloadsForApiAndRecovery(): void {
 		self::alarmmanager_test_load('includes/mapping.php');
-		self::alarmmanager_test_load('includes/credential_store.php');
+		self::alarmmanager_test_load('includes/credentials.php');
 
 		$event             = alarmmanager_validate_event($this->sampleEvent());
 		$event['severity'] = 'critical';
@@ -84,7 +84,7 @@ final class MappingCredentialTest extends AlarmManagerTestCase {
 	 */
 	public function testRejectsInvalidMappingsAndConversions(): void {
 		self::alarmmanager_test_load('includes/mapping.php');
-		self::alarmmanager_test_load('includes/credential_store.php');
+		self::alarmmanager_test_load('includes/credentials.php');
 
 		foreach ([
 			['to' => 'a', 'source' => 'device.id', 'constant' => 1],
@@ -109,7 +109,7 @@ final class MappingCredentialTest extends AlarmManagerTestCase {
 	 */
 	public function testCredentialCiphertextProtection(): void {
 		self::alarmmanager_test_load('includes/mapping.php');
-		self::alarmmanager_test_load('includes/credential_store.php');
+		self::alarmmanager_test_load('includes/credentials.php');
 
 		$key       = random_bytes(32);
 		$record    = ['headers' => ['Authorization' => 'Bearer fixture-token']];
@@ -138,7 +138,7 @@ final class MappingCredentialTest extends AlarmManagerTestCase {
 	 */
 	public function testRejectsInvalidCredentialRecords(): void {
 		self::alarmmanager_test_load('includes/mapping.php');
-		self::alarmmanager_test_load('includes/credential_store.php');
+		self::alarmmanager_test_load('includes/credentials.php');
 
 		$key = random_bytes(32);
 

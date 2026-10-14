@@ -101,7 +101,7 @@ try {
 }
 $conn_mode = 'offline';
 require_once(__DIR__ . '/../../../include/cli_check.php');
-require_once(__DIR__ . '/../includes/credential_store.php');
+require_once(__DIR__ . '/../includes/credentials.php');
 
 try {
 	if ($action === 'save') {

@@ -26,7 +26,7 @@ Evidence markers:
 | 6 | Reuse patterns; no Node.js/containers | VERIFIED (static) | No Node runtime; js/dashboard.js vanilla; Makefile-less QA per CLAUDE.md. |
 | 7 | Isolated checkouts; bmfmancini repo; private visibility | VERIFIED (repo state) | Git history authored under bmfmancini; no Cacti-org push performed; repository private. |
 | 8 | No unrun-test or production-scale claims | VERIFIED (docs) | docs/PROGRESS.md records lane skips and unverified items; this audit restates them. |
-| 9 | servcheck-pattern encrypted credential records, CSPRNG setup key | VERIFIED (tests) | MappingCredentialTest (AES-256-GCM AAD, tamper), SetupTest::testKeyLifecycleAndRegistration, testMalformedKeysAreRejected, testSeparateInstallationsGenerateSeparateKeys, testSqlFlowDebugBlocksKeyAccess; includes/credential_store.php. |
+| 9 | servcheck-pattern encrypted credential records, CSPRNG setup key | VERIFIED (tests) | MappingCredentialTest (AES-256-GCM AAD, tamper), SetupTest::testKeyLifecycleAndRegistration, testMalformedKeysAreRejected, testSeparateInstallationsGenerateSeparateKeys, testSqlFlowDebugBlocksKeyAccess; includes/credentials.php. |
 | 10 | Multi-destination fan-out, per-endpoint outcome, REST API ≠ webhook | VERIFIED (code + tests) | includes/routing.php, includes/delivery.php per-endpoint jobs/attempts; DeliveryTests *(lane)* cover retry-without-resend. |
 | 11 | Remote pollers independent; sync preserves IDs/ownership; no resend | VERIFIED (lane) | includes/remote.php (export/receive/ack), RemoteTest + RemoteHttpTest *(lane)*: outage replay, dropped-ack byte-preservation, no redispatch on receiver. |
 

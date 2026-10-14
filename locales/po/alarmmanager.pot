@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Alarm Manager 0.8.0\n"
 "Report-Msgid-Bugs-To: https://github.com/bmfmancini/plugin_alarmmanager/issues\n"
-"POT-Creation-Date: 2026-10-13 21:05-0400\n"
+"POT-Creation-Date: 2026-10-13 21:17-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alarm Manager Developers <https://github.com/bmfmancini/plugin_alarmmanager>\n"
 "Language-Team: Alarm Manager Developers <https://github.com/bmfmancini/plugin_alarmmanager>\n"
@@ -37,251 +37,251 @@ msgstr ""
 msgid "HTTP settings (REST API or webhook)"
 msgstr ""
 
-#: includes/admin_view.php:70
+#: includes/admin_view.php:72
 msgid "Method"
 msgstr ""
 
-#: includes/admin_view.php:78
+#: includes/admin_view.php:80
 msgid "Certificate and hostname verification remain enabled. Provision the PEM file on every poller. Save secrets on the Credentials page."
 msgstr ""
 
-#: includes/admin_view.php:79
+#: includes/admin_view.php:81
 msgid "Add destination fields using normalized sources or constants. Each transition can replace the default payload. No PHP or string substitution is evaluated."
 msgstr ""
 
-#: includes/admin_view.php:79
+#: includes/admin_view.php:81
 msgid "Payload mappings"
 msgstr ""
 
-#: includes/admin_view.php:83
+#: includes/admin_view.php:85
 msgid "Email requires to/from, html and attachments. Script requires an absolute executable, argument list and compatibility mode. WebSocket delivery is not implemented. Use the delivery documentation for option shapes."
 msgstr ""
 
-#: includes/admin_view.php:83
+#: includes/admin_view.php:85
 msgid "Save endpoint"
 msgstr ""
 
-#: includes/admin_view.php:88
+#: includes/admin_view.php:90
 msgid "Administration sections"
 msgstr ""
 
-#: includes/admin_view.php:92
+#: includes/admin_view.php:94
 msgid "Local configuration revision"
 msgstr ""
 
-#: includes/admin_view.php:111
+#: includes/admin_view.php:113
 msgid "New item"
 msgstr ""
 
-#: includes/admin_view.php:118
+#: includes/admin_view.php:120
 msgid "Destinations (select multiple)"
 msgstr ""
 
-#: includes/admin_view.php:125
+#: includes/admin_view.php:127
 msgid "Profile"
 msgstr ""
 
-#: includes/admin_view.php:133
+#: includes/admin_view.php:135
 msgid "Save"
 msgstr ""
 
-#: includes/admin_view.php:137
+#: includes/admin_view.php:139
 msgid "Credential values are never loaded into this page. Saving replaces the endpoint record; blank values do not preserve an old password. Use the CLI for protected backup/restore and poller provisioning."
 msgstr ""
 
-#: includes/admin_view.php:140
+#: includes/admin_view.php:142
 msgid "Configured"
 msgstr ""
 
-#: includes/admin_view.php:145
+#: includes/admin_view.php:147
 msgid "Replace credential"
 msgstr ""
 
-#: includes/admin_view.php:151
+#: includes/admin_view.php:153
 msgid "Rotate local key"
 msgstr ""
 
-#: includes/admin_view.php:155
+#: includes/admin_view.php:157
 msgid "Endpoint"
 msgstr ""
 
-#: includes/admin_view.php:169
+#: includes/admin_view.php:171
 msgid "Apply configuration"
 msgstr ""
 
-#: includes/admin_view.php:169
+#: includes/admin_view.php:171
 msgid "Removed IDs are disabled, preserving history. Concurrent edits reject stale revisions. Provision each remote poller explicitly."
 msgstr ""
 
-#: includes/admin_view.php:173
+#: includes/admin_view.php:175
 msgid "Local queue health"
 msgstr ""
 
-#: includes/admin_view.php:174
+#: includes/admin_view.php:176
 msgid "Jobs"
 msgstr ""
 
-#: includes/admin_view.php:174
+#: includes/admin_view.php:176
 msgid "Oldest job age (seconds)"
 msgstr ""
 
-#: includes/admin_view.php:174
+#: includes/admin_view.php:176
 msgid "Queue"
 msgstr ""
 
-#: includes/admin_view.php:174
+#: includes/admin_view.php:176
 msgid "Retries"
 msgstr ""
 
-#: includes/admin_view.php:174 includes/admin_view.php:193
+#: includes/admin_view.php:176 includes/admin_view.php:195
 msgid "Status"
 msgstr ""
 
-#: includes/admin_view.php:189
+#: includes/admin_view.php:191
 msgid "No queue activity recorded."
 msgstr ""
 
-#: includes/admin_view.php:192
+#: includes/admin_view.php:194
 msgid "Local worker health"
 msgstr ""
 
-#: includes/admin_view.php:193
+#: includes/admin_view.php:195
 msgid "Current job"
 msgstr ""
 
-#: includes/admin_view.php:193
+#: includes/admin_view.php:195
 msgid "Heartbeat age (seconds)"
 msgstr ""
 
-#: includes/admin_view.php:193
+#: includes/admin_view.php:195
 msgid "PID"
 msgstr ""
 
-#: includes/admin_view.php:193
+#: includes/admin_view.php:195
 msgid "Poller"
 msgstr ""
 
-#: includes/admin_view.php:193
+#: includes/admin_view.php:195
 msgid "Role"
 msgstr ""
 
-#: includes/admin_view.php:193
+#: includes/admin_view.php:195
 msgid "Worker"
 msgstr ""
 
-#: includes/admin_view.php:208
+#: includes/admin_view.php:210
 msgid "No local worker heartbeats recorded."
 msgstr ""
 
-#: includes/admin_view.php:211
+#: includes/admin_view.php:213
 msgid "Completed delivery jobs in the last 300 seconds"
 msgstr ""
 
-#: includes/admin_view.php:211
+#: includes/admin_view.php:213
 msgid "Completed processing jobs in the last 300 seconds"
 msgstr ""
 
-#: includes/admin_view.php:211
+#: includes/admin_view.php:213
 msgid "Processing streams blocked behind a failed predecessor"
 msgstr ""
 
-#: includes/admin_view.php:214
+#: includes/admin_view.php:216
 msgid "Pending jobs for destination types without a qualified transport"
 msgstr ""
 
-#: includes/admin_view.php:221
+#: includes/admin_view.php:223
 msgid "Failed deliveries and replay"
 msgstr ""
 
-#: includes/admin_view.php:221
+#: includes/admin_view.php:223
 msgid "Failed processing jobs and replay"
 msgstr ""
 
-#: includes/admin_view.php:224
+#: includes/admin_view.php:226
 msgid "Latest 50 administration actions"
 msgstr ""
 
-#: includes/admin_view.php:225 includes/web_view.php:221
+#: includes/admin_view.php:227 includes/web_view.php:221
 msgid "Action"
 msgstr ""
 
-#: includes/admin_view.php:225
+#: includes/admin_view.php:227
 msgid "ID"
 msgstr ""
 
-#: includes/admin_view.php:225
+#: includes/admin_view.php:227
 msgid "Recorded at"
 msgstr ""
 
-#: includes/admin_view.php:225
+#: includes/admin_view.php:227
 msgid "Resource ID"
 msgstr ""
 
-#: includes/admin_view.php:225
+#: includes/admin_view.php:227
 msgid "User ID"
 msgstr ""
 
-#: includes/admin_view.php:238
+#: includes/admin_view.php:240
 msgid "No administration actions recorded."
 msgstr ""
 
-#: includes/producer_admin.php:81
+#: includes/admin_view.php:247
 msgid "Pending producer receipts"
 msgstr ""
 
-#: includes/producer_admin.php:81
+#: includes/admin_view.php:247
 msgid "Use the producer CLI to retry pending receipts after database recovery."
 msgstr ""
 
-#: includes/producer_admin.php:83
+#: includes/admin_view.php:249
 msgid "Legacy is the default. Resource overrides template overrides plugin default. Saved policy remains intact if Alarm Manager is disabled; new notifications then use legacy fallback. Accepted notifications retain centralized ownership."
 msgstr ""
 
-#: includes/producer_admin.php:84
+#: includes/admin_view.php:250
 msgid "Centralized channel handoff replaces the selected source delivery with the routing profile endpoints. Configure recipients, templates, attachments and reviewed script wrappers on those endpoints before enabling it. Unselected source channels retain their existing behavior."
 msgstr ""
 
-#: includes/producer_admin.php:94
+#: includes/admin_view.php:260
 msgid "New producer policy"
 msgstr ""
 
-#: includes/producer_admin.php:113
+#: includes/admin_view.php:279
 msgid "Hand off "
 msgstr ""
 
-#: includes/producer_admin.php:121
+#: includes/admin_view.php:287
 msgid "Save producer policy"
 msgstr ""
 
-#: includes/remote_view.php:26
+#: includes/admin_view.php:292
 msgid "Collectors and remote history"
 msgstr ""
 
-#: includes/remote_view.php:26
+#: includes/admin_view.php:292
 msgid "Each collector owns its local delivery. Imported history records the original events and outcomes. Collector history does not create central delivery jobs."
 msgstr ""
 
-#: includes/remote_view.php:31 includes/remote_view.php:46
+#: includes/admin_view.php:297 includes/admin_view.php:312
 msgid "Collector"
 msgstr ""
 
-#: includes/remote_view.php:34
+#: includes/admin_view.php:300
 msgid "Device ownership grants (first 100)"
 msgstr ""
 
-#: includes/remote_view.php:37
+#: includes/admin_view.php:303
 msgid "Collector (0 selects all)"
 msgstr ""
 
-#: includes/remote_view.php:37
+#: includes/admin_view.php:303
 msgid "Record type"
 msgstr ""
 
-#: includes/remote_view.php:41
+#: includes/admin_view.php:307
 msgid "Filter"
 msgstr ""
 
-#: includes/remote_view.php:43
+#: includes/admin_view.php:309
 msgid "Latest 50 matching remote records; original IDs and delivery ownership are preserved."
 msgstr ""
 

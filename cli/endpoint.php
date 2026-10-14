@@ -54,7 +54,7 @@ try {
 }
 $conn_mode = 'offline';
 require_once(__DIR__ . '/../../../include/cli_check.php');
-require_once(__DIR__ . '/../includes/test_delivery.php');
+require_once(__DIR__ . '/../includes/delivery.php');
 
 try {
 	if (isset($options['preview'])) {
