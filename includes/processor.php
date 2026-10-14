@@ -37,6 +37,15 @@ function alarmmanager_route_event(array $record, array $event, array $state, str
 		return;
 	}
 	$snapshot = alarmmanager_routing_snapshot();
+	// With no custom rules, every enabled endpoint receives alarms through the global default route.
+	if ($snapshot['default_route']) {
+		$endpoints = array_keys(array_filter($snapshot['endpoints'], static fn (array $endpoint): bool => (bool) $endpoint['enabled']));
+		if ($endpoints) {
+			$snapshot['profiles'][0] = ['enabled' => true, 'endpoints' => $endpoints];
+			$snapshot['rules'][0] = ['id' => 0, 'profile_id' => 0, 'enabled' => true, 'stop_processing' => false, 'policy' => alarmmanager_validate_rule_definition([])];
+		}
+	}
+
 	$seen     = [];
 	$matched  = false;
 	$now      = db_fetch_cell_prepared('SELECT UTC_TIMESTAMP(6)', [], '', false);

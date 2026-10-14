@@ -251,7 +251,11 @@ function alarmmanager_routing_snapshot(): array {
 	if (is_array($cache) && $cache['revision'] === (int) $revision) {
 		return $cache;
 	}
-	$cache   = ['revision' => (int) $revision, 'rules' => [], 'profiles' => [], 'endpoints' => []];
+	$rule_count = db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_rules', [], '', false);
+	if ($rule_count === false) {
+		throw new RuntimeException('storage_failure');
+	}
+	$cache   = ['revision' => (int) $revision, 'rules' => [], 'profiles' => [], 'endpoints' => [], 'default_route' => (int) $rule_count === 0];
 	$columns = ['rules' => 'id, name, priority, enabled, profile_id, stop_processing, definition', 'profiles' => 'id, name, enabled, endpoints_json', 'endpoints' => 'id, name, type, enabled, max_concurrency, min_interval_ms, timeout_seconds, max_attempts'];
 
 	foreach (['rules', 'profiles', 'endpoints'] as $section) {
@@ -270,7 +274,10 @@ function alarmmanager_routing_snapshot(): array {
 			if (count($params) > 200) {
 				throw new RuntimeException('configuration_limit');
 			}
-			$where = $params ? 'id IN (' . implode(',', array_fill(0, count($params), '?')) . ')' : '1 = 0';
+			$where = $cache['default_route'] ? 'enabled = 1' : ($params ? 'id IN (' . implode(',', array_fill(0, count($params), '?')) . ')' : '1 = 0');
+			if ($cache['default_route']) {
+				$params = [];
+			}
 		}
 		$rows = alarmmanager_db_rows("SELECT {$columns[$section]} FROM plugin_alarmmanager_$section WHERE $where ORDER BY $order LIMIT 201", $params);
 
