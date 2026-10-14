@@ -79,11 +79,7 @@ function alarmmanager_endpoint_editor(array $endpoint, int $revision, bool $new 
 	print '<div data-list-editor="arguments">';
 	alarmmanager_textarea('script_arguments', 'Arguments', json_encode($transport['arguments'] ?? [], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR));
 	print '</div>';
-	print '<label>' . __esc('Script input mode', 'alarmmanager') . ' <select name="script_compatibility">';
-	foreach (['json' => 'JSON on standard input', 'syslog_ticket' => 'Syslog ticket arguments and JSON input'] as $value => $label) {
-		print '<option value="' . $value . '"' . (($transport['compatibility'] ?? 'json') === $value ? ' selected' : '') . '>' . __esc($label, 'alarmmanager') . '</option>';
-	}
-	print '</select></label><p>' . __esc('The executable must exist and be executable by the worker on every delivering poller. Arguments are passed directly without a shell.', 'alarmmanager') . '</p></fieldset>';
+	print '<p>' . __esc('JSON output is sent to the script on standard input.', 'alarmmanager') . '</p><p>' . __esc('The executable must exist and be executable by the worker on every delivering poller. Arguments are passed directly without a shell.', 'alarmmanager') . '</p></fieldset>';
 	print '<p class="alarmmanagerFullWidth" data-endpoint-types="websocket">' . __esc('WebSocket delivery is not implemented.', 'alarmmanager') . '</p>';
 	print '<fieldset class="alarmmanagerFullWidth alarmmanagerMapping"><legend>' . __esc('Message fields', 'alarmmanager') . '</legend><p>' . __esc('Choose the alarm information to send. Email uses Subject and Message; API destinations use the field names required by the receiving service.', 'alarmmanager') . '</p><div class="alarmmanagerMappingBuilder"></div>';
 	print '<details class="alarmmanagerRawMapping"><summary>' . __esc('Advanced message configuration', 'alarmmanager') . '</summary>';

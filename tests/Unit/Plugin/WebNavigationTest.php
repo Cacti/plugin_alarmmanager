@@ -28,7 +28,7 @@ final class WebNavigationTest extends AlarmManagerTestCase {
 		$email = alarmmanager_admin_transport_fields('email', ['url' => 'https://example.test', 'attachments' => []], ['endpoint_fields' => 'yes', 'email_to' => 'ops@example.test,admin@example.test', 'email_from' => '', 'email_html' => 'yes']);
 		$this->assertSame(['attachments' => [], 'to' => 'ops@example.test,admin@example.test', 'from' => '', 'html' => true], $email);
 		$this->assertSame(['ops@example.test' => 'Operations'], alarmmanager_admin_transport_fields('email', [], ['endpoint_fields' => 'yes', 'email_to' => '{"ops@example.test":"Operations"}'])['to']);
-		$script = alarmmanager_admin_transport_fields('script', $email + ['retry_exit_codes' => [75]], ['endpoint_fields' => 'yes', 'script_executable' => '/opt/notify', 'script_arguments' => '["--alarm", "two words"]', 'script_compatibility' => 'json']);
+		$script = alarmmanager_admin_transport_fields('script', $email + ['retry_exit_codes' => [75]], ['endpoint_fields' => 'yes', 'script_executable' => '/opt/notify', 'script_arguments' => '["--alarm", "two words"]', 'script_compatibility' => 'syslog_ticket']);
 		$this->assertSame(['retry_exit_codes' => [75], 'executable' => '/opt/notify', 'arguments' => ['--alarm', 'two words'], 'compatibility' => 'json'], $script);
 		$this->assertSame(['success_codes' => [202]], alarmmanager_admin_transport_fields('restapi', $script + ['success_codes' => [202]], ['endpoint_fields' => 'yes']));
 		$this->assertSame($email, alarmmanager_admin_transport_fields('email', $email, []));

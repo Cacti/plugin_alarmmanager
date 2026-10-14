@@ -67,7 +67,7 @@ function alarmmanager_admin_transport_fields(string $type, array $transport, arr
 	} elseif ($type === 'script') {
 		$transport['executable'] = $input['script_executable'] ?? '';
 		$transport['arguments'] = alarmmanager_admin_json($input['script_arguments'] ?? '[]');
-		$transport['compatibility'] = $input['script_compatibility'] ?? 'json';
+		$transport['compatibility'] = 'json';
 	}
 	return $transport;
 }

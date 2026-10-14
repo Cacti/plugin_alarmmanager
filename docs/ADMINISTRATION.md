@@ -12,7 +12,7 @@ Endpoint, routing-profile and rule IDs are assigned by the database when records
 
 The endpoint form offers Email, Webhook / REST API, and Script. Existing webhook records retain their stored type. Unsupported WebSocket delivery is not offered for new endpoints; an existing record remains identifiable without silently changing its type.
 
-Recipients, authentication headers, and script arguments use add/remove rows. Header secrets are masked; saved secrets are never loaded into the form. Existing named-recipient objects retain their original editor rather than losing display names.
+Scripts receive JSON output on standard input; the form no longer offers a Syslog-specific mode. Saving a script endpoint through the form sets its mode to JSON. Existing legacy records keep their runtime behavior until edited. Recipients, authentication headers, and script arguments use add/remove rows. Header secrets are masked; saved secrets are never loaded into the form. Existing named-recipient objects retain their original editor rather than losing display names.
 
 Message fields use readable alarm-field labels or custom values. New API destinations start with hostname, summary, severity, and state fields; adapt the destination field names to the receiving API. Selecting Email supplies Subject and Message from the alarm summary and details. Custom text is literal text, not a macro template. Existing mappings and alarm-state overrides are preserved when an endpoint is opened. Extra email fields, value conversions, replacements, and state-specific messages are available in collapsed sections.
 

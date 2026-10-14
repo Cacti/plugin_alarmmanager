@@ -29,7 +29,7 @@ const render=endpoint=>execFileSync('php',['-r',`function __($s,...$a){return $s
   check((await form.innerText()).includes('Subject')&&(await form.innerText()).includes('Message'),'Dedicated email subject and message');
   await form.getByRole('button',{name:'Add recipient',exact:true}).click();await form.getByLabel('Email address',{exact:true}).fill('ops@example.test');
   check(await form.locator('[name=email_to]').inputValue()==='ops@example.test','Recipient rows serialize');
-  await form.locator('[name=type]').selectOption('script');await form.getByRole('button',{name:'Add argument',exact:true}).click();await form.getByLabel('Argument',{exact:true}).fill('two words');
+  await form.locator('[name=type]').selectOption('script');check(await form.locator('[name=script_compatibility]').count()===0,'No legacy script mode selector');await form.getByRole('button',{name:'Add argument',exact:true}).click();await form.getByLabel('Argument',{exact:true}).fill('two words');
   check(JSON.parse(await form.locator('[name=script_arguments]').inputValue())[0]==='two words','Argument rows preserve spaces');
   await page.setViewportSize({width:390,height:844});check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Mobile editor fits viewport');
   await form.locator('[name=type]').selectOption('email');
