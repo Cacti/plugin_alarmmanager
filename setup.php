@@ -71,7 +71,7 @@ function plugin_alarmmanager_upgrade(): bool {
 function alarmmanager_registration_setup(bool $enable = false): bool {
 	// Cacti registration helpers return void: register everything, then verify
 	// the persisted metadata once instead of after every individual call.
-	foreach ([['config_arrays', 'alarmmanager_config_arrays', 'setup.php'], ['draw_navigation_text', 'alarmmanager_draw_navigation_text', 'setup.php'], ['alarmmanager_submit', 'alarmmanager_submit', 'includes/ingestion.php'], ['poller_bottom', 'alarmmanager_poller_bottom', 'includes/polling.php']] as [$hook, $callback, $file]) {
+	foreach ([['config_arrays', 'alarmmanager_config_arrays', 'setup.php'], ['draw_navigation_text', 'alarmmanager_draw_navigation_text', 'setup.php'], ['alarmmanager_submit', 'alarmmanager_submit', 'includes/ingestion.php'], ['poller_bottom', 'alarmmanager_poller_bottom', 'includes/polling.php'], ['top_header_tabs', 'alarmmanager_show_tab', 'setup.php'], ['top_graph_header_tabs', 'alarmmanager_show_tab', 'setup.php']] as [$hook, $callback, $file]) {
 		api_plugin_register_hook('alarmmanager', $hook, $callback, $file, $enable);
 	}
 
@@ -81,7 +81,7 @@ function alarmmanager_registration_setup(bool $enable = false): bool {
 	$hooks  = (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_hooks WHERE name = ?', ['alarmmanager'], '', false);
 	$realms = (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_realms WHERE plugin = ?', ['alarmmanager'], '', false);
 
-	return $hooks === 4 && $realms === 2;
+	return $hooks === 6 && $realms === 2;
 }
 
 function plugin_alarmmanager_uninstall(): void {
@@ -109,13 +109,26 @@ function alarmmanager_config_arrays(): void {
 }
 
 function alarmmanager_draw_navigation_text($navigation): array {
+	global $config;
+
 	$navigation['alarmmanager_admin.php:'] = ['title' => __('Alarm Manager Settings', 'alarmmanager'), 'mapping' => 'index.php:', 'url' => 'alarmmanager_admin.php', 'level' => '1'];
 	$navigation['alarmmanager.php:']       = [
 		'title'   => __('Alarm Manager', 'alarmmanager'),
-		'mapping' => 'index.php:',
-		'url'     => 'alarmmanager.php',
+		'mapping' => '',
+		'url'     => $config['url_path'] . 'plugins/alarmmanager/alarmmanager.php',
 		'level'   => '1'
 	];
 
 	return $navigation;
+}
+
+function alarmmanager_show_tab(): void {
+	global $config;
+
+	if (!api_user_realm_auth('alarmmanager.php')) {
+		return;
+	}
+	$selected = get_current_page()   === 'alarmmanager.php';
+	$image    = get_selected_theme() === 'classic' ? get_classic_tabimage(__('Alarm Manager', 'alarmmanager'), $selected) : '#';
+	print '<a id="alarmmanager" href="' . html_escape($config['url_path'] . 'plugins/alarmmanager/alarmmanager.php') . '"><img src="' . html_escape($image) . '" alt="' . __esc('Alarm Manager', 'alarmmanager') . '"></a>';
 }

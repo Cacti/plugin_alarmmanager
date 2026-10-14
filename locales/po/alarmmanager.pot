@@ -6,9 +6,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Alarm Manager 0.8.0\n"
+"Project-Id-Version: Alarm Manager 0.8.1\n"
 "Report-Msgid-Bugs-To: https://github.com/bmfmancini/plugin_alarmmanager/issues\n"
-"POT-Creation-Date: 2026-10-13 21:51-0400\n"
+"POT-Creation-Date: 2026-10-13 22:00-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alarm Manager Developers <https://github.com/bmfmancini/plugin_alarmmanager>\n"
 "Language-Team: Alarm Manager Developers <https://github.com/bmfmancini/plugin_alarmmanager>\n"
@@ -209,7 +209,7 @@ msgstr ""
 msgid "Latest 50 administration actions"
 msgstr ""
 
-#: includes/admin_view.php:225 includes/web_view.php:221
+#: includes/admin_view.php:225 includes/web_view.php:232
 msgid "Action"
 msgstr ""
 
@@ -321,116 +321,124 @@ msgstr ""
 msgid "Statistics could not be rendered."
 msgstr ""
 
-#: includes/web_view.php:119 setup.php:114
+#: includes/web_view.php:119 setup.php:116 setup.php:132 setup.php:133
 msgid "Alarm Manager"
 msgstr ""
 
-#: includes/web_view.php:119
+#: includes/web_view.php:122
+msgid "View alarms"
+msgstr ""
+
+#: includes/web_view.php:128 setup.php:103
+msgid "Administration"
+msgstr ""
+
+#: includes/web_view.php:130
 msgid "Alarm Manager pages"
 msgstr ""
 
-#: includes/web_view.php:136 includes/web_view.php:139
+#: includes/web_view.php:147 includes/web_view.php:150
 msgid "Alarm statistics"
 msgstr ""
 
-#: includes/web_view.php:136
+#: includes/web_view.php:147
 msgid "Filters"
 msgstr ""
 
-#: includes/web_view.php:139
+#: includes/web_view.php:150
 msgid "Time range"
 msgstr ""
 
-#: includes/web_view.php:145
+#: includes/web_view.php:156
 msgid "Off"
 msgstr ""
 
-#: includes/web_view.php:145
+#: includes/web_view.php:156
 msgid "Refresh"
 msgstr ""
 
-#: includes/web_view.php:146
+#: includes/web_view.php:157
 msgid "Mode"
 msgstr ""
 
-#: includes/web_view.php:153
+#: includes/web_view.php:164
 msgid "All"
 msgstr ""
 
-#: includes/web_view.php:153
+#: includes/web_view.php:164
 msgid "Severity"
 msgstr ""
 
-#: includes/web_view.php:153
+#: includes/web_view.php:164
 msgid "Source"
 msgstr ""
 
-#: includes/web_view.php:160
+#: includes/web_view.php:171
 msgid "Device ID"
 msgstr ""
 
-#: includes/web_view.php:164
+#: includes/web_view.php:175
 msgid "event_id"
 msgstr ""
 
-#: includes/web_view.php:169
+#: includes/web_view.php:180
 msgid "Apply"
 msgstr ""
 
-#: includes/web_view.php:169
+#: includes/web_view.php:180
 msgid "Reset"
 msgstr ""
 
-#: includes/web_view.php:171
+#: includes/web_view.php:182
 msgid "Historical window uses UTC. Current conditions and queues ignore the time window. Observe mode never dispatches delivery jobs."
 msgstr ""
 
-#: includes/web_view.php:179
+#: includes/web_view.php:190
 msgid "Loading statistics…"
 msgstr ""
 
-#: includes/web_view.php:192
+#: includes/web_view.php:203
 msgid "Collapse"
 msgstr ""
 
-#: includes/web_view.php:204
+#: includes/web_view.php:215
 msgid "conditions"
 msgstr ""
 
-#: includes/web_view.php:207
+#: includes/web_view.php:218
 msgid "No matching records."
 msgstr ""
 
-#: includes/web_view.php:217
+#: includes/web_view.php:228
 msgid "attempts"
 msgstr ""
 
-#: includes/web_view.php:257
+#: includes/web_view.php:268
 msgid "Showing at most 50 records per page."
 msgstr ""
 
-#: includes/web_view.php:258
+#: includes/web_view.php:269
 msgid "Pages"
 msgstr ""
 
-#: includes/web_view.php:261
+#: includes/web_view.php:272
 msgid "Previous"
 msgstr ""
 
-#: includes/web_view.php:264
+#: includes/web_view.php:275
 #, php-format
 msgid "Page %d"
 msgstr ""
 
-#: includes/web_view.php:267
+#: includes/web_view.php:278
 msgid "Next"
 msgstr ""
 
-#: includes/web_view.php:273
+#: includes/web_view.php:284
 msgid "Selected event details"
 msgstr ""
 
-#: includes/web_view.php:298
+#: includes/web_view.php:309
 msgid "Confirm replay may repeat an external effect"
 msgstr ""
 
@@ -446,10 +454,6 @@ msgstr ""
 msgid "Import/Export"
 msgstr ""
 
-#: setup.php:103
-msgid "Administration"
-msgstr ""
-
-#: setup.php:103 setup.php:108 setup.php:112
+#: setup.php:103 setup.php:108 setup.php:114
 msgid "Alarm Manager Settings"
 msgstr ""

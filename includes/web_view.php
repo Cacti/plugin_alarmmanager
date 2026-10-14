@@ -116,7 +116,18 @@ function alarmmanager_dashboard_response(array $scope): void {
 	}
 }
 function alarmmanager_web_open(array $scope, string $tab): void {
-	print '<main id="alarmmanager_app" data-theme="' . html_escape((string) get_selected_theme()) . '"><h1>' . __esc('Alarm Manager', 'alarmmanager') . '</h1><nav class="alarmmanagerTabs" aria-label="' . __esc('Alarm Manager pages', 'alarmmanager') . '">';
+	print '<main id="alarmmanager_app" data-theme="' . html_escape((string) get_selected_theme()) . '"><h1>' . __esc('Alarm Manager', 'alarmmanager') . '</h1>';
+
+	if ($tab === 'admin') {
+		print '<p><a href="alarmmanager.php">' . __esc('View alarms', 'alarmmanager') . '</a></p>';
+
+		return;
+	}
+
+	if ($scope['admin']) {
+		print '<p><a href="alarmmanager_admin.php">' . __esc('Administration', 'alarmmanager') . '</a></p>';
+	}
+	print '<nav class="alarmmanagerTabs" aria-label="' . __esc('Alarm Manager pages', 'alarmmanager') . '">';
 
 	foreach ([
 		'dashboard'  => 'Dashboard',

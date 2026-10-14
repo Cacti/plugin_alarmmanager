@@ -14,7 +14,7 @@ const fs=require('node:fs'), path=require('node:path');
  try {
   // Wait for the fixture listener without a fixed blocking sleep.
   for(let attempt=0;attempt<30;attempt++){try{await context.request.get(base+'/__fixture/login?user=1');break;}catch(error){if(attempt===29)throw error;await new Promise(resolve=>setTimeout(resolve,100));}}
-  await login(1,'modern');check(await page.locator('.bb').count()>=6,'Local Billboard charts rendered');
+  await login(1,'modern');check(await page.locator('#tab-alarmmanager').count()===1,'Alarm Manager top-level tab');check(await page.getByRole('link',{name:'Administration',exact:true}).count()===1,'Administrator return link');check(await page.locator('.bb').count()>=6,'Local Billboard charts rendered');
   check((await page.locator('#alarmmanager_historical').innerText()).includes('All 80'),'Administrator count');
   check(await page.locator('.alarmmanagerDashboardCard').count()===9,'Adapted panel grid');
   check(await page.locator('#alarmmanager_chart_transitions .bb-bar').evaluateAll(paths=>paths.some(p=>p.getBoundingClientRect().height>2)),'Transition chart contains nonzero UTC data');
@@ -23,6 +23,8 @@ const fs=require('node:fs'), path=require('node:path');
   const toggle=page.locator('#alarmmanager_panel_source .alarmmanagerCardToggle');await toggle.click();check(await toggle.getAttribute('aria-expanded')==='false','Panel collapse');await toggle.click();
   await page.locator('#alarmmanager_legend_severity a').first().click();await page.waitForURL('**/alarmmanager.php?*tab=events*');check(await page.locator('.alarmmanagerTable tbody tr').count()>0,'Statistics links matching records');
   await page.goto(base+'/plugins/alarmmanager/alarmmanager_admin.php?section=credentials');
+  check(await page.getByRole('link',{name:'View alarms',exact:true}).count()===1,'Administration links back to reports');
+  check(await page.locator('a[href*="alarmmanager.php?tab="]').count()===0,'Report tabs excluded from administration');
   check(!(await page.content()).includes('WEB_BROWSER_SECRET')&&!(await page.content()).includes('am1:'),'Credential DOM redaction');
   check(await page.locator('input[type=password]').first().inputValue()==='','Existing password blank');
   await page.goto(base+'/plugins/alarmmanager/alarmmanager_admin.php?section=endpoints');

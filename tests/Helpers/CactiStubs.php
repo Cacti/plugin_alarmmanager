@@ -252,3 +252,27 @@ if (!function_exists('__')) {
 		return $text;
 	}
 }
+
+if (!function_exists('api_user_realm_auth')) {
+	function api_user_realm_auth($file = '') {
+		return in_array($file, $GLOBALS['alarmmanager_test_allowed_pages'] ?? [], true);
+	}
+}
+
+if (!function_exists('get_selected_theme')) {
+	function get_selected_theme() {
+		return 'modern';
+	}
+}
+
+if (!function_exists('html_escape')) {
+	function html_escape($value) {
+		return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
+	}
+}
+
+if (!function_exists('__esc')) {
+	function __esc($text, $domain = null) {
+		return html_escape($text);
+	}
+}

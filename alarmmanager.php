@@ -46,7 +46,7 @@ try {
 	alarmmanager_view_error($error);
 }
 
-top_header();
+general_header();
 
 alarmmanager_web_assets();
 alarmmanager_web_open($scope, $tab);

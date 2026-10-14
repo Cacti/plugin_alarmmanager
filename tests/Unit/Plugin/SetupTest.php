@@ -33,7 +33,8 @@ final class SetupTest extends AlarmManagerTestCase {
 		$this->assertSame($key, $GLOBALS['alarmmanager_test_store']['1:alarmmanager_key'], 'Repeat install changed the key.');
 		$this->assertTrue(plugin_alarmmanager_upgrade(), 'Upgrade readiness failed.');
 		$this->assertSame($key, $GLOBALS['alarmmanager_test_store']['1:alarmmanager_key'], 'Upgrade changed the key.');
-		$this->assertSame([], array_diff($GLOBALS['alarmmanager_test_hooks'], ['config_arrays', 'draw_navigation_text', 'alarmmanager_submit', 'poller_bottom']), 'Unexpected producer/poller hook.');
+		$this->assertSame([], array_diff($GLOBALS['alarmmanager_test_hooks'], ['config_arrays', 'draw_navigation_text', 'alarmmanager_submit', 'poller_bottom', 'top_header_tabs', 'top_graph_header_tabs']), 'Unexpected producer/poller hook.');
+		$this->assertCount(6, array_unique($GLOBALS['alarmmanager_test_hooks']));
 		plugin_alarmmanager_uninstall();
 		$this->assertSame($key, $GLOBALS['alarmmanager_test_store']['1:alarmmanager_key'], 'Uninstall removed the key.');
 	}
@@ -152,6 +153,33 @@ final class SetupTest extends AlarmManagerTestCase {
 	/**
 	 * @return void
 	 */
+	public function testReportNavigationRespectsViewAndAdministrationPermissions(): void {
+		self::alarmmanager_test_load('setup.php');
+		self::alarmmanager_test_load('includes/web_view.php');
+		$GLOBALS['alarmmanager_test_allowed_pages'] = [];
+		ob_start();
+		alarmmanager_show_tab();
+		$this->assertSame('', ob_get_clean(), 'No top tab without the view realm');
+		$GLOBALS['alarmmanager_test_allowed_pages'] = ['alarmmanager.php'];
+		ob_start();
+		alarmmanager_show_tab();
+		$this->assertStringContainsString('alt="Alarm Manager"', ob_get_clean());
+		unset($GLOBALS['alarmmanager_test_allowed_pages']);
+
+		foreach ([false, true] as $admin) {
+			ob_start();
+			alarmmanager_web_open(['admin' => $admin], 'dashboard');
+			$html = ob_get_clean();
+			$this->assertSame($admin, str_contains($html, 'href="alarmmanager_admin.php"'));
+			$this->assertSame(7, substr_count($html, 'href="alarmmanager.php?tab='));
+		}
+		ob_start();
+		alarmmanager_web_open(['admin' => true], 'admin');
+		$html = ob_get_clean();
+		$this->assertStringContainsString('href="alarmmanager.php"', $html);
+		$this->assertStringNotContainsString('alarmmanager.php?tab=', $html);
+	}
+
 	public function testPluginMetadata(): void {
 		self::alarmmanager_test_load('setup.php');
 

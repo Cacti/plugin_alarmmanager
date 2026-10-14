@@ -2,6 +2,8 @@
 
 --- main (development) ---
 
+* 0.8.1 navigation: add a realm-controlled Alarm Manager top-level tab beside Syslog, move report pages out of the console header, and provide administrator-only return navigation between reports and administration. Register both Cacti header-tab hooks.
+
 * Schema v7: database-assigned endpoint/profile/rule IDs, with existing identities preserved on upgrade. Removed visible record-ID controls; creation no longer accepts arbitrary IDs. Producer routing profiles now use a dropdown.
 
 * Authentication editor: select None, Bearer, Basic or custom headers from a dropdown; show and submit only the relevant inputs, with an explicit Keep saved authentication option for existing authenticated endpoints.
