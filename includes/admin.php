@@ -279,7 +279,7 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 				throw new InvalidArgumentException('invalid_action');
 			}
 			$item['type'] = $type;
-			$credential   = isset($input['endpoint_fields']) && !in_array($type, ['restapi', 'webhook'], true) ? null : alarmmanager_admin_credential($input);
+			$credential   = isset($input['endpoint_fields']) && !in_array($type, ['restapi', 'webhook'], true) ? null : alarmmanager_admin_credential($input, $id === 0);
 
 			if ($credential !== null && !in_array($type, ['restapi', 'webhook'], true)) {
 				throw new InvalidArgumentException('credential_endpoint_invalid');
@@ -366,7 +366,7 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
  * @param  array<string, mixed>      $input
  * @return array<string, mixed>|null
  */
-function alarmmanager_admin_credential(#[\SensitiveParameter] array $input): ?array {
+function alarmmanager_admin_credential(#[\SensitiveParameter] array $input, bool $allow_unfilled = false): ?array {
 	$type = $input['auth_type'] ?? null;
 
 	if ($type !== null) {
@@ -402,6 +402,14 @@ function alarmmanager_admin_credential(#[\SensitiveParameter] array $input): ?ar
 		$record['basic'] = ['username' => $input['basic_username'] ?? '', 'password' => $input['basic_password'] ?? ''];
 	}
 	$record = alarmmanager_credential_validate($record);
+
+	// Creating an endpoint may defer credentials: an integration preset draft
+	// saves first and the credential record is attached afterwards, so an
+	// explicitly chosen authentication type stays valid while every credential
+	// field is still empty. Credential replacement always requires material.
+	if ($allow_unfilled && !$record['headers'] && !isset($record['basic'])) {
+		return null;
+	}
 
 	if ($type !== null && (!$record['headers'] && !isset($record['basic']) || $type === 'basic' && ($record['basic']['username'] ?? '') === '')) {
 		throw new InvalidArgumentException('invalid_credentials');

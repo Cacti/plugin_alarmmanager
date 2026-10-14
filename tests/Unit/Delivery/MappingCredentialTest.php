@@ -171,6 +171,19 @@ final class MappingCredentialTest extends AlarmManagerTestCase {
 		] as $input) {
 			$this->assertRejects(fn () => alarmmanager_admin_credential($input), 'Conflicting or invalid authentication rejected');
 		}
+
+		// Creating an endpoint defers credentials: a preset draft picks the
+		// provider's authentication type and attaches the secret record later.
+		$this->assertNull(alarmmanager_admin_credential(['auth_type' => 'bearer'], true));
+		$this->assertNull(alarmmanager_admin_credential(['auth_type' => 'basic', 'basic_username' => '', 'basic_password' => ''], true));
+		$this->assertNull(alarmmanager_admin_credential(['auth_type' => 'headers', 'headers' => '{}'], true));
+		$this->assertSame(['headers' => ['Authorization' => 'Bearer draft-token']], alarmmanager_admin_credential(['auth_type' => 'bearer', 'bearer_token' => 'draft-token'], true));
+		$this->assertSame(['headers' => [], 'basic' => ['username' => 'user', 'password' => '']], alarmmanager_admin_credential(['auth_type' => 'basic', 'basic_username' => 'user'], true));
+
+		// Replacement and every other auth type still reject an unfilled record.
+		$this->assertRejects(fn () => alarmmanager_admin_credential(['auth_type' => 'bearer'], false), 'Conflicting or invalid authentication rejected');
+		$this->assertRejects(fn () => alarmmanager_admin_credential(['auth_type' => 'basic', 'basic_password' => 'password'], true), 'Conflicting or invalid authentication rejected');
+		$this->assertRejects(fn () => alarmmanager_admin_credential(['auth_type' => 'invalid'], true), 'Conflicting or invalid authentication rejected');
 	}
 	public function testHttpAlarmMethodsExcludeDelete(): void {
 		self::alarmmanager_test_load('includes/routing.php');

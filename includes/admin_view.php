@@ -71,7 +71,7 @@ function alarmmanager_endpoint_editor(array $endpoint, int $revision, bool $new 
 	alarmmanager_input('url', 'URL', $transport['url'] ?? '', 'url', 'maxlength="2048"');
 	print '</fieldset>';
 	print '<div class="alarmmanagerFullWidth" data-endpoint-types="restapi webhook">';
-	alarmmanager_auth_editor(!$new ? (!empty($transport['credential']) ? 'keep' : 'none') : ($endpoint['auth'] ?? 'none'));
+	alarmmanager_auth_editor(!$new ? (!empty($transport['credential']) ? 'keep' : 'none') : ($endpoint['auth'] ?? 'none'), false, $new);
 	print '</div><fieldset class="alarmmanagerFullWidth" data-endpoint-types="email"><legend>' . __esc('Email settings', 'alarmmanager') . '</legend>';
 
 	foreach (['to' => 'Recipients', 'from' => 'Sender email (blank uses Cacti default)'] as $key => $label) {
@@ -314,8 +314,8 @@ function alarmmanager_remote_markup(): void {
 	}
 }
 
-function alarmmanager_auth_editor(string $selected, bool $replacement = false): void {
-	print '<fieldset class="alarmmanagerFullWidth alarmmanagerAuth"><legend>' . __esc('Authentication', 'alarmmanager') . '</legend><label>' . __esc('Authentication type', 'alarmmanager') . ' <select name="auth_type">';
+function alarmmanager_auth_editor(string $selected, bool $replacement = false, bool $optional = false): void {
+	print '<fieldset class="alarmmanagerFullWidth alarmmanagerAuth"' . ($optional ? ' data-auth-optional="1"' : '') . '><legend>' . __esc('Authentication', 'alarmmanager') . '</legend><label>' . __esc('Authentication type', 'alarmmanager') . ' <select name="auth_type">';
 	$options = $replacement ? [] : ['none' => 'None'];
 
 	if ($selected === 'keep') {

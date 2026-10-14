@@ -107,7 +107,7 @@
      group.hidden=!active;
      group.querySelectorAll('input,textarea').forEach(input => {
       input.disabled=!active;
-      input.required=active && input.name!=='basic_password';
+      input.required=active && input.name!=='basic_password' && !fieldset.dataset.authOptional;
      });
     });
    }
@@ -132,7 +132,7 @@
   app.querySelectorAll('form.alarmmanagerTemplatePicker').forEach(form => {
    const select=form.querySelector('[name=integration_template]');if(!select)return;
    const button=form.querySelector('button[type=submit]');if(button)button.hidden=true;
-   jQuery(select).on('change.alarmmanagerTemplate',()=>form.submit());
+   select.addEventListener('change',()=>form.submit());
   });
  }
  function init() {

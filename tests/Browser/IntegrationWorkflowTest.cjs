@@ -33,6 +33,19 @@ const assert=require('node:assert/strict');
   await saved.locator('summary').first().click();
   check(await saved.locator('[name=reference_id_path]').inputValue()==='ticket.id','Reference configuration persists');
   check(!(await saved.locator('[name=enabled]').isChecked()),'Saved draft stays disabled');
+  // A provider preset that preselects credential authentication saves the draft
+  // before any secret exists; the credential record is attached afterwards.
+  const presetName='Preset draft '+Date.now();
+  await page.locator('[name=integration_template]').selectOption('slack');
+  await page.waitForURL('**integration_template=slack',{timeout:5000});
+  const preset=page.locator('details.alarmmanagerDashboardCard').last();
+  check((await preset.locator('[name=auth_type]').inputValue())==='bearer','Slack preset preselects bearer authentication');
+  await preset.locator('[name=name]').fill(presetName);
+  await preset.getByRole('button',{name:'Save endpoint',exact:true}).click();
+  await page.waitForURL(admin);
+  const presetSaved=page.locator('details.alarmmanagerDashboardCard').filter({has:page.getByText(presetName,{exact:true})});
+  check(await presetSaved.count()===1,'Preset draft saves without credentials');
+  check(!(await presetSaved.locator('[name=enabled]').isChecked()),'Preset draft stays disabled');
   await page.goto(admin+'?section=test');
   await page.locator('form.alarmmanagerEditor').first().getByRole('button',{name:'Preview (no traffic)',exact:true}).click();
   await page.waitForURL('**section=test');
