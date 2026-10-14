@@ -31,8 +31,8 @@ const fs=require('node:fs'), path=require('node:path');
   check(await page.evaluate(()=>window.ALARM_BAD===undefined),'Endpoint name escaped');
   check(await page.locator('input[name=max_concurrency]').count()===0,'No per-endpoint concurrency control');
   check(await page.locator('input[name=id]:not([type=hidden])').count()===0,'Record IDs are not editable');
-  check(await page.locator('details').last().locator('input[name=id]').count()===0,'New endpoint does not submit an ID');
-  const detail=page.locator('details').first();await detail.locator('summary').click();
+  check(await page.locator('.alarmmanagerDashboardCard').last().locator('input[name=id]').count()===0,'New endpoint does not submit an ID');
+  const detail=page.locator('.alarmmanagerDashboardCard').first();await detail.locator('summary').click();
   const auth=detail.locator('[name=auth_type]'), originalAuth=await auth.inputValue();
   for(const type of ['none','bearer','basic','headers']) {
    await auth.selectOption(type,{force:true});
@@ -42,9 +42,9 @@ const fs=require('node:fs'), path=require('node:path');
   }
   await auth.selectOption(originalAuth,{force:true});
   const endpointType=detail.locator('[name=type]'), originalType=await endpointType.inputValue();
-  for(const type of ['email','script','restapi','webhook','websocket']) {
+  for(const type of ['email','script',originalType]) {
    await endpointType.selectOption(type);
-   for(const group of ['restapi webhook','email','script','websocket']) {
+   for(const group of ['restapi webhook','email','script']) {
     check(await detail.locator(`[data-endpoint-types="${group}"]`).first().isVisible()===group.split(' ').includes(type),`${type}: relevant endpoint fields only`);
    }
    check(await auth.isEnabled()===['restapi','webhook'].includes(type),`${type}: HTTP authentication disabled for other transports`);

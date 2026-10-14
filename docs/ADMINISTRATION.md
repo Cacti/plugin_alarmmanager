@@ -8,6 +8,16 @@ Worker pool sizes belong to the daemon configuration, not each destination form.
 
 Endpoint, routing-profile and rule IDs are assigned by the database when records are created. Their forms do not expose editable record IDs; editing preserves the saved identity. Profile and endpoint selectors refer to existing records by name. Producer resource/template IDs identify records in the source plugin, not newly created Alarm Manager records. Bulk configuration import/export retains explicit IDs to preserve routing and remote-poller references.
 
+## Endpoint setup
+
+The endpoint form offers Email, Webhook / REST API, and Script. Existing webhook records retain their stored type. Unsupported WebSocket delivery is not offered for new endpoints; an existing record remains identifiable without silently changing its type.
+
+Recipients, authentication headers, and script arguments use add/remove rows. Header secrets are masked; saved secrets are never loaded into the form. Existing named-recipient objects retain their original editor rather than losing display names.
+
+Message fields use readable alarm-field labels or custom values. New API destinations start with hostname, summary, severity, and state fields; adapt the destination field names to the receiving API. Selecting Email supplies Subject and Message from the alarm summary and details. Custom text is literal text, not a macro template. Existing mappings and alarm-state overrides are preserved when an endpoint is opened. Extra email fields, value conversions, replacements, and state-specific messages are available in collapsed sections.
+
+Advanced delivery settings contain timeout, maximum delivery attempts, delivery interval (seconds in the structured editor), HTTP method, and custom certificate authority settings. Other transport options and the raw message editor remain available under Advanced for compatibility and without JavaScript. Collapsed controls still submit their saved values. Use the preview/test link after saving; delivery tests remain explicit and worker-owned.
+
 ## Dashboard reuse and data meaning
 
 The actual syslog dashboard was inspected at revision be1a8151c21ff81684d0e8ca0f9f0a78a8d48f27. The following components were adapted; no syslog installation is required:

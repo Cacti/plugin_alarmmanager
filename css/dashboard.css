@@ -193,3 +193,19 @@
 .alarmmanagerAuthFields label { flex-direction:column; align-items:stretch !important; }
 
 #alarmmanager_app [data-endpoint-types][hidden] { display:none; }
+
+/* Endpoint setup keeps message rows readable and technical options collapsed. */
+.alarmmanagerEditor > .alarmmanagerAdvanced { border:1px solid var(--search-border); padding:12px; box-sizing:border-box; }
+.alarmmanagerAdvanced > summary, .alarmmanagerFieldOptions > summary, .alarmmanagerRawMapping > summary { cursor:pointer; padding:8px 0; }
+.alarmmanagerAdvanced label { display:block; margin:10px 0; }
+.alarmmanagerListEditor, .alarmmanagerListEditor > div { display:grid; gap:8px; }
+.alarmmanagerMappingRow { margin:8px 0; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; }
+.alarmmanagerMappingRow input:not([type=checkbox]), .alarmmanagerMappingRow select, .alarmmanagerMappingRow textarea { box-sizing:border-box; width:100%; min-width:0; }
+.alarmmanagerMappingRow textarea { min-height:100px; font-family:inherit; }
+.alarmmanagerFieldOptions { grid-column:1 / -1; }
+.alarmmanagerFieldOptions label { margin:8px 0; }
+.alarmmanagerMappingRow > button { justify-self:start; }
+.alarmmanagerMappingRow > strong { grid-column:1 / -1; }
+@media(max-width:600px) { .alarmmanagerMappingRow { grid-template-columns:minmax(0,1fr); } }
+
+#alarmmanager_app [hidden] { display:none !important; }

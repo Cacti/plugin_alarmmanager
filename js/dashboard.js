@@ -22,43 +22,80 @@
  const palette=['#2278ad','#e67e22','#329c60','#d43f3a','#8e63aa','#19a2a5','#ad795b','#7b8994','#c4a132','#5d88b3'];
  const colorMaps={transitions:{raised:'#d43f3a',recovered:'#329c60',occurrence:'#2278ad',updated:'#8e63aa',reminder:'#e67e22'},severity:{critical:'#d43f3a',major:'#e67e22',minor:'#b89822',warning:'#c39b13',info:'#2278ad',clear:'#329c60'},deliveries:{completed:'#329c60',failed:'#d43f3a',pending:'#7b8994',leased:'#2278ad'},attempts:{success:'#329c60',failure:'#d43f3a',retry:'#e67e22',abandoned:'#7b8994',in_progress:'#2278ad'}};
  function color(panel,label,index){const value=colorMaps[panel]?.[label];return typeof value==='string'?value:palette[index%palette.length];}
+ const fieldLabels = ['Event ID','Alarm source','Source instance','Collector ID','Time of alarm','Resource ID','Alarm key','Alarm episode ID','Alarm sequence','Alarm state','Severity','Alarm summary','Alarm details','Device ID','Hostname','Device description','Device tags','Rule name','Rule type','Metric','Metric value','Threshold','Suppression reason','Source suppressed','Source notification channels','Ownership version'];
  function initMappings(app) {
   app.querySelectorAll('.alarmmanagerMapping').forEach(fieldset => {
-   const textarea=fieldset.querySelector('[name=mapping_json]'), holder=fieldset.querySelector('.alarmmanagerMappingBuilder');
-   const transition=node('select'); ['default','raised','updated','reminder','recovered','occurrence'].forEach(key=>{const option=node('option',key); option.value=key; transition.append(option);});
-   const bar=node('div'), add=node('button','Add field'), inherit=node('button','Use default payload'), status=node('p'); add.type=inherit.type='button';
-   bar.append(node('label','Payload for '),transition,add,inherit); const rows=node('div'); holder.append(bar,status,rows);
+   const textarea=fieldset.querySelector('[name=mapping_json]'), holder=fieldset.querySelector('.alarmmanagerMappingBuilder'), form=fieldset.closest('form'), endpointType=form.querySelector('[name=type]');
+   const transition=node('select'); ['default','raised','updated','reminder','recovered','occurrence'].forEach((key,index)=>{const option=node('option',['All alarm states','New alarm','Updated alarm','Reminder','Recovery','Occurrence'][index]); option.value=key; transition.append(option);});
+   const states=node('details'), summary=node('summary','Customize messages by alarm state'), add=node('button','Add field'), inherit=node('button','Use standard message'), status=node('p'); add.type=inherit.type='button';
+   const stateLabel=node('label','Message for ');stateLabel.append(transition);states.append(summary,stateLabel,inherit);const rows=node('div');holder.append(status,rows,add,states);
    let mapping={};
    const parseValue=text=>{try{return JSON.parse(text);}catch{return text;}};
    const save=()=>{textarea.value=JSON.stringify(mapping,null,2);};
    function render() {
-    rows.replaceChildren(); const selected=transition.value; inherit.disabled=selected==='default'; status.textContent=selected!=='default' && !(selected in mapping)?'Using default; adding a field creates an override.':'';
-    (mapping[selected] || []).forEach((item,index)=>{
+    rows.replaceChildren(); const selected=transition.value, email=endpointType.value==='email';add.hidden=email; inherit.disabled=selected==='default'; status.textContent=selected!=='default' && !(selected in mapping)?'Using the standard message. Add a field to customize this alarm state.':'';
+    const items=mapping[selected] || [], extraEmail=node('details');extraEmail.append(node('summary','Additional message fields'));
+    items.forEach((item,index)=>{
      const row=node('div',undefined,'alarmmanagerMappingRow');
-     function control(label,element) { const wrap=node('label',label);wrap.append(element);row.append(wrap);return element; }
-     const path=control('Destination path',node('input'));path.value=item.to||'';path.maxLength=191;
-     const source=control('Source or constant',node('select'));['constant',...sourceFields].forEach(key=>{const o=node('option',key);o.value=key;source.append(o);});source.value=item.source||'constant';
-     const constant=control('Constant',node('input')); constant.value='constant' in item ? (typeof item.constant==='string'?item.constant:JSON.stringify(item.constant)):'';
-     const type=control('Convert',node('select'));['identity','string','integer','number','boolean','html'].forEach(key=>{const o=node('option',key);type.append(o);});type.value=item.type||'identity';
-     const fallback=control('Missing default',node('input'));fallback.value='default' in item ? JSON.stringify(item.default):'';
-     const values=control('Value map JSON',node('input'));values.value=item.values?JSON.stringify(item.values):'';
-     const required=control('Required',node('input'));required.type='checkbox';required.checked=!!item.required;
-     const remove=node('button','Remove field');remove.type='button';row.append(remove);
-     function update() {
-      const fresh={to:path.value,type:type.value,required:required.checked};
-      if(source.value==='constant')fresh.constant=parseValue(constant.value);else fresh.source=source.value;
+     function control(label,element,parent=row) { const wrap=node('label',label);wrap.append(element);parent.append(wrap);return element; }
+     const path=control('Field name',node('input'));path.value=item.to||'';path.maxLength=191;
+     if(email&&['subject','body'].includes(item.to)){path.parentElement.hidden=true;row.append(node('strong',item.to==='subject'?'Subject':'Message'));}
+     const source=control('Value',node('select'));['constant',...sourceFields].forEach((key,i)=>{const o=node('option',i===0?'Custom value':fieldLabels[i-1]);o.value=key;source.append(o);});source.value=item.source||'constant';
+     const constant=control(email&&item.to==='body'?'Message text':'Custom value',node(email&&item.to==='body'?'textarea':'input')); constant.value='constant' in item ? (typeof item.constant==='string'?item.constant:JSON.stringify(item.constant)):'';
+     const options=node('details');options.className='alarmmanagerFieldOptions';options.append(node('summary','Field options'));row.append(options);
+     const type=control('Value format',node('select'),options);['identity','string','integer','number','boolean','html'].forEach((key,i)=>{const o=node('option',['Keep original value','Text','Whole number','Number','Yes / no','HTML-escaped text'][i]);o.value=key;type.append(o);});type.value=item.type||'identity';
+     const fallback=control('Use when missing',node('input'),options);fallback.value='default' in item ? JSON.stringify(item.default):'';
+     const values=control('Value replacements (JSON)',node('input'),options);values.value=item.values?JSON.stringify(item.values):'';
+     const required=control('Fail delivery if missing',node('input'),options);required.type='checkbox';required.checked=!!item.required;
+     const remove=node('button','Remove field');remove.type='button';remove.hidden=email&&['subject','body'].includes(item.to);row.append(remove);
+     function update(event) {
+      constant.parentElement.hidden=source.value!=='constant';
+      const fresh={...item,to:path.value,type:type.value,required:required.checked};
+      delete fresh.source;delete fresh.constant;delete fresh.default;delete fresh.values;
+      if(source.value==='constant')fresh.constant=event?.target===constant?(typeof item.constant==='string'||!('constant' in item)?constant.value:parseValue(constant.value)):('constant' in item?item.constant:parseValue(constant.value));else fresh.source=source.value;
       if(fallback.value!=='')fresh.default=parseValue(fallback.value);
-      if(values.value!=='') {try{fresh.values=JSON.parse(values.value); values.setCustomValidity('');}catch{values.setCustomValidity('Use valid JSON for the value map.');return;}}
-      mapping[selected][index]=fresh;save();
+      if(values.value!=='') {try{fresh.values=JSON.parse(values.value); values.setCustomValidity('');}catch{values.setCustomValidity('Use valid JSON for the value replacements.');options.open=true;return;}}
+      mapping[selected][index]=fresh;item=fresh;save();
      }
+     constant.parentElement.hidden=source.value!=='constant';
      [path,source,constant,type,fallback,values,required].forEach(el=>el.addEventListener('input',update));
-     remove.addEventListener('click',()=>{mapping[selected].splice(index,1);save();render();});rows.append(row);
+     remove.addEventListener('click',()=>{mapping[selected].splice(index,1);save();render();});if(email&&!['subject','body'].includes(item.to)){extraEmail.append(row);}else rows.append(row);
     });
+    if(extraEmail.children.length>1)rows.append(extraEmail);
    }
-   function read() {try {const value=JSON.parse(textarea.value);if(!value||typeof value!=='object'||Array.isArray(value)||Object.values(value).some(v=>!Array.isArray(v)))throw Error();mapping=value;textarea.setCustomValidity('');render();}catch{status.textContent='Invalid mapping JSON. Use an object of transition lists.';textarea.setCustomValidity('Invalid mapping JSON.');}}
-   add.addEventListener('click',()=>{const key=transition.value;mapping[key]??=[];if(mapping[key].length>=64){status.textContent='Maximum 64 fields per payload.';return;}mapping[key].push({to:'field_'+(mapping[key].length+1),source:'device.id',type:'identity',required:false});save();render();});
+   function read() {try {const value=JSON.parse(textarea.value);if(!value||typeof value!=='object'||Array.isArray(value)||Object.values(value).some(v=>!Array.isArray(v)))throw Error();mapping=value;textarea.setCustomValidity('');render();}catch{status.textContent='Invalid message configuration. Correct the advanced configuration to continue.';fieldset.querySelector('.alarmmanagerRawMapping').open=true;textarea.setCustomValidity('Invalid message configuration.');}}
+   function addField(to,source){const key=transition.value;mapping[key]??=[];if(mapping[key].length>=64){status.textContent='Maximum 64 fields per message.';return;}mapping[key].push({to,source,type:'identity',required:false});save();render();}
+   add.addEventListener('click',()=>addField('field_'+((mapping[transition.value]||[]).length+1),'device.hostname'));
    inherit.addEventListener('click',()=>{if(transition.value!=='default'){delete mapping[transition.value];save();render();}});
-   transition.addEventListener('change',render); textarea.addEventListener('input',read);read();
+   function changeType(){if(endpointType.value==='email'){mapping.default??=[];for(const item of [{to:'subject',source:'alarm.summary',type:'string',required:true},{to:'body',source:'alarm.details',type:'string',default:'',required:false}]){if(!mapping.default.some(existing=>existing.to===item.to||existing.to.startsWith(item.to+'.')))mapping.default.push(item);}save();}render();}
+   jQuery(form).on('change','[name=type]',changeType);transition.addEventListener('change',render); textarea.addEventListener('input',read);read();if(!form.querySelector('[name=id]'))changeType();
+  });
+ }
+ function initLists(app) {
+  app.querySelectorAll('[data-list-editor]').forEach(target=>{
+   const kind=target.dataset.listEditor, input=target.matches('input')?target:target.querySelector('textarea'), container=node('div',undefined,'alarmmanagerListEditor'), rows=node('div'), add=node('button',kind==='headers'?'Add header':kind==='recipients'?'Add recipient':'Add argument');add.type='button';
+   let entries;
+   try{if(kind==='headers')entries=Object.entries(JSON.parse(input.value));else if(kind==='arguments')entries=JSON.parse(input.value);else{entries=input.value.trim().startsWith('[')||input.value.trim().startsWith('{')?JSON.parse(input.value):input.value.split(',').map(v=>v.trim()).filter(Boolean);}
+    if(!Array.isArray(entries)||entries.some(v=>kind==='headers'?(!Array.isArray(v)||typeof v[1]!=='string'):typeof v!=='string'))return;
+   }catch{return;}
+   const originalLabel=input.closest('label'), raw=node('details'), rawSummary=node('summary','Advanced configuration');originalLabel.before(container);container.append(node('strong',kind==='headers'?'Authentication headers':kind==='recipients'?'Recipients':'Arguments'),rows,add,raw);raw.append(rawSummary,input);originalLabel.remove();input.hidden=true;
+   function save(){input.value=kind==='headers'?JSON.stringify(Object.fromEntries(entries)):kind==='arguments'?JSON.stringify(entries):entries.join(', ');input.dispatchEvent(new Event('input',{bubbles:true}));}
+   function render(){rows.replaceChildren();entries.forEach((entry,index)=>{const row=node('div',undefined,'alarmmanagerMappingRow');const name=node('input'), value=node('input');value.type=kind==='headers'?'password':kind==='recipients'?'email':'text';value.value=kind==='headers'?entry[1]:entry;const label=node('label',kind==='headers'?'Secret value':kind==='recipients'?'Email address':'Argument');label.append(value);
+    if(kind==='headers'){name.value=entry[0];name.setCustomValidity(entries.filter(v=>v[0].toLowerCase()===entry[0].toLowerCase()).length>1?'Header names must be unique.':'');const keyLabel=node('label','Header name');keyLabel.append(name);row.append(keyLabel);}
+    row.append(label);const remove=node('button','Remove');remove.type='button';row.append(remove);rows.append(row);
+    function update(){if(kind==='headers'){entries[index]=[name.value,value.value];const keys=entries.map(v=>v[0].toLowerCase());name.setCustomValidity(keys.filter(v=>v===name.value.toLowerCase()).length>1?'Header names must be unique.':'');}else entries[index]=value.value;save();}
+    name.addEventListener('input',update);value.addEventListener('input',update);remove.addEventListener('click',()=>{entries.splice(index,1);save();render();});
+   });}
+   add.addEventListener('click',()=>{entries.push(kind==='headers'?['','']:'');render();rows.lastElementChild.querySelector('input').focus();});render();
+   // The structured editor owns this value; advanced fallback remains available without JavaScript.
+   raw.hidden=true;
+  });
+ }
+ function initDeliveryIntervals(app) {
+  app.querySelectorAll('[name=min_interval_ms]').forEach(stored=>{
+   const seconds=stored.cloneNode();seconds.removeAttribute('name');seconds.removeAttribute('value');seconds.value=Number(stored.value)/1000;seconds.max=Number(stored.max)/1000;seconds.step='0.001';stored.before(seconds);stored.hidden=true;stored.required=false;
+   stored.parentElement.firstChild.textContent='Minimum time between deliveries (seconds) ';
+   seconds.addEventListener('input',()=>{if(seconds.validity.valid)stored.value=Math.round(Number(seconds.value)*1000);});
   });
  }
  function initAuthentication(app) {
@@ -92,7 +129,7 @@
   });
  }
  function init() {
-  const app=document.getElementById('alarmmanager_app'); if(!app||app.dataset.initialized)return;app.dataset.initialized='yes';initMappings(app);initAuthentication(app);initEndpointTypes(app);
+  const app=document.getElementById('alarmmanager_app'); if(!app||app.dataset.initialized)return;app.dataset.initialized='yes';initMappings(app);initLists(app);initDeliveryIntervals(app);initAuthentication(app);initEndpointTypes(app);
   const dashboard=app.querySelector('#alarmmanager_dashboard');if(!dashboard)return;
   const form=app.querySelector('#alarmmanager_filters'), status=app.querySelector('#alarmmanager_dashboard_status'), refresh=app.querySelector('#alarmmanager_refresh');
   const charts={}; let inFlight=false, timer=null;
