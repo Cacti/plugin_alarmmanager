@@ -236,6 +236,7 @@ if (!function_exists('is_realm_allowed')) {
 if (!function_exists('cacti_log')) {
 	function cacti_log($message, $force = false, $module = 'SYSTEM', $level = POLLER_VERBOSITY_MEDIUM) {
 		$GLOBALS['alarmmanager_test_log'][] = $message;
+		$GLOBALS['alarmmanager_test_log_modules'][] = $module;
 
 		return false;
 	}

@@ -64,7 +64,7 @@ function alarmmanager_poller_bottom(array $args = []): void {
 		foreach (['processing', 'delivery'] as $role) {
 			$counts[$role] = alarmmanager_worker_loop($role, alarmmanager_poller_budget() + ['once' => true, 'worker_id' => alarmmanager_poller_worker_id($role)], static fn (): bool => false);
 		}
-		alarmmanager_log(sprintf('SYSTEM ALARMMANAGER STATS: Mode:poller Time:%.4f Processing:%d Delivery:%d', microtime(true) - $started, $counts['processing'], $counts['delivery']));
+		cacti_log(sprintf('ALARMMANAGER STATS: Time:%.4f Mode:poller Processing:%d Delivery:%d', microtime(true) - $started, $counts['processing'], $counts['delivery']), false, 'SYSTEM');
 	} catch (Throwable $error) {
 		alarmmanager_log('poller drain failed: ' . $error->getMessage());
 	}
