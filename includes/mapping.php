@@ -62,7 +62,7 @@ function alarmmanager_mapping_validate($mapping): array {
 			if (!is_array($item)) {
 				throw new InvalidArgumentException('invalid_mapping');
 			}
-			alarmmanager_event_keys($item, ['to', 'source', 'constant', 'default', 'type', 'values', 'required']);
+			alarmmanager_event_keys($item, ['to', 'source', 'constant', 'template', 'default', 'type', 'values', 'required']);
 			$path = $item['to'] ?? '';
 
 			if (!is_string($path) || strlen($path) > 191 || !preg_match('/\A[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*){0,7}\z/D', $path)) {
@@ -76,12 +76,18 @@ function alarmmanager_mapping_validate($mapping): array {
 			}
 			$paths[] = $path;
 
-			if (array_key_exists('source', $item) === array_key_exists('constant', $item)) {
+			if (count(array_intersect(['source', 'constant', 'template'], array_keys($item))) !== 1) {
 				throw new InvalidArgumentException('ambiguous_mapping');
 			}
 
 			if (array_key_exists('source', $item) && (!is_string($item['source']) || !in_array($item['source'], $allowed, true))) {
 				throw new InvalidArgumentException('unknown_mapping_field');
+			}
+			if (array_key_exists('template', $item)) {
+				if (!is_string($item['template'])) {
+					throw new InvalidArgumentException('invalid_mapping_template');
+				}
+				alarmmanager_mapping_template_fields($item['template']);
 			}
 			$type = $item['type'] ?? 'identity';
 
@@ -93,7 +99,7 @@ function alarmmanager_mapping_validate($mapping): array {
 				throw new InvalidArgumentException('invalid_mapping');
 			}
 
-			foreach (['constant', 'default', 'values'] as $key) {
+			foreach (['constant', 'template', 'default', 'values'] as $key) {
 				if (array_key_exists($key, $item) && strlen(json_encode($item[$key], JSON_THROW_ON_ERROR)) > 16384) {
 					throw new InvalidArgumentException('mapping_limit');
 				}
@@ -105,6 +111,34 @@ function alarmmanager_mapping_validate($mapping): array {
 
 	return $result;
 }
+/** @return list<string> */
+function alarmmanager_mapping_template_fields(string $template): array {
+	preg_match_all('/{{([^{}]*)}}/', $template, $matches);
+	$remaining = preg_replace('/{{[^{}]*}}/', '', $template);
+	if (str_contains($remaining, '{{') || str_contains($remaining, '}}')) {
+		throw new InvalidArgumentException('invalid_mapping_template');
+	}
+	$fields = array_map('trim', $matches[1]);
+	if (array_diff($fields, array_keys(alarmmanager_mapping_fields([])))) {
+		throw new InvalidArgumentException('unknown_mapping_field');
+	}
+	return $fields;
+}
+
+/** @param array<string, mixed> $fields */
+function alarmmanager_mapping_template(string $template, array $fields): ?string {
+	$missing = false;
+	$text = preg_replace_callback('/{{([^{}]*)}}/', static function (array $match) use ($fields, &$missing): string {
+		$value = $fields[trim($match[1])];
+		if ($value === null) {
+			$missing = true;
+			return '';
+		}
+		return alarmmanager_mapping_convert($value, 'string');
+	}, $template);
+	return $missing ? null : $text;
+}
+
 function alarmmanager_mapping_convert($value, string $type) {
 	if ($value === null || $type === 'identity') {
 		return $value;
@@ -160,7 +194,7 @@ function alarmmanager_map_payload(array $mapping, array $event, array $reference
 	$payload = new stdClass();
 
 	foreach ($items as $item) {
-		$value = array_key_exists('constant', $item) ? $item['constant'] : $fields[$item['source']];
+		$value = array_key_exists('template', $item) ? alarmmanager_mapping_template($item['template'], $fields) : (array_key_exists('constant', $item) ? $item['constant'] : $fields[$item['source']]);
 
 		if ($value === null && array_key_exists('default', $item)) {
 			$value = $item['default'];

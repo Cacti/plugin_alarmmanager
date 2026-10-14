@@ -215,7 +215,14 @@ function alarmmanager_response_reference(string $body, array $paths): array {
  * @return array<string, mixed>
  */
 function alarmmanager_delivery_reference(array $event, int $endpoint_id, ?array $mapping = null, ?array $overrides = null): array {
-	if ($mapping !== null && !array_intersect(array_column($mapping[$event['transition']] ?? $mapping['default'] ?? [], 'source'), ['integration.id', 'integration.url']) && !str_contains($overrides[$event['transition']]['url'] ?? '', '{{integration.id}}')) {
+	$items = $mapping[$event['transition']] ?? $mapping['default'] ?? [];
+	$sources = array_column($items, 'source');
+	foreach ($items as $item) {
+		if (isset($item['template'])) {
+			$sources = array_merge($sources, alarmmanager_mapping_template_fields($item['template']));
+		}
+	}
+	if ($mapping !== null && !array_intersect($sources, ['integration.id', 'integration.url']) && !str_contains($overrides[$event['transition']]['url'] ?? '', '{{integration.id}}')) {
 		return [];
 	}
 

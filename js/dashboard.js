@@ -41,8 +41,11 @@
      function control(label,element,parent=row) { const wrap=node('label',label);wrap.append(element);parent.append(wrap);return element; }
      const path=control('Field name',node('input'));path.value=item.to||'';path.maxLength=191;
      if(email&&['subject','body'].includes(item.to)){path.parentElement.hidden=true;row.append(node('strong',item.to==='subject'?'Subject':'Message'));}
-     const source=control('Value',node('select'));['constant',...sourceFields].forEach((key,i)=>{const o=node('option',i===0?'Custom value':fieldLabels[i-1]);o.value=key;source.append(o);});source.value=item.source||'constant';
+     const source=control('Value',node('select'));source.setAttribute('aria-label','Value');['constant','template',...sourceFields].forEach((key,i)=>{const o=node('option',i===0?'Custom value':i===1?'Combined text':fieldLabels[i-2]||key);o.value=key;source.append(o);});source.value='template' in item?'template':item.source||'constant';
      const constant=control(email&&item.to==='body'?'Message text':'Custom value',node(email&&item.to==='body'?'textarea':'input')); constant.value='constant' in item ? (typeof item.constant==='string'?item.constant:JSON.stringify(item.constant)):'';
+     const template=control('Combined text',node('textarea'));template.value=item.template||'';template.maxLength=16384;template.placeholder='Device {{device.id}} with description {{device.description}} went down at {{event.occurred_at}}';
+     const insertLabel=node('label','Insert variable '), variable=node('select'), insert=node('button','Insert variable');insert.type='button';variable.setAttribute('aria-label','Insert variable');sourceFields.forEach((key,i)=>{const option=node('option',fieldLabels[i]||key);option.value=key;variable.append(option);});insertLabel.append(variable);const templateGroup=node('div',undefined,'alarmmanagerCombinedText');templateGroup.append(template.parentElement,insertLabel,insert);row.append(templateGroup);
+     insert.addEventListener('click',()=>{template.setRangeText('{{'+variable.value+'}}',template.selectionStart,template.selectionEnd,'end');template.dispatchEvent(new Event('input',{bubbles:true}));template.focus();});
      const options=node('details');options.className='alarmmanagerFieldOptions';options.append(node('summary','Field options'));row.append(options);
      const type=control('Value format',node('select'),options);['identity','string','integer','number','boolean','html'].forEach((key,i)=>{const o=node('option',['Keep original value','Text','Whole number','Number','Yes / no','HTML-escaped text'][i]);o.value=key;type.append(o);});type.value=item.type||'identity';
      const fallback=control('Use when missing',node('input'),options);fallback.value='default' in item ? JSON.stringify(item.default):'';
@@ -50,16 +53,17 @@
      const required=control('Fail delivery if missing',node('input'),options);required.type='checkbox';required.checked=!!item.required;
      const remove=node('button','Remove field');remove.type='button';remove.hidden=email&&['subject','body'].includes(item.to);row.append(remove);
      function update(event) {
-      constant.parentElement.hidden=source.value!=='constant';
+      constant.parentElement.hidden=source.value!=='constant';templateGroup.hidden=source.value!=='template';
       const fresh={...item,to:path.value,type:type.value,required:required.checked};
-      delete fresh.source;delete fresh.constant;delete fresh.default;delete fresh.values;
-      if(source.value==='constant')fresh.constant=event?.target===constant?(typeof item.constant==='string'||!('constant' in item)?constant.value:parseValue(constant.value)):('constant' in item?item.constant:parseValue(constant.value));else fresh.source=source.value;
+      delete fresh.source;delete fresh.constant;delete fresh.template;delete fresh.default;delete fresh.values;
+      if(source.value==='constant')fresh.constant=event?.target===constant?(typeof item.constant==='string'||!('constant' in item)?constant.value:parseValue(constant.value)):('constant' in item?item.constant:parseValue(constant.value));else if(source.value==='template')fresh.template=template.value;else fresh.source=source.value;
       if(fallback.value!=='')fresh.default=parseValue(fallback.value);
       if(values.value!=='') {try{fresh.values=JSON.parse(values.value); values.setCustomValidity('');}catch{values.setCustomValidity('Use valid JSON for the value replacements.');options.open=true;return;}}
       mapping[selected][index]=fresh;item=fresh;save();
      }
-     constant.parentElement.hidden=source.value!=='constant';
-     [path,source,constant,type,fallback,values,required].forEach(el=>el.addEventListener('input',update));
+     constant.parentElement.hidden=source.value!=='constant';templateGroup.hidden=source.value!=='template';
+     [path,source,constant,template,type,fallback,values,required].forEach(el=>el.addEventListener('input',update));
+     jQuery(row).on('change','select',event=>{if(event.target!==variable)update(event);});
      remove.addEventListener('click',()=>{mapping[selected].splice(index,1);save();render();});if(email&&!['subject','body'].includes(item.to)){extraEmail.append(row);}else rows.append(row);
     });
     if(extraEmail.children.length>1)rows.append(extraEmail);

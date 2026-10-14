@@ -82,6 +82,26 @@ const render=endpoint=>execFileSync('php',['-r',`function __($s,...$a){return $s
   check(await serviceForm.locator('[name=reference_id_path]').inputValue()==='result.sys_id','Incident choice restores response reference');
   check(await serviceForm.locator('[name=basic_username]').inputValue()==='fixture-user'&&await serviceForm.locator('[name=basic_password]').inputValue()==='fixture-password','Switching retains credentials');
   check(!(await serviceForm.locator('[name=enabled]').isChecked()),'Switching keeps draft disabled');
+  await load({name:'Combined API',type:'restapi'});
+  const combinedRow=page.locator('.alarmmanagerMappingRow').first();
+  await combinedRow.getByLabel('Field name',{exact:true}).fill('summary');
+  await combinedRow.getByLabel('Value',{exact:true}).selectOption('template');
+  const combined=combinedRow.getByLabel('Combined text',{exact:true});
+  check(await combined.isVisible(),'Combined text editor is available');
+  await combined.fill('Device ');
+  await combinedRow.getByLabel('Insert variable',{exact:true}).selectOption('device.id');
+  await combinedRow.getByRole('button',{name:'Insert variable',exact:true}).click();
+  check(await combined.inputValue()==='Device {{device.id}}','Variable insertion uses the cursor');
+  const sentence='Device {{device.id}} with description {{device.description}} went down at {{event.occurred_at}}';
+  await combined.fill(sentence);
+  const combinedMapping=JSON.parse(await page.locator('[name=mapping_json]').inputValue());
+  check(combinedMapping.default[0].template===sentence&&!('source' in combinedMapping.default[0])&&!('constant' in combinedMapping.default[0]),'Combined text serializes without conflicting modes');
+  await load({id:4,name:'Saved combined',type:'restapi',transport:{url:'https://example.test',mapping:combinedMapping}});
+  check(await page.locator('.alarmmanagerMappingRow').first().getByLabel('Combined text',{exact:true}).inputValue()===sentence,'Saved combined text round trips');
+  await load({name:'Combined email',type:'email'});
+  const emailSubject=page.locator('.alarmmanagerMappingRow').first();await emailSubject.getByLabel('Value',{exact:true}).selectOption('template');await emailSubject.getByLabel('Combined text',{exact:true}).fill(sentence);
+  check(JSON.parse(await page.locator('[name=mapping_json]').inputValue()).default.find(field=>field.to==='subject').template===sentence,'Email subject accepts combined text');
+  await page.setViewportSize({width:390,height:844});check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Combined editor fits mobile');
   check(errors.length===0,'No browser errors');console.log(`PASS: ${checks} rendered endpoint checks`);
  }finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

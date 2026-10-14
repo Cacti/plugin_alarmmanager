@@ -211,3 +211,8 @@
 @media(max-width:600px) { .alarmmanagerMappingRow { grid-template-columns:minmax(0,1fr); } }
 
 #alarmmanager_app [hidden] { display:none !important; }
+
+#alarmmanager_app .alarmmanagerServiceNowType { display:block; }
+.alarmmanagerServiceNowType .select2 { width:100% !important; }
+
+.alarmmanagerCombinedText { grid-column:1 / -1; }

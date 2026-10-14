@@ -28,6 +28,8 @@ Select **ServiceNow** in the template picker, then choose **Incident** or **Even
 
 A preset that still contains a placeholder is a hint to edit it: unresolved placeholders make the endpoint draft appear with its example values until you replace them. Delivery failures from provider-specific bodies (`ok: false`, missing routing keys, missing incident references) are recorded per delivery with reason codes; the endpoint remains configurable and testable through the preview/test sends before it is enabled.
 
+For any message field, choose **Combined text** and mix literal text with variables using **Insert variable**, for example `Device {{device.id}} with description {{device.description}} went down at {{event.occurred_at}}`. This works for API/webhook fields, email subjects/messages and script payloads, including per-state mappings. `event.occurred_at` is the current event time, not a calculated downtime duration. Only listed variables are accepted; a missing variable uses the field's configured fallback (or yields null, failing delivery if required), and list/object values cannot be embedded in text. Custom values remain literal.
+
 ## Local verification
 
 Tests are PHPUnit/Pest based; they run through a sibling Cacti checkout's
