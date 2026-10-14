@@ -128,8 +128,15 @@
    jQuery(form).on('change','[name=type]',update);update();
   });
  }
+ function initTemplatePicker(app) {
+  app.querySelectorAll('form.alarmmanagerTemplatePicker').forEach(form => {
+   const select=form.querySelector('[name=integration_template]');if(!select)return;
+   const button=form.querySelector('button[type=submit]');if(button)button.hidden=true;
+   jQuery(select).on('change.alarmmanagerTemplate',()=>form.submit());
+  });
+ }
  function init() {
-  const app=document.getElementById('alarmmanager_app'); if(!app||app.dataset.initialized)return;app.dataset.initialized='yes';initMappings(app);initLists(app);initDeliveryIntervals(app);initAuthentication(app);initEndpointTypes(app);
+  const app=document.getElementById('alarmmanager_app'); if(!app||app.dataset.initialized)return;app.dataset.initialized='yes';initMappings(app);initLists(app);initDeliveryIntervals(app);initAuthentication(app);initEndpointTypes(app);initTemplatePicker(app);
   const dashboard=app.querySelector('#alarmmanager_dashboard');if(!dashboard)return;
   const form=app.querySelector('#alarmmanager_filters'), status=app.querySelector('#alarmmanager_dashboard_status'), refresh=app.querySelector('#alarmmanager_refresh');
   const charts={}; let inFlight=false, timer=null;

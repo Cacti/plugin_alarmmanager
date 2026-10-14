@@ -2,7 +2,7 @@
 
 --- main (development) ---
 
-* Endpoint setup: add default integration presets (Slack, Telegram, PagerDuty Events v2, ServiceNow incidents) to the template dropdown. Each preselects an authentication type when relevant and fills a validated payload mapping for the provider; drafts stay disabled and no credentials or endpoint IDs are copied.
+* Endpoint setup: add default integration presets (Slack, Telegram, PagerDuty Events v2, ServiceNow incidents) to the template dropdown; selecting a preset populates the new-endpoint editor immediately. Each preselects an authentication type when relevant and fills a validated payload mapping for the provider; drafts stay disabled and no credentials or endpoint IDs are copied.
 
 * HTTP delivery: add optional per-transition URL/method overrides (`transition_overrides`) so one endpoint can create an incident on raise events and update or resolve it on recovery events, keyed by the recorded external reference (for example ServiceNow sys_id) through an {{integration.id}} URL placeholder. Deliveries waiting on a not-yet-recorded reference retry until the creating delivery completes.
 

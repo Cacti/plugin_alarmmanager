@@ -16,8 +16,7 @@ const assert=require('node:assert/strict');
   const initial=await page.locator('details.alarmmanagerDashboardCard').count();
   for(const template of ['webhook','restapi','script']) {
    await page.locator('[name=integration_template]').selectOption(template);
-   await page.getByRole('button',{name:'Prepare new integration',exact:true}).click();
-   await page.waitForURL('**integration_template='+template);
+   await page.waitForURL('**integration_template='+template,{timeout:5000});
    const draft=page.locator('details.alarmmanagerDashboardCard').last();
    check(!(await draft.locator('[name=enabled]').isChecked()),'Template starts disabled');
    check(await page.locator('details.alarmmanagerDashboardCard').count()===initial,'Template selection preserves saved integrations');

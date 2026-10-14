@@ -134,7 +134,7 @@ function alarmmanager_admin_markup(array $state, string $section): void {
 		alarmmanager_api_clients_markup($revision, $config['profiles']);
 	} elseif ($section === 'endpoints') {
 		print '<p>' . __esc('Create an integration, configure its destination and credentials, preview and test a sample alarm, then select it in a routing profile.', 'alarmmanager') . '</p>';
-		print '<form method="get" action="alarmmanager_admin.php"><input type="hidden" name="section" value="endpoints"><label>' . __esc('Start a new integration from a template', 'alarmmanager') . '<select name="integration_template"><option value="">' . __esc('Blank endpoint', 'alarmmanager') . '</option>';
+		print '<form method="get" action="alarmmanager_admin.php" class="alarmmanagerTemplatePicker"><input type="hidden" name="section" value="endpoints"><label>' . __esc('Start a new integration from a template', 'alarmmanager') . '<select name="integration_template"><option value="">' . __esc('Blank endpoint', 'alarmmanager') . '</option>';
 		$templates = alarmmanager_integration_templates();
 		$selected  = (string) get_filter_request_var('integration_template', FILTER_CALLBACK, ['options' => static fn ($value) => is_string($value) && isset($templates[$value]) ? $value : false, 'default' => '']);
 
