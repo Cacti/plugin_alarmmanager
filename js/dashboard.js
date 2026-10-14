@@ -39,9 +39,9 @@
     items.forEach((item,index)=>{
      const row=node('div',undefined,'alarmmanagerMappingRow');
      function control(label,element,parent=row) { const wrap=node('label',label);wrap.append(element);parent.append(wrap);return element; }
-     const path=control('Cacti Field Name',node('input'));path.value=item.to||'';path.maxLength=191;
+     const path=control('Destination Field Name',node('input'));path.value=item.to||'';path.maxLength=191;
      if(email&&['subject','body'].includes(item.to)){path.parentElement.hidden=true;row.append(node('strong',item.to==='subject'?'Subject':'Message'));}
-     const source=control('Value',node('select'));source.setAttribute('aria-label','Value');['constant','template',...sourceFields].forEach((key,i)=>{const o=node('option',i===0?'Custom value':i===1?'Combined text':fieldLabels[i-2]||key);o.value=key;source.append(o);});source.value='template' in item?'template':item.source||'constant';
+     const source=control('Cacti Value',node('select'));source.setAttribute('aria-label','Cacti Value');['constant','template',...sourceFields].forEach((key,i)=>{const o=node('option',i===0?'Custom value':i===1?'Combined text':fieldLabels[i-2]||key);o.value=key;source.append(o);});source.value='template' in item?'template':item.source||'constant';
      const constant=control(email&&item.to==='body'?'Message text':'Custom value',node(email&&item.to==='body'?'textarea':'input')); constant.value='constant' in item ? (typeof item.constant==='string'?item.constant:JSON.stringify(item.constant)):'';
      const template=control('Combined text',node('textarea'));template.value=item.template||'';template.maxLength=16384;template.placeholder='Device {{device.id}} with description {{device.description}} went down at {{event.occurred_at}}';
      const insertLabel=node('label','Insert variable '), variable=node('select'), insert=node('button','Insert variable');insert.type='button';variable.setAttribute('aria-label','Insert variable');sourceFields.forEach((key,i)=>{const option=node('option',fieldLabels[i]||key);option.value=key;variable.append(option);});insertLabel.append(variable);const templateGroup=node('div',undefined,'alarmmanagerCombinedText');templateGroup.append(template.parentElement,insertLabel,insert);row.append(templateGroup);
