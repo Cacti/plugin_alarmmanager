@@ -1,9 +1,10 @@
 # CLAUDE.md — Alarm Manager for Cacti
 
-Guidance for AI agents (and humans) working in this repository. For the full
-standing decisions, read `docs/DECISIONS.md`; for the chronological phase log,
-read `docs/PROGRESS.md`. The authoritative Cacti PHP style contract lives in
-`.github/instructions/php.instructions.md` — never edit that file; follow it.
+Guidance for AI agents (and humans) working in this repository. The
+project/decision/progress documents under `docs/` were removed in October 2026
+pending a rewrite; none exist to read or write today. The authoritative Cacti
+PHP style contract lives in `.github/instructions/php.instructions.md` — never
+edit that file; follow it.
 
 ## Identity — never drift from these
 
@@ -14,8 +15,8 @@ read `docs/PROGRESS.md`. The authoritative Cacti PHP style contract lives in
   hook registered by this plugin is `alarmmanager_submit`; lifecycle functions
   Cacti itself names use the `plugin_alarmmanager_*` prefix.
 - Every database table is `plugin_alarmmanager_*`.
-- Supported platform (pinned in docs/DISCOVERY.md): Cacti 1.2.x, PHP >= 8.2,
-  MariaDB >= 10.11 / InnoDB (MySQL refused until a lane is qualified).
+- Supported platform: Cacti 1.2.x, PHP >= 8.2, MariaDB >= 10.11 / InnoDB
+  (MySQL refused until a lane is qualified).
 - The repository is private by default. Do not change visibility or push
   anywhere without an explicit user instruction.
 - Keep keys, secrets, ciphertext and credentials out of logs, source, commit
@@ -105,9 +106,9 @@ Notes:
 
 ## Documentation discipline
 
-- Every substantive change appends one timestamped entry to `docs/PROGRESS.md`
-  (what changed + validation evidence) before the commit.
-- Architecture decisions that bind later work go to `docs/DECISIONS.md`.
-- `docs/PROGRESS.md` and `docs/CHANGELOG.md` distinguish VERIFIED (command +
-  evidence) from UNVERIFIED claims. Never claim a Cacti behavior as verified
-  unless a test or a cited Cacti source path confirms it.
+- The `docs/` narrative documents were removed pending a rewrite; do not
+  create or append to `docs/PROGRESS.md`, `docs/DECISIONS.md` or similar
+  unless the user asks for a new documentation structure.
+- `CHANGELOG.md` still applies: distinguish VERIFIED (command + evidence)
+  from UNVERIFIED claims. Never claim a Cacti behavior as verified unless a
+  test or a cited Cacti source path confirms it.

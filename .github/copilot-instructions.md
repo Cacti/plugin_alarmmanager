@@ -18,9 +18,10 @@ Standing rules that most often get violated:
    `CLAUDE.md`): pest unit lane, `php -l`, php-cs-fixer dry-run, and phpstan
    from this directory with `CACTI_PATH` set. The phpstan baseline may only
    shrink.
-4. Append a dated, evidence-backed entry to `docs/PROGRESS.md` for every
-   substantive change; binding decisions go to `docs/DECISIONS.md`. Mark
-   anything not proven by a command/test as UNVERIFIED rather than claiming it.
+4. The `docs/` narrative documents were removed in October 2026 pending a
+   rewrite — do not create or append to `docs/PROGRESS.md`, `docs/DECISIONS.md`
+   or similar. Mark anything not proven by a command/test as UNVERIFIED rather
+   than claiming it.
 5. Do not add backward-compatibility shims, function_exists guards around
    Cacti helpers, or database migration paths — the project is greenfield
    (never released). Keep only Cacti-framework-required boilerplate.
