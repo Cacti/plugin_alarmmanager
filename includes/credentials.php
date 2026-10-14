@@ -189,20 +189,27 @@ function alarmmanager_decrypt_credential(#[\SensitiveParameter] string $encoded,
 	return alarmmanager_credential_validate($record);
 }
 function alarmmanager_save_credential(int $endpoint_id, #[\SensitiveParameter] array $record, ?int $audit_user = null): void {
-	alarmmanager_secret_guard();
 	alarmmanager_transaction(function () use ($endpoint_id, $record, $audit_user): void {
-		$key = alarmmanager_secret_key(true);
-
-		if (!alarmmanager_db_row("SELECT id FROM plugin_alarmmanager_endpoints WHERE id = ? AND type IN ('restapi', 'webhook')", [$endpoint_id])) {
-			throw new InvalidArgumentException('credential_endpoint_invalid');
-		}
-		$ciphertext = alarmmanager_encrypt_credential($record, $endpoint_id, $key);
-		alarmmanager_db_write('INSERT INTO plugin_alarmmanager_credentials (endpoint_id, ciphertext, updated_at) VALUES (?, ?, UTC_TIMESTAMP(6)) ON DUPLICATE KEY UPDATE ciphertext = VALUES(ciphertext), updated_at = VALUES(updated_at)', [$endpoint_id, $ciphertext]);
-
-		if ($audit_user !== null) {
-			alarmmanager_db_write('INSERT INTO plugin_alarmmanager_audit (user_id, action, resource_id, created_at) VALUES (?, ?, ?, UTC_TIMESTAMP(6))', [$audit_user, 'credential_save', $endpoint_id]);
-		}
+		alarmmanager_write_credential($endpoint_id, $record, $audit_user);
 	});
+}
+/**
+ * Internal credential writer: caller must own a transaction.
+ * @param array<string, mixed> $record
+ */
+function alarmmanager_write_credential(int $endpoint_id, #[\SensitiveParameter] array $record, ?int $audit_user = null): void {
+	alarmmanager_secret_guard();
+	$key = alarmmanager_secret_key(true);
+
+	if (!alarmmanager_db_row("SELECT id FROM plugin_alarmmanager_endpoints WHERE id = ? AND type IN ('restapi', 'webhook')", [$endpoint_id])) {
+		throw new InvalidArgumentException('credential_endpoint_invalid');
+	}
+	$ciphertext = alarmmanager_encrypt_credential($record, $endpoint_id, $key);
+	alarmmanager_db_write('INSERT INTO plugin_alarmmanager_credentials (endpoint_id, ciphertext, updated_at) VALUES (?, ?, UTC_TIMESTAMP(6)) ON DUPLICATE KEY UPDATE ciphertext = VALUES(ciphertext), updated_at = VALUES(updated_at)', [$endpoint_id, $ciphertext]);
+
+	if ($audit_user !== null) {
+		alarmmanager_db_write('INSERT INTO plugin_alarmmanager_audit (user_id, action, resource_id, created_at) VALUES (?, ?, ?, UTC_TIMESTAMP(6))', [$audit_user, 'credential_save', $endpoint_id]);
+	}
 }
 function alarmmanager_load_credential(int $endpoint_id): array {
 	// One transaction snapshot prevents a rotation between key and ciphertext reads.

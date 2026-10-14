@@ -2,6 +2,10 @@
 
 --- main (development) ---
 
+* Endpoint authentication: add bearer-token, Basic username/password and authentication-header inputs to the endpoint editor, saving encrypted credentials and configuration atomically; blank endpoint inputs preserve saved credentials.
+
+* Credentials page: explain why no credential forms appear before a REST API/webhook endpoint is saved and provide a Create endpoint link.
+
 * Fixed administration/report tab navigation and collector-history filters returning misleading permission errors when explicit query parameters were present; corrected FILTER_CALLBACK options passed to Cacti request helpers.
 
 * Includes consolidation: merged five satellite modules into administration, credentials, delivery and transports; reduced includes/ from 33 PHP files to 28 while preserving all shared functions and subprocess boundaries.

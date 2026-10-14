@@ -96,11 +96,7 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 
 	if ($action === 'credential_save') {
 		$id     = alarmmanager_admin_int($input['id'] ?? null);
-		$record = ['headers' => alarmmanager_admin_json($input['headers'] ?? '{}', 65536)];
-
-		if (($input['basic_username'] ?? '') !== '' || ($input['basic_password'] ?? '') !== '') {
-			$record['basic'] = ['username' => $input['basic_username'] ?? '', 'password' => $input['basic_password'] ?? ''];
-		}
+		$record = alarmmanager_admin_credential($input) ?? ['headers' => []];
 		alarmmanager_save_credential($id, $record, $user);
 
 		return 'Credential saved. Existing values are never displayed.';
@@ -183,7 +179,8 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 	if ($state['revision'] !== $revision) {
 		throw new InvalidArgumentException('configuration_changed');
 	}
-	$settings = $state['configuration'];
+	$settings   = $state['configuration'];
+	$credential = null;
 
 	if ($action === 'configuration_save') {
 		$settings = alarmmanager_admin_json($input['configuration_json'] ?? '', 1048576);
@@ -206,6 +203,11 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 				throw new InvalidArgumentException('invalid_action');
 			}
 			$item['type'] = $type;
+			$credential   = alarmmanager_admin_credential($input);
+
+			if ($credential !== null && !in_array($type, ['restapi', 'webhook'], true)) {
+				throw new InvalidArgumentException('credential_endpoint_invalid');
+			}
 
 			foreach (['max_concurrency' => [1, 64, 1], 'timeout_seconds' => [1, 120, 10], 'max_attempts' => [1, 20, 5], 'min_interval_ms' => [0, 3600000, 0]] as $key => [$min, $max, $default]) {
 				$item[$key] = alarmmanager_admin_int($input[$key] ?? $default, $min, $max);
@@ -218,7 +220,11 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 				// form.method and break csrf-magic.js); the stored key stays "method".
 				$transport['method']     = $input['http_method'] ?? 'POST';
 				$transport['ca_bundle']  = ($input['ca_bundle'] ?? '') === '' ? null : $input['ca_bundle'];
-				$transport['credential'] = isset($input['credential']);
+				$transport['credential'] = match ($input['auth_type'] ?? '') {
+					'none'  => false,
+					'keep'  => (bool) (array_column($settings['endpoints'], null, 'id')[$id]['transport']['credential'] ?? false),
+					default => isset($input['credential']) || $credential !== null
+				};
 				$transport['allow_http'] = isset($input['allow_http']);
 			}
 			$transport['mapping'] = alarmmanager_admin_json($input['mapping_json'] ?? '{}');
@@ -248,7 +254,17 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 			$settings[$section][] = $item;
 		}
 	}
-	alarmmanager_apply_configuration($settings, $revision, $user);
+
+	if ($credential !== null) {
+		$settings = alarmmanager_configuration($settings);
+		alarmmanager_transaction(function () use ($settings, $revision, $user, $id, $credential): void {
+			alarmmanager_write_configuration($settings, $revision, $user);
+			alarmmanager_write_credential($id, $credential, $user);
+		});
+		unset($GLOBALS['alarmmanager_route_cache']);
+	} else {
+		alarmmanager_apply_configuration($settings, $revision, $user);
+	}
 
 	return 'Configuration saved.';
 }
@@ -307,4 +323,52 @@ function alarmmanager_producer_save(array $input, int $user): string {
 	});
 
 	return 'Producer policy saved. Apply the revision-pinned patch on each producer. Existing notification receipts keep their original delivery owner.';
+}
+
+/**
+ * @param  array<string, mixed>      $input
+ * @return array<string, mixed>|null
+ */
+function alarmmanager_admin_credential(#[\SensitiveParameter] array $input): ?array {
+	$type = $input['auth_type'] ?? null;
+
+	if ($type !== null) {
+		if (!in_array($type, ['none', 'keep', 'bearer', 'basic', 'headers'], true)) {
+			throw new InvalidArgumentException('invalid_credentials');
+		}
+
+		if ($type === 'none' || $type === 'keep') {
+			return null;
+		}
+		$fields = match ($type) {
+			'bearer' => ['bearer_token'], 'basic' => ['basic_username', 'basic_password'], 'headers' => ['headers']
+		};
+		$input = array_intersect_key($input, array_flip($fields));
+	}
+	$record = ['headers' => alarmmanager_admin_json($input['headers'] ?? '{}', 65536)];
+	$token  = $input['bearer_token'] ?? '';
+
+	if (!is_string($token)) {
+		throw new InvalidArgumentException('invalid_credentials');
+	}
+
+	if ($token !== '') {
+		foreach (array_keys($record['headers']) as $name) {
+			if (is_string($name) && strtolower($name) === 'authorization') {
+				throw new InvalidArgumentException('invalid_credentials');
+			}
+		}
+		$record['headers']['Authorization'] = 'Bearer ' . $token;
+	}
+
+	if (($input['basic_username'] ?? '') !== '' || ($input['basic_password'] ?? '') !== '') {
+		$record['basic'] = ['username' => $input['basic_username'] ?? '', 'password' => $input['basic_password'] ?? ''];
+	}
+	$record = alarmmanager_credential_validate($record);
+
+	if ($type !== null && (!$record['headers'] && !isset($record['basic']) || $type === 'basic' && ($record['basic']['username'] ?? '') === '')) {
+		throw new InvalidArgumentException('invalid_credentials');
+	}
+
+	return $record['headers'] || isset($record['basic']) ? $record : null;
 }

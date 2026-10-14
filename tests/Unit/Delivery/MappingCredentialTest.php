@@ -146,4 +146,30 @@ final class MappingCredentialTest extends AlarmManagerTestCase {
 			$this->assertRejects(fn () => alarmmanager_encrypt_credential($bad, 1, $key), 'Invalid credentials');
 		}
 	}
+	public function testAuthenticationFieldsBuildValidatedCredentials(): void {
+		self::alarmmanager_test_load('includes/admin.php');
+		$this->assertNull(alarmmanager_admin_credential(['headers' => '{}', 'bearer_token' => '', 'basic_username' => '', 'basic_password' => '']));
+		$this->assertSame(['headers' => ['Authorization' => 'Bearer fixture-token']], alarmmanager_admin_credential(['bearer_token' => 'fixture-token']));
+		$this->assertSame(['headers' => ['X-API-Key' => 'fixture-key'], 'basic' => ['username' => 'fixture-user', 'password' => 'fixture-password']], alarmmanager_admin_credential(['headers' => '{"X-API-Key":"fixture-key"}', 'basic_username' => 'fixture-user', 'basic_password' => 'fixture-password']));
+
+		$this->assertNull(alarmmanager_admin_credential(['auth_type' => 'none', 'bearer_token' => 'ignored']));
+		$this->assertNull(alarmmanager_admin_credential(['auth_type' => 'keep', 'basic_password' => 'ignored']));
+		$this->assertSame(['headers' => ['Authorization' => 'Bearer selected-token']], alarmmanager_admin_credential(['auth_type' => 'bearer', 'bearer_token' => 'selected-token', 'basic_username' => 'ignored']));
+		$this->assertSame(['headers' => [], 'basic' => ['username' => 'user', 'password' => '']], alarmmanager_admin_credential(['auth_type' => 'basic', 'basic_username' => 'user']));
+		$this->assertSame(['headers' => ['X-API-Key' => 'key']], alarmmanager_admin_credential(['auth_type' => 'headers', 'headers' => '{"X-API-Key":"key"}', 'bearer_token' => 'ignored']));
+
+		foreach ([
+			['bearer_token' => "bad\r\ntoken"],
+			['bearer_token' => ['invalid']],
+			['auth_type' => 'invalid'],
+			['auth_type' => ['bearer']],
+			['auth_type' => 'bearer'],
+			['auth_type' => 'basic', 'basic_password' => 'password'],
+			['auth_type' => 'headers', 'headers' => '{}'],
+			['bearer_token' => 'token', 'basic_username' => 'user', 'basic_password' => 'password'],
+			['bearer_token' => 'token', 'headers' => '{"authorization":"other"}']
+		] as $input) {
+			$this->assertRejects(fn () => alarmmanager_admin_credential($input), 'Conflicting or invalid authentication rejected');
+		}
+	}
 }

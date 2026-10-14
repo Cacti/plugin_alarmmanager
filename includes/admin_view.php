@@ -75,9 +75,9 @@ function alarmmanager_endpoint_editor(array $endpoint, int $revision, bool $new 
 		print '<option ' . (($transport['method'] ?? 'POST') === $method ? 'selected' : '') . '>' . $method . '</option>';
 	} print '</select></label>';
 	alarmmanager_input('ca_bundle', 'Self-signed certificate / private CA PEM path', $transport['ca_bundle'] ?? '', 'text', 'maxlength="1024" placeholder="/etc/cacti/alarmmanager/internal-ca.pem"');
-	alarmmanager_checkbox('credential', 'Use encrypted endpoint credential', $transport['credential'] ?? false);
 	alarmmanager_checkbox('allow_http', 'Allow anonymous HTTP', $transport['allow_http'] ?? false);
-	print '<p>' . __esc('Certificate and hostname verification remain enabled. Provision the PEM file on every poller. Save secrets on the Credentials page.', 'alarmmanager') . '</p></fieldset>';
+	print '<p>' . __esc('Certificate and hostname verification remain enabled. Provision the PEM file on every poller. Saved credentials are never displayed.', 'alarmmanager') . '</p></fieldset>';
+	alarmmanager_auth_editor(!empty($transport['credential']) ? 'keep' : 'none');
 	print '<fieldset class="alarmmanagerFullWidth alarmmanagerMapping"><legend>' . __esc('Payload mappings', 'alarmmanager') . '</legend><p>' . __esc('Add destination fields using normalized sources or constants. Each transition can replace the default payload. No PHP or string substitution is evaluated.', 'alarmmanager') . '</p><div class="alarmmanagerMappingBuilder"></div>';
 	alarmmanager_textarea('mapping_json', 'Mapping JSON (advanced / no-JavaScript editor)', alarmmanager_json_text($mapping));
 	print '</fieldset>';
@@ -138,12 +138,14 @@ function alarmmanager_admin_markup(array $state, string $section): void {
 		$status = alarmmanager_db_rows('SELECT ep.id, ep.name, CASE WHEN c.endpoint_id IS NULL THEN 0 ELSE 1 END AS configured FROM plugin_alarmmanager_endpoints AS ep LEFT JOIN plugin_alarmmanager_credentials AS c ON c.endpoint_id = ep.id WHERE ep.type IN (?, ?) ORDER BY ep.id LIMIT 200', ['restapi', 'webhook']);
 		print '<p>' . __esc('Credential values are never loaded into this page. Saving replaces the endpoint record; blank values do not preserve an old password. Use the CLI for protected backup/restore and poller provisioning.', 'alarmmanager') . '</p>';
 
+		if (!$status) {
+			print '<p>' . __esc('No REST API or webhook endpoints have been saved. Create an endpoint to enter its bearer token, Basic authentication username and password, or API-key headers.', 'alarmmanager') . '</p><p><a href="alarmmanager_admin.php?section=endpoints">' . __esc('Create endpoint', 'alarmmanager') . '</a></p>';
+		}
+
 		foreach ($status as $row) {
 			print '<details class="alarmmanagerDashboardCard"><summary>' . html_escape($row['name']) . ' #' . $row['id'] . ' — ' . __esc($row['configured'] ? 'Configured' : 'Not configured', 'alarmmanager') . '</summary>';
 			alarmmanager_form_start('credential_save', $revision, ['id' => $row['id']]);
-			alarmmanager_textarea('headers', 'Authentication headers JSON (new values)', '{}', 65536);
-			alarmmanager_input('basic_username', 'Basic username (optional)', '', 'text', 'autocomplete="off" maxlength="4096"');
-			alarmmanager_input('basic_password', 'Basic password (optional)', '', 'password', 'autocomplete="new-password" maxlength="4096"');
+			alarmmanager_auth_editor('bearer', true);
 			print '<button type="submit">' . __esc('Replace credential', 'alarmmanager') . '</button></form>';
 			alarmmanager_post_form('credential_remove', ['id' => $row['id']], 'Remove credential');
 			print '</details>';
@@ -311,4 +313,26 @@ function alarmmanager_remote_markup(): void {
 	foreach ($rows as $row) {
 		print '<details class="alarmmanagerDashboardCard"><summary>' . __esc('Collector', 'alarmmanager') . ' ' . (int) $row['poller_id'] . ' / ' . html_escape($entity) . ' #' . (int) $row['entity_id'] . ' — ' . html_escape($row['received_at']) . '</summary><pre>' . html_escape(json_encode(json_decode($row['definition'], true, 32, JSON_THROW_ON_ERROR), JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR)) . '</pre></details>';
 	}
+}
+
+function alarmmanager_auth_editor(string $selected, bool $replacement = false): void {
+	print '<fieldset class="alarmmanagerFullWidth alarmmanagerAuth"><legend>' . __esc('Authentication', 'alarmmanager') . '</legend><label>' . __esc('Authentication type', 'alarmmanager') . ' <select name="auth_type">';
+	$options = $replacement ? [] : ['none' => 'None'];
+
+	if ($selected === 'keep') {
+		$options['keep'] = 'Keep saved authentication';
+	}
+	$options += ['bearer' => 'Bearer token', 'basic' => 'Basic authentication', 'headers' => 'Custom authentication headers'];
+
+	foreach ($options as $value => $label) {
+		print '<option value="' . $value . '"' . ($selected === $value ? ' selected' : '') . '>' . __esc($label, 'alarmmanager') . '</option>';
+	}
+	print '</select></label><div class="alarmmanagerAuthFields" data-auth-type="bearer">';
+	alarmmanager_input('bearer_token', 'Bearer token', '', 'password', 'autocomplete="new-password" maxlength="4089"');
+	print '</div><div class="alarmmanagerAuthFields" data-auth-type="basic">';
+	alarmmanager_input('basic_username', 'Username', '', 'text', 'autocomplete="off" maxlength="4096"');
+	alarmmanager_input('basic_password', 'Password', '', 'password', 'autocomplete="new-password" maxlength="4096"');
+	print '</div><div class="alarmmanagerAuthFields" data-auth-type="headers">';
+	alarmmanager_textarea('headers', 'Authentication headers JSON', '{}', 65536);
+	print '</div><p class="alarmmanagerHint">' . __esc('Saved credentials are encrypted and never displayed. New values replace the saved credential record.', 'alarmmanager') . '</p></fieldset>';
 }

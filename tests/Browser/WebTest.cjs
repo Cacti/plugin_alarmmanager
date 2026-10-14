@@ -28,6 +28,14 @@ const fs=require('node:fs'), path=require('node:path');
   await page.goto(base+'/plugins/alarmmanager/alarmmanager_admin.php?section=endpoints');
   check(await page.evaluate(()=>window.ALARM_BAD===undefined),'Endpoint name escaped');
   const detail=page.locator('details').first();await detail.locator('summary').click();
+  const auth=detail.locator('[name=auth_type]'), originalAuth=await auth.inputValue();
+  for(const type of ['none','bearer','basic','headers']) {
+   await auth.selectOption(type,{force:true});
+   for(const group of ['bearer','basic','headers']) {
+    check(await detail.locator(`[data-auth-type="${group}"]`).isVisible()===(group===type),`${type}: relevant authentication fields only`);
+   }
+  }
+  await auth.selectOption(originalAuth,{force:true});
   const row=detail.locator('.alarmmanagerMappingRow').first();await row.locator('input').first().fill('host');
   check(JSON.parse(await detail.locator('[name=mapping_json]').inputValue()).default[0].to==='host','No-code field mapping editor');
 
