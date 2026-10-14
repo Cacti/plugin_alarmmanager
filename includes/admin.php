@@ -214,7 +214,9 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 
 			if (in_array($type, ['restapi', 'webhook'], true)) {
 				$transport['url']        = $input['url'] ?? '';
-				$transport['method']     = $input['method'] ?? 'POST';
+				// Browser field is http_method (a "method" control would shadow
+				// form.method and break csrf-magic.js); the stored key stays "method".
+				$transport['method']     = $input['http_method'] ?? 'POST';
 				$transport['ca_bundle']  = ($input['ca_bundle'] ?? '') === '' ? null : $input['ca_bundle'];
 				$transport['credential'] = isset($input['credential']);
 				$transport['allow_http'] = isset($input['allow_http']);

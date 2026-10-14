@@ -67,7 +67,9 @@ function alarmmanager_endpoint_editor(array $endpoint, int $revision, bool $new 
 	unset($transport['mapping']);
 	print '<fieldset class="alarmmanagerFullWidth"><legend>' . __esc('HTTP settings (REST API or webhook)', 'alarmmanager') . '</legend>';
 	alarmmanager_input('url', 'URL', $transport['url'] ?? '', 'url', 'maxlength="2048"');
-	print '<label>' . __esc('Method', 'alarmmanager') . ' <select name="method">';
+	// The control must not be named "method": a named form control called
+	// "method" shadows HTMLFormElement.method and crashes csrf-magic.js.
+	print '<label>' . __esc('Method', 'alarmmanager') . ' <select name="http_method">';
 
 	foreach (['POST', 'PUT', 'PATCH', 'DELETE'] as $method) {
 		print '<option ' . (($transport['method'] ?? 'POST') === $method ? 'selected' : '') . '>' . $method . '</option>';

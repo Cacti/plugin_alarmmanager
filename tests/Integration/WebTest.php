@@ -177,7 +177,7 @@ final class WebTest extends AlarmManagerTestCase {
 			$this->assertTrue(str_contains($html,'&lt;img') && !str_contains($html,'<img src=x'), 'Endpoint editor escaping');
 			$routes['endpoints'][0]['transport'] = ['url'=>'https://example.test/alarms', 'credential'=>true, 'mapping'=>['default'=>[['to'=>'hostname', 'source'=>'device.id']]]];
 			alarmmanager_apply_configuration($routes);
-			$native = ['action'=>'endpoint_save', 'revision'=>alarmmanager_admin_configuration()['revision'], 'id'=>'1', 'name'=>'Native REST', 'enabled'=>'yes', 'type'=>'restapi', 'url'=>'https://example.test/alarms', 'method'=>'POST', 'credential'=>'yes', 'mapping_json'=>json_encode(['default'=>[['to'=>'host', 'source'=>'device.id']]]), 'transport_json'=>'{}'];
+			$native = ['action'=>'endpoint_save', 'revision'=>alarmmanager_admin_configuration()['revision'], 'id'=>'1', 'name'=>'Native REST', 'enabled'=>'yes', 'type'=>'restapi', 'url'=>'https://example.test/alarms', 'http_method'=>'POST', 'credential'=>'yes', 'mapping_json'=>json_encode(['default'=>[['to'=>'host', 'source'=>'device.id']]]), 'transport_json'=>'{}'];
 			$this->waction($native);
 			$this->assertSame('host', alarmmanager_admin_configuration()['configuration']['endpoints'][0]['transport']['mapping']['default'][0]['to'], 'Native endpoint form mapping save');
 			$before  = (int)db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_deliveries');
