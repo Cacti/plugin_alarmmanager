@@ -299,7 +299,7 @@ function alarmmanager_remote_markup(): void {
 	$grants = alarmmanager_db_rows('SELECT device_id, poller_id, epoch, owner, mode, valid_from, valid_until FROM plugin_alarmmanager_device_owners ORDER BY device_id LIMIT 100');
 	print '<details><summary>' . __esc('Device ownership grants (first 100)', 'alarmmanager') . '</summary><pre>' . html_escape(json_encode($grants, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR)) . '</pre></details>';
 	$poller = get_filter_request_var('collector', FILTER_VALIDATE_INT, ['options' => ['min_range' => 0, 'max_range' => 2147483647], 'default' => 0]);
-	$entity = get_filter_request_var('entity', FILTER_CALLBACK, ['options' => ['options' => static fn ($value) => is_string($value) && isset(alarmmanager_sync_entities()[$value]) ? $value : false], 'default' => 'event']);
+	$entity = get_filter_request_var('entity', FILTER_CALLBACK, ['options' => static fn ($value) => is_string($value) && isset(alarmmanager_sync_entities()[$value]) ? $value : false, 'default' => 'event']);
 	print '<form method="get"><input type="hidden" name="section" value="collectors"><label>' . __esc('Collector (0 selects all)', 'alarmmanager') . ' <input name="collector" type="number" min="0" value="' . $poller . '"></label><label>' . __esc('Record type', 'alarmmanager') . ' <select name="entity">';
 
 	foreach (array_keys(alarmmanager_sync_entities()) as $type) {

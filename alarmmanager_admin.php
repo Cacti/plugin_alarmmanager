@@ -65,7 +65,7 @@ try {
 	}
 
 	$state   = alarmmanager_admin_configuration();
-	$section = (string) get_filter_request_var('section', FILTER_CALLBACK, ['options' => ['options' => static fn ($value) => in_array($value, ALARMMANAGER_SECTIONS, true) ? $value : false], 'default' => 'endpoints']);
+	$section = (string) get_filter_request_var('section', FILTER_CALLBACK, ['options' => static fn ($value) => in_array($value, ALARMMANAGER_SECTIONS, true) ? $value : false, 'default' => 'endpoints']);
 } catch (Throwable $error) {
 	http_response_code($error instanceof InvalidArgumentException ? 400 : ($error instanceof \AlarmManager\StorageException ? 503 : 403));
 	print html_escape(__('Administration unavailable or permission denied.', 'alarmmanager'));

@@ -71,7 +71,7 @@ function alarmmanager_view_filters(): array {
  * The report tab, validated as an enum by Cacti's own filter machinery.
  */
 function alarmmanager_view_tab(): string {
-	return (string) get_filter_request_var('tab', FILTER_CALLBACK, ['options' => ['options' => static fn ($value) => in_array($value, ALARMMANAGER_TABS, true) ? $value : false], 'default' => 'dashboard']);
+	return (string) get_filter_request_var('tab', FILTER_CALLBACK, ['options' => static fn ($value) => in_array($value, ALARMMANAGER_TABS, true) ? $value : false, 'default' => 'dashboard']);
 }
 /**
  * Handle an uncaught page error: JSON payload for the dashboard endpoint, a

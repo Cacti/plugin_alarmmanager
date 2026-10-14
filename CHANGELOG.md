@@ -2,6 +2,8 @@
 
 --- main (development) ---
 
+* Fixed administration/report tab navigation and collector-history filters returning misleading permission errors when explicit query parameters were present; corrected FILTER_CALLBACK options passed to Cacti request helpers.
+
 * Includes consolidation: merged five satellite modules into administration, credentials, delivery and transports; reduced includes/ from 33 PHP files to 28 while preserving all shared functions and subprocess boundaries.
 
 * Navigation cleanup: the report pages expose their seven tabs (Dashboard, Active conditions, Events, Delivery jobs, Attempts, Routing decisions, Processing) and the Administration page moved out of the view tab strip into its own console menu item — a top-level "Alarm Manager Settings" group placed like the syslog plugin's "Syslog Settings" — with the administration breadcrumb promoted to a first-level console page. The endpoint editor's HTTP-method control was renamed to `http_method` (a `method` form control shadows `form.method` and crashes `csrf-magic.js`).
