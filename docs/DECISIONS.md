@@ -36,7 +36,7 @@
 - Adapt the actual syslog shared controls, responsive panels and local Billboard chart conventions with attribution. Keep user labels in escaped/text-only elements and disable chart HTML tooltips.
 - Use UTC DATETIME arithmetic for buckets independent of session timezone; keep current condition/queue counts separate from historical action windows and mode-separated observations.
 - Bound report rows, windows/categories and per-statement execution; record measured fixture queries and remaining large-installation qualification honestly.
-- Lock configuration revision to reject stale UI writes, audit safe metadata atomically, and preserve prior delivery attempts/idempotency while granting a fresh explicit replay retry budget.
+- Lock configuration revision to reject stale UI writes, rely on the Cacti Audit plugin for POST logging, and preserve prior delivery attempts/idempotency while granting a fresh explicit replay retry budget.
 
 
 ## Phase 7 additions

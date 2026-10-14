@@ -190,10 +190,9 @@ final class WebTest extends AlarmManagerTestCase {
 			}
 			$state                      = alarmmanager_admin_configuration();
 			$version                    = $state['revision'];
-			$audit_before_configuration = (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_audit');
 			$this->waction(['action'=>'configuration_save', 'revision'=>$version, 'configuration_json'=>json_encode($state['configuration'])]);
 			$this->wreject(fn () =>$this->waction(['action'=>'configuration_save', 'revision'=>$version, 'configuration_json'=>json_encode($state['configuration'])]), 'Stale configuration rejected');
-			$this->assertSame($audit_before_configuration + 1, (int)db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_audit'), 'Configuration audit');
+			$this->assertSame($version + 1, alarmmanager_admin_configuration()['revision'], 'Configuration revision advanced once');
 			$record = ['headers'=>['Authorization'=>'Bearer WEB_SECRET_MARKER']];
 			$this->waction(['action'=>'credential_save', 'id'=>'1', 'headers'=>json_encode($record['headers'])]);
 			$this->assertTrue(alarmmanager_load_credential(1) === $record, 'Admin credential save');
@@ -265,7 +264,7 @@ final class WebTest extends AlarmManagerTestCase {
 			$this->assertSame(0, (int)db_fetch_cell_prepared('SELECT attempts FROM plugin_alarmmanager_jobs WHERE id=?', [$job['id']]), 'Processing retry budget reset');
 			$condition = alarmmanager_db_row('SELECT stream_key FROM plugin_alarmmanager_states WHERE active=1 LIMIT 1');
 			$this->waction(['action'=>'acknowledge', 'stream_key'=>$condition['stream_key'], 'acknowledged'=>'yes']);
-			$this->assertSame(1, (int)db_fetch_cell_prepared('SELECT acknowledged FROM plugin_alarmmanager_states WHERE stream_key=?', [$condition['stream_key']]), 'Acknowledgment audited');
+			$this->assertSame(1, (int)db_fetch_cell_prepared('SELECT acknowledged FROM plugin_alarmmanager_states WHERE stream_key=?', [$condition['stream_key']]), 'Acknowledgment saved');
 			$old = alarmmanager_secret_key();
 			$this->waction(['action'=>'key_rotate', 'confirmed'=>'yes']);
 			$this->assertTrue(alarmmanager_secret_key() !== $old && alarmmanager_load_credential(1) === $record, 'Browser local key rotation');
@@ -323,7 +322,6 @@ final class WebTest extends AlarmManagerTestCase {
 			alarmmanager_admin_markup(alarmmanager_admin_configuration(),'producers');
 			$html = ob_get_clean();
 			$this->assertTrue(str_contains($html,'Producer integrations') && str_contains($html,'migration_confirmed') && str_contains($html,'__csrf_magic'), 'producer admin controls and CSRF rendered');
-			$this->assertSame(4, (int)db_fetch_cell_prepared("SELECT COUNT(*) FROM plugin_alarmmanager_audit WHERE action LIKE 'producer_%'"), 'producer changes audited');
 			ob_start();
 			alarmmanager_admin_markup(alarmmanager_admin_configuration(),'collectors');
 			$html = ob_get_clean();

@@ -49,7 +49,7 @@ For the actual Cacti email boundary, set ALARMMANAGER_CACTI_ROOT to the pinned C
 
 ## Administration/query/browser lane
 
-Run tests/Integration/WebTest.php against the disposable MariaDB DSN/create opt-in with ALARMMANAGER_CACTI_ROOT pointing at the pinned Cacti source. This lane loads real Cacti policy/realm functions, seeds Cacti-shaped users/groups/hosts and verifies visibility before aggregates/pagination, current-versus-historical semantics, mode separation, native endpoint edits, stale revisions, audit, preview/credential redaction, replay history and report execution deadlines. ALARMMANAGER_WEB_MEASUREMENT optionally writes an exact JSON timing/EXPLAIN artifact; it is a small fixture measurement, not a production sizing result.
+Run tests/Integration/WebTest.php against the disposable MariaDB DSN/create opt-in with ALARMMANAGER_CACTI_ROOT pointing at the pinned Cacti source. This lane loads real Cacti policy/realm functions, seeds Cacti-shaped users/groups/hosts and verifies visibility before aggregates/pagination, current-versus-historical semantics, mode separation, native endpoint edits, stale revisions, preview/credential redaction, replay history and report execution deadlines. ALARMMANAGER_WEB_MEASUREMENT optionally writes an exact JSON timing/EXPLAIN artifact; it is a small fixture measurement, not a production sizing result.
 
 Browser verification is optional development tooling (Node + Playwright/Chrome, not a plugin runtime dependency). Set ALARMMANAGER_TEST_WEB=1 and a new absolute ALARMMANAGER_WEB_ROOT, then run tests/fixtures/web_seed.php with the disposable DB variables and pinned Cacti root. The seed creates a randomly named test database and minimal copied local UI fixture root, with private session/CSRF files. Start PHP CLI with Cacti's required modules, including ctype for the real csrf-magic validator:
 
@@ -65,7 +65,7 @@ Full Cacti install/login/LDAP/admin upgrade and real collector deployment remain
 
 ## Phase 7 producer lane
 
-Run tests/Integration/ProducerTest.php with the same disposable MariaDB variables. It creates and drops only its randomly named test database. WebTest.php additionally exercises producer administration, CSRF/realm denial, migration confirmation, stale editing, inheritance and audit.
+Run tests/Integration/ProducerTest.php with the same disposable MariaDB variables. It creates and drops only its randomly named test database. WebTest.php additionally exercises producer administration, CSRF/realm denial, migration confirmation, stale editing and inheritance.
 
 Generate the patches from the pinned clean upstream checkouts and apply them to separate lab copies. For TholdBranchesTest.php set ALARMMANAGER_THOLD_ROOT to the clean reference and ALARMMANAGER_THOLD_PATCHED_ROOT to the patched plugin at a disposable <root>/plugins/thold path. Copy the reference includes/arrays.php there; the test reuses the upstream characterization helpers with framework doubles and requires no PHPUnit download. For SyslogBranchesTest.php set ALARMMANAGER_SYSLOG_PATCHED_ROOT to the patched syslog checkout and enable PHP tokenizer. It extracts the actual patched processing function, stubs delivery/framework boundaries and creates/removes a private temporary reports include.
 

@@ -32,7 +32,7 @@ The builder refuses an unexpected HEAD or a modified functions.php. Reversal is 
 
 ## Configuration and ownership
 
-Administrators use Administration → Producer integrations. Controls require the existing Alarm Manager Administration and core administrator realms, POST and valid Cacti CSRF. Policies are stored locally, audited and guarded against stale edits.
+Administrators use Administration → Producer integrations. Controls require the existing Alarm Manager Administration and core administrator realms, POST and valid Cacti CSRF. Policies are stored locally and guarded against stale edits.
 
 A policy identifies thold or syslog, a scope and ID, a mode, a routing profile, channel selections and optional complete history. Default scope uses ID 0. Resource scope uses thold_data.id or syslog_alert.id. Template scope uses thold_data.thold_template_id; syslog has no template scope. A complete resource policy overrides its template policy, which overrides the plugin default. Removing an override restores inheritance. No policy means legacy.
 

@@ -71,10 +71,6 @@ if (!function_exists('db_fetch_cell_prepared')) {
 		}
 
 		if (str_contains($sql, 'information_schema')) {
-			if (str_contains($sql, "TABLE_NAME = 'plugin_alarmmanager_audit'")) {
-				return 1;
-			}
-
 			if (str_contains($sql, "TABLE_NAME = 'plugin_alarmmanager_credentials'")) {
 				return $GLOBALS['alarmmanager_test_credentials'] > 0 ? 1 : 0;
 			}

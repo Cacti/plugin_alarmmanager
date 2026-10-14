@@ -101,7 +101,7 @@ function alarmmanager_run_delivery(array $claim): bool {
 }
 
 /** Administrator CLI only. Test requests become ordinary worker-owned deliveries. */
-function alarmmanager_enqueue_test(array $sample, int $endpoint_id, ?int $audit_user = null): int {
+function alarmmanager_enqueue_test(array $sample, int $endpoint_id): int {
 	if (!alarmmanager_runtime_enabled() || !alarmmanager_schema_ready()) {
 		throw new RuntimeException('test_send_unavailable');
 	}
@@ -118,7 +118,7 @@ function alarmmanager_enqueue_test(array $sample, int $endpoint_id, ?int $audit_
 	$payload                   = json_encode($event, JSON_THROW_ON_ERROR);
 	$stream                    = alarmmanager_stream_key($event, 'centralized');
 
-	return alarmmanager_transaction(function () use ($endpoint_id, $event, $payload, $stream, $token, $poller, $audit_user): int {
+	return alarmmanager_transaction(function () use ($endpoint_id, $event, $payload, $stream, $token, $poller): int {
 		$endpoint = alarmmanager_db_row('SELECT id, type FROM plugin_alarmmanager_endpoints WHERE id = ? AND enabled = 1 FOR UPDATE', [$endpoint_id]);
 
 		if (!$endpoint) {
@@ -133,10 +133,6 @@ function alarmmanager_enqueue_test(array $sample, int $endpoint_id, ?int $audit_
 		alarmmanager_db_write("INSERT INTO plugin_alarmmanager_jobs (event_row_id, status, available_at, created_at, updated_at) VALUES (?, 'completed', UTC_TIMESTAMP(6), UTC_TIMESTAMP(6), UTC_TIMESTAMP(6))", [$id]);
 		alarmmanager_db_write('INSERT INTO plugin_alarmmanager_deliveries (event_row_id, endpoint_id, stream_key, sequence, priority, available_at, created_at, updated_at, idempotency_key) VALUES (?, ?, ?, 1, 0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6), UTC_TIMESTAMP(6), ?)', [$id, $endpoint_id, $stream, hash('sha256', 'test|' . $token . '|' . $endpoint_id)]);
 		alarmmanager_db_write("INSERT INTO plugin_alarmmanager_decisions (event_row_id, rule_id, endpoint_id, reason, config_revision, created_at) SELECT ?, 0, ?, 'explicit_test_send', config_revision, UTC_TIMESTAMP(6) FROM plugin_alarmmanager_schema WHERE id = 1", [$id, $endpoint_id]);
-
-		if ($audit_user !== null) {
-			alarmmanager_db_write('INSERT INTO plugin_alarmmanager_audit (user_id, action, resource_id, created_at) VALUES (?, ?, ?, UTC_TIMESTAMP(6))', [$audit_user, 'test_send', $id]);
-		}
 
 		return $id;
 	});

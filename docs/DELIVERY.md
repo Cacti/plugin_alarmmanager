@@ -42,6 +42,35 @@ Script requires an explicitly configured absolute executable and up to 32 consta
 
 compatibility=json is the default script contract. compatibility=syslog_ticket appends --alert-name, --severity, --hostlist and --message as separate argv entries using normalized safe fields, following the inspected syslog ticket wrapper. It does not claim numeric syslog severity/host aggregation parity: phase-7 producers must preserve their source-specific context. Existing thold/syslog shell templates or THOLD_*/ALERT_* environment contracts are not imported automatically; migrate them to a reviewed executable wrapper or retain legacy delivery until producer integration. Script effects may repeat after timeout/crash; receiver/wrapper idempotency is required.
 
+### Python script example
+
+[examples/process_alarm.py](../examples/process_alarm.py) uses only Python 3's standard library. It reads the mapped JSON object from stdin and the transition/idempotency key from the worker environment. It validates the input and prints it for demonstration; worker output is discarded, so replace the print with your ticket or notification action. Deduplicate that action using the supplied key before enabling real delivery. Return 0 after success, 75 for a temporary failure, and another nonzero exit for a permanent failure.
+
+Install it on each delivery poller at an absolute path readable/executable by the worker account, for example `/usr/local/bin/process_alarm.py`, and set its executable bit (`chmod 755 /usr/local/bin/process_alarm.py`). Configure a script endpoint with this transport:
+
+```json
+{
+  "executable": "/usr/local/bin/process_alarm.py",
+  "arguments": [],
+  "compatibility": "json",
+  "retry_exit_codes": [75],
+  "mapping": {
+    "default": [
+      {"to": "alarm.summary", "source": "alarm.summary", "required": true},
+      {"to": "alarm.severity", "source": "alarm.severity"},
+      {"to": "device.hostname", "source": "device.hostname"}
+    ]
+  }
+}
+```
+
+Python 3 must be available on the worker's `/usr/bin:/bin` PATH. To try the stdin contract locally:
+
+```sh
+printf '%s' '{"alarm":{"summary":"Device down","severity":"critical"}}' | \
+  ALARM_TRANSITION=raised ALARM_IDEMPOTENCY_KEY=example-123 ./examples/process_alarm.py
+```
+
 ## Preview and explicit test delivery
 
 From the installed plugin directory:

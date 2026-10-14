@@ -28,9 +28,6 @@ require_once(__DIR__ . '/delivery.php');
 require_once(__DIR__ . '/supervisor.php');
 require_once(__DIR__ . '/../integrations/producer_bridge.php');
 
-function alarmmanager_audit(int $user, string $action, int $resource = 0): void {
-	alarmmanager_db_write('INSERT INTO plugin_alarmmanager_audit (user_id, action, resource_id, created_at) VALUES (?, ?, ?, UTC_TIMESTAMP(6))', [$user, $action, $resource]);
-}
 function alarmmanager_admin_configuration(): array {
 	if (!alarmmanager_web_admin()) {
 		throw new RuntimeException('permission_denied');
@@ -95,11 +92,11 @@ function alarmmanager_admin_json($value, int $limit = 131072): array {
 
 	return $result;
 }
-function alarmmanager_admin_replay(string $queue, int $id, int $user): void {
+function alarmmanager_admin_replay(string $queue, int $id): void {
 	$table = match ($queue) {
 		'processing' => 'plugin_alarmmanager_jobs', 'delivery' => 'plugin_alarmmanager_deliveries', default => throw new InvalidArgumentException('invalid_queue')
 	};
-	alarmmanager_transaction(function () use ($table, $queue, $id, $user): void {
+	alarmmanager_transaction(function () use ($table, $queue, $id): void {
 		$row = alarmmanager_db_row("SELECT id FROM $table WHERE id = ? AND status = 'failed' FOR UPDATE", [$id]);
 
 		if (!$row) {
@@ -107,13 +104,11 @@ function alarmmanager_admin_replay(string $queue, int $id, int $user): void {
 		}
 		alarmmanager_db_write("UPDATE $table SET status = 'pending', attempts = 0, available_at = UTC_TIMESTAMP(6), updated_at = UTC_TIMESTAMP(6), lease_token = NULL, lease_until = NULL, last_error = '' WHERE id = ?", [$id]);
 		alarmmanager_db_write('DELETE FROM plugin_alarmmanager_failed_jobs WHERE queue = ? AND job_id = ?', [$queue, $id]);
-		alarmmanager_audit($user, 'replay_' . $queue, $id);
 	});
 }
 /** This is the sole browser mutation dispatcher; secrets are never returned. */
 function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string {
 	alarmmanager_web_mutation_guard();
-	$user   = alarmmanager_web_user();
 	$action = $input['action'] ?? '';
 
 	if (!is_string($action)) {
@@ -130,29 +125,27 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 			throw new RuntimeException('daemon_not_running');
 		}
 		alarmmanager_save_supervisor_options($settings);
-		alarmmanager_audit($user, 'daemon_save');
 
 		return 'Daemon settings saved.';
 	}
 
 	if ($action === 'producer_save') {
-		return alarmmanager_producer_save($input, $user);
+		return alarmmanager_producer_save($input);
 	}
 
 	if ($action === 'credential_save') {
 		$id     = alarmmanager_admin_int($input['id'] ?? null);
 		$record = alarmmanager_admin_credential($input) ?? ['headers' => []];
-		alarmmanager_save_credential($id, $record, $user);
+		alarmmanager_save_credential($id, $record);
 
 		return 'Credential saved. Existing values are never displayed.';
 	}
 
 	if ($action === 'credential_remove') {
 		$id = alarmmanager_admin_int($input['id'] ?? null);
-		alarmmanager_transaction(function () use ($id, $user): void {
+		alarmmanager_transaction(function () use ($id): void {
 			alarmmanager_secret_key(true);
 			alarmmanager_db_write('DELETE FROM plugin_alarmmanager_credentials WHERE endpoint_id = ?', [$id]);
-			alarmmanager_audit($user, 'credential_remove', $id);
 		});
 
 		return 'Credential removed.';
@@ -161,7 +154,7 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 	if ($action === 'key_rotate') {
 		if (($input['confirmed'] ?? '') !== 'yes') {
 			throw new InvalidArgumentException('confirmation_required');
-		} alarmmanager_rotate_key($user);
+		} alarmmanager_rotate_key();
 
 		return 'Local key rotated. Create a new protected backup using the credential CLI.';
 	}
@@ -169,7 +162,7 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 	if ($action === 'replay') {
 		if (($input['confirmed'] ?? '') !== 'yes') {
 			throw new InvalidArgumentException('confirmation_required');
-		} alarmmanager_admin_replay($input['queue'] ?? '', alarmmanager_admin_int($input['id'] ?? null, 1, PHP_INT_MAX), $user);
+		} alarmmanager_admin_replay($input['queue'] ?? '', alarmmanager_admin_int($input['id'] ?? null, 1, PHP_INT_MAX));
 
 		return 'Failed job requeued with its original event and idempotency key.';
 	}
@@ -181,13 +174,12 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 			throw new InvalidArgumentException('invalid_action');
 		}
 		$value = ($input['acknowledged'] ?? '') === 'yes';
-		alarmmanager_transaction(function () use ($stream, $value, $user): void {
+		alarmmanager_transaction(function () use ($stream, $value): void {
 			$row = alarmmanager_db_row('SELECT last_event_id FROM plugin_alarmmanager_states WHERE stream_key = ? AND active = 1 FOR UPDATE', [$stream]);
 
 			if (!$row) {
 				throw new InvalidArgumentException('active_condition_required');
 			} alarmmanager_db_write('UPDATE plugin_alarmmanager_states SET acknowledged = ?, updated_at = UTC_TIMESTAMP(6) WHERE stream_key = ?', [(int) $value, $stream]);
-			alarmmanager_audit($user, $value ? 'acknowledge' : 'unacknowledge', (int) $row['last_event_id']);
 		});
 
 		return 'Acknowledgment updated. Detection and recovery state are unchanged.';
@@ -210,7 +202,7 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 		if (($input['confirmed'] ?? '') !== 'yes') {
 			throw new InvalidArgumentException('confirmation_required');
 		}
-		$id = alarmmanager_enqueue_test($event, $id, $user);
+		$id = alarmmanager_enqueue_test($event, $id);
 
 		return 'Test queued for delivery workers; event row ' . $id . '.';
 	}
@@ -308,7 +300,7 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 		}
 	}
 
-	alarmmanager_transaction(function () use ($settings, $revision, $user, $credential, $create_section, $id): void {
+	alarmmanager_transaction(function () use ($settings, $revision, $credential, $create_section, $id): void {
 		if ($create_section !== null) {
 			$index          = array_key_last($settings[$create_section]);
 			$item           = $settings[$create_section][$index];
@@ -322,10 +314,10 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 			$settings[$create_section][$index]['id'] = $id;
 		}
 		$settings = alarmmanager_configuration($settings);
-		alarmmanager_write_configuration($settings, $revision, $user);
+		alarmmanager_write_configuration($settings, $revision);
 
 		if ($credential !== null) {
-			alarmmanager_write_credential($id, $credential, $user);
+			alarmmanager_write_credential($id, $credential);
 		}
 	});
 	unset($GLOBALS['alarmmanager_route_cache']);
@@ -333,7 +325,7 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 	return 'Configuration saved.';
 }
 
-function alarmmanager_producer_save(array $input, int $user): string {
+function alarmmanager_producer_save(array $input): string {
 	if ((int) db_fetch_cell_prepared('SELECT status FROM plugin_config WHERE directory = ?', ['alarmmanager'], '', false) !== 1) {
 		throw new RuntimeException('producer_disabled');
 	}
@@ -358,7 +350,7 @@ function alarmmanager_producer_save(array $input, int $user): string {
 	if (($input['inherit'] ?? '') !== 'yes' && $definition['mode'] === 'centralized' && ($input['migration_confirmed'] ?? '') !== 'yes') {
 		throw new InvalidArgumentException('confirmation_required');
 	}
-	alarmmanager_transaction(function () use ($source, $scope, $id, $revision, $definition, $user, $input): void {
+	alarmmanager_transaction(function () use ($source, $scope, $id, $revision, $definition, $input): void {
 		// Serialize configuration creation as well as edits to absent rows.
 		alarmmanager_db_row('SELECT config_revision FROM plugin_alarmmanager_schema WHERE id = 1 FOR UPDATE');
 		$row = alarmmanager_db_row('SELECT revision FROM plugin_alarmmanager_producer_config WHERE source = ? AND scope = ? AND resource_id = ? FOR UPDATE', [$source, $scope, $id]);
@@ -383,7 +375,6 @@ function alarmmanager_producer_save(array $input, int $user): string {
 			}
 			alarmmanager_db_write('INSERT INTO plugin_alarmmanager_producer_config (source, scope, resource_id, revision, definition) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE revision = VALUES(revision), definition = VALUES(definition)', [$source, $scope, $id, $revision + 1, json_encode($definition, JSON_THROW_ON_ERROR)]);
 		}
-		alarmmanager_audit($user, 'producer_' . $source . '_' . $scope, $id);
 	});
 
 	return 'Producer policy saved. Apply the revision-pinned patch on each producer. Existing notification receipts keep their original delivery owner.';

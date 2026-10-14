@@ -25,7 +25,7 @@ require_once(__DIR__ . '/../../include/auth.php');
 require_once(__DIR__ . '/includes/admin_view.php');
 header('Cache-Control: no-store');
 
-const ALARMMANAGER_SECTIONS = ['endpoints', 'profiles', 'producers', 'collectors', 'rules', 'credentials', 'test', 'configuration', 'daemon', 'health', 'audit'];
+const ALARMMANAGER_SECTIONS = ['endpoints', 'profiles', 'producers', 'collectors', 'rules', 'credentials', 'test', 'configuration', 'daemon', 'health'];
 
 try {
 	if (!alarmmanager_web_admin()) {

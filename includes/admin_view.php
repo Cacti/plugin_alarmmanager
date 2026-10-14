@@ -106,7 +106,7 @@ function alarmmanager_admin_markup(array $state, string $section): void {
 	$revision = $state['revision'];
 	print '<nav class="alarmmanagerTabs" aria-label="' . __esc('Administration sections', 'alarmmanager') . '">';
 
-	foreach (['endpoints' => 'Endpoints and mappings', 'profiles' => 'Routing profiles', 'producers' => 'Producer integrations', 'collectors' => 'Collectors and history', 'rules' => 'Rules and suppression', 'credentials' => 'Credentials', 'test' => 'Preview and test', 'configuration' => 'Configuration', 'daemon' => 'Daemon', 'health' => 'Workers and failed processing', 'audit' => 'Audit'] as $key => $label) {
+	foreach (['endpoints' => 'Endpoints and mappings', 'profiles' => 'Routing profiles', 'producers' => 'Producer integrations', 'collectors' => 'Collectors and history', 'rules' => 'Rules and suppression', 'credentials' => 'Credentials', 'test' => 'Preview and test', 'configuration' => 'Configuration', 'daemon' => 'Daemon', 'health' => 'Workers and failed processing'] as $key => $label) {
 		print '<a href="alarmmanager_admin.php?section=' . $key . '" ' . ($section === $key ? 'aria-current="page"' : '') . '>' . __esc($label, 'alarmmanager') . '</a>';
 	} print '</nav><p>' . __esc('Local configuration revision', 'alarmmanager') . ': ' . $revision . '</p>';
 
@@ -252,25 +252,6 @@ function alarmmanager_admin_markup(array $state, string $section): void {
 			print '</p>';
 		}
 		print '<p><a href="alarmmanager.php?tab=processing&status=failed">' . __esc('Failed processing jobs and replay', 'alarmmanager') . '</a></p><p><a href="alarmmanager.php?tab=deliveries&status=failed">' . __esc('Failed deliveries and replay', 'alarmmanager') . '</a></p>';
-	} else {
-		$rows = alarmmanager_db_rows('SELECT id, user_id, action, resource_id, created_at FROM plugin_alarmmanager_audit ORDER BY id DESC LIMIT 50');
-		html_start_box(__esc('Latest 50 administration actions', 'alarmmanager'), '100%', false, 3, 'center', '');
-		html_header([__esc('ID', 'alarmmanager'), __esc('User ID', 'alarmmanager'), __esc('Action', 'alarmmanager'), __esc('Resource ID', 'alarmmanager'), __esc('Recorded at', 'alarmmanager')], 1);
-
-		if ($rows !== []) {
-			foreach ($rows as $row) {
-				form_alternate_row();
-				form_selectable_cell(html_escape((string) $row['id']), 0, '', 'right');
-				form_selectable_cell(html_escape((string) $row['user_id']), 0, '', 'right');
-				form_selectable_cell(html_escape((string) $row['action']), 0, '', 'left');
-				form_selectable_cell(html_escape((string) $row['resource_id']), 0, '', 'right');
-				form_selectable_cell(html_escape((string) $row['created_at']), 0, '', 'left');
-				form_end_row();
-			}
-		} else {
-			print "<tr class='odd'><td>" . __esc('No administration actions recorded.', 'alarmmanager') . '</td></tr>';
-		}
-		html_end_box(true);
 	}
 }
 

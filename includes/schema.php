@@ -270,7 +270,7 @@ function alarmmanager_schema_delivery(): bool {
 	}
 }
 
-/** v4: report indexes, device backfill from safe normalized payload JSON and the audit table. */
+/** v4: report indexes, device backfill from safe normalized payload JSON. */
 function alarmmanager_schema_ui(): bool {
 	try {
 		alarmmanager_schema_column('plugin_alarmmanager_events', 'device_id', 'INT UNSIGNED NULL');
@@ -280,12 +280,6 @@ function alarmmanager_schema_ui(): bool {
 		alarmmanager_schema_index('plugin_alarmmanager_deliveries', 'created_report', 'created_at, event_row_id, status');
 		alarmmanager_schema_index('plugin_alarmmanager_attempts', 'delivery_report', 'delivery_id, started_at');
 		alarmmanager_schema_index('plugin_alarmmanager_decisions', 'reason_report', 'reason, created_at, event_row_id');
-		alarmmanager_db_write('CREATE TABLE IF NOT EXISTS plugin_alarmmanager_audit (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, user_id INT UNSIGNED NOT NULL, action VARCHAR(32) CHARACTER SET ascii NOT NULL, resource_id BIGINT UNSIGNED NOT NULL DEFAULT 0, created_at DATETIME(6) NOT NULL, KEY audit_time (created_at, id)) ENGINE=InnoDB');
-		$engine = db_fetch_cell_prepared("SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'plugin_alarmmanager_audit' AND ENGINE = 'InnoDB'", [], '', false);
-
-		if ((int) $engine !== 1) {
-			return false;
-		}
 		alarmmanager_db_write('UPDATE plugin_alarmmanager_schema SET version = 4 WHERE id = 1 AND version <= 4');
 
 		return true;
