@@ -2,6 +2,8 @@
 
 --- main (development) ---
 
+* Poller mode: log elapsed time and processing/delivery job counts on every successful cycle, including empty queues.
+
 * Administration: add a Daemon tab with enable/disable, processing and delivery worker counts, and live supervisor status. The standby controller applies changes automatically; poller-integrated processing pauses in daemon mode.
 
 * Endpoint setup: remove the concurrency control, use the automatic default for new endpoints, and preserve existing destination limits on edits. Daemon worker pools remain centrally configured.

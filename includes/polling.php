@@ -58,9 +58,13 @@ function alarmmanager_poller_bottom(array $args = []): void {
 			return;
 		}
 
+		$started = microtime(true);
+		$counts  = [];
+
 		foreach (['processing', 'delivery'] as $role) {
-			alarmmanager_worker_loop($role, alarmmanager_poller_budget() + ['once' => true, 'worker_id' => alarmmanager_poller_worker_id($role)], static fn (): bool => false);
+			$counts[$role] = alarmmanager_worker_loop($role, alarmmanager_poller_budget() + ['once' => true, 'worker_id' => alarmmanager_poller_worker_id($role)], static fn (): bool => false);
 		}
+		alarmmanager_log(sprintf('SYSTEM ALARMMANAGER STATS: Mode:poller Time:%.4f Processing:%d Delivery:%d', microtime(true) - $started, $counts['processing'], $counts['delivery']));
 	} catch (Throwable $error) {
 		alarmmanager_log('poller drain failed: ' . $error->getMessage());
 	}

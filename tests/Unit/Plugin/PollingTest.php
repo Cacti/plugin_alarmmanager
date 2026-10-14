@@ -52,6 +52,7 @@ final class PollingTest extends AlarmManagerTestCase {
 	public function testPollerBottomDrainsBothRoles(): void {
 		self::alarmmanager_test_load('includes/polling.php');
 		alarmmanager_poller_bottom(['poller_bottom']);
+		$this->assertMatchesRegularExpression('/SYSTEM ALARMMANAGER STATS: Mode:poller Time:[0-9.]+ Processing:0 Delivery:0/', end($GLOBALS['alarmmanager_test_log']));
 		$workers = $GLOBALS['alarmmanager_test_workers'];
 		ksort($workers);
 
