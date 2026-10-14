@@ -2,6 +2,12 @@
 
 --- main (development) ---
 
+* Administration: add a Daemon tab with enable/disable, processing and delivery worker counts, and live supervisor status. The standby controller applies changes automatically; poller-integrated processing pauses in daemon mode.
+
+* Endpoint setup: remove the concurrency control, use the automatic default for new endpoints, and preserve existing destination limits on edits. Daemon worker pools remain centrally configured.
+
+* HTTP alarm delivery: remove DELETE from endpoint settings and reject it in transport validation; supported methods are POST, PUT and PATCH.
+
 * 0.8.1 navigation: add a realm-controlled Alarm Manager top-level tab beside Syslog, move report pages out of the console header, and provide administrator-only return navigation between reports and administration. Register both Cacti header-tab hooks.
 
 * Schema v7: database-assigned endpoint/profile/rule IDs, with existing identities preserved on upgrade. Removed visible record-ID controls; creation no longer accepts arbitrary IDs. Producer routing profiles now use a dropdown.

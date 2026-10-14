@@ -76,6 +76,100 @@ final class SupervisorTest extends AlarmManagerTestCase {
 		return false;
 	}
 
+	public function testManagedSettingsDefaultToDisabledAndValidateBeforeWriting(): void {
+		self::alarmmanager_test_load('includes/supervisor.php');
+		$before                         = $GLOBALS['config'];
+		$root                           = sys_get_temp_dir() . '/alarmmanager-daemon-settings-' . bin2hex(random_bytes(6));
+		$GLOBALS['config']['base_path'] = $root;
+
+		try {
+			$settings = alarmmanager_supervisor_options();
+			$this->assertFalse($settings['enabled']);
+			$settings['processing_workers'] = 3;
+			alarmmanager_save_supervisor_options($settings);
+			$this->assertSame($settings, alarmmanager_supervisor_options());
+			$bad                       = $settings;
+			$bad['processing_workers'] = 65;
+			$rejected                  = false;
+
+			try {
+				alarmmanager_save_supervisor_options($bad);
+			} catch (RuntimeException $error) {
+				$rejected = true;
+			}
+			$this->assertTrue($rejected);
+			$this->assertSame($settings, alarmmanager_supervisor_options(), 'Rejected values leave the saved file intact');
+			$status = ['updated_at' => time(), 'enabled' => false, 'processing_workers' => 0, 'delivery_workers' => 0];
+			alarmmanager_daemon_write_json(dirname(alarmmanager_daemon_config_path()) . '/status.json', $status);
+			$this->assertSame($status, alarmmanager_daemon_status());
+			$status['updated_at'] = time() - 20;
+			alarmmanager_daemon_write_json(dirname(alarmmanager_daemon_config_path()) . '/status.json', $status);
+			$this->assertSame([], alarmmanager_daemon_status(), 'A stale heartbeat is not a running supervisor');
+			self::alarmmanager_test_load('includes/polling.php');
+			$settings['enabled'] = true;
+			alarmmanager_save_supervisor_options($settings);
+			alarmmanager_poller_bottom();
+			$this->assertSame([], $GLOBALS['alarmmanager_test_workers'], 'Daemon mode skips the poller drain');
+		} finally {
+			foreach (glob($root . '/cache/alarmmanager/*') ?: [] as $file) {
+				unlink($file);
+			}
+			rmdir($root . '/cache/alarmmanager');
+			rmdir($root . '/cache');
+			rmdir($root);
+			$GLOBALS['config'] = $before;
+		}
+	}
+
+	public function testSupervisorAppliesEnableResizeAndDisableWithoutSignals(): void {
+		if (!function_exists('posix_kill')) {
+			$this->markTestSkipped('pcntl and posix required.');
+		}
+
+		self::alarmmanager_test_load('includes/supervisor.php');
+		$prefix              = sys_get_temp_dir() . '/alarmmanager-daemon-watch-' . bin2hex(random_bytes(6));
+		$configuration       = $prefix . '.json';
+		$log                 = $prefix . '.log';
+		$marker              = $prefix . '.marker';
+		$this->fixture_files = [$configuration, $log, $marker];
+		$options             = ['enabled' => false, 'processing_workers' => 1, 'delivery_workers' => 1, 'shutdown_seconds' => 1, 'respawn_base_ms' => 100];
+		file_put_contents($configuration, json_encode($options, JSON_THROW_ON_ERROR));
+		putenv('ALARMMANAGER_SUPERVISOR_TEST_LOG=' . $log);
+		putenv('ALARMMANAGER_SUPERVISOR_TEST_CRASH_MARKER=' . $marker);
+		$pid = pcntl_fork();
+
+		if ($pid === 0) {
+			alarmmanager_supervise($configuration, __DIR__ . '/../../fixtures/supervisor_worker.php');
+			exit(0);
+		}
+
+		try {
+			$this->assertGreaterThan(0, $pid);
+			usleep(200000);
+			$this->assertSame([], $this->supervisorActive($this->supervisorRecords($log)), 'Disabled daemon starts no workers');
+			$options['enabled'] = true;
+			file_put_contents($configuration, json_encode($options, JSON_THROW_ON_ERROR));
+			$this->assertTrue($this->supervisorWait(fn (): bool => count($this->supervisorActive($this->supervisorRecords($log))) === 2), 'Enable starts both pools without SIGHUP');
+			$options['processing_workers'] = 2;
+			$options['delivery_workers']   = 0;
+			file_put_contents($configuration, json_encode($options, JSON_THROW_ON_ERROR));
+			$this->assertTrue($this->supervisorWait(function () use ($log): bool {
+				$active = $this->supervisorActive($this->supervisorRecords($log));
+
+				return count($active) === 2 && count(array_filter($active, static fn ($row) => $row['role'] === 'processing')) === 2;
+			}), 'Saved counts resize the pools automatically');
+			$options['enabled'] = false;
+			file_put_contents($configuration, json_encode($options, JSON_THROW_ON_ERROR));
+			$this->assertTrue($this->supervisorWait(fn (): bool => $this->supervisorActive($this->supervisorRecords($log)) === []), 'Disable retires all workers');
+			$this->assertTrue(posix_kill($pid, 0), 'Disabled controller remains available for a later enable');
+		} finally {
+			posix_kill($pid, SIGTERM);
+			pcntl_waitpid($pid, $status);
+			putenv('ALARMMANAGER_SUPERVISOR_TEST_LOG');
+			putenv('ALARMMANAGER_SUPERVISOR_TEST_CRASH_MARKER');
+		}
+	}
+
 	public function testSupervisorLifecycle(): void {
 		if (!function_exists('posix_kill')) {
 			$this->markTestSkipped('pcntl and posix required.');

@@ -58,7 +58,6 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
     do_PUT = do_POST
     do_PATCH = do_POST
-    do_DELETE = do_POST
 
 plain = http.server.ThreadingHTTPServer(('127.0.0.1', 0), Handler)
 secure = http.server.ThreadingHTTPServer(('127.0.0.1', 0), Handler)

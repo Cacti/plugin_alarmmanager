@@ -25,7 +25,7 @@ require_once(__DIR__ . '/../../include/auth.php');
 require_once(__DIR__ . '/includes/admin_view.php');
 header('Cache-Control: no-store');
 
-const ALARMMANAGER_SECTIONS = ['endpoints', 'profiles', 'producers', 'collectors', 'rules', 'credentials', 'test', 'configuration', 'health', 'audit'];
+const ALARMMANAGER_SECTIONS = ['endpoints', 'profiles', 'producers', 'collectors', 'rules', 'credentials', 'test', 'configuration', 'daemon', 'health', 'audit'];
 
 try {
 	if (!alarmmanager_web_admin()) {
@@ -46,18 +46,20 @@ try {
 			raise_message('alarmmanager_notice', __('The administration action succeeded.', 'alarmmanager'), MESSAGE_LEVEL_INFO);
 		} catch (Throwable $error) {
 			$message = match ($error->getMessage()) {
-				'configuration_changed' => 'Configuration changed. Reload before applying your edits.',
-				'permission_denied'     => 'Action failed. Administrator access, POST and a valid CSRF token are required.',
-				'invalid_transport'     => 'Action failed. Transport settings do not match the endpoint type.',
-				'invalid_transport_url' => 'Action failed. Use an HTTPS URL without credentials, query parameters or fragments.',
-				'invalid_mapping'       => 'Action failed. Each mapping transition must contain a list of fields.',
-				'invalid_action'        => 'Action failed. A required field is missing or outside its allowed range.',
-				'invalid_configuration' => 'Action failed. Configuration fields are invalid.',
-				default                 => 'Action failed. Check configuration, permissions and CSRF token. Submitted credential values were cleared.'
+				'daemon_not_running'         => 'Start the Alarm Manager service on this collector before enabling daemon workers.',
+				'daemon_config_write_failed' => 'Daemon settings could not be saved. Check the Cacti cache directory permissions.',
+				'configuration_changed'      => 'Configuration changed. Reload before applying your edits.',
+				'permission_denied'          => 'Action failed. Administrator access, POST and a valid CSRF token are required.',
+				'invalid_transport'          => 'Action failed. Transport settings do not match the endpoint type.',
+				'invalid_transport_url'      => 'Action failed. Use an HTTPS URL without credentials, query parameters or fragments.',
+				'invalid_mapping'            => 'Action failed. Each mapping transition must contain a list of fields.',
+				'invalid_action'             => 'Action failed. A required field is missing or outside its allowed range.',
+				'invalid_configuration'      => 'Action failed. Configuration fields are invalid.',
+				default                      => 'Action failed. Check configuration, permissions and CSRF token. Submitted credential values were cleared.'
 			};
 			raise_message('alarmmanager_notice', __($message, 'alarmmanager'), MESSAGE_LEVEL_ERROR);
 		}
-		cacti_redirect('alarmmanager_admin.php');
+		cacti_redirect(($post['action'] ?? '') === 'daemon_save' ? 'alarmmanager_admin.php?section=daemon' : 'alarmmanager_admin.php');
 	}
 
 	if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {

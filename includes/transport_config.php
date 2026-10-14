@@ -70,7 +70,7 @@ function alarmmanager_transport_configuration(string $type, $settings): array {
 		}
 		$method = $settings['method'] ?? 'POST';
 
-		if (!in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
+		if (!in_array($method, ['POST', 'PUT', 'PATCH'], true)) {
 			throw new InvalidArgumentException('invalid_transport_method');
 		}
 		$codes = alarmmanager_config_list($settings['success_codes'] ?? range(200, 299), 100);

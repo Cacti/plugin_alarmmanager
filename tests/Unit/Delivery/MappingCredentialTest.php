@@ -172,4 +172,14 @@ final class MappingCredentialTest extends AlarmManagerTestCase {
 			$this->assertRejects(fn () => alarmmanager_admin_credential($input), 'Conflicting or invalid authentication rejected');
 		}
 	}
+	public function testHttpAlarmMethodsExcludeDelete(): void {
+		self::alarmmanager_test_load('includes/routing.php');
+
+		foreach (['POST', 'PUT', 'PATCH'] as $method) {
+			$this->assertSame($method, alarmmanager_transport_configuration('restapi', ['url' => 'https://example.test/alarms', 'method' => $method])['method']);
+		}
+		$this->expectException(InvalidArgumentException::class);
+		$this->expectExceptionMessage('invalid_transport_method');
+		alarmmanager_transport_configuration('webhook', ['url' => 'https://example.test/alarms', 'method' => 'DELETE']);
+	}
 }

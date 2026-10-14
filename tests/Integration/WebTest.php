@@ -76,6 +76,7 @@ final class WebTest extends AlarmManagerTestCase {
 			$created     = alarmmanager_admin_configuration();
 			$endpoint_id = $created['configuration']['endpoints'][0]['id'];
 			$this->assertGreaterThan(0, $endpoint_id, 'New endpoint receives a database ID');
+			$this->assertSame(1, $created['configuration']['endpoints'][0]['max_concurrency'], 'New endpoint uses the automatic concurrency default');
 			$this->waction(['action' => 'profile_save', 'revision' => $created['revision'], 'name' => 'Automatic profile', 'endpoints' => [$endpoint_id]]);
 			$created    = alarmmanager_admin_configuration();
 			$profile_id = $created['configuration']['profiles'][0]['id'];
@@ -240,6 +241,7 @@ final class WebTest extends AlarmManagerTestCase {
 			$this->assertSame($inline, alarmmanager_load_credential(1), 'Credential failure preserves the previous encrypted credential');
 			$this->waction(['action' => 'credential_save', 'id' => '1', 'headers' => json_encode($record['headers'])]);
 			$this->assertSame('host', alarmmanager_admin_configuration()['configuration']['endpoints'][0]['transport']['mapping']['default'][0]['to'], 'Native endpoint form mapping save');
+			$this->assertSame(2, alarmmanager_admin_configuration()['configuration']['endpoints'][0]['max_concurrency'], 'Editing preserves the existing endpoint limit without a form field');
 			$before  = (int)db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_deliveries');
 			$preview = $this->waction(['action'=>'preview', 'id'=>'1', 'event_json'=>json_encode($event)]);
 			$this->assertTrue(str_contains($preview,'REDACTED') && !str_contains($preview,'WEB_SECRET_MARKER') && (int)db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_deliveries') === $before, 'Admin preview no enqueue/secrets');

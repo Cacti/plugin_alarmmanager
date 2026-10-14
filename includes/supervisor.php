@@ -22,10 +22,17 @@
  +-------------------------------------------------------------------------+
 */
 // The parent never bootstraps Cacti or opens a database connection.
-function alarmmanager_supervisor_options(?string $path): array {
-	$settings = ['processing_workers' => 2, 'delivery_workers' => 4, 'lease_seconds' => 180, 'idle_ms' => 250, 'shutdown_seconds' => 180, 'respawn_base_ms' => 1000];
+function alarmmanager_daemon_config_path(): string {
+	global $config;
 
-	if ($path !== null) {
+	return ($config['base_path'] ?? (getenv('CACTI_PATH') ?: dirname(__DIR__, 3))) . '/cache/alarmmanager/workers.json';
+}
+
+function alarmmanager_supervisor_options(?string $path = null): array {
+	$path ??= alarmmanager_daemon_config_path();
+	$settings = ['enabled' => false, 'processing_workers' => 2, 'delivery_workers' => 4, 'lease_seconds' => 180, 'idle_ms' => 250, 'shutdown_seconds' => 180, 'respawn_base_ms' => 1000];
+
+	if (is_file($path) || $path !== alarmmanager_daemon_config_path()) {
 		$data = @file_get_contents($path, false, null, 0, 65537);
 
 		if ($data === false || strlen($data) > 65536) {
@@ -36,17 +43,72 @@ function alarmmanager_supervisor_options(?string $path): array {
 		if (!is_array($decoded) || array_diff(array_keys($decoded), array_keys($settings))) {
 			throw new RuntimeException('invalid_supervisor_config');
 		}
-		$settings = array_replace($settings, $decoded);
+		$settings = array_replace($settings, ['enabled' => true], $decoded);
 	}
 
-	foreach (['processing_workers' => [1, 64], 'delivery_workers' => [0, 64], 'lease_seconds' => [15, 600], 'idle_ms' => [10, 10000], 'shutdown_seconds' => [1, 600], 'respawn_base_ms' => [100, 30000]] as $key => [$min, $max]) {
-		if (!is_int($settings[$key]) || $settings[$key] < $min || $settings[$key] > $max) {
-			throw new RuntimeException('invalid_supervisor_config');
-		}
-	}
+	alarmmanager_supervisor_validate($settings);
 
 	return $settings;
 }
+
+/** @param array<string, mixed> $settings */
+function alarmmanager_supervisor_validate(array $settings): void {
+	if (!is_bool($settings['enabled'] ?? null) || array_diff(array_keys($settings), ['enabled', 'processing_workers', 'delivery_workers', 'lease_seconds', 'idle_ms', 'shutdown_seconds', 'respawn_base_ms'])) {
+		throw new RuntimeException('invalid_supervisor_config');
+	}
+
+	foreach (['processing_workers' => [1, 64], 'delivery_workers' => [0, 64], 'lease_seconds' => [15, 600], 'idle_ms' => [10, 10000], 'shutdown_seconds' => [1, 600], 'respawn_base_ms' => [100, 30000]] as $key => [$min, $max]) {
+		if (!is_int($settings[$key] ?? null) || $settings[$key] < $min || $settings[$key] > $max) {
+			throw new RuntimeException('invalid_supervisor_config');
+		}
+	}
+}
+
+/** @param array<string, mixed> $data */
+function alarmmanager_daemon_write_json(string $path, array $data): void {
+	$directory = dirname($path);
+
+	if (!is_dir($directory) && !@mkdir($directory, 0770, true) && !is_dir($directory)) {
+		throw new RuntimeException('daemon_config_write_failed');
+	}
+	$temp = @tempnam($directory, '.daemon-');
+
+	if ($temp === false) {
+		throw new RuntimeException('daemon_config_write_failed');
+	}
+
+	try {
+		$json = json_encode($data, JSON_THROW_ON_ERROR);
+
+		if (@file_put_contents($temp, $json, LOCK_EX) !== strlen($json) || !@rename($temp, $path)) {
+			throw new RuntimeException('daemon_config_write_failed');
+		}
+	} finally {
+		if (is_file($temp)) {
+			unlink($temp);
+		}
+	}
+}
+
+/** @param array<string, mixed> $settings */
+function alarmmanager_save_supervisor_options(array $settings): void {
+	alarmmanager_supervisor_validate($settings);
+	alarmmanager_daemon_write_json(alarmmanager_daemon_config_path(), $settings);
+}
+
+/** @return array<string, mixed> */
+function alarmmanager_daemon_status(): array {
+	$data = @file_get_contents(dirname(alarmmanager_daemon_config_path()) . '/status.json', false, null, 0, 4097);
+
+	try {
+		$status = $data !== false && strlen($data) <= 4096 ? json_decode($data, true, 8, JSON_THROW_ON_ERROR) : [];
+	} catch (JsonException $error) {
+		return [];
+	}
+
+	return is_array($status) && isset($status['updated_at']) && time() - (int) $status['updated_at'] >= 0 && time() - (int) $status['updated_at'] <= 10 ? $status : [];
+}
+
 function alarmmanager_supervise(?string $config_path, ?string $worker_script = null): void {
 	if (!function_exists('pcntl_signal') || !function_exists('proc_open')) {
 		throw new RuntimeException('supervisor_runtime_missing');
@@ -58,6 +120,8 @@ function alarmmanager_supervise(?string $config_path, ?string $worker_script = n
 	$children    = [];
 	$backoff     = [];
 	$stopping_at = null;
+	$next_check  = 0;
+	$managed     = $config_path === null || $config_path === alarmmanager_daemon_config_path();
 	pcntl_signal(SIGCHLD, SIG_DFL);
 	pcntl_async_signals(true);
 	pcntl_signal(SIGTERM, function () use (&$stop): void { $stop = true; });
@@ -68,18 +132,30 @@ function alarmmanager_supervise(?string $config_path, ?string $worker_script = n
 		while (true) {
 			$now = hrtime(true) / 1000000000;
 
-			if ($reload && !$stop) {
+			if (!$stop && ($reload || $now >= $next_check)) {
 				try {
 					$next     = alarmmanager_supervisor_options($config_path);
-					$settings = $next;
 
-					foreach ($children as &$child) {
-						$child['retiring'] = $now;
-						proc_terminate($child['process'], SIGTERM);
+					if ($reload || $next !== $settings) {
+						$settings = $next;
+
+						foreach ($children as &$child) {
+							$child['retiring'] = $now;
+							proc_terminate($child['process'], SIGTERM);
+						}
+						unset($child);
 					}
-					unset($child);
 				} catch (Throwable $error) {
 					fwrite(STDERR, "Invalid reload; keeping previous worker settings.\n");
+				}
+				$next_check = $now + 2;
+
+				if ($managed) {
+					try {
+						alarmmanager_daemon_write_json(dirname(alarmmanager_daemon_config_path()) . '/status.json', ['updated_at' => time(), 'enabled' => $settings['enabled'], 'processing_workers' => count(array_filter($children, static fn ($child) => $child['role'] === 'processing' && $child['retiring'] === null)), 'delivery_workers' => count(array_filter($children, static fn ($child) => $child['role'] === 'delivery' && $child['retiring'] === null))]);
+					} catch (Throwable $error) {
+						fwrite(STDERR, "Daemon status could not be written.\n");
+					}
 				}
 				$reload = false;
 			}
@@ -116,7 +192,7 @@ function alarmmanager_supervise(?string $config_path, ?string $worker_script = n
 				break;
 			}
 
-			if (!$stop) {
+			if (!$stop && $settings['enabled']) {
 				foreach (['processing' => $settings['processing_workers'], 'delivery' => $settings['delivery_workers']] as $role => $count) {
 					// Retiring processes also count toward the pool bound during reload.
 					$existing = count(array_filter($children, static fn ($child) => $child['role'] === $role));

@@ -4,6 +4,8 @@ Version 0.6.0/schema v4 provides Cacti pages at alarmmanager.php and alarmmanage
 
 Readers see permitted device events, active conditions, jobs, attempts, routing decisions and scoped queue counts. A selected event reveals bounded normalized alarm/episode/order/timestamp/device/context/message details after the same SQL visibility filter; selecting a row ID ignores the historical window so older active alarms remain inspectable. Missing/unmapped devices and events without device.id are administrator-only. Device visibility uses validated Cacti user/group policies and the pinned get_policy_where() generator in a correlated EXISTS query against host/graph tables, before aggregate, ORDER BY or LIMIT. It enforces deleted-host and hide_disabled rules and explicit default-allow exceptions. It evaluates policies directly rather than relying on a core fast-path shortcut. No full device list is loaded into PHP. Worker PID/heartbeat details and configuration/credential records are administrator-only.
 
+Worker pool sizes belong to the daemon configuration, not each destination form. New endpoints use the automatic delivery-limit default; editing an endpoint preserves any existing limit.
+
 Endpoint, routing-profile and rule IDs are assigned by the database when records are created. Their forms do not expose editable record IDs; editing preserves the saved identity. Profile and endpoint selectors refer to existing records by name. Producer resource/template IDs identify records in the source plugin, not newly created Alarm Manager records. Bulk configuration import/export retains explicit IDs to preserve routing and remote-poller references.
 
 ## Dashboard reuse and data meaning

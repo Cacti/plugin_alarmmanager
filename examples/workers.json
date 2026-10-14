@@ -1,4 +1,5 @@
 {
+  "enabled": true,
   "processing_workers": 2,
   "delivery_workers": 4,
   "lease_seconds": 180,

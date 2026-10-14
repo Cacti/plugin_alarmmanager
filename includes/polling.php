@@ -22,6 +22,7 @@
  +-------------------------------------------------------------------------+
 */
 require_once(__DIR__ . '/workers.php');
+require_once(__DIR__ . '/supervisor.php');
 
 /** Bounded per-role drain options for the poller-integrated mode, matching alarmmanager_worker_loop()'s contract.
  * @return array{max_jobs: int, max_seconds: int, lease_seconds: int, idle_ms: int}
@@ -53,6 +54,10 @@ function alarmmanager_poller_bottom(array $args = []): void {
 	}
 
 	try {
+		if (alarmmanager_supervisor_options()['enabled']) {
+			return;
+		}
+
 		foreach (['processing', 'delivery'] as $role) {
 			alarmmanager_worker_loop($role, alarmmanager_poller_budget() + ['once' => true, 'worker_id' => alarmmanager_poller_worker_id($role)], static fn (): bool => false);
 		}

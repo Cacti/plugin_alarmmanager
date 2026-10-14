@@ -115,7 +115,7 @@ final class TransportTest extends AlarmManagerTestCase {
 			$this->tdefinition(1, 'restapi', $bad_host);
 			$this->assertTrue(alarmmanager_http_transport($event, $endpoint, str_repeat('8', 64))['outcome'] === 'failure', 'Trusted certificate wrong hostname rejected');
 
-			foreach (['POST', 'PUT', 'PATCH', 'DELETE'] as $method) {
+			foreach (['POST', 'PUT', 'PATCH'] as $method) {
 				$base['method']         = $method;
 				$base['response_match'] = ['path' => 'method', 'equals' => $method];
 				$this->tdefinition(1, 'restapi', $base);

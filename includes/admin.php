@@ -25,6 +25,7 @@ require_once(__DIR__ . '/web_auth.php');
 require_once(__DIR__ . '/routing.php');
 require_once(__DIR__ . '/credentials.php');
 require_once(__DIR__ . '/delivery.php');
+require_once(__DIR__ . '/supervisor.php');
 require_once(__DIR__ . '/../integrations/producer_bridge.php');
 
 function alarmmanager_audit(int $user, string $action, int $resource = 0): void {
@@ -88,6 +89,21 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 
 	if (!is_string($action)) {
 		throw new InvalidArgumentException('invalid_action');
+	}
+
+	if ($action === 'daemon_save') {
+		$settings                       = alarmmanager_supervisor_options();
+		$settings['enabled']            = isset($input['daemon_enabled']);
+		$settings['processing_workers'] = alarmmanager_admin_int($input['processing_workers'] ?? null, 1, 64);
+		$settings['delivery_workers']   = alarmmanager_admin_int($input['delivery_workers'] ?? null, 0, 64);
+
+		if ($settings['enabled'] && !alarmmanager_daemon_status()) {
+			throw new RuntimeException('daemon_not_running');
+		}
+		alarmmanager_save_supervisor_options($settings);
+		alarmmanager_audit($user, 'daemon_save');
+
+		return 'Daemon settings saved.';
 	}
 
 	if ($action === 'producer_save') {
@@ -211,7 +227,9 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 				throw new InvalidArgumentException('credential_endpoint_invalid');
 			}
 
-			foreach (['max_concurrency' => [1, 64, 1], 'timeout_seconds' => [1, 120, 10], 'max_attempts' => [1, 20, 5], 'min_interval_ms' => [0, 3600000, 0]] as $key => [$min, $max, $default]) {
+			$item['max_concurrency'] = array_column($settings['endpoints'], null, 'id')[$id]['max_concurrency'] ?? 1;
+
+			foreach (['timeout_seconds' => [1, 120, 10], 'max_attempts' => [1, 20, 5], 'min_interval_ms' => [0, 3600000, 0]] as $key => [$min, $max, $default]) {
 				$item[$key] = alarmmanager_admin_int($input[$key] ?? $default, $min, $max);
 			}
 			$transport = alarmmanager_admin_json($input['transport_json'] ?? '{}');

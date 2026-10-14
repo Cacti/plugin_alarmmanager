@@ -4,10 +4,10 @@ After=network.target mariadb.service
 
 [Service]
 Type=simple
-User=cacti
-Group=cacti
+User=www-data
+Group=www-data
 WorkingDirectory=/var/www/html/cacti/plugins/alarmmanager
-ExecStart=/usr/bin/php alarmmanager_daemon.php --config=/etc/cacti/alarmmanager-workers.json
+ExecStart=/usr/bin/php alarmmanager_daemon.php
 ExecReload=/bin/kill -HUP $MAINPID
 Restart=on-failure
 RestartSec=5

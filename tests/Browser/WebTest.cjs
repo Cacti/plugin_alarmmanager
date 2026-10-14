@@ -29,6 +29,7 @@ const fs=require('node:fs'), path=require('node:path');
   check(await page.locator('input[type=password]').first().inputValue()==='','Existing password blank');
   await page.goto(base+'/plugins/alarmmanager/alarmmanager_admin.php?section=endpoints');
   check(await page.evaluate(()=>window.ALARM_BAD===undefined),'Endpoint name escaped');
+  check(await page.locator('input[name=max_concurrency]').count()===0,'No per-endpoint concurrency control');
   check(await page.locator('input[name=id]:not([type=hidden])').count()===0,'Record IDs are not editable');
   check(await page.locator('details').last().locator('input[name=id]').count()===0,'New endpoint does not submit an ID');
   const detail=page.locator('details').first();await detail.locator('summary').click();

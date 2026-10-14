@@ -58,7 +58,7 @@ function alarmmanager_endpoint_editor(array $endpoint, int $revision, bool $new 
 		print '<option ' . ($endpoint['type'] === $type ? 'selected' : '') . '>' . $type . '</option>';
 	} print '</select></label>';
 
-	foreach (['max_concurrency' => ['Concurrency', 1, 64, 1], 'timeout_seconds' => ['Timeout seconds', 1, 120, 10], 'max_attempts' => ['Attempt budget', 1, 20, 5], 'min_interval_ms' => ['Minimum interval ms', 0, 3600000, 0]] as $key => [$label, $min, $max, $default]) {
+	foreach (['timeout_seconds' => ['Timeout seconds', 1, 120, 10], 'max_attempts' => ['Attempt budget', 1, 20, 5], 'min_interval_ms' => ['Minimum interval ms', 0, 3600000, 0]] as $key => [$label, $min, $max, $default]) {
 		alarmmanager_input($key, $label, $endpoint[$key] ?? $default, 'number', "min=\"$min\" max=\"$max\" required");
 	}
 	$transport = $endpoint['transport'] ?? [];
@@ -70,7 +70,7 @@ function alarmmanager_endpoint_editor(array $endpoint, int $revision, bool $new 
 	// "method" shadows HTMLFormElement.method and crashes csrf-magic.js.
 	print '<label>' . __esc('Method', 'alarmmanager') . ' <select name="http_method">';
 
-	foreach (['POST', 'PUT', 'PATCH', 'DELETE'] as $method) {
+	foreach (['POST', 'PUT', 'PATCH'] as $method) {
 		print '<option ' . (($transport['method'] ?? 'POST') === $method ? 'selected' : '') . '>' . $method . '</option>';
 	} print '</select></label>';
 	alarmmanager_input('ca_bundle', 'Self-signed certificate / private CA PEM path', $transport['ca_bundle'] ?? '', 'text', 'maxlength="1024" placeholder="/etc/cacti/alarmmanager/internal-ca.pem"');
@@ -88,7 +88,7 @@ function alarmmanager_admin_markup(array $state, string $section): void {
 	$revision = $state['revision'];
 	print '<nav class="alarmmanagerTabs" aria-label="' . __esc('Administration sections', 'alarmmanager') . '">';
 
-	foreach (['endpoints' => 'Endpoints and mappings', 'profiles' => 'Routing profiles', 'producers' => 'Producer integrations', 'collectors' => 'Collectors and history', 'rules' => 'Rules and suppression', 'credentials' => 'Credentials', 'test' => 'Preview and test', 'configuration' => 'Configuration', 'health' => 'Workers and failed processing', 'audit' => 'Audit'] as $key => $label) {
+	foreach (['endpoints' => 'Endpoints and mappings', 'profiles' => 'Routing profiles', 'producers' => 'Producer integrations', 'collectors' => 'Collectors and history', 'rules' => 'Rules and suppression', 'credentials' => 'Credentials', 'test' => 'Preview and test', 'configuration' => 'Configuration', 'daemon' => 'Daemon', 'health' => 'Workers and failed processing', 'audit' => 'Audit'] as $key => $label) {
 		print '<a href="alarmmanager_admin.php?section=' . $key . '" ' . ($section === $key ? 'aria-current="page"' : '') . '>' . __esc($label, 'alarmmanager') . '</a>';
 	} print '</nav><p>' . __esc('Local configuration revision', 'alarmmanager') . ': ' . $revision . '</p>';
 
@@ -167,6 +167,21 @@ function alarmmanager_admin_markup(array $state, string $section): void {
 		alarmmanager_form_start('configuration_save', $revision);
 		alarmmanager_textarea('configuration_json', 'Complete local routing configuration (no secrets)', alarmmanager_json_text($config), 1048576);
 		print '<button type="submit">' . __esc('Apply configuration', 'alarmmanager') . '</button></form><p>' . __esc('Removed IDs are disabled, preserving history. Concurrent edits reject stale revisions. Provision each remote poller explicitly.', 'alarmmanager') . '</p>';
+	} elseif ($section === 'daemon') {
+		$settings = alarmmanager_supervisor_options();
+		$status   = alarmmanager_daemon_status();
+		print '<h2>' . __esc('Daemon', 'alarmmanager') . '</h2><p>' . __esc('Supervisor', 'alarmmanager') . ': ' . __esc($status ? 'Running' : 'Not running', 'alarmmanager') . '</p>';
+
+		if ($status) {
+			print '<p>' . __esc('Active processing workers', 'alarmmanager') . ': ' . (int) $status['processing_workers'] . ' / ' . __esc('Active delivery workers', 'alarmmanager') . ': ' . (int) $status['delivery_workers'] . '</p>';
+		} else {
+			print '<p>' . __esc('Install and start the Alarm Manager service on this collector before enabling daemon workers.', 'alarmmanager') . '</p>';
+		}
+		alarmmanager_form_start('daemon_save', $revision);
+		alarmmanager_checkbox('daemon_enabled', 'Enable daemon', $settings['enabled']);
+		alarmmanager_input('processing_workers', 'Processing workers', $settings['processing_workers'], 'number', 'min="1" max="64" required');
+		alarmmanager_input('delivery_workers', 'Delivery workers', $settings['delivery_workers'], 'number', 'min="0" max="64" required');
+		print '<p class="alarmmanagerHint alarmmanagerFullWidth">' . __esc('Changes apply automatically within a few seconds. Disabling the daemon lets current jobs finish and returns processing to the Cacti poller.', 'alarmmanager') . '</p><button type="submit">' . __esc('Save daemon settings', 'alarmmanager') . '</button></form>';
 	} elseif ($section === 'health') {
 		// Same shared metrics used by cli/status.php; rendered as Cacti tables.
 		$metrics = alarmmanager_metrics();
