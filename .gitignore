@@ -34,3 +34,13 @@ __pycache__/
 
 .php-cs-fixer.cache
 .phpstan-tmp-cache/
+
+# Local working notes and build-session docs (never publish these)
+docs/PROGRESS.md
+docs/DECISIONS.md
+docs/SPEC_AUDIT.md
+docs/DISCOVERY.md
+docs/IMPLEMENTATION_PLAN.md
+docs/BUILD_PROMPTS.md
+docs/DELIVERY.md
+docs/PROJECT_DIRECTION.md

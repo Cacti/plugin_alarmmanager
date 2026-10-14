@@ -27,6 +27,7 @@ require_once(__DIR__ . '/device.php');
 require_once(__DIR__ . '/routing.php');
 require_once(__DIR__ . '/credentials.php');
 require_once(__DIR__ . '/../integrations/producer_bridge.php');
+require_once(__DIR__ . '/api.php');
 const ALARMMANAGER_SYNC_LIMIT = 1048576;
 function alarmmanager_node_uuid(): string {
 	$id = db_fetch_cell_prepared('SELECT instance_uuid FROM plugin_alarmmanager_node WHERE id = 1', [], '', false);
@@ -95,6 +96,11 @@ function alarmmanager_sync_verify(string $body, int $poller, int $timestamp, str
 	}
 }
 function alarmmanager_sync_normalize(array $data): array {
+	if (isset($data['external_reference'])) {
+		require_once(__DIR__ . '/integrations.php');
+		$data['external_reference'] = json_encode(alarmmanager_external_reference_validate(json_decode($data['external_reference'], true, 8, JSON_THROW_ON_ERROR)), JSON_THROW_ON_ERROR);
+	}
+
 	foreach (['id', 'event_row_id', 'rule_id', 'endpoint_id', 'config_revision', 'collector_id', 'processing_poller_id', 'attempts', 'delivery_id', 'attempt_number', 'duration_ms'] as $field) {
 		if (!array_key_exists($field, $data)) {
 			continue;
@@ -113,7 +119,7 @@ function alarmmanager_sync_entities(): array {
 		'event'      => ['events', ['id', 'event_id', 'source', 'source_instance', 'mode', 'payload', 'collector_id', 'processing_poller_id', 'received_at']],
 		'processing' => ['jobs', ['id', 'event_row_id', 'status', 'attempts', 'last_error', 'created_at', 'updated_at']],
 		'decision'   => ['decisions', ['id', 'event_row_id', 'rule_id', 'endpoint_id', 'reason', 'config_revision', 'created_at']],
-		'delivery'   => ['deliveries', ['id', 'event_row_id', 'endpoint_id', 'status', 'attempts', 'last_error', 'idempotency_key', 'created_at', 'updated_at']],
+		'delivery'   => ['deliveries', ['id', 'event_row_id', 'endpoint_id', 'status', 'attempts', 'last_error', 'idempotency_key', 'created_at', 'updated_at', 'external_reference']],
 		'attempt'    => ['attempts', ['id', 'delivery_id', 'attempt_number', 'outcome', 'code', 'started_at', 'ended_at', 'duration_ms']]
 	];
 }
@@ -234,6 +240,10 @@ function alarmmanager_sync_receive(string $body, int $poller): string {
 
 		if (!isset($entities[$record['entity'] ?? '']) || !is_int($record['id'] ?? null) || $record['id'] < 1 || !is_int($record['revision'] ?? null) || $record['revision'] < 1 || !is_array($record['data'] ?? null)) {
 			throw new InvalidArgumentException('sync_record_invalid');
+		}
+
+		if ($record['entity'] === 'delivery') {
+			$record['data']['external_reference'] ??= null;
 		}
 		$record['data'] = alarmmanager_sync_normalize($record['data']);
 		$key            = $record['entity'] . ':' . $record['id'];
@@ -404,9 +414,9 @@ function alarmmanager_sync_send(int $limit = 100): bool {
 /** Provision configuration and usable credentials together, preserving local key/queues/history. */
 function alarmmanager_remote_provision(#[\SensitiveParameter] array $bundle): void {
 	alarmmanager_secret_guard();
-	alarmmanager_event_keys($bundle, ['version', 'poller_id', 'configuration', 'producers', 'grants', 'credentials']);
+	alarmmanager_event_keys($bundle, ['version', 'poller_id', 'configuration', 'producers', 'grants', 'credentials', 'api_clients']);
 
-	if (($bundle['version'] ?? null) !== 1 || ($bundle['poller_id'] ?? null) !== alarmmanager_local_poller()) {
+	if (!in_array($bundle['version'] ?? null, [1, 2], true) || ($bundle['poller_id'] ?? null) !== alarmmanager_local_poller()) {
 		throw new InvalidArgumentException('provision_owner_invalid');
 	}
 	$settings = alarmmanager_configuration($bundle['configuration'] ?? []);
@@ -416,14 +426,37 @@ function alarmmanager_remote_provision(#[\SensitiveParameter] array $bundle): vo
 			throw new InvalidArgumentException('provision_bundle_invalid');
 		}
 	}
-	$producers = [];
-	$grants    = [];
-	$secrets   = [];
+	$producers   = [];
+	$grants      = [];
+	$secrets     = [];
+	$api_clients = $bundle['api_clients'] ?? [];
+
+	if (!is_array($api_clients) || !array_is_list($api_clients) || count($api_clients) > 256) {
+		throw new InvalidArgumentException('provision_api_client_invalid');
+	}
+	$client_ids = [];
+
+	foreach ($api_clients as &$client) {
+		alarmmanager_event_keys($client, ['id', 'token_hash', 'definition', 'enabled', 'revision']);
+
+		if (!is_int($client['id'] ?? null) || $client['id'] < 1 || isset($client_ids[$client['id']]) || !is_int($client['revision'] ?? null) || $client['revision'] < 1
+			|| !is_bool($client['enabled'] ?? null) || !is_string($client['token_hash'] ?? null) || !preg_match('/\A[a-f0-9]{64}\z/D', $client['token_hash'])) {
+			throw new InvalidArgumentException('provision_api_client_invalid');
+		}
+		$client_ids[$client['id']] = true;
+		$client['definition']      = alarmmanager_api_client_validate($client['definition']);
+		$profile                   = $client['definition']['profile_id'];
+
+		if ($client['definition']['collector_id'] !== alarmmanager_local_poller() || ($client['enabled'] && $profile > 0 && !isset($settings['profiles'][$profile]))) {
+			throw new InvalidArgumentException('provision_api_client_invalid');
+		}
+	}
+	unset($client);
 
 	foreach ($bundle['producers'] as $row) {
 		alarmmanager_event_keys($row, ['source', 'scope', 'resource_id', 'definition']);
 
-		if (!in_array($row['source'] ?? '', ['thold', 'syslog'], true) || !in_array($row['scope'] ?? '', ['default', 'template', 'resource'], true) || !is_int($row['resource_id'] ?? null) || $row['resource_id'] < 0 || ($row['scope'] === 'default' && $row['resource_id'] !== 0) || ($row['source'] === 'syslog' && $row['scope'] === 'template')) {
+		if (!is_string($row['source'] ?? null) || !preg_match('/\A[A-Za-z][A-Za-z0-9_.-]{0,15}\z/D', $row['source']) || !in_array($row['scope'] ?? '', ['default', 'template', 'resource'], true) || !is_int($row['resource_id'] ?? null) || $row['resource_id'] < 0 || ($row['scope'] === 'default' && $row['resource_id'] !== 0)) {
 			throw new InvalidArgumentException('provision_producer_invalid');
 		}
 		$row['definition'] = AlarmManagerProducerBridge::validate($row['definition']);
@@ -447,9 +480,22 @@ function alarmmanager_remote_provision(#[\SensitiveParameter] array $bundle): vo
 		}
 		$secrets[$id] = alarmmanager_credential_validate($row['record']);
 	}
-	alarmmanager_transaction(function () use ($settings, $producers, $grants, $secrets): void {
+	alarmmanager_transaction(function () use ($settings, $producers, $grants, $secrets, $api_clients): void {
 		$key = alarmmanager_secret_key(true);
 		alarmmanager_write_configuration($settings);
+
+		foreach ($api_clients as $client) {
+			$existing = alarmmanager_db_row('SELECT definition FROM plugin_alarmmanager_api_clients WHERE id = ? FOR UPDATE', [$client['id']]);
+
+			if ($existing) {
+				$definition = json_decode($existing['definition'], true, 16, JSON_THROW_ON_ERROR);
+
+				if ($definition['source'] !== $client['definition']['source'] || $definition['source_instance'] !== $client['definition']['source_instance']) {
+					throw new InvalidArgumentException('provision_api_client_conflict');
+				}
+			}
+			alarmmanager_db_write('INSERT INTO plugin_alarmmanager_api_clients (id, token_hash, definition, enabled, revision, updated_at) VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP(6)) ON DUPLICATE KEY UPDATE token_hash = VALUES(token_hash), definition = VALUES(definition), enabled = VALUES(enabled), revision = VALUES(revision), updated_at = VALUES(updated_at)', [$client['id'], $client['token_hash'], json_encode($client['definition'], JSON_THROW_ON_ERROR), (int) $client['enabled'], $client['revision']]);
+		}
 
 		foreach ($producers as $row) {
 			alarmmanager_db_write('INSERT INTO plugin_alarmmanager_producer_config (source, scope, resource_id, definition) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE revision = revision + 1, definition = VALUES(definition)', [$row['source'], $row['scope'], $row['resource_id'], json_encode($row['definition'], JSON_THROW_ON_ERROR)]);
@@ -586,7 +632,25 @@ function alarmmanager_remote_export_configuration(int $poller, array $profiles):
 			}
 		}
 
-		return ['version' => 1, 'poller_id' => $poller, 'configuration' => $configuration, 'producers' => $producers, 'grants' => $grants, 'credentials' => $credentials];
+		$api_clients = [];
+
+		foreach (alarmmanager_db_rows('SELECT id, token_hash, definition, enabled, revision FROM plugin_alarmmanager_api_clients ORDER BY id LIMIT 257') as $client) {
+			$client['definition'] = alarmmanager_api_client_validate(json_decode($client['definition'], true, 16, JSON_THROW_ON_ERROR));
+
+			if ($client['definition']['collector_id'] !== $poller) {
+				continue;
+			}
+			$client['id']       = (int) $client['id'];
+			$client['revision'] = (int) $client['revision'];
+			$client['enabled']  = (bool) $client['enabled'] && ($client['definition']['profile_id'] === 0 || in_array($client['definition']['profile_id'], $profiles, true));
+			$api_clients[]      = $client;
+		}
+
+		if (count($api_clients) > 256) {
+			throw new RuntimeException('provision_api_client_limit');
+		}
+
+		return ['version' => 2, 'poller_id' => $poller, 'configuration' => $configuration, 'producers' => $producers, 'grants' => $grants, 'credentials' => $credentials, 'api_clients' => $api_clients];
 	});
 }
 

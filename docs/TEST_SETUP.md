@@ -87,3 +87,20 @@ Apply device patches to clean exact pins. Run DeviceBranchesTest.php with ALARMM
 ## Isolated endpoint editor browser check
 
 Run `tests/Browser/EndpointEditorTest.cjs` with `CACTI_PATH` pointing to a Cacti checkout and `ALARMMANAGER_PLAYWRIGHT_MODULE` pointing to an installed Playwright module. `ALARMMANAGER_BROWSER_BINARY` can select an existing Chromium executable; `ALARMMANAGER_EDITOR_SCREENSHOT` optionally saves a screenshot. The harness renders the real PHP endpoint editor, loads the plugin CSS/JavaScript and Cacti jQuery, and checks structured fields, type switching, desktop/mobile layout, and preservation of advanced values. It uses no database and sends no notifications; it does not prove installed Cacti/Select2 integration or provider delivery.
+
+## Producer API tests
+
+`tests/Unit/Ingestion/ApiContractTest.php` checks generic identity/device/mode/routing scope and network-client URL validation. `tests/Integration/ApiTest.php` starts a real loopback PHP HTTP endpoint against a disposable MariaDB database and checks authentication, HTTP gates, durable acceptance/deduplication, conflicting identities, unconfirmed-commit rollback, token rotation/revocation, producer HTTP handoff, acknowledgement loss, and outage recovery. Use the existing database opt-in variables and PHP cURL. The remote fixture checks collector-specific token-hash provisioning and scope rejection; its concurrency subprocess uses the same PHP configuration as the parent. Generated Syslog/Thold patches must apply and lint against their exact pins; neither this nor the API fixture proves an installed producer's live delivery behavior.
+
+
+## Integration workflow qualification
+
+`IntegrationTemplateTest` checks generic template contracts and bounded/redacted references. `TransportTest` covers real HTTP/script reference capture, update/recovery mapping, expired/lost completion fencing, destination/episode isolation, duplicate events and v8 upgrade preservation. `RemoteTest` verifies reference archival through signed history without redispatch.
+
+For native Cacti web helpers, preload `tests/fixtures/web_preload.php` before the integration bootstrap's recording doubles:
+
+```sh
+php -d auto_prepend_file=tests/fixtures/web_preload.php "$QA/phpunit" -c phpunit-integration.xml --filter WebTest
+```
+
+Use the existing disposable DB create opt-in and ALARMMANAGER_CACTI_ROOT. The web seed/router load the preloader themselves. `EndpointEditorTest.cjs` checks all three template drafts and reference fields; `IntegrationWorkflowTest.cjs` uses the disposable UI fixture to check template selection/save, preserved endpoints/credentials, redirected preview results, queued test identity/history links and mobile layout. It enqueues synthetic tests but runs no workers and contacts no provider. Full installed Cacti and provider/remote deployment qualification remains separate.

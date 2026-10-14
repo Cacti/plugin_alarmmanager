@@ -23,7 +23,8 @@
 */
 require_once(__DIR__ . '/events.php');
 
-function alarmmanager_mapping_fields(array $event): array {
+/** @param array<string, mixed> $reference */
+function alarmmanager_mapping_fields(array $event, array $reference = []): array {
 	$fields = [];
 
 	foreach (['event_id' => 'event.id', 'source' => 'event.source', 'source_instance' => 'event.source_instance', 'collector_id' => 'event.collector_id', 'occurred_at' => 'event.occurred_at', 'resource_id' => 'alarm.resource_id', 'alarm_key' => 'alarm.key', 'episode_id' => 'alarm.episode_id', 'sequence' => 'alarm.sequence', 'transition' => 'alarm.transition', 'severity' => 'alarm.severity', 'summary' => 'alarm.summary', 'details' => 'alarm.details'] as $key => $name) {
@@ -37,6 +38,9 @@ function alarmmanager_mapping_fields(array $event): array {
 	foreach (['rule_name', 'rule_type', 'metric', 'metric_value', 'threshold', 'suppression_reason', 'source_suppressed', 'source_notification_channels', 'ownership_epoch'] as $key) {
 		$fields['context.' . $key] = $event['context'][$key] ?? null;
 	}
+
+	$fields['integration.id']  = $reference['id'] ?? null;
+	$fields['integration.url'] = $reference['url'] ?? null;
 
 	return $fields;
 }
@@ -148,10 +152,11 @@ function alarmmanager_mapping_convert($value, string $type) {
 
 	throw new InvalidArgumentException('mapping_type');
 }
-function alarmmanager_map_payload(array $mapping, array $event): stdClass {
+/** @param array<string, mixed> $reference */
+function alarmmanager_map_payload(array $mapping, array $event, array $reference = []): stdClass {
 	$mapping = alarmmanager_mapping_validate($mapping);
 	$items   = $mapping[$event['transition']] ?? $mapping['default'] ?? [];
-	$fields  = alarmmanager_mapping_fields($event);
+	$fields  = alarmmanager_mapping_fields($event, $reference);
 	$payload = new stdClass();
 
 	foreach ($items as $item) {

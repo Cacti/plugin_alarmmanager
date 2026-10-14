@@ -61,4 +61,8 @@ $payload = stream_get_contents(STDIN);
 if (isset($argv[2])) {
 	file_put_contents($argv[2], json_encode(['payload' => json_decode($payload, true), 'arguments' => array_slice($argv, 3), 'environment_filtered' => getenv('ALARMMANAGER_FIXTURE_PRIVATE') === false, 'idempotency' => getenv('ALARM_IDEMPOTENCY_KEY')], JSON_THROW_ON_ERROR));
 }
+
+if ($mode === 'reference') {
+	print json_encode(['ticket' => ['id' => 'SCRIPT-42', 'url' => 'https://tickets.example.invalid/script']], JSON_THROW_ON_ERROR);
+}
 exit(0);

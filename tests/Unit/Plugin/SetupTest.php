@@ -46,7 +46,7 @@ final class SetupTest extends AlarmManagerTestCase {
 		$GLOBALS['alarmmanager_test_version'] = plugin_alarmmanager_version()['version'];
 		$GLOBALS['alarmmanager_test_schema']  = 6;
 		$this->assertTrue(plugin_alarmmanager_upgrade());
-		$this->assertSame(7, $GLOBALS['alarmmanager_test_schema']);
+		$this->assertSame(9, $GLOBALS['alarmmanager_test_schema']);
 		$this->assertSame($key, $GLOBALS['alarmmanager_test_store']['1:alarmmanager_key']);
 	}
 

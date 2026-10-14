@@ -25,6 +25,7 @@ if (PHP_SAPI !== 'cli-server' || getenv('ALARMMANAGER_TEST_WEB') !== '1' || gete
 	http_response_code(403);
 	exit;
 }
+require_once(__DIR__ . '/web_preload.php');
 $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
 if ($path === '/__fixture/login') {
@@ -51,7 +52,7 @@ if (in_array($path, ['/plugins/alarmmanager/css/dashboard.css', '/plugins/alarmm
 	return false;
 }
 
-if (is_string($path) && preg_match('~\A/include/(?:js/(?:d3|billboard)\.js|themes/(?:modern|dark|classic)/(?:[A-Za-z0-9._/-]+))\z~D', $path) && !str_contains($path, '..')) {
+if (is_string($path) && preg_match('~\A/include/(?:js/(?:jquery|d3|billboard)\.js|themes/(?:modern|dark|classic)/(?:[A-Za-z0-9._/-]+))\z~D', $path) && !str_contains($path, '..')) {
 	$file = getenv('ALARMMANAGER_CACTI_ROOT') . $path;
 
 	if (!is_file($file) || str_ends_with($file, '.php')) {

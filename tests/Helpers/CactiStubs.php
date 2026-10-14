@@ -71,6 +71,10 @@ if (!function_exists('db_fetch_cell_prepared')) {
 		}
 
 		if (str_contains($sql, 'information_schema')) {
+			if (str_contains($sql, "TABLE_NAME = 'plugin_alarmmanager_api_clients'")) {
+				return 1;
+			}
+
 			if (str_contains($sql, "TABLE_NAME = 'plugin_alarmmanager_credentials'")) {
 				return $GLOBALS['alarmmanager_test_credentials'] > 0 ? 1 : 0;
 			}
@@ -141,7 +145,7 @@ if (!function_exists('db_execute_prepared')) {
 		}
 
 		if (str_starts_with($sql, 'UPDATE plugin_alarmmanager_schema')) {
-			$GLOBALS['alarmmanager_test_schema'] = str_contains($sql, 'version = 7') ? 7 : (str_contains($sql, 'GREATEST(version, 5)') ? max(5, $GLOBALS['alarmmanager_test_schema']) : (str_contains($sql, 'version = 4') ? 4 : (str_contains($sql, 'GREATEST(version, 3)') ? 3 : max(2, $GLOBALS['alarmmanager_test_schema']))));
+			$GLOBALS['alarmmanager_test_schema'] = str_contains($sql, 'version = 9') ? 9 : (str_contains($sql, 'version = 8') ? 8 : (str_contains($sql, 'version = 7') ? 7 : (str_contains($sql, 'GREATEST(version, 5)') ? max(5, $GLOBALS['alarmmanager_test_schema']) : (str_contains($sql, 'version = 4') ? 4 : (str_contains($sql, 'GREATEST(version, 3)') ? 3 : max(2, $GLOBALS['alarmmanager_test_schema']))))));
 
 			return true;
 		}

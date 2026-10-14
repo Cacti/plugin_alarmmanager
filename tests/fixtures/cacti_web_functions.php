@@ -30,7 +30,8 @@ $cacti = getenv('ALARMMANAGER_CACTI_ROOT');
 if (!$cacti || !is_file($cacti . '/lib/auth.php')) {
 	throw new RuntimeException('Pinned Cacti source path required.');
 }
-$config        = ['base_path' => $cacti, 'url_path' => '/', 'cacti_db_version' => '1.2.32', 'poller_id' => 2, 'is_web' => false, 'config_options_array' => ['auth_method' => 1, 'graph_auth_method' => 1, 'guest_user' => 'guest', 'selected_theme' => 'modern', 'selective_debug' => '', 'selective_plugin_debug' => '', 'client_timezone_support' => '', 'log_destination' => 1, 'log_verbosity' => 0, 'path_cactilog' => '/dev/null']];
+global $config, $settings_user, $themes;
+$config        = ['base_path' => $cacti, 'include_path' => $cacti . '/include', 'url_path' => '/', 'cacti_db_version' => '1.2.32', 'poller_id' => 2, 'is_web' => false, 'connection' => 'online', 'config_options_array' => ['auth_method' => 1, 'graph_auth_method' => 1, 'guest_user' => 'guest', 'selected_theme' => 'modern', 'selective_debug' => '', 'selective_plugin_debug' => '', 'client_timezone_support' => '', 'log_destination' => 1, 'log_verbosity' => 0, 'path_cactilog' => '/dev/null']];
 $settings_user = ['fixture' => ['hide_disabled' => ['default' => false]]];
 $themes        = ['modern' => 'Modern', 'dark' => 'Dark', 'classic' => 'Classic'];
 require_once($cacti . '/include/global_constants.php');
@@ -40,3 +41,9 @@ require_once($cacti . '/include/global_languages.php');
 require_once($cacti . '/lib/html.php');
 require_once($cacti . '/lib/html_utility.php');
 require_once($cacti . '/lib/html_form.php');
+
+// Reuse the native help-page hook without replacing the fixture registration doubles.
+if (!function_exists('api_plugin_hook_function')) {
+	require_once(__DIR__ . '/source_functions.php');
+	eval(alarmmanager_test_source_function($cacti . '/lib/plugins.php', 'api_plugin_hook_function'));
+}

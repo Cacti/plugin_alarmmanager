@@ -281,6 +281,72 @@ final class TransportTest extends AlarmManagerTestCase {
 			$GLOBALS['mail_fixture_error'] = 'fake-secret';
 			$this->assertTrue(alarmmanager_email_send($message) === ['outcome' => 'retry', 'code' => 'email_failed'], 'Mailer error redaction');
 			$this->treject(fn () => alarmmanager_transport_configuration('email', ['to' => "x\r\nBcc: y"]), 'Email header injection');
+			$script_reference                       = $script;
+			$script_reference['arguments']          = ['-n', __DIR__ . '/../fixtures/transport_script.php', 'reference'];
+			$script_reference['response_reference'] = ['id' => 'ticket.id', 'url' => 'ticket.url'];
+			$this->tdefinition(3, 'script', $script_reference);
+			$this->assertSame(['id' => 'SCRIPT-42', 'url' => 'https://tickets.example.invalid/script'], alarmmanager_script_transport($event, $ep3, str_repeat('8', 64))['external_reference'], 'Script stdout captures only selected reference fields');
+			// Real HTTP references, atomic completion/fencing and episode/destination isolation.
+			alarmmanager_db_write('UPDATE plugin_alarmmanager_endpoints SET enabled = 0');
+			$reference_map = ['default' => [['to' => 'external_id', 'source' => 'integration.id']]];
+
+			foreach ([10 => '/ticket', 11 => '/ticket2'] as $id => $path) {
+				$this->tdefinition($id, 'webhook', ['url' => $http . $path, 'allow_http' => true, 'mapping' => $reference_map, 'response_reference' => ['id' => 'ticket.id', 'url' => 'ticket.url']]);
+			}
+			$reference_event               = $event;
+			$reference_event['alarm_key']  = 'reference-test';
+			$reference_event['episode_id'] = 'reference-episode';
+			$reference_event['sequence']   = 1;
+			$reference_event['event_id']   = 'reference-raise';
+			$reference_event['transition'] = 'raised';
+			$stream                        = alarmmanager_stream_key($reference_event, 'centralized');
+			$insert                        = function (array $sample) use ($stream): int {
+				$result = alarmmanager_transaction(fn () => alarmmanager_persist_event(alarmmanager_validate_event($sample), 'centralized', 2));
+
+				foreach ([10, 11] as $id) {
+					alarmmanager_db_write('INSERT INTO plugin_alarmmanager_deliveries (event_row_id, endpoint_id, stream_key, sequence, priority, available_at, created_at, updated_at, idempotency_key) VALUES (?, ?, ?, ?, 0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6), UTC_TIMESTAMP(6), ?)', [$result['event_row_id'], $id, $stream, $sample['sequence'], hash('sha256', $sample['event_id'] . ':' . $id)]);
+				}
+
+				return $result['event_row_id'];
+			};
+			$raise_id    = $insert($reference_event);
+			$lost_claim  = alarmmanager_claim_delivery(['webhook']);
+			$lost_result = alarmmanager_http_transport($reference_event, $lost_claim['endpoint'], $lost_claim['idempotency_key']);
+			$this->assertSame('success', $lost_result['outcome']);
+			$this->assertNull(db_fetch_cell_prepared('SELECT external_reference FROM plugin_alarmmanager_deliveries WHERE id = ?', [$lost_claim['id']]), 'Uncommitted response does not enter reference history');
+			alarmmanager_db_write('UPDATE plugin_alarmmanager_deliveries SET lease_until = DATE_SUB(UTC_TIMESTAMP(6), INTERVAL 1 SECOND) WHERE id = ?', [$lost_claim['id']]);
+			$this->assertFalse(alarmmanager_finish_delivery($lost_claim, $lost_result), 'Expired completion cannot store a reference');
+			alarmmanager_reclaim('delivery');
+			alarmmanager_db_write("UPDATE plugin_alarmmanager_deliveries SET available_at = UTC_TIMESTAMP(6) WHERE endpoint_id IN (10, 11) AND status = 'pending'");
+
+			for ($i = 0; $i < 2; $i++) {
+				$claim = alarmmanager_claim_delivery(['webhook']);
+				$this->assertTrue($claim && alarmmanager_run_delivery($claim));
+				$this->assertFalse(alarmmanager_finish_delivery($claim, ['outcome' => 'success', 'code' => 'http_200', 'external_reference' => ['id' => 'STALE']]), 'Finished lease cannot overwrite reference');
+			}
+			$reference_event['sequence']   = 2;
+			$reference_event['event_id']   = 'reference-recovery';
+			$reference_event['transition'] = 'recovered';
+			$this->assertSame('CASE-1', alarmmanager_delivery_reference($reference_event, 10)['id']);
+			$this->assertSame('CASE-2', alarmmanager_delivery_reference($reference_event, 11)['id']);
+			$preview_count = $this->tstats($http)['counts']['/ticket'];
+			$this->assertSame('CASE-1', alarmmanager_delivery_preview($reference_event, ['id' => 10, 'type' => 'webhook'])['payload']->external_id);
+			$this->assertSame($preview_count, $this->tstats($http)['counts']['/ticket'], 'Preview sends no request');
+			$recovery_id = $insert($reference_event);
+			$this->assertSame('already_accepted', alarmmanager_transaction(fn () => alarmmanager_persist_event(alarmmanager_validate_event($reference_event), 'centralized', 2))['status']);
+
+			for ($i = 0; $i < 2; $i++) {
+				$claim = alarmmanager_claim_delivery(['webhook']);
+				$this->assertTrue($claim && alarmmanager_run_delivery($claim));
+			}
+			$this->assertSame('CASE-1', json_decode(db_fetch_cell_prepared('SELECT external_reference FROM plugin_alarmmanager_deliveries WHERE event_row_id = ? AND endpoint_id = 10', [$recovery_id]), true)['id'], 'Recovery reused original external ID');
+			$this->assertSame(2, (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_deliveries WHERE event_row_id = ?', [$recovery_id]), 'Duplicate recovery did not duplicate delivery');
+			$reference_event['episode_id'] = 'new-reference-episode';
+			$this->assertSame([], alarmmanager_delivery_reference($reference_event, 10), 'New episode cannot inherit old ticket');
+			$this->assertSame([], alarmmanager_delivery_reference($reference_event, 12), 'Unrelated destination cannot inherit ticket');
+			alarmmanager_db_write('UPDATE plugin_alarmmanager_schema SET version = 8');
+			$this->assertTrue(alarmmanager_schema_install() && alarmmanager_schema_ready(), 'v8 upgrade and repeat schema installation succeed');
+			$this->assertSame('CASE-1', json_decode(db_fetch_cell_prepared('SELECT external_reference FROM plugin_alarmmanager_deliveries WHERE event_row_id = ? AND endpoint_id = 10', [$raise_id]), true)['id'], 'Upgrade preserves reference history');
 			$this->assertTrue(alarmmanager_delivery_handlers()['restapi'] === 'alarmmanager_http_transport' && alarmmanager_delivery_handlers()['webhook'] === 'alarmmanager_http_transport', 'Production handlers registered');
 		} finally {
 			if (is_resource($server)) {

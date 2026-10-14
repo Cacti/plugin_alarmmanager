@@ -26,7 +26,7 @@ require_once(__DIR__ . '/routing.php');
 require_once(__DIR__ . '/credentials.php');
 require_once(__DIR__ . '/delivery.php');
 require_once(__DIR__ . '/supervisor.php');
-require_once(__DIR__ . '/../integrations/producer_bridge.php');
+require_once(__DIR__ . '/api.php');
 
 function alarmmanager_admin_configuration(): array {
 	if (!alarmmanager_web_admin()) {
@@ -43,32 +43,50 @@ function alarmmanager_admin_configuration(): array {
 	});
 }
 /** Native endpoint fields override advanced JSON; other transports' options never carry over. */
+/**
+ * @param  array<string, mixed> $transport
+ * @param  array<string, mixed> $input
+ * @return array<string, mixed>
+ */
 function alarmmanager_admin_transport_fields(string $type, array $transport, array $input): array {
 	if (!isset($input['endpoint_fields'])) {
 		return $transport;
 	}
 	$keys = match ($type) {
-		'restapi', 'webhook' => ['url', 'method', 'ca_bundle', 'credential', 'allow_http', 'success_codes', 'response_match', 'connect_timeout_seconds'],
-		'email' => ['to', 'from', 'html', 'attachments'],
-		'script' => ['executable', 'arguments', 'compatibility', 'retry_exit_codes'],
-		default => []
+		'restapi', 'webhook' => ['url', 'method', 'ca_bundle', 'credential', 'allow_http', 'success_codes', 'response_match', 'connect_timeout_seconds', 'response_reference'],
+		'email'              => ['to', 'from', 'html', 'attachments'],
+		'script'             => ['executable', 'arguments', 'compatibility', 'retry_exit_codes', 'response_reference'],
+		default              => []
 	};
 	$transport = array_intersect_key($transport, array_flip($keys));
+
+	if (in_array($type, ['restapi', 'webhook', 'script'], true) && array_key_exists('reference_id_path', $input)) {
+		$id_path  = $input['reference_id_path'];
+		$url_path = $input['reference_url_path'] ?? '';
+
+		if (!is_string($id_path) || !is_string($url_path) || ($id_path === '' && $url_path !== '')) {
+			throw new InvalidArgumentException('invalid_reference_paths');
+		}
+		$transport['response_reference'] = $id_path === '' ? null : ['id' => $id_path] + ($url_path === '' ? [] : ['url' => $url_path]);
+	}
+
 	if ($type === 'email') {
 		foreach (['to', 'from'] as $key) {
 			$value = $input['email_' . $key] ?? '';
+
 			if (!is_string($value) || strlen($value) > 8192) {
 				throw new InvalidArgumentException('invalid_recipients');
 			}
-			$value = trim($value);
+			$value           = trim($value);
 			$transport[$key] = str_starts_with($value, '[') || str_starts_with($value, '{') ? alarmmanager_admin_json($value, 8192) : $value;
 		}
 		$transport['html'] = isset($input['email_html']);
 	} elseif ($type === 'script') {
-		$transport['executable'] = $input['script_executable'] ?? '';
-		$transport['arguments'] = alarmmanager_admin_json($input['script_arguments'] ?? '[]');
+		$transport['executable']    = $input['script_executable'] ?? '';
+		$transport['arguments']     = alarmmanager_admin_json($input['script_arguments'] ?? '[]');
 		$transport['compatibility'] = 'json';
 	}
+
 	return $transport;
 }
 function alarmmanager_admin_int($value, int $min = 1, int $max = 2147483647): int {
@@ -129,8 +147,27 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 		return 'Daemon settings saved.';
 	}
 
-	if ($action === 'producer_save') {
-		return alarmmanager_producer_save($input);
+	if ($action === 'api_client_save') {
+		$devices = $input['device_ids'] ?? [];
+
+		if (is_string($devices)) {
+			$devices = trim($devices) === '' ? [] : explode(',', $devices);
+		}
+
+		if (!is_array($devices) || !array_is_list($devices) || count($devices) > 4096) {
+			throw new InvalidArgumentException('invalid_api_client');
+		}
+		$client  = ['name' => $input['name'] ?? '', 'source' => $input['source'] ?? '', 'source_instance' => $input['source_instance'] ?? '',
+			'collector_id'    => alarmmanager_admin_int($input['collector_id'] ?? null), 'mode' => $input['mode'] ?? '', 'profile_id' => alarmmanager_admin_int($input['profile_id'] ?? 0, 0),
+			'device_ids'      => array_map(static fn ($id) => alarmmanager_admin_int($id), $devices),
+			'all_devices'     => isset($input['all_devices']), 'unmapped_devices' => isset($input['unmapped_devices'])];
+		$result = alarmmanager_api_client_save($client, alarmmanager_admin_int($input['id'] ?? 0, 0), alarmmanager_admin_int($input['client_revision'] ?? 0, 0), isset($input['enabled']), isset($input['rotate_token']));
+
+		if ($result['token'] !== null) {
+			$_SESSION['alarmmanager_api_token'] = $result;
+		}
+
+		return 'API client saved.';
 	}
 
 	if ($action === 'credential_save') {
@@ -323,61 +360,6 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 	unset($GLOBALS['alarmmanager_route_cache']);
 
 	return 'Configuration saved.';
-}
-
-function alarmmanager_producer_save(array $input): string {
-	if ((int) db_fetch_cell_prepared('SELECT status FROM plugin_config WHERE directory = ?', ['alarmmanager'], '', false) !== 1) {
-		throw new RuntimeException('producer_disabled');
-	}
-	$source = $input['source'] ?? '';
-	$scope  = $input['scope'] ?? '';
-
-	if (!in_array($source, ['thold', 'syslog'], true) || !in_array($scope, ['default', 'template', 'resource'], true) || ($source === 'syslog' && $scope === 'template')) {
-		throw new InvalidArgumentException('invalid_action');
-	}
-	$id = alarmmanager_admin_int($input['resource_id'] ?? null, $scope === 'default' ? 0 : 1);
-
-	if ($scope === 'default' && $id !== 0) {
-		throw new InvalidArgumentException('invalid_action');
-	}
-	$revision   = alarmmanager_admin_int($input['producer_revision'] ?? 0, 0);
-	$definition = AlarmManagerProducerBridge::validate(['mode' => $input['mode'] ?? '', 'profile_id' => alarmmanager_admin_int($input['profile_id'] ?? 0, 0), 'channels' => $input['channels'] ?? [], 'complete_history' => ($input['complete_history'] ?? '') === 'yes']);
-
-	if ($source === 'thold' && in_array('ticket', $definition['channels'], true)) {
-		throw new InvalidArgumentException('invalid_action');
-	}
-
-	if (($input['inherit'] ?? '') !== 'yes' && $definition['mode'] === 'centralized' && ($input['migration_confirmed'] ?? '') !== 'yes') {
-		throw new InvalidArgumentException('confirmation_required');
-	}
-	alarmmanager_transaction(function () use ($source, $scope, $id, $revision, $definition, $input): void {
-		// Serialize configuration creation as well as edits to absent rows.
-		alarmmanager_db_row('SELECT config_revision FROM plugin_alarmmanager_schema WHERE id = 1 FOR UPDATE');
-		$row = alarmmanager_db_row('SELECT revision FROM plugin_alarmmanager_producer_config WHERE source = ? AND scope = ? AND resource_id = ? FOR UPDATE', [$source, $scope, $id]);
-
-		if ((int) ($row['revision'] ?? 0) !== $revision) {
-			throw new RuntimeException('configuration_changed');
-		}
-
-		if (($input['inherit'] ?? '') === 'yes') {
-			alarmmanager_db_write('DELETE FROM plugin_alarmmanager_producer_config WHERE source = ? AND scope = ? AND resource_id = ?', [$source, $scope, $id]);
-		} else {
-			if ($definition['profile_id'] > 0) {
-				$profile = alarmmanager_db_row('SELECT enabled FROM plugin_alarmmanager_profiles WHERE id = ?', [$definition['profile_id']]);
-
-				if (!$profile || !(bool) $profile['enabled']) {
-					throw new InvalidArgumentException('producer_profile_required');
-				}
-
-				if ($definition['mode'] === 'centralized' && !(int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_rules WHERE profile_id = ? AND enabled = 1', [$definition['profile_id']], '', false)) {
-					throw new InvalidArgumentException('producer_route_required');
-				}
-			}
-			alarmmanager_db_write('INSERT INTO plugin_alarmmanager_producer_config (source, scope, resource_id, revision, definition) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE revision = VALUES(revision), definition = VALUES(definition)', [$source, $scope, $id, $revision + 1, json_encode($definition, JSON_THROW_ON_ERROR)]);
-		}
-	});
-
-	return 'Producer policy saved. Apply the revision-pinned patch on each producer. Existing notification receipts keep their original delivery owner.';
 }
 
 /**

@@ -38,6 +38,11 @@ final class RemoteTest extends AlarmManagerTestCase {
 			$this->markTestSkipped('Set ALARMMANAGER_TEST_ALLOW_CREATE=1 and a dedicated test-server DSN to run the remote lane.');
 		}
 
+		require_once dirname(__DIR__, 2) . '/setup.php';
+		require_once dirname(__DIR__, 2) . '/includes/remote.php';
+		require_once dirname(__DIR__, 2) . '/includes/queue.php';
+		require_once dirname(__DIR__, 2) . '/includes/processor.php';
+		require_once dirname(__DIR__, 2) . '/includes/delivery.php';
 		$databases                       = [];
 		$this->connections               = [];
 		$GLOBALS['config']               = ['poller_id' => 1];
@@ -77,11 +82,19 @@ final class RemoteTest extends AlarmManagerTestCase {
 			alarmmanager_save_credential(2, ['headers' => ['X-API-Key' => 'remote-fixture']]);
 			$grant = alarmmanager_device_grant_validate($this->rgrant(2));
 			alarmmanager_transaction(static function () use ($grant): void {alarmmanager_install_device_grant($grant); });
-			$bundle = alarmmanager_remote_export_configuration(2, [1]);
+			$apiDefinition = ['name'=>'Remote monitor', 'source'=>'remote-monitor', 'source_instance'=>'poller-2', 'collector_id'=>2, 'mode'=>'observe', 'profile_id'=>0, 'device_ids'=>[42], 'all_devices'=>false, 'unmapped_devices'=>false];
+			$apiAccount    = alarmmanager_api_client_save($apiDefinition);
+			$bundle        = alarmmanager_remote_export_configuration(2, [1]);
+			$this->assertCount(1, $bundle['api_clients'], 'Only this collector receives its API clients');
+			$this->assertStringNotContainsString($apiAccount['token'], json_encode($bundle), 'Provisioning contains no raw API token');
 			$this->assertSame(2, count($bundle['credentials']), 'selected credentials exported');
 			$this->ruse(2);
 			alarmmanager_remote_provision($bundle);
 			$this->assertTrue(alarmmanager_secret_key() === $keys[2], 'provision preserves local setup key');
+			$this->assertSame('remote-monitor', alarmmanager_api_authenticate('Bearer ' . $apiAccount['token'])['definition']['source'], 'Remote client can authenticate without main access');
+			$invalidClient                                                 = $bundle;
+			$invalidClient['api_clients'][0]['definition']['collector_id'] = 3;
+			$this->rreject(fn () =>alarmmanager_remote_provision($invalidClient), 'Foreign collector API scope rejected');
 			$this->assertTrue(alarmmanager_load_credential(1)['headers']['Authorization'] === 'Bearer remote-fixture', 'remote credentials usable');
 			$bad                                                         = $bundle;
 			$bad['credentials'][0]['record']['headers']['Authorization'] = "invalid\r\nheader";
@@ -114,12 +127,12 @@ final class RemoteTest extends AlarmManagerTestCase {
 				alarmmanager_load_credential((int)$endpoint['id']);
 				$sent[] = $endpoint['id'] . ':' . $key;
 
-				return ['outcome'=>'success', 'code'=>'fixture_sent'];
+				return ['outcome'=>'success', 'code'=>'fixture_sent', 'external_reference' => ['id' => 'CASE-' . $endpoint['id'], 'url' => 'https://tickets.example.invalid/case']];
 			}, 'webhook'=>static function ($event,$endpoint,$key) use (&$sent) {
 				alarmmanager_load_credential((int)$endpoint['id']);
 				$sent[] = $endpoint['id'] . ':' . $key;
 
-				return ['outcome'=>'success', 'code'=>'fixture_sent'];
+				return ['outcome'=>'success', 'code'=>'fixture_sent', 'external_reference' => ['id' => 'CASE-' . $endpoint['id'], 'url' => 'https://tickets.example.invalid/case']];
 			}];
 
 			while ($claim = alarmmanager_claim_delivery(['restapi', 'webhook'])) {
@@ -149,6 +162,9 @@ final class RemoteTest extends AlarmManagerTestCase {
 			$this->assertGreaterThan(0, (int)db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_remote_history'), 'central history imported');
 			$this->assertSame(0, (int)db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_jobs'), 'reconciliation creates no processing jobs');
 			$this->assertSame(0, (int)db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_deliveries'), 'reconciliation creates no delivery jobs');
+			$reference_archive = alarmmanager_db_row("SELECT definition FROM plugin_alarmmanager_remote_history WHERE entity = 'delivery' ORDER BY entity_id LIMIT 1");
+			$this->assertSame('CASE-1', json_decode(json_decode($reference_archive['definition'], true)['external_reference'], true)['id'], 'Signed remote history retains external reference without redispatch');
+			$this->rreject(fn () => alarmmanager_sync_normalize(['external_reference' => json_encode(['id' => 'CASE-1', 'url' => 'javascript:alert(1)'])]), 'Invalid remote reference link is rejected');
 			$historyCount = (int)db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_remote_history');
 			$this->assertTrue(alarmmanager_sync_receive($body, 2) === $ack, 'lost ack replay idempotent');
 			$this->assertSame($historyCount, (int)db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_remote_history'), 'replay no history duplicates');
@@ -261,11 +277,8 @@ final class RemoteTest extends AlarmManagerTestCase {
 			$ready     = $concurrentDir . '/ready';
 			$childCode = '<?php require_once(' . var_export(__DIR__ . '/bootstrap.php', true) . '); $alarmmanager_test_db=alarmmanager_test_connect(); $alarmmanager_test_db->exec(' . var_export('USE `' . $databases[2] . '`', true) . "); \$alarmmanager_test_db->beginTransaction(); \$alarmmanager_test_db->exec(\"INSERT INTO plugin_alarmmanager_decisions (event_row_id,rule_id,endpoint_id,reason,created_at) VALUES (1,991,0,'commit-a',UTC_TIMESTAMP(6))\"); file_put_contents(" . var_export($ready, true) . ",'ready'); usleep(500000); \$alarmmanager_test_db->commit();";
 			file_put_contents($childFile, $childCode);
-			$command = [PHP_BINARY, '-n'];
+			$command = [PHP_BINARY];
 
-			foreach (['pdo', 'mysqlnd', 'pdo_mysql'] as $extension) {
-				$command = [...$command, '-d', 'extension=' . getenv('ALARMMANAGER_TEST_EXTENSION_DIR') . '/' . $extension . '.so'];
-			}
 			$child = proc_open([...$command, $childFile], [0=>['file', '/dev/null', 'r'], 1=>['file', '/dev/null', 'w'], 2=>['file', $concurrentDir . '/child.log', 'w']], $pipes);
 
 			for ($i = 0; $i < 100 && !is_file($ready); $i++) {

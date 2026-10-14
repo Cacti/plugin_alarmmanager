@@ -24,6 +24,8 @@
 require_once(__DIR__ . '/routing.php');
 require_once(__DIR__ . '/credentials.php');
 
+require_once(__DIR__ . '/integrations.php');
+
 function alarmmanager_endpoint_transport(array $endpoint): array {
 	$row      = alarmmanager_db_row('SELECT definition FROM plugin_alarmmanager_transports WHERE endpoint_id = ?', [(int) $endpoint['id']]);
 	$settings = $row ? json_decode($row['definition'], true, 24, JSON_THROW_ON_ERROR) : [];
@@ -40,7 +42,7 @@ function alarmmanager_delivery_preview(array $event, array $endpoint): array {
 	$event    = alarmmanager_validate_event($event);
 	$settings = alarmmanager_endpoint_transport($endpoint);
 
-	return ['endpoint_id' => (int) $endpoint['id'], 'type' => $endpoint['type'], 'payload' => alarmmanager_map_payload($settings['mapping'], $event), 'credentials' => !empty($settings['credential']) ? '[REDACTED]' : 'none'];
+	return ['endpoint_id' => (int) $endpoint['id'], 'type' => $endpoint['type'], 'payload' => alarmmanager_map_payload($settings['mapping'], $event, in_array($endpoint['type'], ['restapi', 'webhook', 'script'], true) ? alarmmanager_delivery_reference($event, (int) $endpoint['id'], $settings['mapping']) : []), 'credentials' => !empty($settings['credential']) ? '[REDACTED]' : 'none'];
 }
 function alarmmanager_retry_after(?string $value, ?int $now = null): int {
 	if ($value === null) {
@@ -75,18 +77,35 @@ function alarmmanager_http_result(int $status, string $body, array $settings, ?s
 			}
 		}
 
-		return ['outcome' => 'success', 'code' => 'http_' . $status];
+		return alarmmanager_transport_reference_result(['outcome' => 'success', 'code' => 'http_' . $status], $body, $settings);
 	}
 	$retry = in_array($status, [408, 425, 429], true) || $status >= 500;
 
 	return ['outcome' => $retry ? 'retry' : 'failure', 'code' => 'http_' . $status, 'retry_after' => $retry ? alarmmanager_retry_after($retry_after) : 0];
 }
+/**
+ * @param  array<string, mixed> $result
+ * @param  array<string, mixed> $settings
+ * @return array<string, mixed>
+ */
+function alarmmanager_transport_reference_result(array $result, string $body, array $settings): array {
+	if ($result['outcome'] === 'success' && ($settings['response_reference'] ?? null) !== null) {
+		try {
+			$result['external_reference'] = alarmmanager_response_reference($body, $settings['response_reference']);
+		} catch (Throwable $error) {
+			return ['outcome' => 'failure', 'code' => 'external_reference_invalid'];
+		}
+	}
+
+	return $result;
+}
+
 function alarmmanager_http_transport(array $event, array $endpoint, string $idempotency): array {
 	if (!function_exists('curl_init')) {
 		return ['outcome' => 'failure', 'code' => 'curl_unavailable'];
 	}
 	$settings = alarmmanager_endpoint_transport($endpoint);
-	$payload  = json_encode(alarmmanager_map_payload($settings['mapping'], $event), JSON_THROW_ON_ERROR);
+	$payload  = json_encode(alarmmanager_map_payload($settings['mapping'], $event, alarmmanager_delivery_reference($event, (int) $endpoint['id'], $settings['mapping'])), JSON_THROW_ON_ERROR);
 	$headers  = ['Content-Type: application/json', 'Idempotency-Key: ' . $idempotency, 'Expect:'];
 
 	if ($settings['credential']) {
@@ -203,7 +222,7 @@ function alarmmanager_email_transport(array $event, array $endpoint, string $ide
 }
 function alarmmanager_script_transport(array $event, array $endpoint, string $idempotency): array {
 	$settings = alarmmanager_endpoint_transport($endpoint);
-	$payload  = json_encode(alarmmanager_map_payload($settings['mapping'], $event), JSON_THROW_ON_ERROR);
+	$payload  = json_encode(alarmmanager_map_payload($settings['mapping'], $event, alarmmanager_delivery_reference($event, (int) $endpoint['id'], $settings['mapping'])), JSON_THROW_ON_ERROR);
 
 	if (!function_exists('posix_kill') || !is_executable('/usr/bin/setsid') || !is_file($settings['executable']) || !is_executable($settings['executable'])) {
 		return ['outcome' => 'failure', 'code' => 'script_unavailable'];
@@ -224,7 +243,7 @@ function alarmmanager_script_transport(array $event, array $endpoint, string $id
 	}
 	$exit = $result['exit_code'];
 
-	return ['outcome' => $exit === 0 ? 'success' : (in_array($exit, $settings['retry_exit_codes'], true) ? 'retry' : 'failure'), 'code' => $exit === 0 ? 'script_completed' : 'script_exit_failed'];
+	return alarmmanager_transport_reference_result(['outcome' => $exit === 0 ? 'success' : (in_array($exit, $settings['retry_exit_codes'], true) ? 'retry' : 'failure'), 'code' => $exit === 0 ? 'script_completed' : 'script_exit_failed'], $result['stdout'], $settings);
 }
 
 /** Fresh child, no shell, clean environment, bounded pipes/runtime and group cleanup. */

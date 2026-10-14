@@ -29,8 +29,8 @@ const ALARMMANAGER_TABS = ['dashboard', 'conditions', 'events', 'deliveries', 'a
 function alarmmanager_web_assets(): void {
 	global $config;
 
-	print '<link rel="stylesheet" href="' . html_escape($config['url_path'] . 'plugins/alarmmanager/css/dashboard.css' . '?v=0.8.1-friendly-endpoints') . '">';
-	print '<script src="' . html_escape($config['url_path'] . 'plugins/alarmmanager/js/dashboard.js' . '?v=0.8.1-friendly-endpoints') . '" defer></script>';
+	print '<link rel="stylesheet" href="' . html_escape($config['url_path'] . 'plugins/alarmmanager/css/dashboard.css' . '?v=0.10.0-integrations') . '">';
+	print '<script src="' . html_escape($config['url_path'] . 'plugins/alarmmanager/js/dashboard.js' . '?v=0.10.0-integrations') . '" defer></script>';
 }
 /**
  * Filters validated both by the Cacti request-var machinery (persistence in
@@ -242,6 +242,15 @@ function alarmmanager_report_table(string $kind, array $result, array $scope, ar
 
 			if ($key === 'event_row_id' || ($key === 'id' && in_array($kind, ['events', 'conditions'], true))) {
 				$link = '<a class="linkOverDark" href="' . html_escape(alarmmanager_report_url($filters, 'events', ['event_id' => $row[$key]])) . '">' . html_escape((string) $row[$key]) . '</a>';
+			} elseif ($key === 'external_url' && !empty($row['external_id']) && !empty($row[$key])) {
+				require_once(__DIR__ . '/integrations.php');
+
+				try {
+					$reference = alarmmanager_external_reference_validate(['id' => $row['external_id'], 'url' => $row[$key]]);
+					$link      = '<a class="linkOverDark" href="' . html_escape($reference['url']) . '" target="_blank" rel="noopener noreferrer">' . $value . '</a>';
+				} catch (Throwable $error) {
+					$link = $value;
+				}
 			} else {
 				$link = $value;
 			}

@@ -46,6 +46,21 @@ const render=endpoint=>execFileSync('php',['-r',`function __($s,...$a){return $s
   check(posted.type==='webhook'&&posted.http_method==='PATCH'&&posted.timeout_seconds==='37'&&posted.max_attempts==='8'&&posted.min_interval_ms==='1250','Collapsed delivery values and saved webhook type submitted unchanged');
   await page.locator('.alarmmanagerAdvanced > summary').click();const interval=page.getByLabel('Minimum time between deliveries (seconds)',{exact:true});check(await interval.inputValue()==='1.25','Delivery interval shown in seconds');await interval.fill('2.5');check(await page.locator('[name=min_interval_ms]').inputValue()==='2500','Seconds converted to existing millisecond contract');
   check(JSON.parse(posted.transport_json).response_match==='accepted'&&JSON.parse(posted.transport_json).success_codes[0]===202,'Other transport options preserved');
+  const templates=JSON.parse(execFileSync('php',['-r',`require $argv[1].'/includes/integrations.php'; print json_encode(alarmmanager_integration_templates());`,root],{encoding:'utf8'}));
+  for(const template of Object.values(templates)) {
+   await load({...template,enabled:false});
+   check(!(await page.locator('[name=enabled]').isChecked()),'Template draft is disabled');
+   check(await page.locator('[name=id]').count()===0,'Template draft has no saved identity');
+   check((await page.locator('[name=name]').inputValue())===template.name,'Template fills integration name');
+   check(JSON.parse(await page.locator('[name=mapping_json]').inputValue()).default.some(field=>field.source==='integration.id'),'Template maps the external reference');
+   check(await page.locator('[name=reference_id_path]').isVisible(),'Reference paths are editable for HTTP and scripts');
+   await page.locator('[name=reference_id_path]').fill('ticket.id');
+   await page.locator('[name=reference_url_path]').fill('ticket.url');
+   const draft=await page.locator('form').evaluate(form=>Object.fromEntries(new FormData(form)));
+   check(draft.reference_id_path==='ticket.id'&&draft.reference_url_path==='ticket.url','Reference paths submit through the endpoint form');
+   const refs=page.locator('.alarmmanagerMappingRow').filter({has:page.locator('select option[value="integration.id"]:checked')});
+   check(await refs.count()===1,'External reference is available in the no-code mapping editor');
+  }
   check(errors.length===0,'No browser errors');console.log(`PASS: ${checks} rendered endpoint checks`);
  }finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

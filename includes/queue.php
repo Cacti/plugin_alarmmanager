@@ -137,6 +137,7 @@ function alarmmanager_retry_delay(int $attempt): int {
 	return min(3600, 2 ** min(10, max(1, $attempt))) + random_int(0, 3);
 }
 function alarmmanager_finish_delivery(array $claim, array $result): bool {
+	require_once(__DIR__ . '/integrations.php');
 	$outcome = $result['outcome'] ?? 'retry';
 	$code    = $result['code'] ?? 'transport_error';
 
@@ -144,12 +145,13 @@ function alarmmanager_finish_delivery(array $claim, array $result): bool {
 		$outcome = 'retry';
 		$code    = 'invalid_transport_result';
 	}
+	$reference   = $outcome === 'success' && isset($result['external_reference']) ? json_encode(alarmmanager_external_reference_validate($result['external_reference']), JSON_THROW_ON_ERROR) : null;
 	$retry_after = $result['retry_after'] ?? 0;
 	$retry_after = is_int($retry_after) ? max(0, min(3600, $retry_after)) : 0;
 	$duration    = $result['duration_ms'] ?? 0;
 	$duration    = is_int($duration) ? max(0, $duration) : 0;
 
-	return alarmmanager_transaction(function () use ($claim, $outcome, $code, $retry_after, $duration): bool {
+	return alarmmanager_transaction(function () use ($claim, $outcome, $code, $retry_after, $duration, $reference): bool {
 		$job = alarmmanager_db_row("SELECT id, attempts FROM plugin_alarmmanager_deliveries WHERE id = ? AND status = 'leased' AND lease_token = ? AND lease_until > UTC_TIMESTAMP(6) FOR UPDATE", [$claim['id'], $claim['lease_token']]);
 
 		if (!$job) {
@@ -158,7 +160,7 @@ function alarmmanager_finish_delivery(array $claim, array $result): bool {
 		$terminal = $outcome === 'failure' || ($outcome !== 'success' && (int) $job['attempts'] >= (int) $claim['endpoint']['max_attempts']);
 		$status   = $outcome === 'success' ? 'completed' : ($terminal ? 'failed' : 'pending');
 		$delay    = $status  === 'pending' ? max($retry_after, alarmmanager_retry_delay((int) $job['attempts'])) : 0;
-		alarmmanager_db_write('UPDATE plugin_alarmmanager_deliveries SET status = ?, last_error = ?, available_at = DATE_ADD(UTC_TIMESTAMP(6), INTERVAL ? SECOND), lease_token = NULL, lease_until = NULL, updated_at = UTC_TIMESTAMP(6) WHERE id = ? AND lease_token = ?', [$status, $outcome === 'success' ? '' : $code, $delay, $job['id'], $claim['lease_token']]);
+		alarmmanager_db_write('UPDATE plugin_alarmmanager_deliveries SET status = ?, last_error = ?, external_reference = ?, available_at = DATE_ADD(UTC_TIMESTAMP(6), INTERVAL ? SECOND), lease_token = NULL, lease_until = NULL, updated_at = UTC_TIMESTAMP(6) WHERE id = ? AND lease_token = ?', [$status, $outcome === 'success' ? '' : $code, $reference, $delay, $job['id'], $claim['lease_token']]);
 		alarmmanager_db_write('UPDATE plugin_alarmmanager_attempts SET outcome = ?, code = ?, ended_at = UTC_TIMESTAMP(6), duration_ms = ? WHERE delivery_id = ? AND lease_token = ?', [$outcome, $code, $duration, $job['id'], $claim['lease_token']]);
 
 		if ($terminal) {

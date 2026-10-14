@@ -65,6 +65,7 @@ final class WebTest extends AlarmManagerTestCase {
 			alarmmanager_test_web_schema($GLOBALS['alarmmanager_test_db']);
 			$this->assertTrue(plugin_alarmmanager_install(), 'Schema/install registration');
 			alarmmanager_test_web_grants($GLOBALS['alarmmanager_test_db']);
+			$this->wuser(1);
 			ob_start();
 			alarmmanager_admin_markup(alarmmanager_admin_configuration(), 'credentials');
 			$html = ob_get_clean();
@@ -243,7 +244,7 @@ final class WebTest extends AlarmManagerTestCase {
 			$this->assertSame(2, alarmmanager_admin_configuration()['configuration']['endpoints'][0]['max_concurrency'], 'Editing preserves the existing endpoint limit without a form field');
 			$before  = (int)db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_deliveries');
 			$preview = $this->waction(['action'=>'preview', 'id'=>'1', 'event_json'=>json_encode($event)]);
-			$this->assertTrue(str_contains($preview,'REDACTED') && !str_contains($preview,'WEB_SECRET_MARKER') && (int)db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_deliveries') === $before, 'Admin preview no enqueue/secrets');
+			$this->assertTrue(str_contains($preview,'none') && !str_contains($preview,'WEB_SECRET_MARKER') && (int)db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_deliveries') === $before, 'Admin preview no enqueue/secrets');
 			$this->waction(['action'=>'test_send', 'id'=>'1', 'event_json'=>json_encode($event), 'confirmed'=>'yes']);
 			$this->assertSame($before + 1, (int)db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_deliveries'), 'Test queues single destination');
 			$this->wreject(fn () =>$this->waction(['action'=>'test_send', 'id'=>'1', 'event_json'=>json_encode($event)]), 'Test explicit confirmation');
@@ -300,32 +301,34 @@ final class WebTest extends AlarmManagerTestCase {
 			$this->wreject(fn () =>alarmmanager_report_rows('SELECT SLEEP(10)'),'Per-statement report timeout');
 			$this->assertTrue((hrtime(true) - $deadline_start) / 1e9 < 9 && str_contains($GLOBALS['database_last_error'] ?? '', '1969'), 'Report timeout bounded');
 			$this->wuser(2);
-			$this->wreject(fn () =>$this->waction(['action'=>'producer_save', 'source'=>'thold', 'scope'=>'default', 'resource_id'=>0, 'mode'=>'legacy']), 'reader producer save denied');
+			$this->wreject(fn () =>$this->waction(['action'=>'api_client_save', 'name'=>'Scoped client', 'source'=>'monitor', 'source_instance'=>'fixture', 'collector_id'=>1, 'device_ids'=>'42', 'mode'=>'observe', 'profile_id'=>0]), 'reader producer save denied');
 			$this->wuser(1);
 			$_SERVER['REQUEST_METHOD'] = 'POST';
 			$_POST                     = ['__csrf_magic'=>'invalid'];
-			$this->wreject(fn () =>alarmmanager_admin_action(['action'=>'producer_save', 'source'=>'thold', 'scope'=>'default', 'resource_id'=>0, 'mode'=>'legacy']), 'producer invalid CSRF denied');
+			$this->wreject(fn () =>alarmmanager_admin_action(['action'=>'api_client_save', 'name'=>'Scoped client', 'source'=>'monitor', 'source_instance'=>'fixture', 'collector_id'=>1, 'device_ids'=>'42', 'mode'=>'observe', 'profile_id'=>0]), 'producer invalid CSRF denied');
 			$producer = ['action'=>'producer_save', 'source'=>'thold', 'scope'=>'default', 'resource_id'=>0, 'producer_revision'=>0, 'mode'=>'centralized', 'profile_id'=>1, 'channels'=>['email']];
-			$this->wreject(fn () =>$this->waction($producer), 'central producer migration confirmation required');
-			$this->waction($producer + ['migration_confirmed'=>'yes']);
-			$this->assertSame('centralized', AlarmManagerProducerBridge::configuration('thold',42)['mode'], 'admin producer default saved');
-			$this->wreject(fn () =>$this->waction($producer + ['migration_confirmed'=>'yes']), 'producer stale editor denied');
-			$override = ['action'=>'producer_save', 'source'=>'thold', 'scope'=>'template', 'resource_id'=>10, 'producer_revision'=>0, 'mode'=>'observe', 'profile_id'=>0];
-			$this->waction($override);
-			$this->assertSame('observe', AlarmManagerProducerBridge::configuration('thold',42,10)['mode'], 'template override saved');
-			$this->waction(['action'=>'producer_save', 'source'=>'thold', 'scope'=>'resource', 'resource_id'=>42, 'producer_revision'=>0, 'mode'=>'legacy', 'profile_id'=>0]);
-			$this->assertSame('legacy', AlarmManagerProducerBridge::configuration('thold',42,10)['mode'], 'threshold override saved');
-			$this->waction(['action'=>'producer_save', 'source'=>'thold', 'scope'=>'resource', 'resource_id'=>42, 'producer_revision'=>1, 'mode'=>'legacy', 'profile_id'=>0, 'inherit'=>'yes']);
-			$this->assertSame('observe', AlarmManagerProducerBridge::configuration('thold',42,10)['mode'], 'override removal restores inheritance');
-			$this->wreject(fn () =>$this->waction(['action'=>'producer_save', 'source'=>'syslog', 'scope'=>'template', 'resource_id'=>1, 'mode'=>'observe']), 'syslog template rejected');
+			$this->wreject(fn () =>$this->waction($producer + ['migration_confirmed'=>'yes']), 'Retired source-specific policy action is rejected');
+			$this->assertSame('legacy', AlarmManagerProducerBridge::configuration('thold',42)['mode'], 'Retired action leaves legacy source policy unchanged');
 			ob_start();
 			alarmmanager_admin_markup(alarmmanager_admin_configuration(),'producers');
 			$html = ob_get_clean();
-			$this->assertTrue(str_contains($html,'Producer integrations') && str_contains($html,'migration_confirmed') && str_contains($html,'__csrf_magic'), 'producer admin controls and CSRF rendered');
+			$this->assertTrue(str_contains($html,'API clients') && str_contains($html,'api_client_save') && str_contains($html,'__csrf_magic'), 'producer admin controls and CSRF rendered');
 			ob_start();
 			alarmmanager_admin_markup(alarmmanager_admin_configuration(),'collectors');
 			$html = ob_get_clean();
 			$this->assertTrue(str_contains($html,'Collectors and remote history') && str_contains($html,'Latest 50'), 'bounded collector history controls rendered');
+			$endpoint_count   = (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_endpoints');
+			$credential_count = (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_credentials');
+
+			foreach (alarmmanager_integration_templates() as $template) {
+				$transport = $template['transport'];
+				$mapping   = $transport['mapping'];
+				unset($transport['mapping']);
+				$this->waction(['action' => 'endpoint_save', 'revision' => alarmmanager_admin_configuration()['revision'], 'name' => $template['name'], 'type' => $template['type'], 'url' => $transport['url'] ?? '', 'http_method' => 'POST', 'auth_type' => 'none', 'transport_json' => json_encode($transport), 'mapping_json' => json_encode($mapping)]);
+			}
+			$this->assertSame($endpoint_count + 3, (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_endpoints'), 'Templates create separate endpoints');
+			$this->assertSame(3, (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_endpoints WHERE id > ? AND enabled = 0', [$endpoint_count]), 'Template drafts remain disabled');
+			$this->assertSame($credential_count, (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_credentials'), 'Template saves do not copy or alter credentials');
 		} finally {
 			if ($GLOBALS['alarmmanager_test_db']->inTransaction()) {
 				$GLOBALS['alarmmanager_test_db']->rollBack();

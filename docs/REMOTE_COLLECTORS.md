@@ -1,5 +1,7 @@
 # Device transitions and remote collectors
 
+**Direction update — 2026-10-14:** autonomous remote webhook/REST and script delivery remains required. Native email stays Cacti/source-owned. The email/script grants below describe the existing implementation and remain unchanged while email removal and migration are deferred. See [PROJECT_DIRECTION.md](PROJECT_DIRECTION.md); this documentation change does not alter grants, receipts or remote configuration.
+
 Version 0.8.0/schema v6 adds explicit device ownership, local remote-poller provisioning and authenticated history reconciliation. Install and qualify in an isolated Cacti lab. This implementation has passed real MariaDB and loopback TLS fixtures; it has not been qualified through a full deployed Cacti scheduler/installer lane.
 
 ## Source patches

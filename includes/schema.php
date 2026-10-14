@@ -112,11 +112,11 @@ function alarmmanager_schema_install(): bool {
 		return false;
 	}
 
-	return alarmmanager_schema_remote() && alarmmanager_schema_record_ids();
+	return alarmmanager_schema_remote() && alarmmanager_schema_record_ids() && alarmmanager_schema_api() && alarmmanager_schema_integrations();
 }
 
 function alarmmanager_schema_ready(): bool {
-	return (int) db_fetch_cell_prepared('SELECT version FROM plugin_alarmmanager_schema WHERE id = 1', [], '', false) === 7;
+	return (int) db_fetch_cell_prepared('SELECT version FROM plugin_alarmmanager_schema WHERE id = 1', [], '', false) === 9;
 }
 
 function alarmmanager_schema_column(string $table, string $column, string $definition): void {
@@ -149,7 +149,7 @@ function alarmmanager_schema_runtime(): bool {
 	try {
 		$version = db_fetch_cell_prepared('SELECT version FROM plugin_alarmmanager_schema WHERE id = 1', [], '', false);
 
-		if ($version === false || (int) $version > 7) {
+		if ($version === false || (int) $version > 9) {
 			return false;
 		}
 		alarmmanager_schema_column('plugin_alarmmanager_schema', 'config_revision', 'BIGINT UNSIGNED NOT NULL DEFAULT 0');
@@ -383,4 +383,36 @@ function alarmmanager_schema_record_ids(): bool {
 	}
 
 	return true;
+}
+
+/** v8: generic producer API clients. Existing producer policies/receipts remain intact. */
+function alarmmanager_schema_api(): bool {
+	try {
+		alarmmanager_db_write("CREATE TABLE IF NOT EXISTS plugin_alarmmanager_api_clients (
+			id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, token_hash CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+			definition TEXT NOT NULL, enabled TINYINT NOT NULL DEFAULT 1, revision INT UNSIGNED NOT NULL DEFAULT 1,
+			last_seen DATETIME(6) NULL, last_status VARCHAR(32) CHARACTER SET ascii NOT NULL DEFAULT '', updated_at DATETIME(6) NOT NULL,
+			UNIQUE KEY api_token (token_hash)) ENGINE=InnoDB");
+
+		if ((int) db_fetch_cell_prepared("SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'plugin_alarmmanager_api_clients' AND ENGINE = 'InnoDB'", [], '', false) !== 1) {
+			return false;
+		}
+		alarmmanager_db_write('UPDATE plugin_alarmmanager_schema SET version = 8 WHERE id = 1');
+
+		return true;
+	} catch (Throwable $error) {
+		return false;
+	}
+}
+
+/** v9: validated delivery references share existing signed history synchronization. */
+function alarmmanager_schema_integrations(): bool {
+	try {
+		alarmmanager_schema_column('plugin_alarmmanager_deliveries', 'external_reference', 'TEXT NULL');
+		alarmmanager_db_write('UPDATE plugin_alarmmanager_schema SET version = 9 WHERE id = 1');
+
+		return true;
+	} catch (Throwable $error) {
+		return false;
+	}
 }

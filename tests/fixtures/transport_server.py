@@ -38,6 +38,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
             body = {'accepted': False}
         elif self.path == '/invalid':
             body = b'not-json'
+        elif self.path in ['/ticket', '/ticket2']:
+            request = json.loads(data)
+            body = {'ticket': {'id': request.get('external_id') or ('CASE-1' if self.path == '/ticket' else 'CASE-2'),
+                               'url': 'https://tickets.example.invalid/case'}, 'request': request}
         elif self.path == '/echo':
             body = {'accepted': True, 'request': json.loads(data), 'method': self.command,
                     'authenticated': self.headers.get('Authorization') == 'Bearer fixture-token'}

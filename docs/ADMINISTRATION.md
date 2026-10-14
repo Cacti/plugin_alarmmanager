@@ -1,5 +1,9 @@
 # Administration, permissions and dashboard
 
+Use [the integration workflow](INTEGRATIONS.md) for template-based setup, transition mappings, previews/test results and external ticket/message references.
+
+**Direction update — 2026-10-14:** target integration setup is webhook/REST and controlled scripts; native email remains Cacti/source-owned. The current email controls described here are unchanged for now; their removal is deferred. See [PROJECT_DIRECTION.md](PROJECT_DIRECTION.md). This documentation change does not alter installed controls.
+
 Version 0.6.0/schema v4 provides Cacti pages at alarmmanager.php and alarmmanager_admin.php. Cacti's authenticated header/navigation/footer and page realm guard remain the entry points. The report pages open from the top-level Alarm Manager tab beside Syslog, with their seven report tabs and no console sidebar. Administration is its own first-level console item under the "Alarm Manager Settings" menu group. Administrators see an Administration link on the report pages; View alarms on the administration page returns to the reports. Readers do not see the Administration link. Grant Alarm Manager View to readers. Administration additionally requires Alarm Manager Administration and Cacti's User Administration realm (realm 1), enabled authentication and a logged-in non-guest account. An administration realm grant alone is insufficient. Login and primary account/session lifecycle remain Cacti-owned.
 
 Readers see permitted device events, active conditions, jobs, attempts, routing decisions and scoped queue counts. A selected event reveals bounded normalized alarm/episode/order/timestamp/device/context/message details after the same SQL visibility filter; selecting a row ID ignores the historical window so older active alarms remain inspectable. Missing/unmapped devices and events without device.id are administrator-only. Device visibility uses validated Cacti user/group policies and the pinned get_policy_where() generator in a correlated EXISTS query against host/graph tables, before aggregate, ORDER BY or LIMIT. It enforces deleted-host and hide_disabled rules and explicit default-allow exceptions. It evaluates policies directly rather than relying on a core fast-path shortcut. No full device list is loaded into PHP. Worker PID/heartbeat details and configuration/credential records are administrator-only.
@@ -7,6 +11,10 @@ Readers see permitted device events, active conditions, jobs, attempts, routing 
 Worker pool sizes belong to the daemon configuration, not each destination form. New endpoints use the automatic delivery-limit default; editing an endpoint preserves any existing limit.
 
 Endpoint, routing-profile and rule IDs are assigned by the database when records are created. Their forms do not expose editable record IDs; editing preserves the saved identity. Profile and endpoint selectors refer to existing records by name. Producer resource/template IDs identify records in the source plugin, not newly created Alarm Manager records. Bulk configuration import/export retains explicit IDs to preserve routing and remote-poller references.
+
+## API clients
+
+API clients replace the plugin-specific Producer integrations editor. Any producer can submit the standard JSON alarm contract using a scoped bearer token. Administrators select the producer identity, collector, allowed devices, notification ownership mode and routing profile. Tokens are generated once, stored as hashes, and can be rotated or disabled. Last submission time/status is shown without exposing events or credentials. See [the producer API and migration guide](PRODUCER_API.md). Existing producer policies/receipts are retained for migration; visiting this page does not change notification ownership.
 
 ## Endpoint setup
 

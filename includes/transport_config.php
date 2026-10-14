@@ -52,9 +52,9 @@ function alarmmanager_transport_configuration(string $type, $settings): array {
 		return [];
 	} // Old endpoint rows remain configurable but cannot send.
 	$keys = match ($type) {
-		'restapi', 'webhook' => ['mapping', 'url', 'method', 'credential', 'success_codes', 'response_match', 'connect_timeout_seconds', 'allow_http', 'ca_bundle'],
+		'restapi', 'webhook' => ['mapping', 'url', 'method', 'credential', 'success_codes', 'response_match', 'connect_timeout_seconds', 'allow_http', 'ca_bundle', 'response_reference'],
 		'email'              => ['mapping', 'to', 'from', 'html', 'attachments'],
-		'script'             => ['mapping', 'executable', 'arguments', 'retry_exit_codes', 'compatibility'],
+		'script'             => ['mapping', 'executable', 'arguments', 'retry_exit_codes', 'compatibility', 'response_reference'],
 		default              => throw new InvalidArgumentException('unsupported_transport')
 	};
 	alarmmanager_event_keys($settings, $keys);
@@ -174,6 +174,24 @@ function alarmmanager_transport_configuration(string $type, $settings): array {
 		if (!in_array($result['compatibility'], ['json', 'syslog_ticket'], true)) {
 			throw new InvalidArgumentException('invalid_script_compatibility');
 		}
+	}
+
+	if (in_array($type, ['restapi', 'webhook', 'script'], true)) {
+		$paths = $settings['response_reference'] ?? null;
+
+		if ($paths !== null) {
+			if (!is_array($paths) || !isset($paths['id'])) {
+				throw new InvalidArgumentException('invalid_reference_paths');
+			}
+			alarmmanager_event_keys($paths, ['id', 'url']);
+
+			foreach ($paths as $path) {
+				if (!is_string($path) || strlen($path) > 191 || !preg_match('/\A[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*){0,7}\z/D', $path)) {
+					throw new InvalidArgumentException('invalid_reference_paths');
+				}
+			}
+		}
+		$result['response_reference'] = $paths;
 	}
 
 	if (strlen(json_encode($result, JSON_THROW_ON_ERROR)) > 131072) {

@@ -47,3 +47,8 @@ Replay resets a failed job's current retry-budget counter. Delivery attempt numb
 ## Schema v6 (phase 8)
 
 Adds node identity, leased device owners/canonical receipts, transactional synchronization outbox/sender state, provisioned peers, imported remote history and acknowledged batch digests. Eight INSERT/UPDATE triggers require TRIGGER privilege and capture event/processing/decision/delivery/attempt changes in the committing transaction. Operational records and local keys are excluded from ordinary configuration replication. Imported history is an archive, not an ingestion queue; it creates no central jobs. Version gating preserves the existing setup key and fails setup if an established v6 node identity is missing. See REMOTE_COLLECTORS.md for initial bounded backfill, provisioning, handoff seeds and retention limits.
+
+
+## Schema v9 — integration references
+
+Adds nullable TEXT `external_reference` to deliveries through the install/upgrade lifecycle. Successful completion stores only validated ID/HTTPS link JSON in the same fenced transaction as the job and attempt outcome. Existing deliveries, keys and history are preserved; repeat upgrades retain references. Existing delivery outbox triggers include reference changes, and signed history exports/archive imports retain the field. Main receivers must upgrade before remotes; new receivers accept the older field-less delivery record as null. See INTEGRATIONS.md for bounds and rollout order.

@@ -1,4 +1,8 @@
+> Alarm Manager 0.9.0 uses the generic [producer API](PRODUCER_API.md) and API clients. The source adapters/patches below remain migration packages and legacy compatibility documentation. The manager's source-specific policy editor/save action is retired. New producer configurations live in private files on the sending plugin and use the HTTP API; legacy policy tables and existing receipts are preserved.
+
 # Opt-in thold and syslog integration
+
+**Direction update — 2026-10-14:** email must remain native to Cacti/thold/syslog even when scripts or tickets use Alarm Manager. Email handoff described in this existing-build guide is superseded as a requirement but still present in the shipped migration code. Email removal and ownership migration are deferred; preserve existing behavior for now. See [PROJECT_DIRECTION.md](PROJECT_DIRECTION.md) for coordinated adapter, receipt and patch changes; none were implemented by this documentation update.
 
 Alarm Manager 0.7.0/schema v5 provides separate, reproducible patches. It does not automatically intercept an installed producer. Apply the patches only in an isolated Cacti lab before rolling them out. No upstream Cacti repository changes are required or pushed.
 

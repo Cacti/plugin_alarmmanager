@@ -27,8 +27,8 @@ if (PHP_SAPI !== 'cli' || getenv('ALARMMANAGER_TEST_ALLOW_CREATE') !== '1') {
 }
 function alarmmanager_test_web_schema(PDO $db): void {
 	$db->exec('CREATE TABLE settings_user (user_id INT, name VARCHAR(255), value TEXT, PRIMARY KEY(user_id, name)) ENGINE=InnoDB');
-	$db->exec('CREATE TABLE plugin_config (directory VARCHAR(64) PRIMARY KEY, version VARCHAR(32), status INT) ENGINE=InnoDB');
-	$db->exec("INSERT INTO plugin_config VALUES ('alarmmanager', '0.5.0', 1)");
+	$db->exec('CREATE TABLE plugin_config (id INT AUTO_INCREMENT UNIQUE, directory VARCHAR(64) PRIMARY KEY, version VARCHAR(32), status INT) ENGINE=InnoDB');
+	$db->exec("INSERT INTO plugin_config (directory, version, status) VALUES ('alarmmanager', '0.5.0', 1)");
 	$db->exec('CREATE TABLE user_auth (id INT PRIMARY KEY, username VARCHAR(64), enabled VARCHAR(4), reset_perms INT DEFAULT 0, policy_hosts INT DEFAULT 2, policy_graphs INT DEFAULT 2, policy_graph_templates INT DEFAULT 2, policy_trees INT DEFAULT 2) ENGINE=InnoDB');
 	$db->exec("INSERT INTO user_auth (id, username, enabled) VALUES (1, 'admin', 'on'), (2, 'reader', 'on'), (3, 'denied', 'on')");
 	$db->exec('CREATE TABLE user_auth_realm (user_id INT, realm_id INT, PRIMARY KEY(user_id,realm_id)) ENGINE=InnoDB');

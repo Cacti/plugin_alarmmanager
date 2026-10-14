@@ -44,11 +44,17 @@ function csrf_startup(): void {
 require_once(getenv('ALARMMANAGER_CACTI_ROOT') . '/include/vendor/csrf/csrf-magic.php');
 $config['base_path'] = getenv('ALARMMANAGER_WEB_ROOT');
 $no_session_write    = [];
-function isset_request_var($key) {
-	return isset($_REQUEST[$key]);
+
+if (!function_exists('isset_request_var')) {
+	function isset_request_var($key) {
+		return isset($_REQUEST[$key]);
+	}
 }
-function get_nfilter_request_var($key) {
-	return $_REQUEST[$key] ?? null;
+
+if (!function_exists('get_nfilter_request_var')) {
+	function get_nfilter_request_var($key) {
+		return $_REQUEST[$key] ?? null;
+	}
 }
 function db_close() {
 }

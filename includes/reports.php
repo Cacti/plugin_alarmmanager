@@ -121,7 +121,7 @@ function alarmmanager_report_list(string $kind, array $scope, array $filters): a
 
 			break;
 		case 'deliveries': $base = 'plugin_alarmmanager_deliveries AS d INNER JOIN plugin_alarmmanager_events AS e ON e.id = d.event_row_id INNER JOIN plugin_alarmmanager_endpoints AS ep ON ep.id = d.endpoint_id';
-			$columns                = 'd.id, d.event_row_id, d.created_at, d.updated_at, d.endpoint_id, ep.name AS endpoint, d.status, d.attempts, d.last_error, JSON_UNQUOTE(JSON_EXTRACT(e.payload, \'$.summary\')) AS summary, e.device_id, e.mode';
+			$columns                = 'd.id, d.event_row_id, d.created_at, d.updated_at, d.endpoint_id, ep.name AS endpoint, d.status, d.attempts, d.last_error, JSON_UNQUOTE(JSON_EXTRACT(d.external_reference, \'$.id\')) AS external_id, JSON_UNQUOTE(JSON_EXTRACT(d.external_reference, \'$.url\')) AS external_url, JSON_UNQUOTE(JSON_EXTRACT(e.payload, \'$.summary\')) AS summary, e.device_id, e.mode';
 			$order                  = 'd.id';
 			$time                   = 'd.created_at';
 

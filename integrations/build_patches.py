@@ -90,8 +90,9 @@ def main():
         transformed = (patch_thold if source == 'thold' else patch_syslog)(original)
         transformed = transformed.replace('*/\n', "*/\n\nrequire_once(__DIR__ . '/alarmmanager_adapter.php');\n", 1)
         diff = ''.join(difflib.unified_diff(original.splitlines(True), transformed.splitlines(True), fromfile='a/includes/functions.php', tofile='b/includes/functions.php'))
-        for filename, content in [('alarmmanager_bridge.php', (ROOT / 'producer_bridge.php').read_text()), ('alarmmanager_adapter.php', (ROOT / (source + '_adapter.php')).read_text())]:
+        for filename, content in [('alarmmanager_bridge.php', (ROOT / 'producer_bridge.php').read_text()), ('api_client.php', (ROOT / 'api_client.php').read_text()), ('alarmmanager_adapter.php', (ROOT / (source + '_adapter.php')).read_text())]:
             diff += ''.join(difflib.unified_diff([], content.splitlines(True), fromfile='/dev/null', tofile='b/includes/' + filename))
+        diff += ''.join(difflib.unified_diff([], (ROOT.parent / 'examples' / 'producer_api_cli.php').read_text().splitlines(True), fromfile='/dev/null', tofile='b/cli/alarmmanager_api.php'))
         (args.output / (source + '.patch')).write_text(diff)
         print(source, 'patch generated', len(diff), 'bytes')
 if __name__ == '__main__': main()
