@@ -2,6 +2,8 @@
 
 --- main (development) ---
 
+* Schema v7: database-assigned endpoint/profile/rule IDs, with existing identities preserved on upgrade. Removed visible record-ID controls; creation no longer accepts arbitrary IDs. Producer routing profiles now use a dropdown.
+
 * Authentication editor: select None, Bearer, Basic or custom headers from a dropdown; show and submit only the relevant inputs, with an explicit Keep saved authentication option for existing authenticated endpoints.
 
 * Endpoint authentication: add bearer-token, Basic username/password and authentication-header inputs to the endpoint editor, saving encrypted credentials and configuration atomically; blank endpoint inputs preserve saved credentials.

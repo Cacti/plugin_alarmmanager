@@ -70,6 +70,29 @@ final class WebTest extends AlarmManagerTestCase {
 			$html = ob_get_clean();
 			$this->assertStringContainsString('No REST API or webhook endpoints have been saved.', $html);
 			$this->assertStringContainsString('href="alarmmanager_admin.php?section=endpoints">Create endpoint</a>', $html);
+			$this->wuser(1);
+			$create = ['action' => 'endpoint_save', 'revision' => 0, 'name' => 'Automatic endpoint', 'type' => 'restapi', 'url' => 'https://example.test/alarms', 'mapping_json' => '{}', 'transport_json' => '{}'];
+			$this->waction($create);
+			$created     = alarmmanager_admin_configuration();
+			$endpoint_id = $created['configuration']['endpoints'][0]['id'];
+			$this->assertGreaterThan(0, $endpoint_id, 'New endpoint receives a database ID');
+			$this->waction(['action' => 'profile_save', 'revision' => $created['revision'], 'name' => 'Automatic profile', 'endpoints' => [$endpoint_id]]);
+			$created    = alarmmanager_admin_configuration();
+			$profile_id = $created['configuration']['profiles'][0]['id'];
+			$this->assertGreaterThan(0, $profile_id, 'New profile receives a database ID');
+			$this->waction(['action' => 'rule_save', 'revision' => $created['revision'], 'name' => 'Automatic rule', 'profile_id' => $profile_id, 'policy_json' => '{}']);
+			$created = alarmmanager_admin_configuration();
+			$this->assertGreaterThan(0, $created['configuration']['rules'][0]['id'], 'New rule receives a database ID');
+			$create['id']       = $endpoint_id;
+			$create['revision'] = $created['revision'];
+			$create['name']     = 'Edited endpoint';
+			$this->waction($create);
+			$created = alarmmanager_admin_configuration();
+			$this->assertCount(1, $created['configuration']['endpoints']);
+			$this->assertSame($endpoint_id, $created['configuration']['endpoints'][0]['id'], 'Editing retains the existing identity');
+			$create['id']       = 2147483647;
+			$create['revision'] = $created['revision'];
+			$this->wreject(fn () => $this->waction($create), 'A posted arbitrary ID cannot create a record');
 			$routes                         = json_decode(file_get_contents(__DIR__ . '/../../examples/routing.json'), true);
 			$routes['endpoints'][0]['name'] = '<img src=x onerror=window.ALARM_BAD=1>';
 			alarmmanager_apply_configuration($routes);
@@ -164,11 +187,12 @@ final class WebTest extends AlarmManagerTestCase {
 			foreach ([['range'=>'999999'], ['mode'=>'all'], ['page'=>'201'], ['until'=>'999999999999'], ['source'=>"' OR 1=1"], ['device_id'=>['42']]] as $bad) {
 				$this->wreject(fn () =>alarmmanager_report_filters($bad), 'Invalid filter rejected');
 			}
-			$state   = alarmmanager_admin_configuration();
-			$version = $state['revision'];
+			$state                      = alarmmanager_admin_configuration();
+			$version                    = $state['revision'];
+			$audit_before_configuration = (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_audit');
 			$this->waction(['action'=>'configuration_save', 'revision'=>$version, 'configuration_json'=>json_encode($state['configuration'])]);
 			$this->wreject(fn () =>$this->waction(['action'=>'configuration_save', 'revision'=>$version, 'configuration_json'=>json_encode($state['configuration'])]), 'Stale configuration rejected');
-			$this->assertSame(1, (int)db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_audit'), 'Configuration audit');
+			$this->assertSame($audit_before_configuration + 1, (int)db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_audit'), 'Configuration audit');
 			$record = ['headers'=>['Authorization'=>'Bearer WEB_SECRET_MARKER']];
 			$this->waction(['action'=>'credential_save', 'id'=>'1', 'headers'=>json_encode($record['headers'])]);
 			$this->assertTrue(alarmmanager_load_credential(1) === $record, 'Admin credential save');

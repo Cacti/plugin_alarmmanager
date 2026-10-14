@@ -31,7 +31,7 @@ A higher epoch requires seed_event containing the exact normalized last confirme
 
 ## Provisioning
 
-Install schema v6 independently on main and each remote, including TRIGGER privilege for eight transactional outbox triggers. Preserve each installation's setup encryption key and generated node UUID. Never copy operational tables/node identities between independent installations. Schema v6 refuses silently generating a new missing node identity. Back up database, setup key and private peer keys together; use CREDENTIALS.md for encryption-key recovery/rotation.
+Install current schema v7 independently on main and each remote, including TRIGGER privilege for eight transactional outbox triggers. Preserve each installation's setup encryption key and generated node UUID. Never copy operational tables/node identities between independent installations. Schema v6 refuses silently generating a new missing node identity. Back up database, setup key and private peer keys together; use CREDENTIALS.md for encryption-key recovery/rotation.
 
 Create routing profiles/endpoints and usable credentials on main. Explicitly export selected profiles:
 

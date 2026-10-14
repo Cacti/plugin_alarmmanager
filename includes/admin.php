@@ -179,13 +179,15 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 	if ($state['revision'] !== $revision) {
 		throw new InvalidArgumentException('configuration_changed');
 	}
-	$settings   = $state['configuration'];
-	$credential = null;
+	$settings       = $state['configuration'];
+	$credential     = null;
+	$create_section = null;
+	$id             = 0;
 
 	if ($action === 'configuration_save') {
 		$settings = alarmmanager_admin_json($input['configuration_json'] ?? '', 1048576);
 	} else {
-		$id   = alarmmanager_admin_int($input['id'] ?? null);
+		$id   = alarmmanager_admin_int($input['id'] ?? 0, 0);
 		$name = $input['name'] ?? '';
 
 		if (!is_string($name)) {
@@ -251,20 +253,35 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 		} unset($existing);
 
 		if (!$found) {
+			if ($id !== 0) {
+				throw new InvalidArgumentException('invalid_action');
+			}
 			$settings[$section][] = $item;
+			$create_section       = $section;
 		}
 	}
 
-	if ($credential !== null) {
+	alarmmanager_transaction(function () use ($settings, $revision, $user, $credential, $create_section, $id): void {
+		if ($create_section !== null) {
+			$index          = array_key_last($settings[$create_section]);
+			$item           = $settings[$create_section][$index];
+			[$sql, $params] = match ($create_section) {
+				'endpoints' => ['INSERT INTO plugin_alarmmanager_endpoints (name, type) VALUES (?, ?)', [$item['name'], $item['type']]],
+				'profiles'  => ['INSERT INTO plugin_alarmmanager_profiles (name, endpoints_json) VALUES (?, ?)', [$item['name'], json_encode($item['endpoints'], JSON_THROW_ON_ERROR)]],
+				'rules'     => ['INSERT INTO plugin_alarmmanager_rules (name, priority, profile_id, definition) VALUES (?, ?, ?, ?)', [$item['name'], $item['priority'], $item['profile_id'], json_encode($item['policy'], JSON_THROW_ON_ERROR)]]
+			};
+			alarmmanager_db_write($sql, $params);
+			$id                                      = alarmmanager_config_int(db_fetch_cell_prepared('SELECT LAST_INSERT_ID()', [], '', false), 1, 2147483647);
+			$settings[$create_section][$index]['id'] = $id;
+		}
 		$settings = alarmmanager_configuration($settings);
-		alarmmanager_transaction(function () use ($settings, $revision, $user, $id, $credential): void {
-			alarmmanager_write_configuration($settings, $revision, $user);
+		alarmmanager_write_configuration($settings, $revision, $user);
+
+		if ($credential !== null) {
 			alarmmanager_write_credential($id, $credential, $user);
-		});
-		unset($GLOBALS['alarmmanager_route_cache']);
-	} else {
-		alarmmanager_apply_configuration($settings, $revision, $user);
-	}
+		}
+	});
+	unset($GLOBALS['alarmmanager_route_cache']);
 
 	return 'Configuration saved.';
 }

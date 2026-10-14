@@ -112,11 +112,11 @@ function alarmmanager_schema_install(): bool {
 		return false;
 	}
 
-	return alarmmanager_schema_remote();
+	return alarmmanager_schema_remote() && alarmmanager_schema_record_ids();
 }
 
 function alarmmanager_schema_ready(): bool {
-	return (int) db_fetch_cell_prepared('SELECT version FROM plugin_alarmmanager_schema WHERE id = 1', [], '', false) === 6;
+	return (int) db_fetch_cell_prepared('SELECT version FROM plugin_alarmmanager_schema WHERE id = 1', [], '', false) === 7;
 }
 
 function alarmmanager_schema_column(string $table, string $column, string $definition): void {
@@ -149,7 +149,7 @@ function alarmmanager_schema_runtime(): bool {
 	try {
 		$version = db_fetch_cell_prepared('SELECT version FROM plugin_alarmmanager_schema WHERE id = 1', [], '', false);
 
-		if ($version === false || (int) $version > 6) {
+		if ($version === false || (int) $version > 7) {
 			return false;
 		}
 		alarmmanager_schema_column('plugin_alarmmanager_schema', 'config_revision', 'BIGINT UNSIGNED NOT NULL DEFAULT 0');
@@ -183,16 +183,16 @@ function alarmmanager_schema_runtime(): bool {
 				PRIMARY KEY (stream_key, episode_id)
 			) ENGINE=InnoDB',
 			"CREATE TABLE IF NOT EXISTS plugin_alarmmanager_endpoints (
-				id INT UNSIGNED PRIMARY KEY, name VARCHAR(128) NOT NULL, type VARCHAR(16) NOT NULL, enabled TINYINT NOT NULL DEFAULT 1,
+				id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, name VARCHAR(128) NOT NULL, type VARCHAR(16) NOT NULL, enabled TINYINT NOT NULL DEFAULT 1,
 				max_concurrency INT NOT NULL DEFAULT 1, min_interval_ms INT NOT NULL DEFAULT 0, timeout_seconds INT NOT NULL DEFAULT 10,
 				max_attempts INT NOT NULL DEFAULT 5, next_start_at DATETIME(6) NOT NULL DEFAULT '1970-01-01 00:00:00',
 				last_claim_at DATETIME(6) NOT NULL DEFAULT '1970-01-01 00:00:00', KEY fair_endpoints (enabled, last_claim_at, id)
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
 			'CREATE TABLE IF NOT EXISTS plugin_alarmmanager_profiles (
-				id INT UNSIGNED PRIMARY KEY, name VARCHAR(128) NOT NULL, enabled TINYINT NOT NULL DEFAULT 1, endpoints_json TEXT NOT NULL
+				id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, name VARCHAR(128) NOT NULL, enabled TINYINT NOT NULL DEFAULT 1, endpoints_json TEXT NOT NULL
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
 			'CREATE TABLE IF NOT EXISTS plugin_alarmmanager_rules (
-				id INT UNSIGNED PRIMARY KEY, name VARCHAR(128) NOT NULL, priority INT NOT NULL, enabled TINYINT NOT NULL DEFAULT 1,
+				id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, name VARCHAR(128) NOT NULL, priority INT NOT NULL, enabled TINYINT NOT NULL DEFAULT 1,
 				profile_id INT UNSIGNED NOT NULL, stop_processing TINYINT NOT NULL DEFAULT 0, definition TEXT NOT NULL,
 				KEY rule_order (enabled, priority, id)
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
@@ -365,5 +365,28 @@ function alarmmanager_schema_remote(): bool {
 		}
 	}
 
-	return (bool) db_execute_prepared('UPDATE plugin_alarmmanager_schema SET version = 6 WHERE id = 1', [], false);
+	return (bool) db_execute_prepared('UPDATE plugin_alarmmanager_schema SET version = GREATEST(version, 6) WHERE id = 1', [], false);
+}
+
+/** v7: database-assigned identities for administrator-created configuration records. */
+function alarmmanager_schema_record_ids(): bool {
+	try {
+		foreach (['endpoints', 'profiles', 'rules'] as $section) {
+			$table     = 'plugin_alarmmanager_' . $section;
+			$automatic = db_fetch_cell_prepared("SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = 'id' AND EXTRA LIKE '%auto_increment%'", [$table], '', false);
+
+			if ($automatic === false) {
+				return false;
+			}
+
+			if ((int) $automatic === 0) {
+				alarmmanager_db_write("ALTER TABLE `$table` MODIFY COLUMN id INT UNSIGNED NOT NULL AUTO_INCREMENT");
+			}
+		}
+		alarmmanager_db_write('UPDATE plugin_alarmmanager_schema SET version = 7 WHERE id = 1');
+	} catch (Throwable $error) {
+		return false;
+	}
+
+	return true;
 }

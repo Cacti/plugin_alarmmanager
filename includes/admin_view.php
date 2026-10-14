@@ -48,9 +48,8 @@ function alarmmanager_json_text($value): string {
 	return json_encode($value ?: new stdClass(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
 }
 function alarmmanager_endpoint_editor(array $endpoint, int $revision, bool $new = false): void {
-	print '<details class="alarmmanagerDashboardCard" ' . ($new ? 'open' : '') . '><summary>' . html_escape(($new ? __('New endpoint', 'alarmmanager') : $endpoint['name']) . ' (#' . $endpoint['id'] . ')') . '</summary>';
-	alarmmanager_form_start('endpoint_save', $revision);
-	alarmmanager_input('id', 'Endpoint ID', $endpoint['id'], 'number', 'min="1" max="2147483647" required' . ($new ? '' : ' readonly'));
+	print '<details class="alarmmanagerDashboardCard" ' . ($new ? 'open' : '') . '><summary>' . html_escape($new ? __('New endpoint', 'alarmmanager') : $endpoint['name'] . ' (#' . $endpoint['id'] . ')') . '</summary>';
+	alarmmanager_form_start('endpoint_save', $revision, $new ? [] : ['id' => $endpoint['id']]);
 	alarmmanager_input('name', 'Name', $endpoint['name'], 'text', 'maxlength="128" required');
 	alarmmanager_checkbox('enabled', 'Enabled', $endpoint['enabled'] ?? true);
 	print '<label>' . __esc('Type', 'alarmmanager') . ' <select name="type">';
@@ -96,23 +95,20 @@ function alarmmanager_admin_markup(array $state, string $section): void {
 	if ($section === 'collectors') {
 		alarmmanager_remote_markup();
 	} elseif ($section === 'producers') {
-		alarmmanager_producer_markup($revision);
+		alarmmanager_producer_markup($revision, $config['profiles']);
 	} elseif ($section === 'endpoints') {
 		foreach ($config['endpoints'] as $item) {
 			alarmmanager_endpoint_editor($item, $revision);
 		}
-		$ids = array_column($config['endpoints'], 'id');
-		$id  = $ids ? max($ids) + 1 : 1;
-		alarmmanager_endpoint_editor(['id' => $id, 'name' => '', 'enabled' => false, 'type' => 'restapi'], $revision, true);
+		alarmmanager_endpoint_editor(['id' => 0, 'name' => '', 'enabled' => false, 'type' => 'restapi'], $revision, true);
 	} elseif ($section === 'profiles' || $section === 'rules') {
 		$items   = $config[$section];
-		$ids     = array_column($items, 'id');
-		$items[] = ['id' => $ids ? max($ids) + 1 : 1, 'name' => '', 'enabled' => false, 'endpoints' => [], 'policy' => [], 'profile_id' => 1];
+		$items[] = ['id' => 0, 'name' => '', 'enabled' => false, 'endpoints' => [], 'policy' => [], 'profile_id' => 1];
 
 		foreach ($items as $item) {
-			print '<details class="alarmmanagerDashboardCard"><summary>' . html_escape($item['name'] ?: __('New item', 'alarmmanager')) . ' (#' . $item['id'] . ')</summary>';
-			alarmmanager_form_start($section === 'profiles' ? 'profile_save' : 'rule_save', $revision);
-			alarmmanager_input('id', 'ID', $item['id'], 'number', 'min="1" max="2147483647" required');
+			$new = (int) $item['id'] === 0;
+			print '<details class="alarmmanagerDashboardCard"' . ($new ? ' open' : '') . '><summary>' . html_escape($new ? __($section === 'profiles' ? 'New profile' : 'New rule', 'alarmmanager') : $item['name'] . ' (#' . $item['id'] . ')') . '</summary>';
+			alarmmanager_form_start($section === 'profiles' ? 'profile_save' : 'rule_save', $revision, $new ? [] : ['id' => $item['id']]);
 			alarmmanager_input('name', 'Name', $item['name'], 'text', 'maxlength="128" required');
 			alarmmanager_checkbox('enabled', 'Enabled', (bool) $item['enabled']);
 
@@ -245,7 +241,8 @@ function alarmmanager_admin_markup(array $state, string $section): void {
 	}
 }
 
-function alarmmanager_producer_markup(int $revision): void {
+/** @param array<int, array<string, mixed>> $profiles */
+function alarmmanager_producer_markup(int $revision, array $profiles): void {
 	print '<p>' . __esc('Pending producer receipts', 'alarmmanager') . ': ' . (int) db_fetch_cell_prepared("SELECT COUNT(*) FROM plugin_alarmmanager_producer_receipts WHERE status = 'pending'", [], '', false) . '. ' . __esc('Use the producer CLI to retry pending receipts after database recovery.', 'alarmmanager') . '</p>';
 	$rows = alarmmanager_db_rows('SELECT source, scope, resource_id, revision, definition FROM plugin_alarmmanager_producer_config ORDER BY source, scope, resource_id LIMIT 257');
 	print '<p>' . __esc('Legacy is the default. Resource overrides template overrides plugin default. Saved policy remains intact if Alarm Manager is disabled; new notifications then use legacy fallback. Accepted notifications retain centralized ownership.', 'alarmmanager') . '</p>';
@@ -275,7 +272,12 @@ function alarmmanager_producer_markup(int $revision): void {
 			}
 		}
 		alarmmanager_input('resource_id', 'Resource or template ID (default uses 0)', $row['resource_id'], 'number', 'min="0" required' . ($new ? '' : ' readonly'));
-		alarmmanager_input('profile_id', 'Routing profile ID (0 uses ordinary matching rules in observe mode)', $definition['profile_id'], 'number', 'min="0" required');
+		print '<label>' . __esc('Routing profile', 'alarmmanager') . ' <select name="profile_id"><option value="0">' . __esc('Ordinary matching rules (observe mode)', 'alarmmanager') . '</option>';
+
+		foreach ($profiles as $profile) {
+			print '<option value="' . $profile['id'] . '"' . ((int) $definition['profile_id'] === (int) $profile['id'] ? ' selected' : '') . '>' . html_escape($profile['name']) . '</option>';
+		}
+		print '</select></label>';
 
 		foreach (['email', 'script', 'ticket'] as $channel) {
 			print '<label><input type="checkbox" name="channels[]" value="' . $channel . '" ' . (in_array($channel, $definition['channels'], true) ? 'checked' : '') . '> ' . __esc('Hand off ' . $channel, 'alarmmanager') . '</label>';

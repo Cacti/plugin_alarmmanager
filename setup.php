@@ -53,8 +53,8 @@ function plugin_alarmmanager_upgrade(): bool {
 	$version = plugin_alarmmanager_version()['version'];
 	$stored  = db_fetch_cell_prepared('SELECT version FROM plugin_config WHERE directory = ?', ['alarmmanager'], '', false);
 
-	if (is_string($stored) && version_compare($stored, $version, '>=')) {
-		return alarmmanager_key_ready() && alarmmanager_schema_ready();
+	if (is_string($stored) && version_compare($stored, $version, '>=') && alarmmanager_schema_ready()) {
+		return alarmmanager_key_ready();
 	}
 
 	if (!alarmmanager_key_ready() || !alarmmanager_schema_install()) {
