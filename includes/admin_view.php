@@ -63,11 +63,15 @@ function alarmmanager_endpoint_editor(array $endpoint, int $revision, bool $new 
 	$transport = $endpoint['transport'] ?? [];
 	$mapping   = $transport['mapping'] ?? ($new ? ['default' => [['to' => 'hostname', 'source' => 'device.hostname'], ['to' => 'summary', 'source' => 'alarm.summary'], ['to' => 'severity', 'source' => 'alarm.severity'], ['to' => 'state', 'source' => 'alarm.transition']]] : ['default' => []]);
 	unset($transport['mapping']);
+
+	if ($new && isset($endpoint['hint'])) {
+		print '<p class="alarmmanagerFullWidth">' . __esc($endpoint['hint'], 'alarmmanager') . '</p>';
+	}
 	print '<fieldset class="alarmmanagerFullWidth" data-endpoint-types="restapi webhook"><legend>' . __esc('Destination', 'alarmmanager') . '</legend>';
 	alarmmanager_input('url', 'URL', $transport['url'] ?? '', 'url', 'maxlength="2048"');
 	print '</fieldset>';
 	print '<div class="alarmmanagerFullWidth" data-endpoint-types="restapi webhook">';
-	alarmmanager_auth_editor(!empty($transport['credential']) ? 'keep' : 'none');
+	alarmmanager_auth_editor(!$new ? (!empty($transport['credential']) ? 'keep' : 'none') : ($endpoint['auth'] ?? 'none'));
 	print '</div><fieldset class="alarmmanagerFullWidth" data-endpoint-types="email"><legend>' . __esc('Email settings', 'alarmmanager') . '</legend>';
 
 	foreach (['to' => 'Recipients', 'from' => 'Sender email (blank uses Cacti default)'] as $key => $label) {

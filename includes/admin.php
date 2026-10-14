@@ -53,7 +53,7 @@ function alarmmanager_admin_transport_fields(string $type, array $transport, arr
 		return $transport;
 	}
 	$keys = match ($type) {
-		'restapi', 'webhook' => ['url', 'method', 'ca_bundle', 'credential', 'allow_http', 'success_codes', 'response_match', 'connect_timeout_seconds', 'response_reference'],
+		'restapi', 'webhook' => ['url', 'method', 'ca_bundle', 'credential', 'allow_http', 'success_codes', 'response_match', 'connect_timeout_seconds', 'response_reference', 'transition_overrides'],
 		'email'              => ['to', 'from', 'html', 'attachments'],
 		'script'             => ['executable', 'arguments', 'compatibility', 'retry_exit_codes', 'response_reference'],
 		default              => []

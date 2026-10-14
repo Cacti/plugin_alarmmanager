@@ -42,7 +42,7 @@ function alarmmanager_delivery_preview(array $event, array $endpoint): array {
 	$event    = alarmmanager_validate_event($event);
 	$settings = alarmmanager_endpoint_transport($endpoint);
 
-	return ['endpoint_id' => (int) $endpoint['id'], 'type' => $endpoint['type'], 'payload' => alarmmanager_map_payload($settings['mapping'], $event, in_array($endpoint['type'], ['restapi', 'webhook', 'script'], true) ? alarmmanager_delivery_reference($event, (int) $endpoint['id'], $settings['mapping']) : []), 'credentials' => !empty($settings['credential']) ? '[REDACTED]' : 'none'];
+	return ['endpoint_id' => (int) $endpoint['id'], 'type' => $endpoint['type'], 'payload' => alarmmanager_map_payload($settings['mapping'], $event, in_array($endpoint['type'], ['restapi', 'webhook', 'script'], true) ? alarmmanager_delivery_reference($event, (int) $endpoint['id'], $settings['mapping'], $settings['transition_overrides'] ?? null) : []), 'credentials' => !empty($settings['credential']) ? '[REDACTED]' : 'none'];
 }
 function alarmmanager_retry_after(?string $value, ?int $now = null): int {
 	if ($value === null) {
@@ -104,9 +104,15 @@ function alarmmanager_http_transport(array $event, array $endpoint, string $idem
 	if (!function_exists('curl_init')) {
 		return ['outcome' => 'failure', 'code' => 'curl_unavailable'];
 	}
-	$settings = alarmmanager_endpoint_transport($endpoint);
-	$payload  = json_encode(alarmmanager_map_payload($settings['mapping'], $event, alarmmanager_delivery_reference($event, (int) $endpoint['id'], $settings['mapping'])), JSON_THROW_ON_ERROR);
-	$headers  = ['Content-Type: application/json', 'Idempotency-Key: ' . $idempotency, 'Expect:'];
+	$settings  = alarmmanager_endpoint_transport($endpoint);
+	$reference = alarmmanager_delivery_reference($event, (int) $endpoint['id'], $settings['mapping'], $settings['transition_overrides'] ?? null);
+	$target    = alarmmanager_transition_target($settings, $event, $reference);
+
+	if ($target === null) {
+		return ['outcome' => 'retry', 'code' => 'integration_reference_missing'];
+	}
+	$payload = json_encode(alarmmanager_map_payload($settings['mapping'], $event, $reference), JSON_THROW_ON_ERROR);
+	$headers = ['Content-Type: application/json', 'Idempotency-Key: ' . $idempotency, 'Expect:'];
 
 	if ($settings['credential']) {
 		$credential = alarmmanager_load_credential((int) $endpoint['id']);
@@ -126,7 +132,7 @@ function alarmmanager_http_transport(array $event, array $endpoint, string $idem
 	$retry_after  = null;
 
 	try {
-		curl_setopt_array($curl, [CURLOPT_URL => $settings['url'], CURLOPT_CUSTOMREQUEST => $settings['method'], CURLOPT_POSTFIELDS => $payload,
+		curl_setopt_array($curl, [CURLOPT_URL => $target['url'], CURLOPT_CUSTOMREQUEST => $target['method'], CURLOPT_POSTFIELDS => $payload,
 			CURLOPT_HTTPHEADER                   => $headers, CURLOPT_FOLLOWLOCATION => false, CURLOPT_MAXREDIRS => 0, CURLOPT_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
 			CURLOPT_SSL_VERIFYPEER               => true, CURLOPT_SSL_VERIFYHOST => 2, CURLOPT_CONNECTTIMEOUT => min((int) $endpoint['timeout_seconds'], $settings['connect_timeout_seconds']),
 			CURLOPT_TIMEOUT                      => (int) $endpoint['timeout_seconds'], CURLOPT_NOSIGNAL => true, CURLOPT_PROXY => '', CURLOPT_NETRC => CURL_NETRC_IGNORED,
@@ -222,7 +228,7 @@ function alarmmanager_email_transport(array $event, array $endpoint, string $ide
 }
 function alarmmanager_script_transport(array $event, array $endpoint, string $idempotency): array {
 	$settings = alarmmanager_endpoint_transport($endpoint);
-	$payload  = json_encode(alarmmanager_map_payload($settings['mapping'], $event, alarmmanager_delivery_reference($event, (int) $endpoint['id'], $settings['mapping'])), JSON_THROW_ON_ERROR);
+	$payload  = json_encode(alarmmanager_map_payload($settings['mapping'], $event, alarmmanager_delivery_reference($event, (int) $endpoint['id'], $settings['mapping'], $settings['transition_overrides'] ?? null)), JSON_THROW_ON_ERROR);
 
 	if (!function_exists('posix_kill') || !is_executable('/usr/bin/setsid') || !is_file($settings['executable']) || !is_executable($settings['executable'])) {
 		return ['outcome' => 'failure', 'code' => 'script_unavailable'];

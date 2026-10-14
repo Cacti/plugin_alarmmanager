@@ -43,6 +43,16 @@ function alarmmanager_recipient_validate($value): void {
 		throw new InvalidArgumentException('invalid_recipients');
 	}
 }
+/** Shared strict URL predicate: https unless explicit allow_http, no query/fragment/user info or control characters. */
+function alarmmanager_transport_url_validate(string $url, bool $allow_http): string {
+	$parts = parse_url($url);
+
+	if (!$parts || empty($parts['host']) || isset($parts['user']) || isset($parts['pass']) || isset($parts['fragment']) || isset($parts['query']) || !in_array($parts['scheme'] ?? '', $allow_http ? ['https', 'http'] : ['https'], true) || preg_match('/[\x00-\x20\x7f]/', $url)) {
+		throw new InvalidArgumentException('invalid_transport_url');
+	}
+
+	return $url;
+}
 function alarmmanager_transport_configuration(string $type, $settings): array {
 	if (!is_array($settings)) {
 		throw new InvalidArgumentException('invalid_transport');
@@ -52,7 +62,7 @@ function alarmmanager_transport_configuration(string $type, $settings): array {
 		return [];
 	} // Old endpoint rows remain configurable but cannot send.
 	$keys = match ($type) {
-		'restapi', 'webhook' => ['mapping', 'url', 'method', 'credential', 'success_codes', 'response_match', 'connect_timeout_seconds', 'allow_http', 'ca_bundle', 'response_reference'],
+		'restapi', 'webhook' => ['mapping', 'url', 'method', 'credential', 'success_codes', 'response_match', 'connect_timeout_seconds', 'allow_http', 'ca_bundle', 'response_reference', 'transition_overrides'],
 		'email'              => ['mapping', 'to', 'from', 'html', 'attachments'],
 		'script'             => ['mapping', 'executable', 'arguments', 'retry_exit_codes', 'compatibility', 'response_reference'],
 		default              => throw new InvalidArgumentException('unsupported_transport')
@@ -61,11 +71,10 @@ function alarmmanager_transport_configuration(string $type, $settings): array {
 	$result = ['mapping' => alarmmanager_mapping_validate($settings['mapping'] ?? [])];
 
 	if (in_array($type, ['restapi', 'webhook'], true)) {
-		$url        = alarmmanager_transport_text($settings['url'] ?? null, 2048);
-		$parts      = parse_url($url);
 		$allow_http = alarmmanager_config_bool($settings['allow_http'] ?? false);
+		$url        = alarmmanager_transport_url_validate(alarmmanager_transport_text($settings['url'] ?? null, 2048), $allow_http);
 
-		if (!$parts || empty($parts['host']) || isset($parts['user']) || isset($parts['pass']) || isset($parts['fragment']) || isset($parts['query']) || !in_array($parts['scheme'] ?? '', $allow_http ? ['https', 'http'] : ['https'], true) || preg_match('/[\x00-\x20\x7f]/', $url)) {
+		if (str_contains($url, '{{')) {
 			throw new InvalidArgumentException('invalid_transport_url');
 		}
 		$method = $settings['method'] ?? 'POST';
@@ -104,6 +113,44 @@ function alarmmanager_transport_configuration(string $type, $settings): array {
 
 		if ($allow_http && $result['credential']) {
 			throw new InvalidArgumentException('credentials_require_tls');
+		}
+		$overrides = $settings['transition_overrides'] ?? null;
+
+		if ($overrides !== null) {
+			if (!is_array($overrides)) {
+				throw new InvalidArgumentException('invalid_transport');
+			}
+			alarmmanager_event_keys($overrides, ['raised', 'updated', 'reminder', 'recovered', 'occurrence']);
+			$result['transition_overrides'] = [];
+
+			foreach ($overrides as $transition => $item) {
+				if (!is_array($item)) {
+					throw new InvalidArgumentException('invalid_transport');
+				}
+				alarmmanager_event_keys($item, ['url', 'method']);
+
+				if (!isset($item['url']) && !isset($item['method'])) {
+					throw new InvalidArgumentException('invalid_transport');
+				}
+				$entry = [];
+
+				if (isset($item['url'])) {
+					$target = alarmmanager_transport_text($item['url'], 2048);
+
+					if (str_contains(str_replace('{{integration.id}}', '', $target), '{{')) {
+						throw new InvalidArgumentException('invalid_transport_url');
+					}
+					$entry['url'] = alarmmanager_transport_url_validate($target, $allow_http);
+				}
+
+				if (isset($item['method'])) {
+					if (!in_array($item['method'], ['POST', 'PUT', 'PATCH'], true)) {
+						throw new InvalidArgumentException('invalid_transport_method');
+					}
+					$entry['method'] = $item['method'];
+				}
+				$result['transition_overrides'][$transition] = $entry;
+			}
 		}
 	} elseif ($type === 'email') {
 		foreach (['to', 'from'] as $key) {

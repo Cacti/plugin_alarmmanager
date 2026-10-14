@@ -33,7 +33,7 @@ parameters:
 			- docs
 			- locales
 			- examples
-			- integrations/patches
+			- integrations/patches (?)
 			- .php-cs-fixer.php
 		analyseAndScan:
 			- tests

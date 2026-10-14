@@ -949,7 +949,7 @@ parameters:
 			path: includes/transports.php
 
 		-
-			message: '#^Parameter \#2 \$options of function curl_setopt_array expects array\{10002\: non\-empty\-string, 10036\: non\-empty\-string\|null, 10015\: array\|string, 10023\: array\<int, string\>, 52\: bool, 68\: int, 181\: int, 64\: bool, \.\.\.\}, array\{10002\: mixed, 10036\: mixed, 10015\: non\-empty\-string, 10023\: non\-empty\-list\<non\-falsy\-string\>, 52\: false, 68\: 0, 181\: 3, 64\: true, \.\.\.\} given\.$#'
+			message: '#^Parameter \#2 \$options of function curl_setopt_array expects array\{10002\: non\-empty\-string, 10036\: non\-empty\-string\|null, 10015\: array\|string, 10023\: array\<int, string\>, 52\: bool, 68\: int, 181\: int, 64\: bool, \.\.\.\}, array\{10002\: non\-empty\-string, 10036\: non\-empty\-string, 10015\: non\-empty\-string, 10023\: non\-empty\-list\<non\-falsy\-string\>, 52\: false, 68\: 0, 181\: 3, 64\: true, \.\.\.\} given\.$#'
 			identifier: argument.type
 			count: 1
 			path: includes/transports.php

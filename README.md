@@ -14,6 +14,17 @@ Use an isolated Cacti installation. Clone this repository into `<cacti-root>/plu
 
 Disable Cacti DEBUG_SQL_FLOW tracing before installation or enablement: core tracing can expose returned keys. Back up the alarmmanager_key settings_user record securely. Uninstall preserves it and alarm event/job history. Upgrade/enable fails closed when it is missing or malformed; restore the original key rather than inventing one. Do not deploy this skeleton for notification ownership.
 
+## Default integrations
+
+Administration → Alarm Manager → Endpoints can start a new integration from a provider preset as well as the generic templates. A preselection creates a **disabled draft endpoint** with the provider's URL, message configuration, response semantics and — where applicable — a suggested authentication type. Presets never carry secrets: replace every `REPLACE-…` placeholder before enabling, and attach credentials through the editor's authentication controls. Severity `critical/major/minor/warning/info/clear` maps to each provider's own scale where the provider has one.
+
+- **Slack message** — posts to the Slack Web API `chat.postMessage` as a bot. Create a Slack app with the bot scope `chat:write`, invite the bot to the target channel, replace the channel constant, and enter the bot token (`xoxb-…`) as a Bearer credential after saving. Delivery is successful only when the response body reports `ok: true`.
+- **Telegram bot** — calls the Telegram Bot API `sendMessage` with the bot token from @BotFather in the URL and the target chat ID as a mapped constant; no credential record is used. Delivery requires the response body to report `ok: true`.
+- **PagerDuty Events v2** — enqueues to `events.pagerduty.com/v2/enqueue`; paste the Events API integration (routing) key over the constant. Raise events send `trigger`, recovery events send `resolve`, and updates re-trigger the same incident — all sharing the alarm episode as the dedup key, so grouping and auto-resolve come from PagerDuty. Severity maps to `critical/error/warning/info`.
+- **ServiceNow incidents** — creates an incident through the Table API (`/api/now/table/incident`) on raise events and updates or resolves it on recovery and update events by PATCHing `/incident/{{integration.id}}`, where the recorded `sys_id` from the create response (`result.sys_id`) is substituted automatically. Set the instance URL, enter Basic credentials after saving, and review the incident constants — the preset resolves with state 6 (`Solved (Permanently)`), which ServiceNow expects to be adjusted to your incident-state model. The account needs the `rest_api_explorer` and `sn_incident_write` roles; delivery retries while the creating event has not yet completed, so recovery updates wait for the incident to exist.
+
+A preset that still contains a placeholder is a hint to edit it: unresolved placeholders make the endpoint draft appear with its example values until you replace them. Delivery failures from provider-specific bodies (`ok: false`, missing routing keys, missing incident references) are recorded per delivery with reason codes; the endpoint remains configurable and testable through the preview/test sends before it is enabled.
+
 ## Local verification
 
 Tests are PHPUnit/Pest based; they run through a sibling Cacti checkout's

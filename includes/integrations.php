@@ -23,7 +23,10 @@
 */
 require_once(__DIR__ . '/routing.php');
 
-/** Templates create disabled drafts only; no endpoint IDs or credentials are copied. */
+/**
+ * Templates create disabled drafts only; no endpoint IDs or credentials are copied.
+ * The 'auth' and 'hint' keys steer the editor preselect and guidance only and never persist.
+ */
 /** @return array<string, array<string, mixed>> */
 function alarmmanager_integration_templates(): array {
 	$mapping = ['default' => [
@@ -36,13 +39,101 @@ function alarmmanager_integration_templates(): array {
 		['to' => 'state', 'source' => 'alarm.transition'],
 		['to' => 'external_id', 'source' => 'integration.id']
 	]];
-	$http = ['url' => 'https://receiver.example.invalid/alarms', 'method' => 'POST', 'credential' => false, 'mapping' => $mapping];
+	$http        = ['url' => 'https://receiver.example.invalid/alarms', 'method' => 'POST', 'credential' => false, 'mapping' => $mapping];
+	$pd_severity = ['critical' => 'critical', 'major' => 'error', 'minor' => 'warning', 'warning' => 'warning', 'info' => 'info', 'clear' => 'info'];
+	$sn_urgency  = ['critical' => 1, 'major' => 2, 'minor' => 3, 'warning' => 3, 'info' => 3, 'clear' => 3];
+	$sn_target   = ['url' => 'https://REPLACE-INSTANCE.service-now.com/api/now/table/incident/{{integration.id}}', 'method' => 'PATCH'];
 
 	return [
 		'webhook' => ['name' => 'Generic webhook', 'type' => 'webhook', 'transport' => $http],
 		'restapi' => ['name' => 'Generic REST API', 'type' => 'restapi', 'transport' => $http],
-		'script'  => ['name' => 'JSON script', 'type' => 'script', 'transport' => ['executable' => '/usr/local/bin/process_alarm.py', 'arguments' => [], 'compatibility' => 'json', 'retry_exit_codes' => [75], 'mapping' => $mapping]]
+		'script'  => ['name' => 'JSON script', 'type' => 'script', 'transport' => ['executable' => '/usr/local/bin/process_alarm.py', 'arguments' => [], 'compatibility' => 'json', 'retry_exit_codes' => [75], 'mapping' => $mapping]],
+		'slack'   => ['name' => 'Slack message', 'type' => 'webhook', 'auth' => 'bearer',
+			'hint'              => 'Enter the bot token under Authentication and replace the channel constant before enabling the endpoint.',
+			'transport'         => ['url' => 'https://slack.com/api/chat.postMessage', 'method' => 'POST', 'credential' => true, 'response_match' => ['path' => 'ok', 'equals' => true], 'mapping' => ['default' => [
+				['to' => 'channel', 'constant' => 'REPLACE-WITH-CHANNEL', 'type' => 'string', 'required' => true],
+				['to' => 'text', 'source' => 'alarm.summary', 'type' => 'string', 'required' => true]
+			]]]],
+		'telegram' => ['name' => 'Telegram bot', 'type' => 'webhook',
+			'hint'               => 'Replace the bot token in the URL and the chat ID constant before enabling; no credential record is used.',
+			'transport'          => ['url' => 'https://api.telegram.org/botREPLACE-WITH-TOKEN/sendMessage', 'method' => 'POST', 'credential' => false, 'response_match' => ['path' => 'ok', 'equals' => true], 'mapping' => ['default' => [
+				['to' => 'chat_id', 'constant' => 'REPLACE-WITH-CHAT-ID', 'type' => 'string', 'required' => true],
+				['to' => 'text', 'source' => 'alarm.summary', 'type' => 'string', 'required' => true]
+			]]]],
+		'pagerduty' => ['name' => 'PagerDuty Events v2', 'type' => 'webhook',
+			'hint'                => 'Replace the integration key constant before enabling; no credential record is used.',
+			'transport'           => ['url' => 'https://events.pagerduty.com/v2/enqueue', 'method' => 'POST', 'credential' => false, 'response_match' => ['path' => 'status', 'equals' => 'ok'], 'mapping' => [
+				'default' => [
+					['to' => 'routing_key', 'constant' => 'REPLACE-WITH-INTEGRATION-KEY', 'type' => 'string', 'required' => true],
+					['to' => 'event_action', 'constant' => 'trigger', 'type' => 'string', 'required' => true],
+					['to' => 'dedup_key', 'source' => 'alarm.episode_id', 'required' => true],
+					['to' => 'payload.summary', 'source' => 'alarm.summary', 'type' => 'string', 'required' => true],
+					['to' => 'payload.source', 'source' => 'device.hostname', 'type' => 'string', 'required' => true],
+					['to' => 'payload.severity', 'source' => 'alarm.severity', 'type' => 'string', 'values' => $pd_severity, 'required' => true],
+					['to' => 'payload.timestamp', 'source' => 'event.occurred_at', 'type' => 'string']
+				],
+				'recovered' => [
+					['to' => 'routing_key', 'constant' => 'REPLACE-WITH-INTEGRATION-KEY', 'type' => 'string', 'required' => true],
+					['to' => 'event_action', 'constant' => 'resolve', 'type' => 'string', 'required' => true],
+					['to' => 'dedup_key', 'source' => 'alarm.episode_id', 'required' => true]
+				]]]],
+		'servicenow' => ['name' => 'ServiceNow incidents', 'type' => 'webhook', 'auth' => 'basic',
+			'hint'                 => 'Replace the instance in the URL, add the Basic credentials after saving, and review the incident constants; recovery and update events resolve the created incident.',
+			'transport'            => ['url' => 'https://REPLACE-INSTANCE.service-now.com/api/now/table/incident', 'method' => 'POST', 'credential' => true, 'response_reference' => ['id' => 'result.sys_id'], 'transition_overrides' => [
+				'updated'    => $sn_target,
+				'reminder'   => $sn_target,
+				'occurrence' => $sn_target,
+				'recovered'  => $sn_target
+			], 'mapping' => [
+				'raised' => [
+					['to' => 'short_description', 'source' => 'alarm.summary', 'type' => 'string', 'required' => true],
+					['to' => 'description', 'source' => 'alarm.details', 'type' => 'string'],
+					['to' => 'urgency', 'source' => 'alarm.severity', 'type' => 'integer', 'values' => $sn_urgency, 'required' => true]
+				],
+				'recovered' => [
+					['to' => 'state', 'constant' => 6, 'type' => 'integer', 'required' => true],
+					['to' => 'close_code', 'constant' => 'Solved (Permanently)', 'type' => 'string'],
+					['to' => 'work_notes', 'source' => 'alarm.summary', 'type' => 'string', 'required' => true],
+					['to' => 'urgency', 'source' => 'alarm.severity', 'type' => 'integer', 'values' => $sn_urgency]
+				],
+				'default' => [
+					['to' => 'work_notes', 'source' => 'alarm.summary', 'type' => 'string', 'required' => true],
+					['to' => 'urgency', 'source' => 'alarm.severity', 'type' => 'integer', 'values' => $sn_urgency]
+				]]]]
 	];
+}
+
+/**
+ * Resolve the per-transition HTTP target. Overrides key the transition vocabulary; {{integration.id}}
+ * substitutes the last completed delivery's external reference. NULL when the reference has not been
+ * recorded yet, which the retryable workers resolve once the creating delivery completes.
+ * @param  array<string, mixed>                                    $settings
+ * @param  array<string, mixed>                                    $event
+ * @param  array<string, mixed>                                    $reference
+ * @return ?array{url: non-empty-string, method: non-empty-string}
+ */
+function alarmmanager_transition_target(array $settings, array $event, array $reference): ?array {
+	$target   = ['url' => $settings['url'], 'method' => $settings['method'] ?? 'POST'];
+	$override = $settings['transition_overrides'][$event['transition']] ?? null;
+
+	if ($override !== null) {
+		$target['url']    = $override['url'] ?? $target['url'];
+		$target['method'] = $override['method'] ?? $target['method'];
+	}
+
+	if (!is_string($target['url']) || $target['url'] === '' || !is_string($target['method']) || $target['method'] === '') {
+		throw new InvalidArgumentException('invalid_transport');
+	}
+
+	if (str_contains($target['url'], '{{integration.id}}')) {
+		if (!is_string($reference['id'] ?? null) || $reference['id'] === '') {
+			return null;
+		}
+		$target['url'] = str_replace('{{integration.id}}', $reference['id'], $target['url']);
+		alarmmanager_transport_url_validate($target['url'], alarmmanager_config_bool($settings['allow_http'] ?? false));
+	}
+
+	return $target;
 }
 
 /** Only explicitly selected response fields enter history; raw response bodies are discarded. */
@@ -101,10 +192,11 @@ function alarmmanager_response_reference(string $body, array $paths): array {
 /**
  * @param  array<string, mixed>                                 $event
  * @param  array<string, array<int, array<string, mixed>>>|null $mapping
+ * @param  array<string, mixed>|null                            $overrides
  * @return array<string, mixed>
  */
-function alarmmanager_delivery_reference(array $event, int $endpoint_id, ?array $mapping = null): array {
-	if ($mapping !== null && !array_intersect(array_column($mapping[$event['transition']] ?? $mapping['default'] ?? [], 'source'), ['integration.id', 'integration.url'])) {
+function alarmmanager_delivery_reference(array $event, int $endpoint_id, ?array $mapping = null, ?array $overrides = null): array {
+	if ($mapping !== null && !array_intersect(array_column($mapping[$event['transition']] ?? $mapping['default'] ?? [], 'source'), ['integration.id', 'integration.url']) && !str_contains($overrides[$event['transition']]['url'] ?? '', '{{integration.id}}')) {
 		return [];
 	}
 

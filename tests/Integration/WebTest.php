@@ -319,16 +319,23 @@ final class WebTest extends AlarmManagerTestCase {
 			$this->assertTrue(str_contains($html,'Collectors and remote history') && str_contains($html,'Latest 50'), 'bounded collector history controls rendered');
 			$endpoint_count   = (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_endpoints');
 			$credential_count = (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_credentials');
+			$templates        = alarmmanager_integration_templates();
 
-			foreach (alarmmanager_integration_templates() as $template) {
+			foreach ($templates as $template) {
 				$transport = $template['transport'];
 				$mapping   = $transport['mapping'];
 				unset($transport['mapping']);
 				$this->waction(['action' => 'endpoint_save', 'revision' => alarmmanager_admin_configuration()['revision'], 'name' => $template['name'], 'type' => $template['type'], 'url' => $transport['url'] ?? '', 'http_method' => 'POST', 'auth_type' => 'none', 'transport_json' => json_encode($transport), 'mapping_json' => json_encode($mapping)]);
 			}
-			$this->assertSame($endpoint_count + 3, (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_endpoints'), 'Templates create separate endpoints');
-			$this->assertSame(3, (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_endpoints WHERE id > ? AND enabled = 0', [$endpoint_count]), 'Template drafts remain disabled');
+			$this->assertSame($endpoint_count + count($templates), (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_endpoints'), 'Templates create separate endpoints');
+			$this->assertSame(count($templates), (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_endpoints WHERE id > ? AND enabled = 0', [$endpoint_count]), 'Template drafts remain disabled');
 			$this->assertSame($credential_count, (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_credentials'), 'Template saves do not copy or alter credentials');
+
+			$definition = db_fetch_row_prepared('SELECT t.definition FROM plugin_alarmmanager_transports AS t INNER JOIN plugin_alarmmanager_endpoints AS e ON e.id = t.endpoint_id WHERE e.name = ?', ['ServiceNow incidents']);
+			$this->assertIsArray($definition, 'Provider preset draft persisted a transport definition');
+			$stored = alarmmanager_transport_configuration('webhook', json_decode($definition['definition'], true, 8, JSON_THROW_ON_ERROR));
+			$this->assertSame('PATCH', $stored['transition_overrides']['recovered']['method'], 'Transition override survives the transport_json round trip');
+			$this->assertStringContainsString('{{integration.id}}', $stored['transition_overrides']['recovered']['url'], 'Placeholder reference survives the transport_json round trip');
 		} finally {
 			if ($GLOBALS['alarmmanager_test_db']->inTransaction()) {
 				$GLOBALS['alarmmanager_test_db']->rollBack();
