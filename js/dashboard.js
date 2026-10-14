@@ -74,7 +74,7 @@
      });
     });
    }
-   jQuery(select).on('change',update);update();
+   jQuery(fieldset).on('change','[name=auth_type]',update);update();
   });
  }
  function init() {

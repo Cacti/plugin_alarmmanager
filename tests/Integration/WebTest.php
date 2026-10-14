@@ -199,7 +199,7 @@ final class WebTest extends AlarmManagerTestCase {
 			$native['credential']   = 'yes';
 			$this->waction($native);
 			$this->assertSame($inline, alarmmanager_load_credential(1), 'Blank endpoint authentication fields preserve saved credentials');
-			$native['revision'] = alarmmanager_admin_configuration()['revision'];
+			$native['revision']  = alarmmanager_admin_configuration()['revision'];
 			$native['auth_type'] = 'none';
 			$this->waction($native);
 			$this->assertFalse(alarmmanager_admin_configuration()['configuration']['endpoints'][0]['transport']['credential'], 'None disables endpoint authentication');

@@ -2,6 +2,8 @@
 
 --- main (development) ---
 
+* Authentication editor: select None, Bearer, Basic or custom headers from a dropdown; show and submit only the relevant inputs, with an explicit Keep saved authentication option for existing authenticated endpoints.
+
 * Endpoint authentication: add bearer-token, Basic username/password and authentication-header inputs to the endpoint editor, saving encrypted credentials and configuration atomically; blank endpoint inputs preserve saved credentials.
 
 * Credentials page: explain why no credential forms appear before a REST API/webhook endpoint is saved and provide a Create endpoint link.
