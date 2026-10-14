@@ -23,6 +23,43 @@
 */
 require_once(__DIR__ . '/web_auth.php');
 require_once(__DIR__ . '/routing.php');
+require_once(dirname(__DIR__) . '/lib/QueryBuilder.php');
+
+/** Trusted columns and operators shared by the visual editor and SQL compiler. */
+function alarmmanager_report_query_fields(string $kind = 'dashboard', string $severity = 'e.severity'): array {
+	$text = ['contains', 'begins', 'ends', '=', '!='];
+	$number = ['=', '!=', '>', '>=', '<', '<='];
+	$json = static fn (string $path): string => "JSON_UNQUOTE(JSON_EXTRACT(e.payload, '$.$path'))";
+	$fields = [
+		'summary' => ['label' => 'Summary', 'column' => $json('summary'), 'operators' => $text],
+		'details' => ['label' => 'Details', 'column' => $json('details'), 'operators' => $text],
+		'hostname' => ['label' => 'Hostname', 'column' => $json('device.hostname'), 'operators' => $text],
+		'description' => ['label' => 'Device description', 'column' => $json('device.description'), 'operators' => $text],
+		'source' => ['label' => 'Source', 'column' => 'e.source', 'operators' => $text],
+		'source_instance' => ['label' => 'Source instance', 'column' => 'e.source_instance', 'operators' => $text],
+		'severity' => ['label' => 'Severity', 'column' => $severity, 'operators' => ['=', '!='], 'choices' => ['critical', 'major', 'minor', 'warning', 'info', 'clear']],
+		'transition' => ['label' => 'Alarm state', 'column' => 'e.transition', 'operators' => ['=', '!='], 'choices' => ['raised', 'updated', 'reminder', 'recovered', 'occurrence']],
+		'device_id' => ['label' => 'Device ID', 'column' => 'e.device_id', 'operators' => $number, 'type' => 'integer'],
+		'collector_id' => ['label' => 'Collector ID', 'column' => 'e.collector_id', 'operators' => $number, 'type' => 'integer'],
+		'event_row_id' => ['label' => 'Event row ID', 'column' => 'e.id', 'operators' => $number, 'type' => 'integer'],
+		'event_id' => ['label' => 'Event identifier', 'column' => 'e.event_id', 'operators' => $text],
+		'alarm_key' => ['label' => 'Alarm key', 'column' => 'e.alarm_key', 'operators' => $text],
+		'episode_id' => ['label' => 'Episode ID', 'column' => 'e.episode_id', 'operators' => $text]
+	];
+	$extra = match ($kind) {
+		'dashboard', 'events' => [],
+		'conditions' => ['acknowledged' => ['Acknowledged', 's.acknowledged', 'integer']],
+		'deliveries' => ['status' => ['Delivery status', 'd.status', 'string'], 'endpoint_id' => ['Endpoint ID', 'd.endpoint_id', 'integer'], 'endpoint' => ['Endpoint name', 'ep.name', 'string'], 'attempts' => ['Attempts', 'd.attempts', 'integer'], 'error' => ['Last error', 'd.last_error', 'string']],
+		'attempts' => ['status' => ['Attempt outcome', 'a.outcome', 'string'], 'endpoint_id' => ['Endpoint ID', 'd.endpoint_id', 'integer'], 'attempts' => ['Attempt number', 'a.attempt_number', 'integer'], 'code' => ['Response code', 'a.code', 'string']],
+		'decisions' => ['reason' => ['Decision reason', 'r.reason', 'string'], 'endpoint_id' => ['Endpoint ID', 'r.endpoint_id', 'integer'], 'rule_id' => ['Rule ID', 'r.rule_id', 'integer']],
+		'processing' => ['status' => ['Processing status', 'j.status', 'string'], 'attempts' => ['Attempts', 'j.attempts', 'integer'], 'error' => ['Last error', 'j.last_error', 'string']],
+		default => throw new InvalidArgumentException('invalid_report')
+	};
+	foreach ($extra as $key => [$label, $column, $type]) {
+		$fields[$key] = ['label' => $label, 'column' => $column, 'type' => $type, 'operators' => $type === 'integer' ? $number : $text];
+	}
+	return $fields;
+}
 
 function alarmmanager_report_rows(string $sql, array $params = []): array {
 	// MariaDB per-statement deadline does not alter the connection's worker settings.
@@ -82,9 +119,16 @@ function alarmmanager_report_filters(array $input): array {
 		}
 	}
 
+	$result['query'] = $input['query'] ?? '';
+	if (!is_string($result['query'])) {
+		throw new InvalidArgumentException('invalid_filter');
+	}
+	if ($result['query'] !== '') {
+		AlarmManager\QueryBuilder::compile($result['query'], alarmmanager_report_query_fields($input['tab'] ?? 'dashboard'));
+	}
 	return $result;
 }
-function alarmmanager_report_where(array $scope, array $filters, ?string $time_column = 'e.received_at', string $severity_column = 'e.severity'): array {
+function alarmmanager_report_where(array $scope, array $filters, ?string $time_column = 'e.received_at', string $severity_column = 'e.severity', string $kind = 'dashboard'): array {
 	$where  = ['(' . $scope['device_sql'] . ')', 'e.mode = ?'];
 	$params = [$filters['mode']];
 
@@ -101,6 +145,11 @@ function alarmmanager_report_where(array $scope, array $filters, ?string $time_c
 		}
 	}
 
+	if (($filters['query'] ?? '') !== '') {
+		$query = AlarmManager\QueryBuilder::compile($filters['query'], alarmmanager_report_query_fields($kind, $severity_column));
+		$where[] = '(' . $query['sql'] . ')';
+		$params = array_merge($params, $query['params']);
+	}
 	return [implode(' AND ', $where), $params];
 }
 /** Every report joins the event and applies the same visibility predicate before LIMIT. */
@@ -154,7 +203,7 @@ function alarmmanager_report_list(string $kind, array $scope, array $filters): a
 	if ($kind === 'events' && $filters['event_id'] > 0) {
 		$time = null;
 	}
-	[$where, $params] = alarmmanager_report_where($scope, $filters, $time, $severity);
+	[$where, $params] = alarmmanager_report_where($scope, $filters, $time, $severity, $kind);
 
 	if ($kind === 'conditions') {
 		$where .= ' AND s.active = 1';

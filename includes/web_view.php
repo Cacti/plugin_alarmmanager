@@ -29,8 +29,8 @@ const ALARMMANAGER_TABS = ['dashboard', 'conditions', 'events', 'deliveries', 'a
 function alarmmanager_web_assets(): void {
 	global $config;
 
-	print '<link rel="stylesheet" href="' . html_escape($config['url_path'] . 'plugins/alarmmanager/css/dashboard.css' . '?v=0.10.0-combined-fields') . '">';
-	print '<script src="' . html_escape($config['url_path'] . 'plugins/alarmmanager/js/dashboard.js' . '?v=0.10.0-mapping-labels') . '" defer></script>';
+	print '<link rel="stylesheet" href="' . html_escape($config['url_path'] . 'plugins/alarmmanager/css/dashboard.css' . '?v=0.10.0-query-builder-2') . '">';
+	print '<script src="' . html_escape($config['url_path'] . 'plugins/alarmmanager/js/dashboard.js' . '?v=0.10.0-query-builder') . '" defer></script>';
 }
 /**
  * Filters validated both by the Cacti request-var machinery (persistence in
@@ -64,6 +64,8 @@ function alarmmanager_view_filters(): array {
 
 	$values['until'] = get_filter_request_var('until', FILTER_VALIDATE_INT, ['options' => ['min_range' => 946684800, 'max_range' => time() + 60], 'default' => time()]);
 	$values['page']  = get_filter_request_var('page', FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 200], 'default' => 1]);
+	$values['query'] = get_nfilter_request_var('query') ?? '';
+	$values['tab'] = alarmmanager_view_tab();
 
 	return alarmmanager_report_filters($values);
 }
@@ -161,6 +163,8 @@ function alarmmanager_web_filters(array $filters, string $tab, bool $dashboard =
 	}
 
 	print '</select></label>';
+	$fields = array_map(static fn (array $field): array => array_diff_key($field, ['column' => true]), alarmmanager_report_query_fields($tab));
+	print '</div><fieldset class="alarmmanagerQueryBuilder" data-query-fields="' . html_escape(json_encode($fields, JSON_THROW_ON_ERROR)) . '"><legend>' . __esc('Search conditions', 'alarmmanager') . '</legend><div class="alarmmanagerQueryRows"></div><details class="alarmmanagerQueryRaw"><summary>' . __esc('Advanced filter JSON', 'alarmmanager') . '</summary><label>' . __esc('Filter document', 'alarmmanager') . '<textarea name="query" maxlength="8192">' . html_escape($filters['query'] ?? '') . '</textarea></label></details></fieldset><details class="alarmmanagerQuickFilters"><summary>' . __esc('Quick filters', 'alarmmanager') . '</summary><div class="alarmmanagerDashboardBarRow">';
 	print '<label>' . __esc('Source', 'alarmmanager') . ' <input name="source" maxlength="32" value="' . html_escape((string) $filters['source']) . '"></label><label>' . __esc('Severity', 'alarmmanager') . ' <select name="severity"><option value="">' . __esc('All', 'alarmmanager') . '</option>';
 
 	foreach (['critical', 'major', 'minor', 'warning', 'info', 'clear'] as $value) {
@@ -176,13 +180,18 @@ function alarmmanager_web_filters(array $filters, string $tab, bool $dashboard =
 		}
 	}
 
+	print '</div></details><div class="alarmmanagerDashboardBarRow">';
 	print '<input type="hidden" name="current" value="' . ($filters['current'] ? '1' : '0') . '">';
 	print '<button type="submit">' . __esc('Apply', 'alarmmanager') . '</button><a href="' . html_escape('alarmmanager.php?tab=' . $tab . '&clear=1') . '">' . __esc('Reset', 'alarmmanager') . '</a></div></form></td></tr>';
 	html_end_box(false);
 	print '<p class="alarmmanagerHint">' . __esc('Historical window uses UTC. Current conditions and queues ignore the time window. Observe mode never dispatches delivery jobs.', 'alarmmanager') . '</p>';
 }
 function alarmmanager_report_url(array $filters, string $tab, array $extra = []): string {
-	$values = array_intersect_key($filters, array_flip(['range', 'until', 'mode', 'source', 'severity', 'transition', 'status', 'reason', 'device_id', 'endpoint_id', 'event_id', 'current', 'acknowledged']));
+	$values = array_intersect_key($filters, array_flip(['range', 'until', 'mode', 'source', 'severity', 'transition', 'status', 'reason', 'device_id', 'endpoint_id', 'event_id', 'current', 'acknowledged', 'query']));
+
+	if ($tab === 'events' && isset($extra['event_id'])) {
+		unset($values['query']);
+	}
 
 	return 'alarmmanager.php?' . http_build_query(array_merge($values, ['tab' => $tab], $extra));
 }

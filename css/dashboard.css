@@ -216,3 +216,15 @@
 .alarmmanagerServiceNowType .select2 { width:100% !important; }
 
 .alarmmanagerCombinedText { grid-column:1 / -1; }
+
+.alarmmanagerQueryBuilder { margin:12px 0; min-width:0; border:1px solid var(--search-border); border-radius:6px; padding:12px; }
+.alarmmanagerQueryRow { display:grid; grid-template-columns:65px 90px minmax(140px,1fr) minmax(130px,1fr) minmax(160px,2fr) auto; gap:8px; align-items:center; margin:8px 0; }
+.alarmmanagerQueryRow > *, .alarmmanagerQueryRow input { box-sizing:border-box; min-width:0; width:100%; }
+.alarmmanagerQueryRow .select2 { max-width:100%; }
+.alarmmanagerQueryGroupRow { grid-template-columns:65px 90px minmax(0,1fr) auto; }
+.alarmmanagerQueryGroup { border-left:3px solid var(--search-border); padding-left:12px; min-width:0; }
+.alarmmanagerQueryActions { display:flex; flex-wrap:wrap; gap:8px; margin:10px 0; }
+.alarmmanagerQuickFilters { margin:8px 0; }
+.alarmmanagerQuickFilters summary { cursor:pointer; }
+.alarmmanagerQueryRaw textarea { display:block; width:100%; }
+@media(max-width:900px) { .alarmmanagerQueryRow, .alarmmanagerQueryGroupRow { grid-template-columns:minmax(0,1fr) minmax(0,1fr); } .alarmmanagerQueryGroup { grid-column:1 / -1; } }

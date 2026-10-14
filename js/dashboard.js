@@ -162,12 +162,63 @@
    jQuery(form).on('change','[name=integration_template]',()=>form.submit());
   });
  }
+ // The Syslog version-1 document keeps grouped AND/OR/NOT conditions parameterized on the server.
+ function initReportQuery(app) {
+  const builder=app.querySelector('.alarmmanagerQueryBuilder');if(!builder)return;
+  const form=builder.closest('form'), raw=builder.querySelector('[name=query]'), holder=builder.querySelector('.alarmmanagerQueryRows'), fields=JSON.parse(builder.dataset.queryFields);
+  const blank=()=>({join:'AND',field:'summary',operator:'contains',value:'',negative:false});
+  let rows=raw.value?JSON.parse(raw.value).conditions:[blank()];
+  const status=node('p');status.setAttribute('role','status');builder.append(status);
+  function empty() {return rows.length===1&&!rows[0].rows&&rows[0].field==='summary'&&rows[0].operator==='contains'&&!rows[0].negative&&rows[0].value==='';}
+  function sync() {raw.value=empty()?'':JSON.stringify({version:1,conditions:rows});status.textContent=new TextEncoder().encode(raw.value).length>8192?'The search exceeds 8192 bytes. Remove a condition or shorten a value.':'';return !status.textContent;}
+  function select(options,value,label,change) {
+   const control=node('select');control.setAttribute('aria-label',label);
+   options.forEach(([key,text])=>{const option=node('option',text);option.value=key;control.append(option);});control.value=value;
+   jQuery(control).on('change',()=>{change(control.value);sync();});return control;
+  }
+  function render(container,conditions,depth=0) {
+   // Remove Cacti's body-appended dropdown menus before replacing their controls.
+   jQuery(container).find('select').each(function(){if(jQuery(this).data('select2'))jQuery(this).select2('destroy');});
+   container.replaceChildren();
+   conditions.forEach((condition,index)=>{
+    const line=node('div',undefined,'alarmmanagerQueryRow'), connector=node('div',undefined,'alarmmanagerQueryConnector');
+    if(index)connector.append(select([['AND','AND'],['OR','OR']],condition.join,'AND / OR',value=>condition.join=value));else connector.textContent=depth?'Group':'Where';
+    line.append(connector);
+    line.append(select([['0','Match'],['1','Exclude']],condition.negative?'1':'0','Match / Exclude',value=>{condition.negative=value==='1';render(container,conditions,depth);}));
+    if(condition.rows) {
+     const group=node('div',undefined,'alarmmanagerQueryGroup');line.classList.add('alarmmanagerQueryGroupRow');render(group,condition.rows,depth+1);line.append(group);
+    } else {
+     line.append(select(Object.entries(fields).map(([key,field])=>[key,field.label]),condition.field,'Search field',value=>{condition.field=value;condition.operator=fields[value].operators[0];condition.value='';render(container,conditions,depth);}));
+     const definition=fields[condition.field];
+     line.append(select(definition.operators.map(op=>[op,{'contains':'contains','begins':'begins with','ends':'ends with','=':'equals','!=':'does not equal'}[op]||op]),condition.operator,'Search operator',value=>{condition.operator=value;}));
+     const input=node('input');input.type='text';input.value=condition.value;input.maxLength=2048;input.setAttribute('aria-label','Search value');input.placeholder=definition.type==='integer'?'Enter a nonnegative integer':'Enter a value';
+     input.required=!(depth===0&&empty());
+     if(definition.type==='integer'){input.pattern='[0-9]+';input.inputMode='numeric';}
+     input.addEventListener('input',()=>{condition.value=input.value;sync();});
+     if(definition.choices){const list=node('datalist');list.id='am-query-values-'+Math.random().toString(36).slice(2);definition.choices.forEach(value=>{const option=node('option');option.value=value;list.append(option);});input.setAttribute('list',list.id);line.append(list);}
+     line.append(input);
+    }
+    const remove=node('button','Remove');remove.type='button';remove.setAttribute('aria-label','Remove condition');remove.addEventListener('click',()=>{conditions.splice(index,1);if(!conditions.length)conditions.push(blank());render(container,conditions,depth);sync();});line.append(remove);container.append(line);
+   });
+   const actions=node('div',undefined,'alarmmanagerQueryActions');
+   ['AND','OR','NOT','Group'].forEach(action=>{
+    const button=node('button',action);button.type='button';button.setAttribute('aria-label','Add '+action);button.disabled=depth>=15&&action==='Group';
+    button.addEventListener('click',()=>{conditions.push(action==='Group'?{join:'AND',negative:false,rows:[blank()]}:{...blank(),join:action==='OR'?'OR':'AND',negative:action==='NOT'});render(container,conditions,depth);sync();container.querySelectorAll('[aria-label="Search value"]')[container.querySelectorAll('[aria-label="Search value"]').length-1]?.focus();});actions.append(button);
+   });container.append(actions);
+  }
+  const clear=node('button','Clear conditions');clear.type='button';clear.addEventListener('click',()=>{rows=[blank()];render(holder,rows);sync();});builder.append(clear);
+  raw.hidden=true;builder.querySelector('.alarmmanagerQueryRaw').hidden=true;
+  form.addEventListener('submit',event=>{if(!sync()){event.preventDefault();event.stopImmediatePropagation();}});
+  render(holder,rows);sync();
+  const quick=app.querySelector('.alarmmanagerQuickFilters');if(quick&&Array.from(quick.querySelectorAll('input,select')).some(input=>input.value!==''&&input.value!=='0'))quick.open=true;
+ }
+
  function init() {
-  const app=document.getElementById('alarmmanager_app'); if(!app||app.dataset.initialized)return;app.dataset.initialized='yes';initMappings(app);initLists(app);initDeliveryIntervals(app);initAuthentication(app);initEndpointTypes(app);initServiceNow(app);initTemplatePicker(app);
+  const app=document.getElementById('alarmmanager_app'); if(!app||app.dataset.initialized)return;app.dataset.initialized='yes';initReportQuery(app);initMappings(app);initLists(app);initDeliveryIntervals(app);initAuthentication(app);initEndpointTypes(app);initServiceNow(app);initTemplatePicker(app);
   const dashboard=app.querySelector('#alarmmanager_dashboard');if(!dashboard)return;
   const form=app.querySelector('#alarmmanager_filters'), status=app.querySelector('#alarmmanager_dashboard_status'), refresh=app.querySelector('#alarmmanager_refresh');
   const charts={}; let inFlight=false, timer=null;
-  function url(tab,extra={},filters={}) {const values=new URLSearchParams();for(const [key,value] of Object.entries(filters)){if(['range','until','mode','source','severity','transition','status','reason','device_id','endpoint_id','event_id','acknowledged'].includes(key))values.set(key,String(value));} values.set('tab',tab);for(const [key,value]of Object.entries(extra))values.set(key,String(value));return 'alarmmanager.php?'+values.toString();}
+  function url(tab,extra={},filters={}) {const values=new URLSearchParams();for(const [key,value] of Object.entries(filters)){if(['range','until','mode','source','severity','transition','status','reason','device_id','endpoint_id','event_id','acknowledged','query'].includes(key))values.set(key,String(value));} values.set('tab',tab);for(const [key,value]of Object.entries(extra))values.set(key,String(value));return 'alarmmanager.php?'+values.toString();}
   function link(text,tab,extra,filters) {const a=node('a',text);a.href=url(tab,extra,filters);return a;}
   function legend(panel,rows,tab,field,filters) {const holder=app.querySelector('#alarmmanager_legend_'+panel);holder.replaceChildren();const list=node('ul');rows.forEach((row,index)=>{const li=node('li'),swatch=node('span',undefined,'alarmmanagerSwatch');swatch.style.backgroundColor=color(panel,row.label,index);swatch.setAttribute('aria-hidden','true');li.append(swatch,link(`${row.label}: ${Number(row.count).toLocaleString()}`,tab,{[field]:row.label},filters));list.append(li);});holder.append(list);if(!rows.length)holder.append(node('p','No matching records.'));}
   function chart(panel,rows) {

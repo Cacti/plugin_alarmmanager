@@ -149,6 +149,20 @@ final class WebTest extends AlarmManagerTestCase {
 			$events = alarmmanager_report_list('events',$scope,$filters);
 			$this->assertTrue(count($events['rows']) === 50 && $events['more'], 'Bounded page');
 			$this->assertTrue(count(array_unique(array_column($events['rows'],'device_id'))) === 1 && (int)$events['rows'][0]['device_id'] === 42, 'Permissions before pagination');
+			$advanced = $filters;
+			$advanced['query'] = json_encode(['version' => 1, 'conditions' => [
+				['field' => 'source', 'operator' => '=', 'value' => 'fixture'],
+				['join' => 'OR', 'field' => 'device_id', 'operator' => '=', 'value' => '43']
+			]], JSON_THROW_ON_ERROR);
+			$this->assertSame(250, (int) alarmmanager_dashboard_data($scope, $advanced)['historical']['events']['events'], 'OR conditions cannot escape permission or mode scope');
+			$this->assertSame([42], array_values(array_unique(array_map('intval', array_column(alarmmanager_report_list('events', $scope, $advanced)['rows'], 'device_id')))), 'Advanced filter applies permissions before LIMIT');
+			$advanced['query'] = json_encode(['version' => 1, 'conditions' => [['field' => 'summary', 'operator' => 'contains', 'value' => 'HIDDEN_FORBIDDEN_MARKER']]], JSON_THROW_ON_ERROR);
+			$this->assertSame([], alarmmanager_report_list('events', $scope, $advanced)['rows'], 'Advanced summary search cannot expose hidden data');
+			foreach (['conditions' => ['acknowledged', '0'], 'deliveries' => ['status', 'pending'], 'attempts' => ['status', 'success'], 'decisions' => ['reason', 'routed'], 'processing' => ['status', 'completed']] as $kind => [$field, $value]) {
+				$advanced['query'] = json_encode(['version' => 1, 'conditions' => [['field' => $field, 'operator' => '=', 'value' => $value]]], JSON_THROW_ON_ERROR);
+				$report = alarmmanager_report_list($kind, $scope, $advanced);
+				$this->assertLessThanOrEqual(50, count($report['rows']), 'Report-specific query uses valid aliases');
+			}
 			$next         = $filters;
 			$next['page'] = 2;
 			$page2        = alarmmanager_report_list('events',$scope,$next);

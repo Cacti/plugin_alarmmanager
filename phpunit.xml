@@ -30,6 +30,7 @@
 		<include>
 			<file>setup.php</file>
 			<directory>includes</directory>
+			<directory>lib</directory>
 			<directory>integrations</directory>
 		</include>
 	</source>

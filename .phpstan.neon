@@ -26,6 +26,7 @@ parameters:
 		- setup.php
 		- cli
 		- includes
+		- lib
 		- integrations
 
 	excludePaths:
