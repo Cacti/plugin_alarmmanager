@@ -43,6 +43,15 @@ function alarmmanager_integration_templates(): array {
 	$pd_severity = ['critical' => 'critical', 'major' => 'error', 'minor' => 'warning', 'warning' => 'warning', 'info' => 'info', 'clear' => 'info'];
 	$sn_urgency  = ['critical' => 1, 'major' => 2, 'minor' => 3, 'warning' => 3, 'info' => 3, 'clear' => 3];
 	$sn_target   = ['url' => 'https://REPLACE-INSTANCE.service-now.com/api/now/table/incident/{{integration.id}}', 'method' => 'PATCH'];
+	$sn_event_fields = [
+		['to' => 'source', 'constant' => 'Cacti Alarm Manager', 'type' => 'string', 'required' => true],
+		['to' => 'node', 'source' => 'device.hostname', 'type' => 'string'],
+		['to' => 'type', 'source' => 'event.source', 'type' => 'string'],
+		['to' => 'resource', 'source' => 'alarm.resource_id', 'type' => 'string'],
+		['to' => 'metric_name', 'source' => 'alarm.key', 'type' => 'string'],
+		['to' => 'message_key', 'source' => 'alarm.episode_id', 'type' => 'string', 'required' => true],
+		['to' => 'description', 'source' => 'alarm.summary', 'type' => 'string', 'required' => true]
+	];
 
 	return [
 		'webhook' => ['name' => 'Generic webhook', 'type' => 'webhook', 'transport' => $http],
@@ -99,7 +108,17 @@ function alarmmanager_integration_templates(): array {
 				'default' => [
 					['to' => 'work_notes', 'source' => 'alarm.summary', 'type' => 'string', 'required' => true],
 					['to' => 'urgency', 'source' => 'alarm.severity', 'type' => 'integer', 'values' => $sn_urgency]
-				]]]]
+				]]]],
+		'servicenow_events' => ['name' => 'ServiceNow events', 'type' => 'webhook', 'auth' => 'basic',
+			'hint' => 'Writes Event Management records to em_event. Replace the instance URL and enter credentials with permission to create events. Recovery posts severity 0 with the same message key; review the event fields for your instance.',
+			'transport' => ['url' => 'https://REPLACE-INSTANCE.service-now.com/api/now/table/em_event', 'method' => 'POST', 'credential' => true, 'mapping' => [
+				'default' => [...$sn_event_fields,
+					['to' => 'severity', 'source' => 'alarm.severity', 'type' => 'integer', 'values' => ['critical' => 1, 'major' => 2, 'minor' => 3, 'warning' => 4, 'info' => 5, 'clear' => 0], 'required' => true]
+				],
+				'recovered' => [...$sn_event_fields,
+					['to' => 'severity', 'constant' => 0, 'type' => 'integer', 'required' => true]
+				]
+			]]]
 	];
 }
 

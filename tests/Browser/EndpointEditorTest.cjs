@@ -52,14 +52,14 @@ const render=endpoint=>execFileSync('php',['-r',`function __($s,...$a){return $s
    check(!(await page.locator('[name=enabled]').isChecked()),'Template draft is disabled');
    check(await page.locator('[name=id]').count()===0,'Template draft has no saved identity');
    check((await page.locator('[name=name]').inputValue())===template.name,'Template fills integration name');
-   check(JSON.parse(await page.locator('[name=mapping_json]').inputValue()).default.some(field=>field.source==='integration.id'),'Template maps the external reference');
+   assert.deepEqual(JSON.parse(await page.locator('[name=mapping_json]').inputValue()),template.transport.mapping,'Template retains its provider-specific mapping');checks++;
    check(await page.locator('[name=reference_id_path]').isVisible(),'Reference paths are editable for HTTP and scripts');
    await page.locator('[name=reference_id_path]').fill('ticket.id');
    await page.locator('[name=reference_url_path]').fill('ticket.url');
    const draft=await page.locator('form').evaluate(form=>Object.fromEntries(new FormData(form)));
    check(draft.reference_id_path==='ticket.id'&&draft.reference_url_path==='ticket.url','Reference paths submit through the endpoint form');
    const refs=page.locator('.alarmmanagerMappingRow').filter({has:page.locator('select option[value="integration.id"]:checked')});
-   check(await refs.count()===1,'External reference is available in the no-code mapping editor');
+   check(await refs.count()===(template.transport.mapping.default||[]).filter(field=>field.source==='integration.id').length,'External reference rows match the selected template');
   }
   check(errors.length===0,'No browser errors');console.log(`PASS: ${checks} rendered endpoint checks`);
  }finally{await browser.close();}

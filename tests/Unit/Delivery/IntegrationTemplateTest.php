@@ -48,12 +48,12 @@ final class IntegrationTemplateTest extends AlarmManagerTestCase {
 			$this->assertArrayNotHasKey('id', $template);
 			$this->assertArrayNotHasKey('enabled', $template);
 			$transport = alarmmanager_transport_configuration($template['type'], $template['transport']);
-			$this->assertSame(in_array($key, ['slack', 'servicenow'], true), (bool) ($transport['credential'] ?? false));
+			$this->assertSame(in_array($key, ['slack', 'servicenow', 'servicenow_events'], true), (bool) ($transport['credential'] ?? false));
 			$this->assertArrayNotHasKey('headers', $template['transport']);
 			$this->assertArrayNotHasKey('basic', $template['transport']);
 
 			if (isset($template['auth'])) {
-				$this->assertSame(['slack' => 'bearer', 'servicenow' => 'basic'][$key], $template['auth']);
+				$this->assertSame(['slack' => 'bearer', 'servicenow' => 'basic', 'servicenow_events' => 'basic'][$key], $template['auth']);
 			} else {
 				$this->assertArrayNotHasKey('auth', $template);
 			}
@@ -139,6 +139,37 @@ final class IntegrationTemplateTest extends AlarmManagerTestCase {
 			$this->assertSame($pagerduty_severity, alarmmanager_map_payload($pagerduty['mapping'], $event)->payload->severity);
 			$event['transition'] = 'updated';
 			$this->assertSame($urgency, alarmmanager_map_payload($servicenow['mapping'], $event)->urgency);
+		}
+	}
+
+	public function testServiceNowEventsUseEventFieldsAndPostRecoveryWithTheSameKey(): void {
+		self::alarmmanager_test_load('includes/integrations.php');
+		$template = alarmmanager_integration_templates()['servicenow_events'];
+		$transport = alarmmanager_transport_configuration('webhook', $template['transport']);
+		$this->assertStringEndsWith('/api/now/table/em_event', $transport['url']);
+		$this->assertArrayNotHasKey('transition_overrides', $transport);
+		$this->assertNull($transport['response_reference']);
+		$event = $this->sampleEvent();
+		foreach (['critical' => 1, 'major' => 2, 'minor' => 3, 'warning' => 4, 'info' => 5, 'clear' => 0] as $severity => $expected) {
+			$event['severity'] = $severity;
+			$this->assertSame($expected, alarmmanager_map_payload($transport['mapping'], $event)->severity);
+		}
+		$event['severity'] = 'major';
+		foreach (['raised', 'updated', 'reminder', 'occurrence', 'recovered'] as $transition) {
+			$event['transition'] = $transition;
+			$payload = alarmmanager_map_payload($transport['mapping'], $event);
+			$this->assertSame('Cacti Alarm Manager', $payload->source);
+			$this->assertSame('router.example.test', $payload->node);
+			$this->assertSame('sample', $payload->type);
+			$this->assertSame('device:42', $payload->resource);
+			$this->assertSame('device:42:reachability', $payload->metric_name);
+			$this->assertSame('sample-outage-0001', $payload->message_key);
+			$this->assertSame('Sample device down', $payload->description);
+			$this->assertSame($transition === 'recovered' ? 0 : 2, $payload->severity);
+			$this->assertObjectNotHasProperty('short_description', $payload);
+			$this->assertObjectNotHasProperty('urgency', $payload);
+			$this->assertObjectNotHasProperty('state', $payload);
+			$this->assertSame(['url' => $transport['url'], 'method' => 'POST'], alarmmanager_transition_target($transport, $event, []));
 		}
 	}
 
