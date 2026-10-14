@@ -22,7 +22,7 @@ Evidence markers:
 | 2 | Cacti conventions (PHP, DB, auth, CSRF, theme, plugin) | VERIFIED (code) | Conformance phases 4–8: auth.php entry, top_header/bottom_footer, get_filter_request_var family, csrf_get_tokens, html_start_box, realms via api_plugin_register_realm. CI workflow runs the toolchain on real Cacti. |
 | 3 | Adapt syslog dashboard layout, work without syslog | VERIFIED (code, visual NOT VERIFIED) | alarmmanager_web_filters()/alarmmanager_dashboard_markup() in includes/web_view.php mirror the syslog toolbar/card structure (documented in DECISIONS); no syslog dependency. Visual/theme verification in a live Cacti NOT VERIFIED. |
 | 4 | Legacy behavior default until opt-in; centralized delivery prevents duplicates | VERIFIED (code + tests) | includes/producers + routing keep source defaults; LifecycleTest, ProducerTest *(lane)* cover ownership/dedup. |
-| 5 | Producers enqueue and return; bounded multi-worker processing | VERIFIED (code + tests) | alarmmanager_submit returns envelope after commit includes/ingestion.php; SupervisorTest/WorkerTest *(pipeline)*; cli/worker.php bounded jobs. |
+| 5 | Producers enqueue and return; bounded multi-worker processing | VERIFIED (code + tests) | alarmmanager_submit returns envelope after commit includes/ingestion.php; SupervisorTest/WorkerTest *(pipeline)*; includes/worker.php bounded jobs. |
 | 6 | Reuse patterns; no Node.js/containers | VERIFIED (static) | No Node runtime; js/dashboard.js vanilla; Makefile-less QA per CLAUDE.md. |
 | 7 | Isolated checkouts; bmfmancini repo; private visibility | VERIFIED (repo state) | Git history authored under bmfmancini; no Cacti-org push performed; repository private. |
 | 8 | No unrun-test or production-scale claims | VERIFIED (docs) | docs/PROGRESS.md records lane skips and unverified items; this audit restates them. |
@@ -76,7 +76,7 @@ Evidence markers:
 ## Prompt 4 — multi-process daemon and queue recovery
 
 - VERIFIED (code): supervisor + worker pools (includes/supervisor.php,
-  includes/workers.php, alarmmanager_daemon.php, cli/worker.php), fresh PHP worker
+  includes/workers.php, alarmmanager_daemon.php, includes/worker.php), fresh PHP worker
   processes with their own connections, systemd examples shipped
   (docs/WORKERS.md).
 - VERIFIED (code): SKIP LOCKED atomic batch claiming, ownership tokens,

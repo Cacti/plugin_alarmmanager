@@ -36,6 +36,8 @@ if (!function_exists('alarmmanager_test_reset_state')) {
 	$GLOBALS['alarmmanager_test_schema']        = false;
 	$GLOBALS['alarmmanager_test_credentials']   = 0;
 	$GLOBALS['alarmmanager_test_version']       = '0.1.0';
+	$GLOBALS['alarmmanager_test_status']        = 1;
+	$GLOBALS['alarmmanager_test_workers']       = [];
 
 	function alarmmanager_test_reset_state(): void {
 		$GLOBALS['alarmmanager_test_store']         = [];
@@ -45,6 +47,8 @@ if (!function_exists('alarmmanager_test_reset_state')) {
 		$GLOBALS['alarmmanager_test_schema']        = false;
 		$GLOBALS['alarmmanager_test_credentials']   = 0;
 		$GLOBALS['alarmmanager_test_version']       = '0.1.0';
+		$GLOBALS['alarmmanager_test_status']        = 1;
+		$GLOBALS['alarmmanager_test_workers']       = [];
 	}
 }
 
@@ -95,7 +99,11 @@ if (!function_exists('db_fetch_cell_prepared')) {
 		}
 
 		if (str_contains($sql, 'SELECT status FROM plugin_config')) {
-			return 1;
+			return $GLOBALS['alarmmanager_test_status'];
+		}
+
+		if (str_contains($sql, '@@in_transaction')) {
+			return 0;
 		}
 
 		return $GLOBALS['alarmmanager_test_store'][$params[0] . ':' . $params[1]] ?? false;
@@ -106,6 +114,16 @@ if (!function_exists('db_execute_prepared')) {
 	function db_execute_prepared($sql, $params = [], $log = true) {
 		if ($GLOBALS['alarmmanager_test_write_failure']) {
 			return false;
+		}
+
+		if (in_array(trim($sql), ['START TRANSACTION', 'COMMIT', 'ROLLBACK'], true)) {
+			return true;
+		}
+
+		if (str_contains($sql, 'INSERT INTO plugin_alarmmanager_workers')) {
+			$GLOBALS['alarmmanager_test_workers'][$params[0]] = ['role' => $params[1], 'status' => $params[4]];
+
+			return true;
 		}
 
 		if (str_starts_with($sql, 'CREATE TABLE') || str_starts_with($sql, 'CREATE TRIGGER')) {

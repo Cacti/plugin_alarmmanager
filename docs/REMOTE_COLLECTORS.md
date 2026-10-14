@@ -41,7 +41,9 @@ php cli/remote.php --export-for=2 --profiles=1,2 --output=/secure/poller-2.json
 php cli/remote.php --provision=/secure/poller-2.json
 ```
 
-Export contains selected routes, applicable producer policies/device grants and plaintext credential records. Files must be absolute, outside the plugin directory, owner-private and nonsymlinks; new files are exclusive mode 0600. Transfer securely and remove plaintext exports after import. Import is atomic and re-encrypts credentials using the remote's existing setup key. It preserves identity, queues, history and existing encryption key. Provisioning merges included producer policies/grants; omitted existing policies/grants are not revoked. Review local configuration before enabling workers.
+Export contains selected routes, applicable producer policies/device grants and plaintext credential records. Files must be absolute, outside the plugin directory, owner-private (mode 0600, never a symlink) and nonsymlinks; new files are exclusive mode 0600. Transfer securely and remove plaintext exports after import. Import is atomic and re-encrypts credentials using the remote's existing setup key. It preserves identity, queues, history and existing encryption key. Provisioning merges included producer policies/grants; omitted existing policies/grants are not revoked. Review local configuration before enabling workers.
+
+Both `--provision` and `--configure` presuppose the plugin is installed and upgraded on that poller: the normal Cacti plugin install/upgrade creates the schema and setup key, and neither command creates them — they write configuration/credentials only. `--configure` applies a config-only JSON (no credentials/grants) through the same owner-private file policy as every other remote.php input.
 
 Workers and producer retry commands use their offline/local Cacti bootstrap. They do not call main to ingest, route or deliver. Local delivery remains independent during main outage within its provisioned ownership lease and with local credentials/CA/attachment/script files available.
 

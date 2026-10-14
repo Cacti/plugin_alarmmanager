@@ -180,7 +180,7 @@ jobs:
     - name: Check the Plugin CLI Entry Points
       run: |
         cd ${{ github.workspace }}/cacti
-        for script in status worker remote submit_event credentials producers configure setup_local endpoint; do
+        for script in status remote submit_event credentials producers endpoint; do
           php -q plugins/alarmmanager/cli/$script.php --help >/dev/null || exit 1
         done
         php -q plugins/alarmmanager/alarmmanager_daemon.php --help >/dev/null || exit 1

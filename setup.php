@@ -71,7 +71,7 @@ function plugin_alarmmanager_upgrade(): bool {
 function alarmmanager_registration_setup(bool $enable = false): bool {
 	// Cacti registration helpers return void: register everything, then verify
 	// the persisted metadata once instead of after every individual call.
-	foreach ([['config_arrays', 'alarmmanager_config_arrays', 'setup.php'], ['draw_navigation_text', 'alarmmanager_draw_navigation_text', 'setup.php'], ['alarmmanager_submit', 'alarmmanager_submit', 'includes/ingestion.php']] as [$hook, $callback, $file]) {
+	foreach ([['config_arrays', 'alarmmanager_config_arrays', 'setup.php'], ['draw_navigation_text', 'alarmmanager_draw_navigation_text', 'setup.php'], ['alarmmanager_submit', 'alarmmanager_submit', 'includes/ingestion.php'], ['poller_bottom', 'alarmmanager_poller_bottom', 'includes/polling.php']] as [$hook, $callback, $file]) {
 		api_plugin_register_hook('alarmmanager', $hook, $callback, $file, $enable);
 	}
 
@@ -81,7 +81,7 @@ function alarmmanager_registration_setup(bool $enable = false): bool {
 	$hooks  = (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_hooks WHERE name = ?', ['alarmmanager'], '', false);
 	$realms = (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_realms WHERE plugin = ?', ['alarmmanager'], '', false);
 
-	return $hooks === 3 && $realms === 2;
+	return $hooks === 4 && $realms === 2;
 }
 
 function plugin_alarmmanager_uninstall(): void {

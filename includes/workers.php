@@ -67,7 +67,12 @@ function alarmmanager_worker_loop(string $role, array $options, callable $should
 	if (!in_array($role, ['processing', 'delivery'], true)) {
 		throw new InvalidArgumentException('invalid_worker_role');
 	}
-	$worker_id      = bin2hex(random_bytes(16));
+	// A caller may pass a deterministic 32-hex worker_id (poller-integrated
+	// draining) so its heartbeat rows upsert instead of accumulating in
+	// plugin_alarmmanager_workers, which has no pruning.
+	$worker_id      = is_string($options['worker_id'] ?? null) && preg_match('/\A[a-f0-9]{32}\z/', $options['worker_id'])
+		? $options['worker_id']
+		: bin2hex(random_bytes(16));
 	$started        = microtime(true);
 	$last_reclaim   = 0.0;
 	$last_heartbeat = 0.0;

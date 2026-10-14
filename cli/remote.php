@@ -25,10 +25,10 @@ if (PHP_SAPI !== 'cli') {
 	http_response_code(403);
 	exit;
 }
-$options = getopt('', ['identity', 'new-key-file:', 'peer:', 'instance:', 'key-file:', 'url:', 'ca-bundle:', 'provision:', 'grant-file:', 'send', 'limit:', 'seed:', 'after:', 'export-for:', 'profiles:', 'output:', 'help']);
+$options = getopt('', ['identity', 'new-key-file:', 'peer:', 'instance:', 'key-file:', 'url:', 'ca-bundle:', 'provision:', 'configure:', 'grant-file:', 'send', 'limit:', 'seed:', 'after:', 'export-for:', 'profiles:', 'output:', 'help']);
 
 if (isset($options['help'])) {
-	print "Usage:\n  php cli/remote.php --identity\n  php cli/remote.php --new-key-file=/secure/peer.key\n  php cli/remote.php --peer=ID --instance=NODE_UUID --key-file=/secure/peer.key [--url=https://main/plugins/alarmmanager/alarmmanager_sync.php --ca-bundle=/secure/ca.pem]\n  php cli/remote.php --export-for=2 --profiles=1,2 --output=/secure/poller-config.json\n  php cli/remote.php --provision=/secure/poller-config.json\n  php cli/remote.php --grant-file=/secure/device-grant.json\n  php cli/remote.php --send [--limit=100]\n  php cli/remote.php --seed=event|processing|decision|delivery|attempt [--after=0 --limit=100]\nSecrets are read/written only through owner-private files. Seed is bounded migration of prior local history.\n";
+	print "Usage:\n  php cli/remote.php --identity\n  php cli/remote.php --new-key-file=/secure/peer.key\n  php cli/remote.php --peer=ID --instance=NODE_UUID --key-file=/secure/peer.key [--url=https://main/plugins/alarmmanager/alarmmanager_sync.php --ca-bundle=/secure/ca.pem]\n  php cli/remote.php --export-for=2 --profiles=1,2 --output=/secure/poller-config.json\n  php cli/remote.php --provision=/secure/poller-config.json\n  php cli/remote.php --configure=/secure/routing.json\n  php cli/remote.php --grant-file=/secure/device-grant.json\n  php cli/remote.php --send [--limit=100]\n  php cli/remote.php --seed=event|processing|decision|delivery|attempt [--after=0 --limit=100]\nSecrets are read/written only through owner-private files. Seed is bounded migration of prior local history.\n";
 	exit;
 }
 $conn_mode = 'offline';
@@ -36,7 +36,7 @@ require_once(__DIR__ . '/../../../include/cli_check.php');
 require_once(__DIR__ . '/../includes/remote.php');
 
 try {
-	$actions = array_intersect(['identity', 'new-key-file', 'peer', 'provision', 'grant-file', 'send', 'seed', 'export-for'], array_keys($options));
+	$actions = array_intersect(['identity', 'new-key-file', 'peer', 'provision', 'configure', 'grant-file', 'send', 'seed', 'export-for'], array_keys($options));
 
 	if (count($actions) !== 1) {
 		throw new RuntimeException('invalid_options');
@@ -71,6 +71,14 @@ try {
 	} elseif ($action === 'provision') {
 		alarmmanager_remote_provision(json_decode(alarmmanager_remote_private_read($options[$action], 8388608), true, 32, JSON_THROW_ON_ERROR));
 		print "Local configuration and usable credentials provisioned.\n";
+	} elseif ($action === 'configure') {
+		$settings = json_decode(alarmmanager_remote_private_read((string) $options[$action], 1048576), true, 32, JSON_THROW_ON_ERROR);
+
+		if (!is_array($settings)) {
+			throw new RuntimeException('invalid_options');
+		}
+		alarmmanager_apply_configuration($settings);
+		print "Routing configuration applied.\n";
 	} elseif ($action === 'export-for') {
 		$poller   = filter_var($options['export-for'], FILTER_VALIDATE_INT, ['options' => ['min_range' => 2]]);
 		$profiles = explode(',', $options['profiles'] ?? '');

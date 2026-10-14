@@ -52,7 +52,7 @@ function alarmmanager_supervise(?string $config_path, ?string $worker_script = n
 		throw new RuntimeException('supervisor_runtime_missing');
 	}
 	$settings    = alarmmanager_supervisor_options($config_path);
-	$script      = $worker_script ?? dirname(__DIR__) . '/cli/worker.php';
+	$script      = $worker_script ?? __DIR__ . '/worker.php';
 	$stop        = false;
 	$reload      = false;
 	$children    = [];

@@ -33,7 +33,7 @@ final class SetupTest extends AlarmManagerTestCase {
 		$this->assertSame($key, $GLOBALS['alarmmanager_test_store']['1:alarmmanager_key'], 'Repeat install changed the key.');
 		$this->assertTrue(plugin_alarmmanager_upgrade(), 'Upgrade readiness failed.');
 		$this->assertSame($key, $GLOBALS['alarmmanager_test_store']['1:alarmmanager_key'], 'Upgrade changed the key.');
-		$this->assertSame([], array_diff($GLOBALS['alarmmanager_test_hooks'], ['config_arrays', 'draw_navigation_text', 'alarmmanager_submit']), 'Unexpected producer/poller hook.');
+		$this->assertSame([], array_diff($GLOBALS['alarmmanager_test_hooks'], ['config_arrays', 'draw_navigation_text', 'alarmmanager_submit', 'poller_bottom']), 'Unexpected producer/poller hook.');
 		plugin_alarmmanager_uninstall();
 		$this->assertSame($key, $GLOBALS['alarmmanager_test_store']['1:alarmmanager_key'], 'Uninstall removed the key.');
 	}
