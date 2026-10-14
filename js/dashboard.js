@@ -74,11 +74,25 @@
      });
     });
    }
-   jQuery(fieldset).on('change','[name=auth_type]',update);update();
+   jQuery(fieldset).off('change.alarmmanagerAuth').on('change.alarmmanagerAuth','[name=auth_type]',update);update();
+  });
+ }
+ function initEndpointTypes(app) {
+  app.querySelectorAll('form.alarmmanagerEditor').forEach(form => {
+   const select=form.querySelector('[name=type]');if(!select)return;
+   function update() {
+    form.querySelectorAll('[data-endpoint-types]').forEach(group => {
+     const active=group.dataset.endpointTypes.split(' ').includes(select.value);
+     group.hidden=!active;
+     group.querySelectorAll('input,select,textarea').forEach(input=>{input.disabled=!active;});
+    });
+    if(['restapi','webhook'].includes(select.value))initAuthentication(form);
+   }
+   jQuery(form).on('change','[name=type]',update);update();
   });
  }
  function init() {
-  const app=document.getElementById('alarmmanager_app'); if(!app||app.dataset.initialized)return;app.dataset.initialized='yes';initMappings(app);initAuthentication(app);
+  const app=document.getElementById('alarmmanager_app'); if(!app||app.dataset.initialized)return;app.dataset.initialized='yes';initMappings(app);initAuthentication(app);initEndpointTypes(app);
   const dashboard=app.querySelector('#alarmmanager_dashboard');if(!dashboard)return;
   const form=app.querySelector('#alarmmanager_filters'), status=app.querySelector('#alarmmanager_dashboard_status'), refresh=app.querySelector('#alarmmanager_refresh');
   const charts={}; let inFlight=false, timer=null;

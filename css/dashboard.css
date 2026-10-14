@@ -191,3 +191,5 @@
 #alarmmanager_app .alarmmanagerAuthFields[hidden] { display:none; }
 .alarmmanagerAuthFields { display:flex; flex-wrap:wrap; gap:12px; margin-top:12px; }
 .alarmmanagerAuthFields label { flex-direction:column; align-items:stretch !important; }
+
+#alarmmanager_app [data-endpoint-types][hidden] { display:none; }

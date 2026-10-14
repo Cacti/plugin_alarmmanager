@@ -52,6 +52,7 @@ function alarmmanager_endpoint_editor(array $endpoint, int $revision, bool $new 
 	alarmmanager_form_start('endpoint_save', $revision, $new ? [] : ['id' => $endpoint['id']]);
 	alarmmanager_input('name', 'Name', $endpoint['name'], 'text', 'maxlength="128" required');
 	alarmmanager_checkbox('enabled', 'Enabled', $endpoint['enabled'] ?? true);
+	print '<input type="hidden" name="endpoint_fields" value="yes">';
 	print '<label>' . __esc('Type', 'alarmmanager') . ' <select name="type">';
 
 	foreach (['restapi', 'webhook', 'email', 'script', 'websocket'] as $type) {
@@ -64,7 +65,7 @@ function alarmmanager_endpoint_editor(array $endpoint, int $revision, bool $new 
 	$transport = $endpoint['transport'] ?? [];
 	$mapping   = $transport['mapping'] ?? ['default' => []];
 	unset($transport['mapping']);
-	print '<fieldset class="alarmmanagerFullWidth"><legend>' . __esc('HTTP settings (REST API or webhook)', 'alarmmanager') . '</legend>';
+	print '<fieldset class="alarmmanagerFullWidth" data-endpoint-types="restapi webhook"><legend>' . __esc('HTTP settings (REST API or webhook)', 'alarmmanager') . '</legend>';
 	alarmmanager_input('url', 'URL', $transport['url'] ?? '', 'url', 'maxlength="2048"');
 	// The control must not be named "method": a named form control called
 	// "method" shadows HTMLFormElement.method and crashes csrf-magic.js.
@@ -76,12 +77,29 @@ function alarmmanager_endpoint_editor(array $endpoint, int $revision, bool $new 
 	alarmmanager_input('ca_bundle', 'Self-signed certificate / private CA PEM path', $transport['ca_bundle'] ?? '', 'text', 'maxlength="1024" placeholder="/etc/cacti/alarmmanager/internal-ca.pem"');
 	alarmmanager_checkbox('allow_http', 'Allow anonymous HTTP', $transport['allow_http'] ?? false);
 	print '<p>' . __esc('Certificate and hostname verification remain enabled. Provision the PEM file on every poller. Saved credentials are never displayed.', 'alarmmanager') . '</p></fieldset>';
+	print '<div class="alarmmanagerFullWidth" data-endpoint-types="restapi webhook">';
 	alarmmanager_auth_editor(!empty($transport['credential']) ? 'keep' : 'none');
+	print '</div><fieldset class="alarmmanagerFullWidth" data-endpoint-types="email"><legend>' . __esc('Email settings', 'alarmmanager') . '</legend>';
+	foreach (['to' => 'Recipient emails (comma separated, or recipient JSON)', 'from' => 'Sender email (blank uses Cacti default)'] as $key => $label) {
+		$value = $transport[$key] ?? '';
+		alarmmanager_input('email_' . $key, $label, is_array($value) ? alarmmanager_json_text($value) : $value, 'text', 'maxlength="8192"');
+	}
+	alarmmanager_checkbox('email_html', 'HTML email', $transport['html'] ?? false);
+	print '<p>' . __esc('Map subject and body in Payload mappings. Delivery uses the Cacti mail settings. Notification lists are not automatically imported; enter recipient emails here.', 'alarmmanager') . '</p></fieldset>';
+	print '<fieldset class="alarmmanagerFullWidth" data-endpoint-types="script"><legend>' . __esc('Script settings', 'alarmmanager') . '</legend>';
+	alarmmanager_input('script_executable', 'Absolute script / executable path', $transport['executable'] ?? '', 'text', 'maxlength="1024" placeholder="/usr/local/bin/notify-alarm"');
+	alarmmanager_textarea('script_arguments', 'Arguments (JSON array)', json_encode($transport['arguments'] ?? [], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR));
+	print '<label>' . __esc('Script input mode', 'alarmmanager') . ' <select name="script_compatibility">';
+	foreach (['json' => 'JSON on standard input', 'syslog_ticket' => 'Syslog ticket arguments and JSON input'] as $value => $label) {
+		print '<option value="' . $value . '"' . (($transport['compatibility'] ?? 'json') === $value ? ' selected' : '') . '>' . __esc($label, 'alarmmanager') . '</option>';
+	}
+	print '</select></label><p>' . __esc('The executable must exist and be executable by the worker on every delivering poller. Arguments are passed directly without a shell.', 'alarmmanager') . '</p></fieldset>';
+	print '<p class="alarmmanagerFullWidth" data-endpoint-types="websocket">' . __esc('WebSocket delivery is not implemented.', 'alarmmanager') . '</p>';
 	print '<fieldset class="alarmmanagerFullWidth alarmmanagerMapping"><legend>' . __esc('Payload mappings', 'alarmmanager') . '</legend><p>' . __esc('Add destination fields using normalized sources or constants. Each transition can replace the default payload. No PHP or string substitution is evaluated.', 'alarmmanager') . '</p><div class="alarmmanagerMappingBuilder"></div>';
 	alarmmanager_textarea('mapping_json', 'Mapping JSON (advanced / no-JavaScript editor)', alarmmanager_json_text($mapping));
 	print '</fieldset>';
-	alarmmanager_textarea('transport_json', 'Transport options (email, script, HTTP success criteria and timeouts)', alarmmanager_json_text($transport));
-	print '<p class="alarmmanagerHint alarmmanagerFullWidth">' . __esc('Email requires to/from, html and attachments. Script requires an absolute executable, argument list and compatibility mode. WebSocket delivery is not implemented. Use the delivery documentation for option shapes.', 'alarmmanager') . '</p><button type="submit">' . __esc('Save endpoint', 'alarmmanager') . '</button></form></details>';
+	alarmmanager_textarea('transport_json', 'Additional transport options JSON (advanced; fields above take precedence)', alarmmanager_json_text($transport));
+	print '<button type="submit">' . __esc('Save endpoint', 'alarmmanager') . '</button></form></details>';
 }
 function alarmmanager_admin_markup(array $state, string $section): void {
 	$config   = $state['configuration'];

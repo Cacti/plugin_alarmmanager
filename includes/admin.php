@@ -45,6 +45,35 @@ function alarmmanager_admin_configuration(): array {
 		return ['revision' => (int) $row['config_revision'], 'configuration' => $definition];
 	});
 }
+/** Native endpoint fields override advanced JSON; other transports' options never carry over. */
+function alarmmanager_admin_transport_fields(string $type, array $transport, array $input): array {
+	if (!isset($input['endpoint_fields'])) {
+		return $transport;
+	}
+	$keys = match ($type) {
+		'restapi', 'webhook' => ['url', 'method', 'ca_bundle', 'credential', 'allow_http', 'success_codes', 'response_match', 'connect_timeout_seconds'],
+		'email' => ['to', 'from', 'html', 'attachments'],
+		'script' => ['executable', 'arguments', 'compatibility', 'retry_exit_codes'],
+		default => []
+	};
+	$transport = array_intersect_key($transport, array_flip($keys));
+	if ($type === 'email') {
+		foreach (['to', 'from'] as $key) {
+			$value = $input['email_' . $key] ?? '';
+			if (!is_string($value) || strlen($value) > 8192) {
+				throw new InvalidArgumentException('invalid_recipients');
+			}
+			$value = trim($value);
+			$transport[$key] = str_starts_with($value, '[') || str_starts_with($value, '{') ? alarmmanager_admin_json($value, 8192) : $value;
+		}
+		$transport['html'] = isset($input['email_html']);
+	} elseif ($type === 'script') {
+		$transport['executable'] = $input['script_executable'] ?? '';
+		$transport['arguments'] = alarmmanager_admin_json($input['script_arguments'] ?? '[]');
+		$transport['compatibility'] = $input['script_compatibility'] ?? 'json';
+	}
+	return $transport;
+}
 function alarmmanager_admin_int($value, int $min = 1, int $max = 2147483647): int {
 	$result = filter_var($value, FILTER_VALIDATE_INT, ['options' => ['min_range' => $min, 'max_range' => $max]]);
 
@@ -221,7 +250,7 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 				throw new InvalidArgumentException('invalid_action');
 			}
 			$item['type'] = $type;
-			$credential   = alarmmanager_admin_credential($input);
+			$credential   = isset($input['endpoint_fields']) && !in_array($type, ['restapi', 'webhook'], true) ? null : alarmmanager_admin_credential($input);
 
 			if ($credential !== null && !in_array($type, ['restapi', 'webhook'], true)) {
 				throw new InvalidArgumentException('credential_endpoint_invalid');
@@ -232,7 +261,7 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 			foreach (['timeout_seconds' => [1, 120, 10], 'max_attempts' => [1, 20, 5], 'min_interval_ms' => [0, 3600000, 0]] as $key => [$min, $max, $default]) {
 				$item[$key] = alarmmanager_admin_int($input[$key] ?? $default, $min, $max);
 			}
-			$transport = alarmmanager_admin_json($input['transport_json'] ?? '{}');
+			$transport = alarmmanager_admin_transport_fields($type, alarmmanager_admin_json($input['transport_json'] ?? '{}'), $input);
 
 			if (in_array($type, ['restapi', 'webhook'], true)) {
 				$transport['url']        = $input['url'] ?? '';

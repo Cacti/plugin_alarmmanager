@@ -41,6 +41,15 @@ const fs=require('node:fs'), path=require('node:path');
    }
   }
   await auth.selectOption(originalAuth,{force:true});
+  const endpointType=detail.locator('[name=type]'), originalType=await endpointType.inputValue();
+  for(const type of ['email','script','restapi','webhook','websocket']) {
+   await endpointType.selectOption(type);
+   for(const group of ['restapi webhook','email','script','websocket']) {
+    check(await detail.locator(`[data-endpoint-types="${group}"]`).first().isVisible()===group.split(' ').includes(type),`${type}: relevant endpoint fields only`);
+   }
+   check(await auth.isEnabled()===['restapi','webhook'].includes(type),`${type}: HTTP authentication disabled for other transports`);
+  }
+  await endpointType.selectOption(originalType);
   const row=detail.locator('.alarmmanagerMappingRow').first();await row.locator('input').first().fill('host');
   check(JSON.parse(await detail.locator('[name=mapping_json]').inputValue()).default[0].to==='host','No-code field mapping editor');
 
