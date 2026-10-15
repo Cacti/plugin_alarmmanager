@@ -126,6 +126,60 @@ function alarmmanager_admin_replay(string $queue, int $id): void {
 		alarmmanager_db_write('DELETE FROM plugin_alarmmanager_failed_jobs WHERE queue = ? AND job_id = ?', [$queue, $id]);
 	});
 }
+/**
+ * @param  array<string, mixed> $input
+ * @return array<string, mixed>
+ */
+function alarmmanager_admin_rule_policy(array $input): array {
+	if (!isset($input['rule_fields'])) {
+		return alarmmanager_validate_rule_definition(alarmmanager_admin_json($input['policy_json'] ?? '{}'));
+	}
+	$policy = ['match' => [], 'suppress_acknowledged' => isset($input['suppress_acknowledged'])];
+
+	foreach (['sources', 'severities', 'transitions', 'device_ids', 'collector_ids', 'tags'] as $field) {
+		if (!isset($input['filter_' . $field])) {
+			continue;
+		}
+		$values = $input['match_' . $field] ?? [];
+
+		if (in_array($field, ['sources', 'tags'], true)) {
+			if (!is_string($values) || strlen($values) > 8192) {
+				throw new InvalidArgumentException('invalid_rule_filters');
+			}
+			$values = alarmmanager_admin_json($values, 8192);
+		}
+
+		if (!is_array($values) || !array_is_list($values) || count($values) > 32) {
+			throw new InvalidArgumentException('invalid_rule_filters');
+		}
+
+		if (in_array($field, ['device_ids', 'collector_ids'], true)) {
+			$values = array_map(static fn ($value) => alarmmanager_admin_int($value), $values);
+		}
+		$policy['match'][$field] = $values;
+	}
+
+	foreach (['schedule', 'maintenance_schedule'] as $field) {
+		$policy[$field] = null;
+
+		if (!isset($input[$field . '_enabled'])) {
+			continue;
+		}
+		$days = $input[$field . '_days'] ?? [];
+
+		if (!is_array($days) || !array_is_list($days) || !$days || count($days) > 7) {
+			throw new InvalidArgumentException('invalid_rule_schedule');
+		}
+		$policy[$field] = ['timezone' => $input[$field . '_timezone'] ?? '', 'days' => array_map(static fn ($day) => alarmmanager_admin_int($day, 1, 7), $days), 'start' => $input[$field . '_start'] ?? '', 'end' => $input[$field . '_end'] ?? ''];
+	}
+
+	foreach (['cooldown_seconds', 'duplicate_seconds'] as $field) {
+		$policy[$field] = alarmmanager_admin_int($input[$field] ?? 0, 0, 86400);
+	}
+
+	return alarmmanager_validate_rule_definition($policy);
+}
+
 /** This is the sole browser mutation dispatcher; secrets are never returned. */
 function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string {
 	alarmmanager_web_mutation_guard();
@@ -232,36 +286,44 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 	if ($state['revision'] !== $revision) {
 		throw new InvalidArgumentException('configuration_changed');
 	}
+
 	if ($action === 'endpoint_delete') {
 		$id = alarmmanager_admin_int($input['id'] ?? null, 1);
+
 		if (($input['confirmed'] ?? '') !== 'yes') {
 			throw new InvalidArgumentException('confirmation_required');
 		}
 		alarmmanager_transaction(function () use ($state, $revision, $id): void {
 			$locked = alarmmanager_db_row('SELECT config_revision FROM plugin_alarmmanager_schema WHERE id = 1 FOR UPDATE');
+
 			if ((int) $locked['config_revision'] !== $revision) {
 				throw new InvalidArgumentException('configuration_changed');
 			}
 			$endpoint = alarmmanager_db_row('SELECT id, enabled FROM plugin_alarmmanager_endpoints WHERE id = ? FOR UPDATE', [$id]);
+
 			if (!$endpoint) {
 				throw new InvalidArgumentException('invalid_action');
 			}
 			$settings = $state['configuration'];
+
 			foreach ($settings['profiles'] as $profile) {
 				if (in_array($id, $profile['endpoints'], true)) {
 					throw new InvalidArgumentException('endpoint_in_profile');
 				}
 			}
+
 			if (alarmmanager_db_row("SELECT id FROM plugin_alarmmanager_deliveries WHERE endpoint_id = ? AND status IN ('pending', 'leased') LIMIT 1 FOR UPDATE", [$id])) {
 				throw new InvalidArgumentException('endpoint_has_active_deliveries');
 			}
 			$settings['endpoints'] = array_values(array_filter($settings['endpoints'], static fn (array $item): bool => (int) $item['id'] !== $id));
+
 			foreach (['credentials', 'transports', 'notification_state'] as $table) {
 				alarmmanager_db_write('DELETE FROM plugin_alarmmanager_' . $table . ' WHERE endpoint_id = ?', [$id]);
 			}
 			alarmmanager_db_write('DELETE FROM plugin_alarmmanager_endpoints WHERE id = ?', [$id]);
 			alarmmanager_write_configuration(alarmmanager_configuration($settings), $revision);
 		});
+
 		return 'Endpoint deleted.';
 	}
 	$settings       = $state['configuration'];
@@ -326,7 +388,7 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 			}
 			$item['endpoints'] = array_map(static fn ($value) => alarmmanager_admin_int($value), $list);
 		} else {
-			$item += ['priority' => alarmmanager_admin_int($input['priority'] ?? 100, 0, 10000), 'profile_id' => alarmmanager_admin_int($input['profile_id'] ?? null), 'stop' => isset($input['stop']), 'policy' => alarmmanager_admin_json($input['policy_json'] ?? '{}')];
+			$item += ['priority' => alarmmanager_admin_int($input['priority'] ?? 100, 0, 10000), 'profile_id' => alarmmanager_admin_int($input['profile_id'] ?? null), 'stop' => isset($input['stop']), 'policy' => alarmmanager_admin_rule_policy($input)];
 		}
 		$found = false;
 
@@ -434,10 +496,11 @@ function alarmmanager_admin_error_message(Throwable $error): string {
 	if ($error instanceof JsonException) {
 		return 'A JSON field is invalid. Check the advanced message configuration, transport settings and value replacements.';
 	}
+
 	return match ($error->getMessage()) {
-		'daemon_not_running'         => 'Start the Alarm Manager service on this collector before enabling daemon workers.',
-		'daemon_config_write_failed' => 'Daemon settings could not be saved. Check the Cacti cache directory permissions.',
-		'endpoint_in_profile' => 'Remove this endpoint from its routing profiles before deleting.',
+		'daemon_not_running'             => 'Start the Alarm Manager service on this collector before enabling daemon workers.',
+		'daemon_config_write_failed'     => 'Daemon settings could not be saved. Check the Cacti cache directory permissions.',
+		'endpoint_in_profile'            => 'Remove this endpoint from its routing profiles before deleting.',
 		'endpoint_has_active_deliveries' => 'This endpoint has queued or running deliveries. Resolve them before deleting.',
 		'test_endpoint_unavailable'      => 'The selected endpoint is disabled or no longer exists. Enable and save it before queuing a test send.',
 		'invalid_credentials'            => 'Enter the credentials for the selected authentication type, choose Keep saved credentials, or choose None for an incoming webhook.',
@@ -460,6 +523,9 @@ function alarmmanager_admin_error_message(Throwable $error): string {
 		'invalid_executable'             => 'Enter an absolute executable path for script delivery.',
 		'invalid_mapping'                => 'Action failed. Each mapping transition must contain a list of fields.',
 		'invalid_action'                 => 'Action failed. A required field is missing or outside its allowed range.',
+		'invalid_rule_filters'           => 'Choose up to 32 values for each enabled alarm filter.',
+		'invalid_rule_schedule'          => 'Choose at least one day for each enabled schedule.',
+		'invalid_schedule'               => 'Choose a valid timezone and start and end times for each schedule.',
 		'invalid_configuration'          => 'Action failed. Configuration fields are invalid.',
 		default                          => 'The action could not be completed. Check the Cacti log for an internal error. Submitted credential values were cleared.'
 	};

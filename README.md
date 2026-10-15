@@ -47,6 +47,12 @@ $result = api_plugin_hook_function('alarmmanager_submit', [
 
 `accepted` and `already_accepted` mean the event is durably stored; delivery happens through Alarm Manager's queues and configured routing. `unhandled` or `failed` means the caller must handle submission failure. Retry the same event with its original identity. `observe` mode records events without taking over notification delivery. Detection and source-specific event mapping belong to the calling plugin. The generic producer bridge is optional and manages local producer receipts for notification ownership and retries.
 
+## Notification rules
+
+Open **Administration → Rules and suppression → Create a rule**. Enter a name, choose an enabled routing profile, and enable the filters you need. Leave filters off to match all alarms. Device and collector pickers show names alongside IDs; sources use the names submitted by the calling plugins, such as `syslog` or `thold`.
+
+Optional notification hours limit when a rule matches. Maintenance windows pause notifications, while acknowledgment, cooldown and duplicate controls reduce repeated notifications. Recovery bypasses acknowledgment/cooldown/duplicate suppression but still follows notification hours and maintenance windows. Lower priorities run first; **Stop checking later rules** ends rule evaluation even when the matched rule suppresses delivery. Save with **Create rule** or **Save rule**; no policy JSON is required.
+
 ## Local verification
 
 Tests are PHPUnit/Pest based; they run through a sibling Cacti checkout's

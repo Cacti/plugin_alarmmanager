@@ -82,9 +82,17 @@ final class WebTest extends AlarmManagerTestCase {
 			$created    = alarmmanager_admin_configuration();
 			$profile_id = $created['configuration']['profiles'][0]['id'];
 			$this->assertGreaterThan(0, $profile_id, 'New profile receives a database ID');
-			$this->waction(['action' => 'rule_save', 'revision' => $created['revision'], 'name' => 'Automatic rule', 'profile_id' => $profile_id, 'policy_json' => '{}']);
+			$this->waction(['action' => 'rule_save', 'revision' => $created['revision'], 'name' => 'Automatic rule', 'profile_id' => $profile_id, 'enabled' => 'yes', 'rule_fields' => 'yes', 'filter_severities' => 'yes', 'match_severities' => ['major'], 'suppress_acknowledged' => 'yes', 'cooldown_seconds' => '60']);
 			$created = alarmmanager_admin_configuration();
 			$this->assertGreaterThan(0, $created['configuration']['rules'][0]['id'], 'New rule receives a database ID');
+			$this->assertSame(['severities' => ['major']], $created['configuration']['rules'][0]['policy']['match']);
+			$this->assertSame(60, $created['configuration']['rules'][0]['policy']['cooldown_seconds']);
+			ob_start();
+			alarmmanager_admin_markup($created, 'rules');
+			$rules_html = ob_get_clean();
+			$this->assertStringContainsString('Create a rule', $rules_html);
+			$this->assertStringContainsString('Visible (#42)', $rules_html);
+			$this->assertStringNotContainsString('name="policy_json"', $rules_html);
 			$create['id']       = $endpoint_id;
 			$create['revision'] = $created['revision'];
 			$create['name']     = 'Edited endpoint';
@@ -156,14 +164,15 @@ final class WebTest extends AlarmManagerTestCase {
 			$this->assertStringContainsString('Device name', $event_html);
 			$this->assertStringContainsString('Sample router', $event_html);
 			$device_event_id = (int) $events['rows'][0]['id'];
-			$device_payload = alarmmanager_db_row('SELECT payload FROM plugin_alarmmanager_events WHERE id = ?', [$device_event_id])['payload'];
+			$device_payload  = alarmmanager_db_row('SELECT payload FROM plugin_alarmmanager_events WHERE id = ?', [$device_event_id])['payload'];
+
 			try {
 				alarmmanager_db_write("UPDATE plugin_alarmmanager_events SET payload = JSON_SET(payload, '$.device.description', '') WHERE id = ?", [$device_event_id]);
 				$this->assertSame('router.example.test', alarmmanager_report_list('events', $scope, $filters)['rows'][0]['device_name'], 'Empty descriptions fall back to the captured hostname');
 			} finally {
 				alarmmanager_db_write('UPDATE plugin_alarmmanager_events SET payload = ? WHERE id = ?', [$device_payload, $device_event_id]);
 			}
-			$advanced = $filters;
+			$advanced          = $filters;
 			$advanced['query'] = json_encode(['version' => 1, 'conditions' => [
 				['field' => 'source', 'operator' => '=', 'value' => 'fixture'],
 				['join' => 'OR', 'field' => 'device_id', 'operator' => '=', 'value' => '43']
@@ -172,9 +181,10 @@ final class WebTest extends AlarmManagerTestCase {
 			$this->assertSame([42], array_values(array_unique(array_map('intval', array_column(alarmmanager_report_list('events', $scope, $advanced)['rows'], 'device_id')))), 'Advanced filter applies permissions before LIMIT');
 			$advanced['query'] = json_encode(['version' => 1, 'conditions' => [['field' => 'summary', 'operator' => 'contains', 'value' => 'HIDDEN_FORBIDDEN_MARKER']]], JSON_THROW_ON_ERROR);
 			$this->assertSame([], alarmmanager_report_list('events', $scope, $advanced)['rows'], 'Advanced summary search cannot expose hidden data');
+
 			foreach (['conditions' => ['acknowledged', '0'], 'deliveries' => ['status', 'pending'], 'attempts' => ['status', 'success'], 'decisions' => ['reason', 'routed'], 'processing' => ['status', 'completed']] as $kind => [$field, $value]) {
 				$advanced['query'] = json_encode(['version' => 1, 'conditions' => [['field' => $field, 'operator' => '=', 'value' => $value]]], JSON_THROW_ON_ERROR);
-				$report = alarmmanager_report_list($kind, $scope, $advanced);
+				$report            = alarmmanager_report_list($kind, $scope, $advanced);
 				$this->assertLessThanOrEqual(50, count($report['rows']), 'Report-specific query uses valid aliases');
 			}
 			$next         = $filters;
@@ -273,6 +283,7 @@ final class WebTest extends AlarmManagerTestCase {
 			$before  = (int)db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_deliveries');
 			$preview = $this->waction(['action'=>'preview', 'id'=>'1', 'event_json'=>json_encode($event)]);
 			alarmmanager_db_write('UPDATE plugin_alarmmanager_endpoints SET enabled = 0 WHERE id = 1');
+
 			try {
 				$this->waction(['action'=>'test_send', 'id'=>'1', 'event_json'=>json_encode($event), 'confirmed'=>'yes']);
 				$this->fail('Disabled endpoint accepted a test send');
@@ -378,7 +389,8 @@ final class WebTest extends AlarmManagerTestCase {
 			alarmmanager_db_write('UPDATE plugin_alarmmanager_endpoints SET enabled = 1 WHERE id = ?', [$deletable]);
 			$delete = ['action' => 'endpoint_delete', 'id' => $deletable, 'revision' => alarmmanager_admin_configuration()['revision']];
 			$this->wreject(fn () => $this->waction($delete), 'Deletion requires explicit confirmation');
-			$stale = $delete + ['confirmed' => 'yes']; $stale['revision']--;
+			$stale = $delete + ['confirmed' => 'yes'];
+			$stale['revision']--;
 			$this->wreject(fn () => $this->waction($stale), 'Stale delete rejected');
 			$delete['confirmed'] = 'yes';
 			$this->assertSame('Endpoint deleted.', $this->waction($delete));
@@ -389,6 +401,7 @@ final class WebTest extends AlarmManagerTestCase {
 			$this->wreject(fn () => $this->waction(['action' => 'endpoint_delete', 'id' => 1, 'revision' => alarmmanager_admin_configuration()['revision'], 'confirmed' => 'yes']), 'Enabled referenced endpoints cannot be deleted');
 			$this->assertGreaterThan(0, (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_deliveries'), 'Delivery history remains intact');
 			alarmmanager_db_write('UPDATE plugin_alarmmanager_endpoints SET enabled = 0 WHERE id = 1');
+
 			try {
 				$this->waction(['action' => 'endpoint_delete', 'id' => 1, 'revision' => alarmmanager_admin_configuration()['revision'], 'confirmed' => 'yes']);
 				$this->fail('Referenced endpoint was deleted');
@@ -398,6 +411,7 @@ final class WebTest extends AlarmManagerTestCase {
 			$history_id = (int) db_fetch_cell_prepared('SELECT id FROM plugin_alarmmanager_endpoints WHERE name = ?', ['PagerDuty Events v2']);
 			alarmmanager_db_write("INSERT INTO plugin_alarmmanager_deliveries (event_row_id, endpoint_id, stream_key, sequence, priority, status, available_at, created_at, updated_at, idempotency_key) SELECT event_row_id, ?, stream_key, sequence, priority, 'completed', available_at, created_at, updated_at, idempotency_key FROM plugin_alarmmanager_deliveries LIMIT 1", [$history_id]);
 			alarmmanager_db_write("UPDATE plugin_alarmmanager_deliveries SET status = 'pending' WHERE endpoint_id = ?", [$history_id]);
+
 			try {
 				$this->waction(['action' => 'endpoint_delete', 'id' => $history_id, 'revision' => alarmmanager_admin_configuration()['revision'], 'confirmed' => 'yes']);
 				$this->fail('Endpoint with pending delivery was deleted');
@@ -411,9 +425,6 @@ final class WebTest extends AlarmManagerTestCase {
 			$this->assertContains('Deleted endpoint #' . $history_id, array_column($report['rows'], 'endpoint'));
 			$deleted_delivery = (int) db_fetch_cell_prepared('SELECT id FROM plugin_alarmmanager_deliveries WHERE endpoint_id = ?', [$history_id]);
 			$this->wreject(fn () => alarmmanager_admin_replay('delivery', $deleted_delivery), 'Deleted endpoint history cannot be requeued');
-
-
-
 		} finally {
 			if ($GLOBALS['alarmmanager_test_db']->inTransaction()) {
 				$GLOBALS['alarmmanager_test_db']->rollBack();

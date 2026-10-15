@@ -29,8 +29,8 @@ const ALARMMANAGER_TABS = ['dashboard', 'conditions', 'events', 'deliveries', 'a
 function alarmmanager_web_assets(): void {
 	global $config;
 
-	print '<link rel="stylesheet" href="' . html_escape($config['url_path'] . 'plugins/alarmmanager/css/dashboard.css' . '?v=0.10.3-device-context') . '">';
-	print '<script src="' . html_escape($config['url_path'] . 'plugins/alarmmanager/js/dashboard.js' . '?v=0.10.3-device-context') . '" defer></script>';
+	print '<link rel="stylesheet" href="' . html_escape($config['url_path'] . 'plugins/alarmmanager/css/dashboard.css' . '?v=0.10.4-rule-editor') . '">';
+	print '<script src="' . html_escape($config['url_path'] . 'plugins/alarmmanager/js/dashboard.js' . '?v=0.10.4-rule-editor') . '" defer></script>';
 }
 /**
  * Filters validated both by the Cacti request-var machinery (persistence in
@@ -65,7 +65,7 @@ function alarmmanager_view_filters(): array {
 	$values['until'] = get_filter_request_var('until', FILTER_VALIDATE_INT, ['options' => ['min_range' => 946684800, 'max_range' => time() + 60], 'default' => time()]);
 	$values['page']  = get_filter_request_var('page', FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 200], 'default' => 1]);
 	$values['query'] = get_nfilter_request_var('query') ?? '';
-	$values['tab'] = alarmmanager_view_tab();
+	$values['tab']   = alarmmanager_view_tab();
 
 	return alarmmanager_report_filters($values);
 }

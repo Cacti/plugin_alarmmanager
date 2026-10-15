@@ -54,7 +54,7 @@ try {
 			raise_message('alarmmanager_notice', __($message, 'alarmmanager'), MESSAGE_LEVEL_ERROR);
 		}
 		cacti_redirect(match ($post['action'] ?? '') {
-			'preview', 'test_send' => 'alarmmanager_admin.php?section=test', 'daemon_save' => 'alarmmanager_admin.php?section=daemon', default => 'alarmmanager_admin.php'
+			'preview', 'test_send' => 'alarmmanager_admin.php?section=test', 'daemon_save' => 'alarmmanager_admin.php?section=daemon', 'rule_save' => 'alarmmanager_admin.php?section=rules', 'profile_save' => 'alarmmanager_admin.php?section=profiles', default => 'alarmmanager_admin.php'
 		});
 	}
 

@@ -108,14 +108,14 @@
  }
  function initLists(app) {
   app.querySelectorAll('[data-list-editor]').forEach(target=>{
-   const kind=target.dataset.listEditor, input=target.matches('input')?target:target.querySelector('textarea'), container=node('div',undefined,'alarmmanagerListEditor'), rows=node('div'), add=node('button',kind==='headers'?'Add header':kind==='recipients'?'Add recipient':'Add argument');add.type='button';
+   const kind=target.dataset.listEditor, jsonList=['arguments','sources','tags'].includes(kind), input=target.matches('input')?target:target.querySelector('textarea'), container=node('div',undefined,'alarmmanagerListEditor'), rows=node('div'), add=node('button',kind==='headers'?'Add header':kind==='recipients'?'Add recipient':kind==='sources'?'Add source':kind==='tags'?'Add tag':'Add argument');add.type='button';
    let entries;
-   try{if(kind==='headers')entries=Object.entries(JSON.parse(input.value));else if(kind==='arguments')entries=JSON.parse(input.value);else{entries=input.value.trim().startsWith('[')||input.value.trim().startsWith('{')?JSON.parse(input.value):input.value.split(',').map(v=>v.trim()).filter(Boolean);}
+   try{if(kind==='headers')entries=Object.entries(JSON.parse(input.value));else if(jsonList)entries=JSON.parse(input.value);else{entries=input.value.trim().startsWith('[')||input.value.trim().startsWith('{')?JSON.parse(input.value):input.value.split(',').map(v=>v.trim()).filter(Boolean);}
     if(!Array.isArray(entries)||entries.some(v=>kind==='headers'?(!Array.isArray(v)||typeof v[1]!=='string'):typeof v!=='string'))return;
    }catch{return;}
-   const originalLabel=input.closest('label'), raw=node('details'), rawSummary=node('summary','Advanced configuration');originalLabel.before(container);container.append(node('strong',kind==='headers'?'Authentication headers':kind==='recipients'?'Recipients':'Arguments'),rows,add,raw);raw.append(rawSummary,input);originalLabel.remove();input.hidden=true;
-   function save(){input.value=kind==='headers'?JSON.stringify(Object.fromEntries(entries)):kind==='arguments'?JSON.stringify(entries):entries.join(', ');input.dispatchEvent(new Event('input',{bubbles:true}));}
-   function render(){rows.replaceChildren();entries.forEach((entry,index)=>{const row=node('div',undefined,'alarmmanagerMappingRow');const name=node('input'), value=node('input');value.type=kind==='headers'?'password':kind==='recipients'?'email':'text';value.value=kind==='headers'?entry[1]:entry;const label=node('label',kind==='headers'?'Secret value':kind==='recipients'?'Email address':'Argument');label.append(value);
+   const originalLabel=input.closest('label'), raw=node('details'), rawSummary=node('summary','Advanced configuration');originalLabel.before(container);container.append(node('strong',kind==='headers'?'Authentication headers':kind==='recipients'?'Recipients':kind==='sources'?'Sources':kind==='tags'?'Device tags':'Arguments'),rows,add,raw);raw.append(rawSummary,input);originalLabel.remove();input.hidden=true;
+   function save(){input.value=kind==='headers'?JSON.stringify(Object.fromEntries(entries)):jsonList?JSON.stringify(entries):entries.join(', ');input.dispatchEvent(new Event('input',{bubbles:true}));}
+   function render(){rows.replaceChildren();entries.forEach((entry,index)=>{const row=node('div',undefined,'alarmmanagerMappingRow');const name=node('input'), value=node('input');value.type=kind==='headers'?'password':kind==='recipients'?'email':'text';value.value=kind==='headers'?entry[1]:entry;const label=node('label',kind==='headers'?'Secret value':kind==='recipients'?'Email address':kind==='sources'?'Source name':kind==='tags'?'Tag':'Argument');label.append(value);
     if(kind==='headers'){name.value=entry[0];name.setCustomValidity(entries.filter(v=>v[0].toLowerCase()===entry[0].toLowerCase()).length>1?'Header names must be unique.':'');const keyLabel=node('label','Header name');keyLabel.append(name);row.append(keyLabel);}
     row.append(label);const remove=node('button','Remove');remove.type='button';row.append(remove);rows.append(row);
     function update(){if(kind==='headers'){entries[index]=[name.value,value.value];const keys=entries.map(v=>v[0].toLowerCase());name.setCustomValidity(keys.filter(v=>v===name.value.toLowerCase()).length>1?'Header names must be unique.':'');}else entries[index]=value.value;save();}
@@ -243,8 +243,16 @@
   const quick=app.querySelector('.alarmmanagerQuickFilters');if(quick&&Array.from(quick.querySelectorAll('input,select')).some(input=>input.value!==''&&input.value!=='0'))quick.open=true;
  }
 
+ function initRuleEditors(app) {
+  app.querySelectorAll('.alarmmanagerRuleOption').forEach(option=>{
+   const toggle=option.querySelector('input[type=checkbox]'),fields=option.querySelector('[data-rule-fields]');
+   if(!toggle||!fields)return;
+   const update=()=>{fields.hidden=!toggle.checked;fields.disabled=!toggle.checked;};
+   toggle.addEventListener('change',update);update();
+  });
+ }
  function init() {
-  const app=document.getElementById('alarmmanager_app'); if(!app||app.dataset.initialized)return;app.dataset.initialized='yes';initReportQuery(app);initMappings(app);initLists(app);initDeliveryIntervals(app);initAuthentication(app);initEndpointTypes(app);initServiceNow(app);initTemplatePicker(app);
+  const app=document.getElementById('alarmmanager_app'); if(!app||app.dataset.initialized)return;app.dataset.initialized='yes';initRuleEditors(app);initReportQuery(app);initMappings(app);initLists(app);initDeliveryIntervals(app);initAuthentication(app);initEndpointTypes(app);initServiceNow(app);initTemplatePicker(app);
   const dashboard=app.querySelector('#alarmmanager_dashboard');if(!dashboard)return;
   const form=app.querySelector('#alarmmanager_filters'), status=app.querySelector('#alarmmanager_dashboard_status'), refresh=app.querySelector('#alarmmanager_refresh');
   const charts={}; let inFlight=false, timer=null;

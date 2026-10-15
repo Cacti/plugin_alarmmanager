@@ -252,3 +252,25 @@
 .alarmmanagerFieldChoices { display:flex; flex-wrap:wrap; gap:6px; padding:8px 0; max-height:200px; overflow:auto; }
 .alarmmanagerCombinedText > details { margin:8px 0; }
 .alarmmanagerMessagePreview { white-space:pre-wrap; overflow-wrap:anywhere; padding:10px; border:1px solid var(--search-border); font-family:inherit; }
+
+/* Rule controls follow Cacti's theme and keep each decision in its own section. */
+#alarmmanager_app .alarmmanagerRule { max-width:1100px; }
+#alarmmanager_app .alarmmanagerRule .alarmmanagerEditor { display:block; }
+#alarmmanager_app .alarmmanagerRuleSection { margin:0 0 20px; padding:16px; min-width:0; border:1px solid var(--search-border); }
+#alarmmanager_app .alarmmanagerRuleSection > legend { font-weight:bold; padding:0 6px; }
+#alarmmanager_app .alarmmanagerRuleSection > label { display:flex; flex-direction:column; align-items:flex-start; margin:0 0 14px; width:100%; min-width:0; }
+#alarmmanager_app .alarmmanagerRuleSection label:has(> input[type=checkbox]) { display:grid; grid-template-columns:18px minmax(0,1fr); align-items:start; }
+#alarmmanager_app .alarmmanagerRuleSection input:not([type=checkbox]), #alarmmanager_app .alarmmanagerRuleSection select { width:100%; max-width:600px; }
+#alarmmanager_app .alarmmanagerRuleFilterGrid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+#alarmmanager_app .alarmmanagerRuleOption { min-width:0; margin-bottom:12px; }
+#alarmmanager_app .alarmmanagerRuleOption > label { min-width:0; }
+#alarmmanager_app .alarmmanagerRuleFields { display:grid; gap:12px; min-width:0; padding:12px 0 0; margin:0; border:0; }
+#alarmmanager_app .alarmmanagerRuleFields label { display:flex; flex-direction:column; align-items:stretch; min-width:0; }
+#alarmmanager_app .alarmmanagerRuleFields[hidden] { display:none; }
+#alarmmanager_app .alarmmanagerRuleFields .select2-container { max-width:100%; }
+#alarmmanager_app .alarmmanagerRule .select2-selection__choice__remove { padding:0 4px; background:transparent; border:0; border-right:1px solid var(--search-border); border-radius:0; }
+#alarmmanager_app .alarmmanagerRule .select2-search__field { min-width:0; padding:0; border:0; background:transparent; }
+#alarmmanager_app .alarmmanagerRuleActions { display:flex; justify-content:flex-end; }
+#alarmmanager_app .alarmmanagerRuleActions button { font-weight:bold; padding:10px 20px; }
+#alarmmanager_app .alarmmanagerRuleNotice { padding:12px; border-left:4px solid var(--search-accent); background:var(--search-tint); }
+@media(max-width:600px) { #alarmmanager_app .alarmmanagerRuleFilterGrid { grid-template-columns:1fr; } #alarmmanager_app .alarmmanagerRuleSection { padding:10px; } }
