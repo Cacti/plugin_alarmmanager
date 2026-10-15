@@ -54,6 +54,8 @@ try {
 				'daemon_config_write_failed' => 'Daemon settings could not be saved. Check the Cacti cache directory permissions.',
 				'endpoint_in_profile' => 'Remove this endpoint from its routing profiles before deleting.',
 				'endpoint_has_active_deliveries' => 'This endpoint has queued or running deliveries. Resolve them before deleting.',
+				'test_endpoint_unavailable' => 'The selected endpoint is disabled or no longer exists. Enable and save it before queuing a test send.',
+				'invalid_credentials' => 'Enter the credentials for the selected authentication type, choose Keep saved credentials, or choose None for an incoming webhook.',
 				'confirmation_required' => 'Select the confirmation checkbox before continuing.',
 				'configuration_changed'      => 'Configuration changed. Reload before applying your edits.',
 				'permission_denied'          => 'Action failed. Administrator access, POST and a valid CSRF token are required.',

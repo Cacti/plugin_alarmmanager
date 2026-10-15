@@ -220,10 +220,14 @@ function alarmmanager_admin_markup(array $state, string $section): void {
 
 		foreach (['preview' => 'Preview (no traffic)', 'test_send' => 'Queue explicit test send'] as $action => $label) {
 			alarmmanager_form_start($action, $revision);
-			print '<h2>' . __esc($label, 'alarmmanager') . '</h2><label>' . __esc('Endpoint', 'alarmmanager') . '<select name="id">';
+			print '<h2>' . __esc($label, 'alarmmanager') . '</h2>';
+			if ($action === 'test_send') {
+				print '<p class="alarmmanagerFullWidth">' . __esc('Enable and save the endpoint before sending a test. Preview is also available for disabled endpoints and sends no traffic.', 'alarmmanager') . '</p>';
+			}
+			print '<label>' . __esc('Endpoint', 'alarmmanager') . '<select name="id">';
 
 			foreach ($config['endpoints'] as $ep) {
-				print '<option value="' . $ep['id'] . '">' . html_escape($ep['name']) . '</option>';
+				print '<option value="' . $ep['id'] . '">' . html_escape($ep['name'] . ($ep['enabled'] ? '' : __(' (disabled)', 'alarmmanager'))) . '</option>';
 			} print '</select></label>';
 			alarmmanager_textarea('event_json', 'Normalized sample event JSON', file_get_contents(__DIR__ . '/../examples/event.json'), 65536);
 

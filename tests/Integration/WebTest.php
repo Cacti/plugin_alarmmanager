@@ -258,6 +258,15 @@ final class WebTest extends AlarmManagerTestCase {
 			$this->assertSame(2, alarmmanager_admin_configuration()['configuration']['endpoints'][0]['max_concurrency'], 'Editing preserves the existing endpoint limit without a form field');
 			$before  = (int)db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_deliveries');
 			$preview = $this->waction(['action'=>'preview', 'id'=>'1', 'event_json'=>json_encode($event)]);
+			alarmmanager_db_write('UPDATE plugin_alarmmanager_endpoints SET enabled = 0 WHERE id = 1');
+			try {
+				$this->waction(['action'=>'test_send', 'id'=>'1', 'event_json'=>json_encode($event), 'confirmed'=>'yes']);
+				$this->fail('Disabled endpoint accepted a test send');
+			} catch (InvalidArgumentException $error) {
+				$this->assertSame('test_endpoint_unavailable', $error->getMessage());
+			}
+			$this->assertSame($before, (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_deliveries'));
+			alarmmanager_db_write('UPDATE plugin_alarmmanager_endpoints SET enabled = 1 WHERE id = 1');
 			$this->assertTrue(str_contains($preview,'none') && !str_contains($preview,'WEB_SECRET_MARKER') && (int)db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_deliveries') === $before, 'Admin preview no enqueue/secrets');
 			$this->waction(['action'=>'test_send', 'id'=>'1', 'event_json'=>json_encode($event), 'confirmed'=>'yes']);
 			$this->assertSame($before + 1, (int)db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_deliveries'), 'Test queues single destination');
