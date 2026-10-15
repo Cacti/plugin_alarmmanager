@@ -23,6 +23,15 @@
 */
 
 final class MappingCredentialTest extends AlarmManagerTestCase {
+	public function testAdminMappingErrorsAreSpecificWithoutExposingSubmittedValues(): void {
+		self::alarmmanager_test_load('includes/admin.php');
+		foreach (['conflicting_mapping' => 'unique destination name', 'unknown_mapping_field' => 'unknown variable', 'invalid_mapping_template' => 'Combined text', 'mapping_required' => 'required message value'] as $code => $expected) {
+			$this->assertStringContainsString($expected, alarmmanager_admin_error_message(new InvalidArgumentException($code)));
+		}
+		$this->assertStringContainsString('JSON', alarmmanager_admin_error_message(new JsonException('sensitive value')));
+		$this->assertStringNotContainsString('sensitive value', alarmmanager_admin_error_message(new RuntimeException('sensitive value')));
+	}
+
 	/**
 	 * @return array<string, mixed>
 	 */

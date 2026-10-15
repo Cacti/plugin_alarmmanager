@@ -245,3 +245,10 @@
 .alarmmanagerEndpointDelete input[type=checkbox] { flex-shrink:0; margin-top:3px; }
 #alarmmanager_app .alarmmanagerEndpointDelete button { border-color:#b54848; }
 @media(max-width:600px) { .alarmmanagerEndpointActions { align-items:flex-start; flex-direction:column; } .alarmmanagerDashboardCard .alarmmanagerEndpointDelete { margin:0 10px 10px; } }
+
+.alarmmanagerMessageEditor { min-height:100px; padding:10px; border:1px solid var(--search-border); background:var(--background-color); white-space:pre-wrap; overflow-wrap:anywhere; cursor:text; }
+.alarmmanagerMessageEditor:focus, .alarmmanagerMessageChip:focus { outline:2px solid #2278ad; outline-offset:2px; }
+.alarmmanagerMessageChip { display:inline-block; padding:1px 7px; margin:1px 2px; border:1px solid #2278ad; border-radius:12px; background:#e5f1f9; color:#174c6b; font-size:.9em; white-space:normal; cursor:pointer; }
+.alarmmanagerFieldChoices { display:flex; flex-wrap:wrap; gap:6px; padding:8px 0; max-height:200px; overflow:auto; }
+.alarmmanagerCombinedText > details { margin:8px 0; }
+.alarmmanagerMessagePreview { white-space:pre-wrap; overflow-wrap:anywhere; padding:10px; border:1px solid var(--search-border); font-family:inherit; }

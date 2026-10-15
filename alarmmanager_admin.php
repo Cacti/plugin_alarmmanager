@@ -49,26 +49,8 @@ try {
 			}
 			raise_message('alarmmanager_notice', __('The administration action succeeded.', 'alarmmanager'), MESSAGE_LEVEL_INFO);
 		} catch (Throwable $error) {
-			$message = match ($error->getMessage()) {
-				'daemon_not_running'         => 'Start the Alarm Manager service on this collector before enabling daemon workers.',
-				'daemon_config_write_failed' => 'Daemon settings could not be saved. Check the Cacti cache directory permissions.',
-				'endpoint_in_profile' => 'Remove this endpoint from its routing profiles before deleting.',
-				'endpoint_has_active_deliveries' => 'This endpoint has queued or running deliveries. Resolve them before deleting.',
-				'test_endpoint_unavailable' => 'The selected endpoint is disabled or no longer exists. Enable and save it before queuing a test send.',
-				'invalid_credentials' => 'Enter the credentials for the selected authentication type, choose Keep saved credentials, or choose None for an incoming webhook.',
-				'confirmation_required' => 'Select the confirmation checkbox before continuing.',
-				'configuration_changed'      => 'Configuration changed. Reload before applying your edits.',
-				'permission_denied'          => 'Action failed. Administrator access, POST and a valid CSRF token are required.',
-				'invalid_transport'          => 'Action failed. Transport settings do not match the endpoint type.',
-				'invalid_transport_url'      => 'Action failed. Use an HTTPS URL without credentials, query parameters or fragments.',
-				'invalid_mapping'            => 'Action failed. Each mapping transition must contain a list of fields.',
-				'api_device_scope_required'  => 'Choose allowed devices or explicitly allow all devices or unmapped events.',
-				'api_profile_required'       => 'Choose an enabled routing profile with an enabled routing rule for centralized delivery.',
-				'invalid_api_client'         => 'API client settings are invalid. Check the source, collector, mode and device scope.',
-				'invalid_action'             => 'Action failed. A required field is missing or outside its allowed range.',
-				'invalid_configuration'      => 'Action failed. Configuration fields are invalid.',
-				default                      => 'Action failed. Check configuration, permissions and CSRF token. Submitted credential values were cleared.'
-			};
+			$message = alarmmanager_admin_error_message($error);
+			alarmmanager_log('ERROR: Administration action failed: ' . $message . ' [' . get_class($error) . ' at ' . basename($error->getFile()) . ':' . $error->getLine() . ']');
 			raise_message('alarmmanager_notice', __($message, 'alarmmanager'), MESSAGE_LEVEL_ERROR);
 		}
 		cacti_redirect(match ($post['action'] ?? '') {

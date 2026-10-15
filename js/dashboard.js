@@ -22,7 +22,36 @@
  const palette=['#2278ad','#e67e22','#329c60','#d43f3a','#8e63aa','#19a2a5','#ad795b','#7b8994','#c4a132','#5d88b3'];
  const colorMaps={transitions:{raised:'#d43f3a',recovered:'#329c60',occurrence:'#2278ad',updated:'#8e63aa',reminder:'#e67e22'},severity:{critical:'#d43f3a',major:'#e67e22',minor:'#b89822',warning:'#c39b13',info:'#2278ad',clear:'#329c60'},deliveries:{completed:'#329c60',failed:'#d43f3a',pending:'#7b8994',leased:'#2278ad'},attempts:{success:'#329c60',failure:'#d43f3a',retry:'#e67e22',abandoned:'#7b8994',in_progress:'#2278ad'}};
  function color(panel,label,index){const value=colorMaps[panel]?.[label];return typeof value==='string'?value:palette[index%palette.length];}
- const fieldLabels = ['Event ID','Alarm source','Source instance','Collector ID','Time of alarm','Resource ID','Alarm key','Alarm episode ID','Alarm sequence','Alarm state','Severity','Alarm summary','Alarm details','Device ID','Hostname','Device description','Device location','Device contact','Device system name','Device tags','Rule name','Rule type','Metric','Metric value','Threshold','Suppression reason','Source suppressed','Source notification channels','Ownership version'];
+ const fieldLabels = ['Event ID','Alarm source','Source instance','Collector ID','Time of alarm','Resource ID','Alarm key','Alarm episode ID','Alarm sequence','Alarm state','Severity','Alarm summary','Alarm details','Device ID','Hostname','Device description','Device location','Device contact','Device system name','Device tags','Rule name','Rule type','Metric','Metric value','Threshold','Suppression reason','Source suppressed','Source notification channels','Ownership version','Integration record ID','Integration record URL'];
+ function messageEditor(template) {
+  template.setAttribute('aria-label','Template syntax');
+  const group=node('div',undefined,'alarmmanagerCombinedText'), label=node('label','Combined text'), editor=node('div',undefined,'alarmmanagerMessageEditor');
+  editor.contentEditable='true';editor.setAttribute('role','textbox');editor.setAttribute('aria-label','Combined text');editor.setAttribute('aria-multiline','true');label.append(editor);
+  const picker=node('details'), toggle=node('summary','Insert field'), search=node('input'), choices=node('div',undefined,'alarmmanagerFieldChoices');
+  search.type='search';search.placeholder='Search fields';search.setAttribute('aria-label','Search message fields');picker.append(toggle,search,choices);
+  const preview=node('pre',undefined,'alarmmanagerMessagePreview');preview.setAttribute('aria-label','Sample message preview');
+  const raw=node('details');raw.append(node('summary','Template syntax'),template.parentElement);group.append(label,picker,node('small','Sample preview — example values, not live device data'),preview,raw);
+  let caret=null;
+  const labelFor=field=>fieldLabels[sourceFields.indexOf(field)]||field;
+  const textOf=element=>Array.from(element.childNodes).map(child=>{
+   if(child.nodeType===Node.TEXT_NODE)return child.textContent;
+   if(child.dataset?.field)return '{{'+child.dataset.field+'}}';
+   if(child.nodeName==='BR')return child===element.lastChild?'':'\n';
+   return (['DIV','P'].includes(child.nodeName)&&child.previousSibling?'\n':'')+textOf(child);
+  }).join('');
+  function remember(){const selection=getSelection();if(selection.rangeCount&&editor.contains(selection.anchorNode))caret=selection.getRangeAt(0).cloneRange();}
+  function chip(field){const tag=node('span',labelFor(field),'alarmmanagerMessageChip');tag.dataset.field=field;tag.contentEditable='false';tag.tabIndex=0;tag.setAttribute('role','button');tag.setAttribute('aria-label',labelFor(field)+'. Press Delete to remove');tag.addEventListener('keydown',event=>{if(['Backspace','Delete'].includes(event.key)){event.preventDefault();tag.remove();sync();editor.focus();}});return tag;}
+  function draw(){editor.replaceChildren();const pattern=/{{([^{}]*)}}/g;let last=0;for(const match of template.value.matchAll(pattern)){editor.append(document.createTextNode(template.value.slice(last,match.index)));const field=match[1].trim();editor.append(sourceFields.includes(field)?chip(field):document.createTextNode(match[0]));last=match.index+match[0].length;}editor.append(document.createTextNode(template.value.slice(last)));caret=null;showPreview();}
+  function showPreview(){const samples={'device.hostname':'router.example.test','device.description':'Core router','device.location':'Toronto DC','device.contact':'Network team','device.sysname':'edge-01','device.id':'42','alarm.summary':'Device confirmed down','alarm.transition':'raised','alarm.severity':'major','event.occurred_at':'2026-10-14T12:00:00Z'};preview.textContent=template.value.replace(/{{([^{}]*)}}/g,(_,field)=>samples[field.trim()]??'['+labelFor(field.trim())+' sample]');}
+  function sync(){template.value=textOf(editor);template.dispatchEvent(new Event('input',{bubbles:true}));showPreview();remember();}
+  function insert(content){editor.focus();const selection=getSelection(), range=caret&&editor.contains(caret.startContainer)?caret:document.createRange();if(!caret||!editor.contains(range.startContainer)){range.selectNodeContents(editor);range.collapse(false);}range.deleteContents();range.insertNode(content);range.setStartAfter(content);range.collapse(true);selection.removeAllRanges();selection.addRange(range);caret=range.cloneRange();sync();}
+  function filter(){choices.replaceChildren();sourceFields.filter(field=>!['device.tags','context.source_notification_channels'].includes(field)&&labelFor(field).toLowerCase().includes(search.value.toLowerCase())).forEach(field=>{const button=node('button',labelFor(field));button.type='button';button.addEventListener('click',()=>{insert(chip(field));picker.open=false;});choices.append(button);});if(!choices.children.length)choices.append(node('p','No matching fields'));}
+  editor.addEventListener('input',sync);editor.addEventListener('keyup',remember);editor.addEventListener('mouseup',remember);editor.addEventListener('blur',remember);
+  editor.addEventListener('paste',event=>{event.preventDefault();remember();insert(document.createTextNode(event.clipboardData.getData('text/plain')));});
+  editor.addEventListener('drop',event=>{event.preventDefault();insert(document.createTextNode(event.dataTransfer.getData('text/plain')));});
+  template.addEventListener('input',()=>{if(document.activeElement!==editor)draw();});search.addEventListener('input',filter);picker.addEventListener('toggle',()=>{if(picker.open)search.focus();});
+  filter();draw();return {group,refresh:draw,focus:()=>editor.focus()};
+ }
  function initMappings(app) {
   app.querySelectorAll('.alarmmanagerMapping').forEach(fieldset => {
    const textarea=fieldset.querySelector('[name=mapping_json]'), holder=fieldset.querySelector('.alarmmanagerMappingBuilder'), form=fieldset.closest('form'), endpointType=form.querySelector('[name=type]');
@@ -44,10 +73,9 @@
      const source=control('Cacti Value',node('select'));source.setAttribute('aria-label','Cacti Value');['constant','template',...sourceFields].forEach((key,i)=>{const o=node('option',i===0?'Custom value':i===1?'Combined text':fieldLabels[i-2]||key);o.value=key;source.append(o);});source.value='template' in item?'template':item.source||'constant';
      const constant=control(email&&item.to==='body'?'Message text':'Custom value',node(email&&item.to==='body'?'textarea':'input')); constant.value='constant' in item ? (typeof item.constant==='string'?item.constant:JSON.stringify(item.constant)):'';
      const template=control('Combined text',node('textarea'));template.value=item.template||'';template.maxLength=16384;template.placeholder='Device {{device.id}} with description {{device.description}} went down at {{event.occurred_at}}';
-     const insertLabel=node('label','Insert variable '), variable=node('select'), insert=node('button','Insert variable');insert.type='button';variable.setAttribute('aria-label','Insert variable');sourceFields.forEach((key,i)=>{const option=node('option',fieldLabels[i]||key);option.value=key;variable.append(option);});insertLabel.append(variable);const templateGroup=node('div',undefined,'alarmmanagerCombinedText');templateGroup.append(template.parentElement,insertLabel,insert);row.append(templateGroup);
-     insert.addEventListener('click',()=>{template.setRangeText('{{'+variable.value+'}}',template.selectionStart,template.selectionEnd,'end');template.dispatchEvent(new Event('input',{bubbles:true}));template.focus();});
+     const chips=messageEditor(template), templateGroup=chips.group;row.append(templateGroup);
      const deviceMessage=node('button','Use device message');deviceMessage.type='button';row.append(deviceMessage);
-     deviceMessage.addEventListener('click',()=>{source.value='template';template.value=fieldset.dataset.messageTemplate;type.value='string';update();template.focus();});
+     deviceMessage.addEventListener('click',()=>{source.value='template';template.value=fieldset.dataset.messageTemplate;type.value='string';update();chips.refresh();chips.focus();});
      const options=node('details');options.className='alarmmanagerFieldOptions';options.append(node('summary','Field options'));row.append(options);
      const type=control('Value format',node('select'),options);['identity','string','integer','number','boolean','html'].forEach((key,i)=>{const o=node('option',['Keep original value','Text','Whole number','Number','Yes / no','HTML-escaped text'][i]);o.value=key;type.append(o);});type.value=item.type||'identity';
      const fallback=control('Use when missing',node('input'),options);fallback.value='default' in item ? JSON.stringify(item.default):'';
@@ -65,7 +93,7 @@
      }
      constant.parentElement.hidden=source.value!=='constant';templateGroup.hidden=source.value!=='template';
      [path,source,constant,template,type,fallback,values,required].forEach(el=>el.addEventListener('input',update));
-     jQuery(row).on('change','select',event=>{if(event.target!==variable)update(event);});
+     jQuery(row).on('change','select',event=>{update(event);});
      remove.addEventListener('click',()=>{mapping[selected].splice(index,1);save();render();});if(email&&!['subject','body'].includes(item.to)){extraEmail.append(row);}else rows.append(row);
     });
     if(extraEmail.children.length>1)rows.append(extraEmail);

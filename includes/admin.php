@@ -452,3 +452,42 @@ function alarmmanager_admin_credential(#[\SensitiveParameter] array $input, bool
 
 	return $record['headers'] || isset($record['basic']) ? $record : null;
 }
+
+/** Return only approved messages; exception text may contain submitted secrets. */
+function alarmmanager_admin_error_message(Throwable $error): string {
+	if ($error instanceof JsonException) {
+		return 'A JSON field is invalid. Check the advanced message configuration, transport settings and value replacements.';
+	}
+	return match ($error->getMessage()) {
+		'daemon_not_running'         => 'Start the Alarm Manager service on this collector before enabling daemon workers.',
+		'daemon_config_write_failed' => 'Daemon settings could not be saved. Check the Cacti cache directory permissions.',
+		'endpoint_in_profile' => 'Remove this endpoint from its routing profiles before deleting.',
+		'endpoint_has_active_deliveries' => 'This endpoint has queued or running deliveries. Resolve them before deleting.',
+		'test_endpoint_unavailable' => 'The selected endpoint is disabled or no longer exists. Enable and save it before queuing a test send.',
+		'invalid_credentials' => 'Enter the credentials for the selected authentication type, choose Keep saved credentials, or choose None for an incoming webhook.',
+		'confirmation_required' => 'Select the confirmation checkbox before continuing.',
+		'configuration_changed'      => 'Configuration changed. Reload before applying your edits.',
+		'permission_denied'          => 'Action failed. Administrator access, POST and a valid CSRF token are required.',
+		'invalid_transport'          => 'Action failed. Transport settings do not match the endpoint type.',
+		'invalid_transport_url'      => 'Action failed. Use an HTTPS URL without credentials, query parameters or fragments.',
+		'invalid_mapping_path' => 'Message field names must start with a letter or underscore and use letters, digits, underscores or dot-separated paths.',
+		'conflicting_mapping' => 'Message fields have duplicate or overlapping destination names. Give each field a unique destination name.',
+		'ambiguous_mapping' => 'Each message field must use exactly one Cacti value, custom value or combined text template.',
+		'unknown_mapping_field' => 'A message uses an unknown variable. Choose variables from Insert variable or the Cacti Value list.',
+		'invalid_mapping_template' => 'Combined text contains an invalid variable. Use {{device.hostname}} syntax or Insert variable.',
+		'mapping_type' => 'A message value does not match its selected format. Lists such as device tags cannot be inserted into Combined text.',
+		'mapping_required' => 'A required message value is missing from this event. Set a fallback or choose an available value.',
+		'mapping_value' => 'A message value has no matching entry in Value replacements.',
+		'mapping_limit' => 'Message configuration exceeds the supported size. Shorten the message or reduce its fields.',
+		'invalid_transport_method' => 'Choose POST, PUT or PATCH for the delivery method.',
+		'invalid_recipients' => 'Enter valid email recipients and sender settings.',
+		'invalid_executable' => 'Enter an absolute executable path for script delivery.',
+		'invalid_mapping'            => 'Action failed. Each mapping transition must contain a list of fields.',
+		'api_device_scope_required'  => 'Choose allowed devices or explicitly allow all devices or unmapped events.',
+		'api_profile_required'       => 'Choose an enabled routing profile with an enabled routing rule for centralized delivery.',
+		'invalid_api_client'         => 'API client settings are invalid. Check the source, collector, mode and device scope.',
+		'invalid_action'             => 'Action failed. A required field is missing or outside its allowed range.',
+		'invalid_configuration'      => 'Action failed. Configuration fields are invalid.',
+		default => 'The action could not be completed. Check the Cacti log for an internal error. Submitted credential values were cleared.'
+	};
+}
