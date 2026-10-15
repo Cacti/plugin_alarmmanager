@@ -2,6 +2,8 @@
 
 --- main (development) ---
 
+* Events: show the captured device name beside its ID, falling back to the hostname when the description is empty.
+
 * Alarm submission: remove the inbound HTTP endpoint, bearer-token clients and API-client administration/provisioning. Cacti plugins submit events through the registered `alarmmanager_submit` hook. Remove Alarm Manager's Syslog/Thold adapters; source plugins own event mapping. Outbound REST/webhook delivery remains supported. Existing database rows are preserved.
 
 * Endpoint setup: add default integration presets (Slack, Telegram, PagerDuty Events v2, ServiceNow incidents) to the template dropdown; selecting a preset populates the new-endpoint editor immediately. Each preselects an authentication type when relevant and fills a validated payload mapping for the provider; drafts stay disabled and no credentials or endpoint IDs are copied. New endpoints may save with the preselected authentication type while every credential field is still empty — the credential record is attached afterwards — while editing an existing authenticated endpoint still requires replaced or kept authentication.

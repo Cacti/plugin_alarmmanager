@@ -149,6 +149,20 @@ final class WebTest extends AlarmManagerTestCase {
 			$events = alarmmanager_report_list('events',$scope,$filters);
 			$this->assertTrue(count($events['rows']) === 50 && $events['more'], 'Bounded page');
 			$this->assertTrue(count(array_unique(array_column($events['rows'],'device_id'))) === 1 && (int)$events['rows'][0]['device_id'] === 42, 'Permissions before pagination');
+			$this->assertSame('Sample router', $events['rows'][0]['device_name'], 'Events show the captured device description beside its ID');
+			ob_start();
+			alarmmanager_report_table('events', $events, $scope, $filters);
+			$event_html = ob_get_clean();
+			$this->assertStringContainsString('Device name', $event_html);
+			$this->assertStringContainsString('Sample router', $event_html);
+			$device_event_id = (int) $events['rows'][0]['id'];
+			$device_payload = alarmmanager_db_row('SELECT payload FROM plugin_alarmmanager_events WHERE id = ?', [$device_event_id])['payload'];
+			try {
+				alarmmanager_db_write("UPDATE plugin_alarmmanager_events SET payload = JSON_SET(payload, '$.device.description', '') WHERE id = ?", [$device_event_id]);
+				$this->assertSame('router.example.test', alarmmanager_report_list('events', $scope, $filters)['rows'][0]['device_name'], 'Empty descriptions fall back to the captured hostname');
+			} finally {
+				alarmmanager_db_write('UPDATE plugin_alarmmanager_events SET payload = ? WHERE id = ?', [$device_payload, $device_event_id]);
+			}
 			$advanced = $filters;
 			$advanced['query'] = json_encode(['version' => 1, 'conditions' => [
 				['field' => 'source', 'operator' => '=', 'value' => 'fixture'],

@@ -158,7 +158,7 @@ function alarmmanager_report_list(string $kind, array $scope, array $filters): a
 	$order    = 'e.id';
 	$time     = 'e.received_at';
 	$severity = 'e.severity';
-	$columns  = 'e.id, e.received_at, e.source, e.transition, e.severity, e.device_id, e.event_id, JSON_UNQUOTE(JSON_EXTRACT(e.payload, \'$.summary\')) AS summary, e.mode';
+	$columns  = 'e.id, e.received_at, e.source, e.transition, e.severity, e.device_id, COALESCE(NULLIF(JSON_UNQUOTE(JSON_EXTRACT(e.payload, \'$.device.description\')), \'\'), JSON_UNQUOTE(JSON_EXTRACT(e.payload, \'$.device.hostname\'))) AS device_name, e.event_id, JSON_UNQUOTE(JSON_EXTRACT(e.payload, \'$.summary\')) AS summary, e.mode';
 
 	switch ($kind) {
 		case 'events': break;
