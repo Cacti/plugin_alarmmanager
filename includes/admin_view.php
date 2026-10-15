@@ -230,7 +230,7 @@ function alarmmanager_admin_markup(array $state, string $section): void {
 	$revision = $state['revision'];
 	print '<nav class="alarmmanagerTabs" aria-label="' . __esc('Administration sections', 'alarmmanager') . '">';
 
-	foreach (['endpoints' => 'Integrations and mappings', 'profiles' => 'Routing profiles', 'collectors' => 'Collectors and history', 'rules' => 'Rules and suppression', 'credentials' => 'Credentials', 'test' => 'Preview and test', 'configuration' => 'Configuration', 'daemon' => 'Daemon', 'queue' => 'Notification queue', 'health' => 'Workers and failed processing'] as $key => $label) {
+	foreach (['endpoints' => 'Integrations and mappings', 'profiles' => 'Routing profiles', 'collectors' => 'Collectors and history', 'rules' => 'Rules and suppression', 'credentials' => 'Credentials', 'test' => 'Preview and test', 'configuration' => 'Configuration', 'daemon' => 'Daemon', 'queue' => 'Alarm Queue', 'health' => 'Workers and failed processing'] as $key => $label) {
 		print '<a href="alarmmanager_admin.php?section=' . $key . '" ' . ($section === $key ? 'aria-current="page"' : '') . '>' . __esc($label, 'alarmmanager') . '</a>';
 	} print '</nav><p>' . __esc('Local configuration revision', 'alarmmanager') . ': ' . $revision . '</p>';
 
@@ -239,7 +239,7 @@ function alarmmanager_admin_markup(array $state, string $section): void {
 		$count  = alarmmanager_db_row("SELECT COUNT(*) AS waiting FROM plugin_alarmmanager_deliveries AS d
 			INNER JOIN plugin_alarmmanager_events AS e ON e.id = d.event_row_id
 			WHERE d.status = 'pending' AND e.processing_poller_id = ?", [alarmmanager_local_poller()]);
-		html_start_box(__esc('Notification queue', 'alarmmanager'), '100%', false, 3, 'center', '');
+		html_start_box(__esc('Alarm Queue', 'alarmmanager'), '100%', false, 3, 'center', '');
 		print '<p>' . ($paused ? __esc('Notification delivery is paused.', 'alarmmanager') : __esc('Notification delivery is running.', 'alarmmanager')) . ' ' . __esc('Waiting messages', 'alarmmanager') . ': ' . (int) ($count['waiting'] ?? 0) . '</p>';
 		print '<p>' . __esc('Controls apply to this poller. Alarms continue to be received and processed while delivery is paused. Messages already being sent may finish. Resume sends the waiting notifications.', 'alarmmanager') . '</p>';
 		alarmmanager_form_start($paused ? 'queue_resume' : 'queue_pause', $revision);

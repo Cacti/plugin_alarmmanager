@@ -191,9 +191,9 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 
 	if (in_array($action, ['queue_pause', 'queue_resume'], true)) {
 		alarmmanager_db_write("REPLACE INTO settings (name, value) VALUES ('alarmmanager_notifications_paused', ?)", [$action === 'queue_pause' ? '1' : '0']);
-		alarmmanager_log('Notification queue ' . ($action === 'queue_pause' ? 'paused' : 'resumed') . ' by user ' . alarmmanager_web_user());
+		alarmmanager_log('Alarm Queue ' . ($action === 'queue_pause' ? 'paused' : 'resumed') . ' by user ' . alarmmanager_web_user());
 
-		return 'Notification queue updated.';
+		return 'Alarm Queue updated.';
 	}
 
 	if ($action === 'queue_clear') {
