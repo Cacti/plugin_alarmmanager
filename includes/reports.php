@@ -169,8 +169,8 @@ function alarmmanager_report_list(string $kind, array $scope, array $filters): a
 			$severity               = 's.severity';
 
 			break;
-		case 'deliveries': $base = 'plugin_alarmmanager_deliveries AS d INNER JOIN plugin_alarmmanager_events AS e ON e.id = d.event_row_id INNER JOIN plugin_alarmmanager_endpoints AS ep ON ep.id = d.endpoint_id';
-			$columns                = 'd.id, d.event_row_id, d.created_at, d.updated_at, d.endpoint_id, ep.name AS endpoint, d.status, d.attempts, d.last_error, JSON_UNQUOTE(JSON_EXTRACT(d.external_reference, \'$.id\')) AS external_id, JSON_UNQUOTE(JSON_EXTRACT(d.external_reference, \'$.url\')) AS external_url, JSON_UNQUOTE(JSON_EXTRACT(e.payload, \'$.summary\')) AS summary, e.device_id, e.mode';
+		case 'deliveries': $base = 'plugin_alarmmanager_deliveries AS d INNER JOIN plugin_alarmmanager_events AS e ON e.id = d.event_row_id LEFT JOIN plugin_alarmmanager_endpoints AS ep ON ep.id = d.endpoint_id';
+			$columns                = 'd.id, d.event_row_id, d.created_at, d.updated_at, d.endpoint_id, COALESCE(ep.name, CONCAT(\'Deleted endpoint #\', d.endpoint_id)) AS endpoint, d.status, d.attempts, d.last_error, JSON_UNQUOTE(JSON_EXTRACT(d.external_reference, \'$.id\')) AS external_id, JSON_UNQUOTE(JSON_EXTRACT(d.external_reference, \'$.url\')) AS external_url, JSON_UNQUOTE(JSON_EXTRACT(e.payload, \'$.summary\')) AS summary, e.device_id, e.mode';
 			$order                  = 'd.id';
 			$time                   = 'd.created_at';
 
@@ -277,7 +277,7 @@ function alarmmanager_dashboard_data(array $scope, array $filters): array {
 		$result['panels'][$panel] = alarmmanager_report_rows("SELECT $column AS label, COUNT(*) AS count FROM $base WHERE $w GROUP BY $column ORDER BY count DESC, label LIMIT 20", $p);
 	}
 	[$w, $p]                       = alarmmanager_report_where($scope, $filters, 'a.started_at');
-	$result['panels']['endpoints'] = alarmmanager_report_rows("SELECT ep.id AS endpoint_id, ep.name AS label, COUNT(*) AS attempts, COALESCE(SUM(a.outcome = 'success'), 0) AS successes, ROUND(AVG(a.duration_ms)) AS average_ms FROM plugin_alarmmanager_attempts AS a INNER JOIN plugin_alarmmanager_deliveries AS d ON d.id = a.delivery_id INNER JOIN plugin_alarmmanager_events AS e ON e.id = d.event_row_id INNER JOIN plugin_alarmmanager_endpoints AS ep ON ep.id = d.endpoint_id WHERE $w GROUP BY ep.id, ep.name ORDER BY attempts DESC, ep.id LIMIT 10", $p);
+	$result['panels']['endpoints'] = alarmmanager_report_rows("SELECT d.endpoint_id, COALESCE(ep.name, CONCAT('Deleted endpoint #', d.endpoint_id)) AS label, COUNT(*) AS attempts, COALESCE(SUM(a.outcome = 'success'), 0) AS successes, ROUND(AVG(a.duration_ms)) AS average_ms FROM plugin_alarmmanager_attempts AS a INNER JOIN plugin_alarmmanager_deliveries AS d ON d.id = a.delivery_id INNER JOIN plugin_alarmmanager_events AS e ON e.id = d.event_row_id LEFT JOIN plugin_alarmmanager_endpoints AS ep ON ep.id = d.endpoint_id WHERE $w GROUP BY d.endpoint_id, ep.name ORDER BY attempts DESC, d.endpoint_id LIMIT 10", $p);
 
 	foreach (['processing' => ['plugin_alarmmanager_jobs AS j', 'j'], 'delivery' => ['plugin_alarmmanager_deliveries AS j', 'j']] as $queue => [$table, $alias]) {
 		[$w, $p]                             = alarmmanager_report_where($scope, $filters, null);

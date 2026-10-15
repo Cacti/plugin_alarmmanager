@@ -93,6 +93,12 @@ function alarmmanager_route_event(array $record, array $event, array $state, str
 				} elseif ($policy['suppress_acknowledged'] && (bool) $state['acknowledged'] && $event['transition'] !== 'recovered' && $event['transition'] !== 'occurrence') {
 					$reason = 'acknowledged';
 				}
+				if ($reason === 'queued') {
+					$live_endpoint = alarmmanager_db_row('SELECT enabled FROM plugin_alarmmanager_endpoints WHERE id = ? FOR UPDATE', [$endpoint_id]);
+					if (!$live_endpoint || !$live_endpoint['enabled']) {
+						$reason = 'endpoint_disabled';
+					}
+				}
 				$previous = [];
 				$age      = PHP_INT_MAX;
 

@@ -11,7 +11,7 @@ const render=endpoint=>execFileSync('php',['-r',`function __($s,...$a){return $s
  const check=(ok,label)=>{if(!ok)throw Error(label);checks++;};
  async function load(endpoint){await page.setContent('<div id="alarmmanager_app">'+render(endpoint)+'</div>');await page.addStyleTag({content:':root{--search-border:#bbb;--search-card:#fff;--search-tint:#eee}body{font:14px sans-serif;margin:20px}label{display:flex;gap:8px}button,input,select{padding:8px}[hidden]{display:none!important}'});await page.addStyleTag({path:path.join(root,'css/dashboard.css')});await page.addScriptTag({path:path.join(cacti,'include/js/jquery.js')});await page.addScriptTag({path:path.join(root,'js/dashboard.js')});}
  try{
-  await load({name:'Operations',type:'restapi'});const form=page.locator('form');
+  await load({name:'Operations',type:'restapi'});const form=page.locator('form:has([name=action][value=endpoint_save])');
   check(await form.locator('[name=type] option').count()===3,'Only supported delivery choices');
   check(!(await form.locator('[name=transport_json]').isVisible()),'Raw transport options collapsed');
   check(!(await form.locator('[name=mapping_json]').isVisible()),'Raw message configuration collapsed');
@@ -42,7 +42,7 @@ const render=endpoint=>execFileSync('php',['-r',`function __($s,...$a){return $s
   await load({id:3,name:'Existing API',type:'webhook',timeout_seconds:37,max_attempts:8,min_interval_ms:1250,transport:{url:'https://example.test',method:'PATCH',success_codes:[202],response_match:'accepted',mapping:existing}});await page.locator('.alarmmanagerDashboardCard > summary').click();
   await page.locator('.alarmmanagerMappingRow').first().getByLabel('Destination Field Name',{exact:true}).fill('hostname');existing.default[0].to='hostname';
   assert.deepEqual(JSON.parse(await page.locator('[name=mapping_json]').inputValue()),existing,'Editing a field preserves conversions, fallbacks, replacements and literal types');checks++;
-  const posted=await page.locator('form').evaluate(form=>Object.fromEntries(new FormData(form)));
+  const posted=await page.locator('form:has([name=action][value=endpoint_save])').evaluate(form=>Object.fromEntries(new FormData(form)));
   check(posted.type==='webhook'&&posted.http_method==='PATCH'&&posted.timeout_seconds==='37'&&posted.max_attempts==='8'&&posted.min_interval_ms==='1250','Collapsed delivery values and saved webhook type submitted unchanged');
   await page.locator('.alarmmanagerAdvanced > summary').click();const interval=page.getByLabel('Minimum time between deliveries (seconds)',{exact:true});check(await interval.inputValue()==='1.25','Delivery interval shown in seconds');await interval.fill('2.5');check(await page.locator('[name=min_interval_ms]').inputValue()==='2500','Seconds converted to existing millisecond contract');
   check(JSON.parse(posted.transport_json).response_match==='accepted'&&JSON.parse(posted.transport_json).success_codes[0]===202,'Other transport options preserved');
@@ -56,13 +56,13 @@ const render=endpoint=>execFileSync('php',['-r',`function __($s,...$a){return $s
    check(await page.locator('[name=reference_id_path]').isVisible(),'Reference paths are editable for HTTP and scripts');
    await page.locator('[name=reference_id_path]').fill('ticket.id');
    await page.locator('[name=reference_url_path]').fill('ticket.url');
-   const draft=await page.locator('form').evaluate(form=>Object.fromEntries(new FormData(form)));
+   const draft=await page.locator('form:has([name=action][value=endpoint_save])').evaluate(form=>Object.fromEntries(new FormData(form)));
    check(draft.reference_id_path==='ticket.id'&&draft.reference_url_path==='ticket.url','Reference paths submit through the endpoint form');
    const refs=page.locator('.alarmmanagerMappingRow').filter({has:page.locator('select option[value="integration.id"]:checked')});
    check(await refs.count()===(template.transport.mapping.default||[]).filter(field=>field.source==='integration.id').length,'External reference rows match the selected template');
   }
   await load({...templates.servicenow,enabled:false});
-  const serviceForm=page.locator('form'), table=serviceForm.locator('[name=servicenow_table]');
+  const serviceForm=page.locator('form:has([name=action][value=endpoint_save])'), table=serviceForm.locator('[name=servicenow_table]');
   check(await table.inputValue()==='incident','ServiceNow starts with Incident selected');
   check(await serviceForm.getByLabel('Destination Field Name',{exact:true}).first().inputValue()==='short_description','Incident creation fields are shown');
   await serviceForm.locator('[name=url]').fill('https://custom.example.test/api/now/table/incident');
@@ -102,6 +102,20 @@ const render=endpoint=>execFileSync('php',['-r',`function __($s,...$a){return $s
   const emailSubject=page.locator('.alarmmanagerMappingRow').first();await emailSubject.getByLabel('Cacti Value',{exact:true}).selectOption('template');await emailSubject.getByLabel('Combined text',{exact:true}).fill(sentence);
   check(JSON.parse(await page.locator('[name=mapping_json]').inputValue()).default.find(field=>field.to==='subject').template===sentence,'Email subject accepts combined text');
   await page.setViewportSize({width:390,height:844});check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Combined editor fits mobile');
+  await load({id:10,name:'Deletable draft',type:'restapi',enabled:false});
+  await page.locator('.alarmmanagerDashboardCard > summary').click();
+  const deletion=page.locator('form:has([name=action][value=endpoint_delete])');
+  check(await deletion.getByRole('button',{name:'Delete endpoint',exact:true}).isVisible(),'Saved endpoint has a delete action');
+  check(await deletion.locator('[name=confirmed]').getAttribute('required')!==null,'Deletion requires confirmation');
+  check(await deletion.locator('[name=id]').inputValue()==='10','Delete form targets the saved endpoint');
+  check(await deletion.locator('[name=mapping_json]').count()===0,'Delete is independent of editor validation');
+  for(const width of [390,1280]) {
+   await page.setViewportSize({width,height:844});
+   const positions=await deletion.evaluate(form=>{const rect=selector=>form.querySelector(selector).getBoundingClientRect();return {warning:rect('p').bottom,confirmation:rect('label').top,confirmationBottom:rect('label').bottom,button:rect('button').top};});
+   check(positions.confirmation>=positions.warning&&positions.button>=positions.confirmationBottom,'Deletion warning, confirmation and button occupy separate rows');
+   check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Endpoint deletion fits the viewport');
+  }
+  await load({name:'Unsaved draft',type:'restapi'});check(await page.getByRole('button',{name:'Delete endpoint',exact:true}).count()===0,'Unsaved drafts have no delete action');
   check(errors.length===0,'No browser errors');console.log(`PASS: ${checks} rendered endpoint checks`);
  }finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

@@ -53,7 +53,7 @@ const fs=require('node:fs'), path=require('node:path');
   const row=detail.locator('.alarmmanagerMappingRow').first();await row.locator('input').first().fill('host');
   check(JSON.parse(await detail.locator('[name=mapping_json]').inputValue()).default[0].to==='host','No-code field mapping editor');
 
-  await detail.locator('button[type=submit]').click();await page.waitForURL('**/alarmmanager_admin.php');
+  await detail.getByRole('button',{name:'Save endpoint',exact:true}).click();await page.waitForURL('**/alarmmanager_admin.php');
   check((await page.locator('[role=status]').innerText()).includes('Configuration saved'),'Real CSRF protected endpoint save');
   const forbidden=await context.request.post(base+'/plugins/alarmmanager/alarmmanager_admin.php',{form:{action:'credential_remove',id:'1',__csrf_magic:'invalid'}});
   check((await forbidden.text()).includes('Action failed'),'Real CSRF rejects invalid token');

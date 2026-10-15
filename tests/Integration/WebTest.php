@@ -350,6 +350,46 @@ final class WebTest extends AlarmManagerTestCase {
 			$stored = alarmmanager_transport_configuration('webhook', json_decode($definition['definition'], true, 8, JSON_THROW_ON_ERROR));
 			$this->assertSame('PATCH', $stored['transition_overrides']['recovered']['method'], 'Transition override survives the transport_json round trip');
 			$this->assertStringContainsString('{{integration.id}}', $stored['transition_overrides']['recovered']['url'], 'Placeholder reference survives the transport_json round trip');
+			$deletable = (int) db_fetch_cell_prepared("SELECT id FROM plugin_alarmmanager_endpoints WHERE name = ?", ['Slack message']);
+			alarmmanager_save_credential($deletable, ['headers' => ['Authorization' => 'Bearer deletion-fixture']]);
+			$delete = ['action' => 'endpoint_delete', 'id' => $deletable, 'revision' => alarmmanager_admin_configuration()['revision']];
+			$this->wreject(fn () => $this->waction($delete), 'Deletion requires explicit confirmation');
+			$stale = $delete + ['confirmed' => 'yes']; $stale['revision']--;
+			$this->wreject(fn () => $this->waction($stale), 'Stale delete rejected');
+			$delete['confirmed'] = 'yes';
+			$this->assertSame('Endpoint deleted.', $this->waction($delete));
+			$this->assertSame(0, (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_endpoints WHERE id = ?', [$deletable]));
+			$this->assertSame(0, (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_transports WHERE endpoint_id = ?', [$deletable]));
+			$this->assertSame(0, (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_credentials WHERE endpoint_id = ?', [$deletable]));
+			$this->assertNotContains($deletable, array_column(alarmmanager_admin_configuration()['configuration']['endpoints'], 'id'));
+			$this->wreject(fn () => $this->waction(['action' => 'endpoint_delete', 'id' => 1, 'revision' => alarmmanager_admin_configuration()['revision'], 'confirmed' => 'yes']), 'Enabled referenced endpoints cannot be deleted');
+			$this->assertGreaterThan(0, (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_deliveries'), 'Delivery history remains intact');
+			alarmmanager_db_write('UPDATE plugin_alarmmanager_endpoints SET enabled = 0 WHERE id = 1');
+			try {
+				$this->waction(['action' => 'endpoint_delete', 'id' => 1, 'revision' => alarmmanager_admin_configuration()['revision'], 'confirmed' => 'yes']);
+				$this->fail('Referenced endpoint was deleted');
+			} catch (InvalidArgumentException $error) {
+				$this->assertSame('endpoint_in_profile', $error->getMessage());
+			}
+			$history_id = (int) db_fetch_cell_prepared('SELECT id FROM plugin_alarmmanager_endpoints WHERE name = ?', ['PagerDuty Events v2']);
+			alarmmanager_db_write("INSERT INTO plugin_alarmmanager_deliveries (event_row_id, endpoint_id, stream_key, sequence, priority, status, available_at, created_at, updated_at, idempotency_key) SELECT event_row_id, ?, stream_key, sequence, priority, 'completed', available_at, created_at, updated_at, idempotency_key FROM plugin_alarmmanager_deliveries LIMIT 1", [$history_id]);
+			alarmmanager_db_write("UPDATE plugin_alarmmanager_deliveries SET status = 'pending' WHERE endpoint_id = ?", [$history_id]);
+			try {
+				$this->waction(['action' => 'endpoint_delete', 'id' => $history_id, 'revision' => alarmmanager_admin_configuration()['revision'], 'confirmed' => 'yes']);
+				$this->fail('Endpoint with pending delivery was deleted');
+			} catch (InvalidArgumentException $error) {
+				$this->assertSame('endpoint_has_active_deliveries', $error->getMessage());
+			}
+			alarmmanager_db_write("UPDATE plugin_alarmmanager_deliveries SET status = 'failed' WHERE endpoint_id = ?", [$history_id]);
+			$this->assertSame('Endpoint deleted.', $this->waction(['action' => 'endpoint_delete', 'id' => $history_id, 'revision' => alarmmanager_admin_configuration()['revision'], 'confirmed' => 'yes']));
+			$this->assertSame(1, (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_deliveries WHERE endpoint_id = ?', [$history_id]));
+			$report = alarmmanager_report_list('deliveries', $admin, alarmmanager_report_filters(['endpoint_id' => $history_id, 'until' => time() + 60]));
+			$this->assertContains('Deleted endpoint #' . $history_id, array_column($report['rows'], 'endpoint'));
+			$deleted_delivery = (int) db_fetch_cell_prepared('SELECT id FROM plugin_alarmmanager_deliveries WHERE endpoint_id = ?', [$history_id]);
+			$this->wreject(fn () => alarmmanager_admin_replay('delivery', $deleted_delivery), 'Deleted endpoint history cannot be requeued');
+
+
+
 		} finally {
 			if ($GLOBALS['alarmmanager_test_db']->inTransaction()) {
 				$GLOBALS['alarmmanager_test_db']->rollBack();

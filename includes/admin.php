@@ -115,6 +115,9 @@ function alarmmanager_admin_replay(string $queue, int $id): void {
 		'processing' => 'plugin_alarmmanager_jobs', 'delivery' => 'plugin_alarmmanager_deliveries', default => throw new InvalidArgumentException('invalid_queue')
 	};
 	alarmmanager_transaction(function () use ($table, $queue, $id): void {
+		if ($queue === 'delivery' && !alarmmanager_db_row('SELECT ep.id FROM plugin_alarmmanager_endpoints AS ep INNER JOIN plugin_alarmmanager_deliveries AS d ON d.endpoint_id = ep.id WHERE d.id = ? FOR UPDATE', [$id])) {
+			throw new InvalidArgumentException('invalid_endpoint');
+		}
 		$row = alarmmanager_db_row("SELECT id FROM $table WHERE id = ? AND status = 'failed' FOR UPDATE", [$id]);
 
 		if (!$row) {
@@ -244,7 +247,7 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 		return 'Test queued for delivery workers; event row ' . $id . '.';
 	}
 
-	if (!in_array($action, ['configuration_save', 'endpoint_save', 'profile_save', 'rule_save'], true)) {
+	if (!in_array($action, ['configuration_save', 'endpoint_save', 'endpoint_delete', 'profile_save', 'rule_save'], true)) {
 		throw new InvalidArgumentException('invalid_action');
 	}
 	$revision = alarmmanager_admin_int($input['revision'] ?? null, 0, PHP_INT_MAX);
@@ -252,6 +255,41 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 
 	if ($state['revision'] !== $revision) {
 		throw new InvalidArgumentException('configuration_changed');
+	}
+	if ($action === 'endpoint_delete') {
+		$id = alarmmanager_admin_int($input['id'] ?? null, 1);
+		if (($input['confirmed'] ?? '') !== 'yes') {
+			throw new InvalidArgumentException('confirmation_required');
+		}
+		alarmmanager_transaction(function () use ($state, $revision, $id): void {
+			$locked = alarmmanager_db_row('SELECT config_revision FROM plugin_alarmmanager_schema WHERE id = 1 FOR UPDATE');
+			if ((int) $locked['config_revision'] !== $revision) {
+				throw new InvalidArgumentException('configuration_changed');
+			}
+			$endpoint = alarmmanager_db_row('SELECT id, enabled FROM plugin_alarmmanager_endpoints WHERE id = ? FOR UPDATE', [$id]);
+			if (!$endpoint) {
+				throw new InvalidArgumentException('invalid_action');
+			}
+			if ($endpoint['enabled']) {
+				throw new InvalidArgumentException('endpoint_disable_first');
+			}
+			$settings = $state['configuration'];
+			foreach ($settings['profiles'] as $profile) {
+				if (in_array($id, $profile['endpoints'], true)) {
+					throw new InvalidArgumentException('endpoint_in_profile');
+				}
+			}
+			if (alarmmanager_db_row("SELECT id FROM plugin_alarmmanager_deliveries WHERE endpoint_id = ? AND status IN ('pending', 'leased') LIMIT 1 FOR UPDATE", [$id])) {
+				throw new InvalidArgumentException('endpoint_has_active_deliveries');
+			}
+			$settings['endpoints'] = array_values(array_filter($settings['endpoints'], static fn (array $item): bool => (int) $item['id'] !== $id));
+			foreach (['credentials', 'transports', 'notification_state'] as $table) {
+				alarmmanager_db_write('DELETE FROM plugin_alarmmanager_' . $table . ' WHERE endpoint_id = ?', [$id]);
+			}
+			alarmmanager_db_write('DELETE FROM plugin_alarmmanager_endpoints WHERE id = ?', [$id]);
+			alarmmanager_write_configuration(alarmmanager_configuration($settings), $revision);
+		});
+		return 'Endpoint deleted.';
 	}
 	$settings       = $state['configuration'];
 	$credential     = null;

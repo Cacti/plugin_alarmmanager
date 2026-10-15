@@ -28,7 +28,7 @@ require_once(__DIR__ . '/workers.php');
 require_once(__DIR__ . '/integrations.php');
 
 function alarmmanager_form_start(string $action, int $revision, array $hidden = []): void {
-	print '<form method="post" action="alarmmanager_admin.php" class="alarmmanagerEditor">';
+	print '<form method="post" action="alarmmanager_admin.php" class="alarmmanagerEditor' . ($action === 'endpoint_save' ? ' alarmmanagerEndpointEditor' : ($action === 'endpoint_delete' ? ' alarmmanagerEndpointDelete' : '')) . '">';
 	alarmmanager_csrf_field();
 	print '<input type="hidden" name="action" value="' . html_escape($action) . '"><input type="hidden" name="revision" value="' . $revision . '">';
 
@@ -123,8 +123,14 @@ function alarmmanager_endpoint_editor(array $endpoint, int $revision, bool $new 
 	print '<p>' . __esc('Certificate and hostname verification remain enabled. Provision the PEM file on every poller. Saved credentials are never displayed.', 'alarmmanager') . '</p>';
 	print '</fieldset><details><summary>' . __esc('Other delivery options', 'alarmmanager') . '</summary>';
 	alarmmanager_textarea('transport_json', 'Delivery options JSON', alarmmanager_json_text($transport));
-	print '</details></details><a href="alarmmanager_admin.php?section=test">' . __esc('Preview or test a saved destination', 'alarmmanager') . '</a>';
-	print '<button type="submit">' . __esc('Save endpoint', 'alarmmanager') . '</button></form></details>';
+	print '</details></details><div class="alarmmanagerEndpointActions alarmmanagerFullWidth"><a href="alarmmanager_admin.php?section=test">' . __esc('Preview or test a saved destination', 'alarmmanager') . '</a>';
+	print '<button type="submit">' . __esc('Save endpoint', 'alarmmanager') . '</button></div></form>';
+	if (!$new) {
+		alarmmanager_form_start('endpoint_delete', $revision, ['id' => $endpoint['id']]);
+		print '<h3>' . __esc('Delete endpoint', 'alarmmanager') . '</h3><p>' . __esc('Disable and save this endpoint before deleting it. Remove routing-profile references and resolve queued or running deliveries first. Completed and failed delivery history is preserved.', 'alarmmanager') . '</p><label><input type="checkbox" name="confirmed" value="yes" required> ' . __esc('Delete this endpoint, its delivery settings and saved credentials', 'alarmmanager') . '</label><button type="submit">' . __esc('Delete endpoint', 'alarmmanager') . '</button></form>';
+	}
+	print '</details>';
+
 }
 function alarmmanager_admin_markup(array $state, string $section): void {
 	$config   = $state['configuration'];
