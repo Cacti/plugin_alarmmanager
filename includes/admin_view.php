@@ -127,7 +127,7 @@ function alarmmanager_endpoint_editor(array $endpoint, int $revision, bool $new 
 	print '<button type="submit">' . __esc('Save endpoint', 'alarmmanager') . '</button></div></form>';
 	if (!$new) {
 		alarmmanager_form_start('endpoint_delete', $revision, ['id' => $endpoint['id']]);
-		print '<h3>' . __esc('Delete endpoint', 'alarmmanager') . '</h3><p>' . __esc('Disable and save this endpoint before deleting it. Remove routing-profile references and resolve queued or running deliveries first. Completed and failed delivery history is preserved.', 'alarmmanager') . '</p><label><input type="checkbox" name="confirmed" value="yes" required> ' . __esc('Delete this endpoint, its delivery settings and saved credentials', 'alarmmanager') . '</label><button type="submit">' . __esc('Delete endpoint', 'alarmmanager') . '</button></form>';
+		print '<h3>' . __esc('Delete endpoint', 'alarmmanager') . '</h3><p>' . __esc('Deleting stops future delivery and removes the saved settings and credentials. Remove routing-profile references and resolve queued or running deliveries first. Completed and failed delivery history is preserved.', 'alarmmanager') . '</p><label><input type="checkbox" name="confirmed" value="yes" required> ' . __esc('Delete this endpoint, its delivery settings and saved credentials', 'alarmmanager') . '</label><button type="submit">' . __esc('Delete endpoint', 'alarmmanager') . '</button></form>';
 	}
 	print '</details>';
 

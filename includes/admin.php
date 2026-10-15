@@ -270,9 +270,6 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 			if (!$endpoint) {
 				throw new InvalidArgumentException('invalid_action');
 			}
-			if ($endpoint['enabled']) {
-				throw new InvalidArgumentException('endpoint_disable_first');
-			}
 			$settings = $state['configuration'];
 			foreach ($settings['profiles'] as $profile) {
 				if (in_array($id, $profile['endpoints'], true)) {

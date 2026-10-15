@@ -352,6 +352,7 @@ final class WebTest extends AlarmManagerTestCase {
 			$this->assertStringContainsString('{{integration.id}}', $stored['transition_overrides']['recovered']['url'], 'Placeholder reference survives the transport_json round trip');
 			$deletable = (int) db_fetch_cell_prepared("SELECT id FROM plugin_alarmmanager_endpoints WHERE name = ?", ['Slack message']);
 			alarmmanager_save_credential($deletable, ['headers' => ['Authorization' => 'Bearer deletion-fixture']]);
+			alarmmanager_db_write('UPDATE plugin_alarmmanager_endpoints SET enabled = 1 WHERE id = ?', [$deletable]);
 			$delete = ['action' => 'endpoint_delete', 'id' => $deletable, 'revision' => alarmmanager_admin_configuration()['revision']];
 			$this->wreject(fn () => $this->waction($delete), 'Deletion requires explicit confirmation');
 			$stale = $delete + ['confirmed' => 'yes']; $stale['revision']--;

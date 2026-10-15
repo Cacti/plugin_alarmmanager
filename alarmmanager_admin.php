@@ -52,7 +52,6 @@ try {
 			$message = match ($error->getMessage()) {
 				'daemon_not_running'         => 'Start the Alarm Manager service on this collector before enabling daemon workers.',
 				'daemon_config_write_failed' => 'Daemon settings could not be saved. Check the Cacti cache directory permissions.',
-				'endpoint_disable_first' => 'Disable the endpoint and save it before deleting.',
 				'endpoint_in_profile' => 'Remove this endpoint from its routing profiles before deleting.',
 				'endpoint_has_active_deliveries' => 'This endpoint has queued or running deliveries. Resolve them before deleting.',
 				'confirmation_required' => 'Select the confirmation checkbox before continuing.',
