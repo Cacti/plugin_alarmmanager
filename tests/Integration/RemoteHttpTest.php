@@ -62,6 +62,7 @@ final class RemoteHttpTest extends AlarmManagerTestCase {
 				$this->connections[$poller] = alarmmanager_test_connect();
 				$this->connections[$poller]->exec("USE `$name`");
 				$this->huse($poller);
+				$GLOBALS['alarmmanager_test_db']->exec('CREATE TABLE settings (name VARCHAR(255) PRIMARY KEY, value TEXT) ENGINE=InnoDB');
 				$GLOBALS['alarmmanager_test_db']->exec('CREATE TABLE settings_user (user_id INT,name VARCHAR(255),value TEXT,PRIMARY KEY(user_id,name)) ENGINE=InnoDB');
 				$GLOBALS['alarmmanager_test_db']->exec('CREATE TABLE plugin_config (directory VARCHAR(64) PRIMARY KEY,version VARCHAR(32),status INT) ENGINE=InnoDB');
 				$GLOBALS['alarmmanager_test_db']->exec("INSERT INTO plugin_config VALUES ('alarmmanager','0.7.0',1)");

@@ -251,6 +251,7 @@ function alarmmanager_event_detail(array $scope, array $filters): ?array {
 	return alarmmanager_validate_event(json_decode($row['payload'], true, 32, JSON_THROW_ON_ERROR));
 }
 function alarmmanager_dashboard_data(array $scope, array $filters): array {
+	require_once(__DIR__ . '/queue.php');
 	[$where, $params]                = alarmmanager_report_where($scope, $filters);
 	[$current, $current_params]      = alarmmanager_report_where($scope, $filters, null, 's.severity');
 	$result                          = ['can_admin' => $scope['admin'], 'filters' => $filters, 'historical' => [], 'current' => [], 'panels' => [], 'workers' => []];
@@ -283,6 +284,8 @@ function alarmmanager_dashboard_data(array $scope, array $filters): array {
 		[$w, $p]                             = alarmmanager_report_where($scope, $filters, null);
 		$result['current']['queues'][$queue] = alarmmanager_report_rows("SELECT j.status AS label, COUNT(*) AS count, COALESCE(MAX(TIMESTAMPDIFF(SECOND, j.created_at, UTC_TIMESTAMP())), 0) AS oldest_age_seconds FROM $table INNER JOIN plugin_alarmmanager_events AS e ON e.id = j.event_row_id WHERE $w AND j.status IN ('pending', 'leased', 'failed') GROUP BY j.status", $p);
 	}
+
+	$result['notifications_paused'] = alarmmanager_notifications_paused();
 
 	if ($scope['admin']) {
 		$result['workers'] = alarmmanager_report_rows('SELECT role, status, pid, poller_id, TIMESTAMPDIFF(SECOND, heartbeat_at, UTC_TIMESTAMP()) AS age_seconds FROM plugin_alarmmanager_workers WHERE poller_id = ? ORDER BY heartbeat_at DESC LIMIT 32', [alarmmanager_local_poller()]);

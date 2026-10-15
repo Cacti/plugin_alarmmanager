@@ -26,6 +26,7 @@ if (PHP_SAPI !== 'cli' || getenv('ALARMMANAGER_TEST_ALLOW_CREATE') !== '1') {
 	exit;
 }
 function alarmmanager_test_web_schema(PDO $db): void {
+	$db->exec('CREATE TABLE settings (name VARCHAR(255) PRIMARY KEY, value TEXT) ENGINE=InnoDB');
 	$db->exec('CREATE TABLE settings_user (user_id INT, name VARCHAR(255), value TEXT, PRIMARY KEY(user_id, name)) ENGINE=InnoDB');
 	$db->exec('CREATE TABLE plugin_config (id INT AUTO_INCREMENT UNIQUE, directory VARCHAR(64) PRIMARY KEY, version VARCHAR(32), status INT) ENGINE=InnoDB');
 	$db->exec("INSERT INTO plugin_config (directory, version, status) VALUES ('alarmmanager', '0.5.0', 1)");

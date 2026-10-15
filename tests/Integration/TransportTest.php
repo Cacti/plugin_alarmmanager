@@ -75,6 +75,7 @@ final class TransportTest extends AlarmManagerTestCase {
 		$pipes  = [];
 
 		try {
+			$GLOBALS['alarmmanager_test_db']->exec('CREATE TABLE settings (name VARCHAR(255) PRIMARY KEY, value TEXT) ENGINE=InnoDB');
 			$GLOBALS['alarmmanager_test_db']->exec('CREATE TABLE settings_user (user_id INT, name VARCHAR(255), value TEXT, PRIMARY KEY(user_id, name)) ENGINE=InnoDB');
 			$GLOBALS['alarmmanager_test_db']->exec('CREATE TABLE plugin_config (directory VARCHAR(64) PRIMARY KEY, version VARCHAR(32), status INT) ENGINE=InnoDB');
 			$GLOBALS['alarmmanager_test_db']->exec("INSERT INTO plugin_config VALUES ('alarmmanager', '0.4.0', 1)");
@@ -186,6 +187,7 @@ final class TransportTest extends AlarmManagerTestCase {
 			try {
 				$GLOBALS['alarmmanager_test_db'] = alarmmanager_test_connect();
 				$GLOBALS['alarmmanager_test_db']->exec("USE `$remote_database`");
+				$GLOBALS['alarmmanager_test_db']->exec('CREATE TABLE settings (name VARCHAR(255) PRIMARY KEY, value TEXT) ENGINE=InnoDB');
 				$GLOBALS['alarmmanager_test_db']->exec('CREATE TABLE settings_user (user_id INT, name VARCHAR(255), value TEXT, PRIMARY KEY(user_id, name)) ENGINE=InnoDB');
 				$GLOBALS['alarmmanager_test_db']->exec('CREATE TABLE plugin_config (directory VARCHAR(64) PRIMARY KEY, version VARCHAR(32), status INT) ENGINE=InnoDB');
 				$GLOBALS['alarmmanager_test_db']->exec("INSERT INTO plugin_config VALUES ('alarmmanager', '0.5.0', 1)");

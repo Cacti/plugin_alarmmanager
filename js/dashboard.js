@@ -269,6 +269,9 @@
   function summaries(result) {
    const f=result.filters,current=app.querySelector('#alarmmanager_current'),history=app.querySelector('#alarmmanager_historical');current.replaceChildren(node('strong','Current conditions: '));history.replaceChildren(node('strong','Historical events: '));
    current.append(link(`Active ${result.current.conditions.active}`,'conditions',{},f),link(`Acknowledged ${result.current.conditions.acknowledged}`,'conditions',{acknowledged:1},f));
+   const waiting=(result.current.queues.delivery||[]).filter(row=>row.label==='pending').reduce((total,row)=>total+Number(row.count),0);
+   current.append(link(`Queued messages ${waiting}`,'deliveries',{status:'pending',current:1},f),node('span',result.notifications_paused?' · Delivery paused':' · Delivery running'));
+   if(result.can_admin){const control=node('a','Manage queue');control.href='alarmmanager_admin.php?section=queue';current.append(control);}
    const events=result.historical.events;[['All',events.events,''],['Raised',events.raised,'raised'],['Recovered',events.recovered,'recovered'],['Occurrences',events.occurrences,'occurrence']].forEach(([title,count,transition])=>history.append(link(`${title} ${Number(count).toLocaleString()}`,'events',{transition},f)));
   }
   function render(result) {

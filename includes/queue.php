@@ -23,6 +23,13 @@
 */
 require_once(__DIR__ . '/runtime.php');
 
+/** Read fresh on every claim so long-running workers observe maintenance changes. */
+function alarmmanager_notifications_paused(): bool {
+	$row = alarmmanager_db_row("SELECT value FROM settings WHERE name = 'alarmmanager_notifications_paused'");
+
+	return ($row['value'] ?? '0') === '1';
+}
+
 function alarmmanager_queue_table(string $queue): string {
 	return match ($queue) {
 		'processing' => 'plugin_alarmmanager_jobs', 'delivery' => 'plugin_alarmmanager_deliveries', default => throw new InvalidArgumentException('invalid_queue')
@@ -93,7 +100,7 @@ function alarmmanager_claim_processing(int $lease_seconds = 180): ?array {
 function alarmmanager_claim_delivery(array $supported_types, int $lease_seconds = 180): ?array {
 	$types = array_values(array_intersect(['restapi', 'webhook', 'email', 'script', 'websocket'], $supported_types));
 
-	if (!$types || !alarmmanager_runtime_enabled()) {
+	if (!$types || !alarmmanager_runtime_enabled() || alarmmanager_notifications_paused()) {
 		return null;
 	}
 	$lease_seconds = max(1, min(600, $lease_seconds));

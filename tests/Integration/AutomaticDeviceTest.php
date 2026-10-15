@@ -18,6 +18,7 @@ final class AutomaticDeviceTest extends AlarmManagerTestCase {
 		$db->exec("CREATE DATABASE `$database` CHARACTER SET utf8mb4");
 		try {
 			$db->exec("USE `$database`");
+			$db->exec('CREATE TABLE settings (name VARCHAR(255) PRIMARY KEY, value TEXT) ENGINE=InnoDB');
 			$db->exec('CREATE TABLE settings_user (user_id INT, name VARCHAR(255), value TEXT, PRIMARY KEY(user_id,name))');
 			$db->exec('CREATE TABLE plugin_config (directory VARCHAR(64) PRIMARY KEY, version VARCHAR(32), status INT)');
 			$db->exec("INSERT INTO plugin_config VALUES ('alarmmanager','0.10.0',1)");

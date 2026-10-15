@@ -129,6 +129,7 @@ function am_benchmark_pool(string $role, string $database, int $workers): array 
 }
 
 try {
+	$alarmmanager_test_db->exec('CREATE TABLE settings (name VARCHAR(255) PRIMARY KEY, value TEXT) ENGINE=InnoDB');
 	$alarmmanager_test_db->exec('CREATE TABLE settings_user (user_id INT NOT NULL, name VARCHAR(255) NOT NULL, value TEXT, PRIMARY KEY (user_id, name)) ENGINE=InnoDB');
 	$alarmmanager_test_db->exec('CREATE TABLE plugin_config (directory VARCHAR(64) PRIMARY KEY, version VARCHAR(32), status INT) ENGINE=InnoDB');
 	$alarmmanager_test_db->exec("INSERT INTO plugin_config VALUES ('alarmmanager', '0.4.0', 1)");

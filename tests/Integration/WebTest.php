@@ -425,6 +425,47 @@ final class WebTest extends AlarmManagerTestCase {
 			$this->assertContains('Deleted endpoint #' . $history_id, array_column($report['rows'], 'endpoint'));
 			$deleted_delivery = (int) db_fetch_cell_prepared('SELECT id FROM plugin_alarmmanager_deliveries WHERE endpoint_id = ?', [$history_id]);
 			$this->wreject(fn () => alarmmanager_admin_replay('delivery', $deleted_delivery), 'Deleted endpoint history cannot be requeued');
+			$this->waction(['action' => 'queue_pause']);
+			$this->assertTrue(alarmmanager_notifications_paused());
+			$this->assertNull(alarmmanager_claim_delivery(['restapi', 'webhook']), 'Paused workers cannot claim notifications');
+			$sample['event_id']  = 'web:paused-ingestion';
+			$sample['alarm_key'] = 'web:paused-ingestion';
+			$sample['sequence']  = 1;
+			$this->assertSame('accepted', alarmmanager_submit(['contract_version' => 1, 'status' => 'unhandled', 'mode' => 'centralized', 'event' => $sample])['status']);
+			$processing = alarmmanager_claim_processing();
+			$this->assertNotNull($processing, 'Processing continues during notification maintenance');
+			alarmmanager_process_job($processing);
+			$this->assertTrue(alarmmanager_dashboard_data($admin, $filters)['notifications_paused']);
+			ob_start();
+			alarmmanager_admin_markup(alarmmanager_admin_configuration(), 'queue');
+			$queue_html = ob_get_clean();
+			$this->assertStringContainsString('Resume delivery', $queue_html);
+			$this->assertStringContainsString('Waiting messages (first 100)', $queue_html);
+			$this->wreject(fn () => $this->waction(['action' => 'queue_clear']), 'Clearing requires confirmation');
+			$this->wuser(2);
+
+			foreach (['queue_pause', 'queue_resume', 'queue_clear'] as $action) {
+				$this->wreject(fn () => $this->waction(['action' => $action, 'confirmed' => 'yes']), 'Readers cannot control the queue');
+			}
+			$this->wuser(1);
+			$_POST = [];
+			$this->wreject(fn () => alarmmanager_admin_action(['action' => 'queue_resume']), 'Queue actions require CSRF');
+			$this->waction(['action' => 'queue_resume']);
+			$this->assertFalse(alarmmanager_notifications_paused());
+			$running = alarmmanager_claim_delivery(['restapi', 'webhook']);
+			$this->assertNotNull($running, 'Resume makes waiting work claimable');
+			$before = alarmmanager_db_rows('SELECT id, status FROM plugin_alarmmanager_deliveries ORDER BY id');
+			$this->waction(['action' => 'queue_clear', 'confirmed' => 'yes']);
+			$this->assertCount(count($before), alarmmanager_db_rows('SELECT id FROM plugin_alarmmanager_deliveries'), 'Clear preserves history');
+
+			foreach ($before as $row) {
+				$after = alarmmanager_db_row('SELECT status, last_error FROM plugin_alarmmanager_deliveries WHERE id = ?', [$row['id']]);
+				$this->assertSame($row['status'] === 'pending' ? 'failed' : $row['status'], $after['status'], 'Only waiting notifications are cleared');
+
+				if ($row['status'] === 'pending') {
+					$this->assertSame('queue_cleared', $after['last_error']);
+				}
+			}
 		} finally {
 			if ($GLOBALS['alarmmanager_test_db']->inTransaction()) {
 				$GLOBALS['alarmmanager_test_db']->rollBack();

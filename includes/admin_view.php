@@ -230,11 +230,45 @@ function alarmmanager_admin_markup(array $state, string $section): void {
 	$revision = $state['revision'];
 	print '<nav class="alarmmanagerTabs" aria-label="' . __esc('Administration sections', 'alarmmanager') . '">';
 
-	foreach (['endpoints' => 'Integrations and mappings', 'profiles' => 'Routing profiles', 'collectors' => 'Collectors and history', 'rules' => 'Rules and suppression', 'credentials' => 'Credentials', 'test' => 'Preview and test', 'configuration' => 'Configuration', 'daemon' => 'Daemon', 'health' => 'Workers and failed processing'] as $key => $label) {
+	foreach (['endpoints' => 'Integrations and mappings', 'profiles' => 'Routing profiles', 'collectors' => 'Collectors and history', 'rules' => 'Rules and suppression', 'credentials' => 'Credentials', 'test' => 'Preview and test', 'configuration' => 'Configuration', 'daemon' => 'Daemon', 'queue' => 'Notification queue', 'health' => 'Workers and failed processing'] as $key => $label) {
 		print '<a href="alarmmanager_admin.php?section=' . $key . '" ' . ($section === $key ? 'aria-current="page"' : '') . '>' . __esc($label, 'alarmmanager') . '</a>';
 	} print '</nav><p>' . __esc('Local configuration revision', 'alarmmanager') . ': ' . $revision . '</p>';
 
-	if ($section === 'collectors') {
+	if ($section === 'queue') {
+		$paused = alarmmanager_notifications_paused();
+		$count  = alarmmanager_db_row("SELECT COUNT(*) AS waiting FROM plugin_alarmmanager_deliveries AS d
+			INNER JOIN plugin_alarmmanager_events AS e ON e.id = d.event_row_id
+			WHERE d.status = 'pending' AND e.processing_poller_id = ?", [alarmmanager_local_poller()]);
+		html_start_box(__esc('Notification queue', 'alarmmanager'), '100%', false, 3, 'center', '');
+		print '<p>' . ($paused ? __esc('Notification delivery is paused.', 'alarmmanager') : __esc('Notification delivery is running.', 'alarmmanager')) . ' ' . __esc('Waiting messages', 'alarmmanager') . ': ' . (int) ($count['waiting'] ?? 0) . '</p>';
+		print '<p>' . __esc('Controls apply to this poller. Alarms continue to be received and processed while delivery is paused. Messages already being sent may finish. Resume sends the waiting notifications.', 'alarmmanager') . '</p>';
+		alarmmanager_form_start($paused ? 'queue_resume' : 'queue_pause', $revision);
+		print '<button type="submit">' . ($paused ? __esc('Resume delivery', 'alarmmanager') : __esc('Pause delivery', 'alarmmanager')) . '</button></form>';
+		print '<p><a href="alarmmanager.php?tab=deliveries&amp;status=pending&amp;current=1">' . __esc('View waiting messages', 'alarmmanager') . '</a> | <a href="alarmmanager.php?tab=deliveries&amp;status=leased&amp;current=1">' . __esc('View messages being sent', 'alarmmanager') . '</a></p>';
+		alarmmanager_form_start('queue_clear', $revision);
+		print '<p>' . __esc('Clear discards all waiting notifications on this poller, including retries. They remain in delivery history as failed with reason queue_cleared. Running messages and alarm state are preserved. Pause delivery before clearing during maintenance.', 'alarmmanager') . '</p><label><input type="checkbox" name="confirmed" value="yes" required> ' . __esc('Discard all waiting notifications', 'alarmmanager') . '</label><button type="submit">' . __esc('Clear queue', 'alarmmanager') . '</button></form>';
+		html_end_box();
+		$rows = alarmmanager_db_rows("SELECT d.id, ep.name AS endpoint, JSON_UNQUOTE(JSON_EXTRACT(e.payload, '$.summary')) AS summary, d.created_at, d.attempts, d.available_at
+			FROM plugin_alarmmanager_deliveries AS d INNER JOIN plugin_alarmmanager_events AS e ON e.id = d.event_row_id
+			LEFT JOIN plugin_alarmmanager_endpoints AS ep ON ep.id = d.endpoint_id
+			WHERE d.status = 'pending' AND e.processing_poller_id = ? ORDER BY d.id LIMIT 100", [alarmmanager_local_poller()]);
+		html_start_box(__esc('Waiting messages (first 100)', 'alarmmanager'), '100%', false, 3, 'center', '');
+		html_header([__esc('ID', 'alarmmanager'), __esc('Endpoint', 'alarmmanager'), __esc('Message', 'alarmmanager'), __esc('Queued at (UTC)', 'alarmmanager'), __esc('Attempts', 'alarmmanager'), __esc('Available at (UTC)', 'alarmmanager')], 1);
+
+		foreach ($rows as $row) {
+			form_alternate_row();
+
+			foreach ($row as $value) {
+				form_selectable_cell(html_escape((string) $value), (int) $row['id'], '', 'left');
+			}
+			print '</tr>';
+		}
+
+		if (!$rows) {
+			print '<tr><td colspan="6">' . __esc('No waiting messages.', 'alarmmanager') . '</td></tr>';
+		}
+		html_end_box();
+	} elseif ($section === 'collectors') {
 		alarmmanager_remote_markup();
 	} elseif ($section === 'endpoints') {
 		print '<p>' . __esc('Create an integration, configure its destination and credentials, preview and test a sample alarm, then select it in a routing profile.', 'alarmmanager') . '</p>';

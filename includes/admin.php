@@ -189,6 +189,26 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 		throw new InvalidArgumentException('invalid_action');
 	}
 
+	if (in_array($action, ['queue_pause', 'queue_resume'], true)) {
+		alarmmanager_db_write("REPLACE INTO settings (name, value) VALUES ('alarmmanager_notifications_paused', ?)", [$action === 'queue_pause' ? '1' : '0']);
+		alarmmanager_log('Notification queue ' . ($action === 'queue_pause' ? 'paused' : 'resumed') . ' by user ' . alarmmanager_web_user());
+
+		return 'Notification queue updated.';
+	}
+
+	if ($action === 'queue_clear') {
+		if (($input['confirmed'] ?? '') !== 'yes') {
+			throw new InvalidArgumentException('confirmation_required');
+		}
+		alarmmanager_db_write("UPDATE plugin_alarmmanager_deliveries AS d
+			INNER JOIN plugin_alarmmanager_events AS e ON e.id = d.event_row_id
+			SET d.status = 'failed', d.last_error = 'queue_cleared', d.updated_at = UTC_TIMESTAMP(6)
+			WHERE d.status = 'pending' AND e.processing_poller_id = ?", [alarmmanager_local_poller()]);
+		alarmmanager_log('Waiting notifications cleared by user ' . alarmmanager_web_user());
+
+		return 'Waiting notifications cleared. History preserved.';
+	}
+
 	if ($action === 'daemon_save') {
 		$settings                       = alarmmanager_supervisor_options();
 		$settings['enabled']            = isset($input['daemon_enabled']);

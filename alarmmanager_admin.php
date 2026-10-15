@@ -25,7 +25,7 @@ require_once(__DIR__ . '/../../include/auth.php');
 require_once(__DIR__ . '/includes/admin_view.php');
 header('Cache-Control: no-store');
 
-const ALARMMANAGER_SECTIONS = ['endpoints', 'profiles', 'collectors', 'rules', 'credentials', 'test', 'configuration', 'daemon', 'health'];
+const ALARMMANAGER_SECTIONS = ['endpoints', 'profiles', 'collectors', 'rules', 'credentials', 'test', 'configuration', 'daemon', 'queue', 'health'];
 
 try {
 	if (!alarmmanager_web_admin()) {
@@ -54,7 +54,7 @@ try {
 			raise_message('alarmmanager_notice', __($message, 'alarmmanager'), MESSAGE_LEVEL_ERROR);
 		}
 		cacti_redirect(match ($post['action'] ?? '') {
-			'preview', 'test_send' => 'alarmmanager_admin.php?section=test', 'daemon_save' => 'alarmmanager_admin.php?section=daemon', 'rule_save' => 'alarmmanager_admin.php?section=rules', 'profile_save' => 'alarmmanager_admin.php?section=profiles', default => 'alarmmanager_admin.php'
+			'queue_pause', 'queue_resume', 'queue_clear' => 'alarmmanager_admin.php?section=queue', 'preview', 'test_send' => 'alarmmanager_admin.php?section=test', 'daemon_save' => 'alarmmanager_admin.php?section=daemon', 'rule_save' => 'alarmmanager_admin.php?section=rules', 'profile_save' => 'alarmmanager_admin.php?section=profiles', default => 'alarmmanager_admin.php'
 		});
 	}
 

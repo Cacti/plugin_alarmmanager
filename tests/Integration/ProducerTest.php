@@ -87,6 +87,7 @@ final class ProducerTest extends AlarmManagerTestCase {
 		$GLOBALS['alarmmanager_test_db']->exec("USE `$database`");
 
 		try {
+			$GLOBALS['alarmmanager_test_db']->exec('CREATE TABLE settings (name VARCHAR(255) PRIMARY KEY, value TEXT) ENGINE=InnoDB');
 			$GLOBALS['alarmmanager_test_db']->exec('CREATE TABLE settings_user (user_id INT NOT NULL, name VARCHAR(255), value TEXT, PRIMARY KEY (user_id, name)) ENGINE=InnoDB');
 			$GLOBALS['alarmmanager_test_db']->exec('CREATE TABLE plugin_config (directory VARCHAR(64) PRIMARY KEY, version VARCHAR(32), status INT) ENGINE=InnoDB');
 			$GLOBALS['alarmmanager_test_db']->exec("INSERT INTO plugin_config VALUES ('alarmmanager', '0.6.0', 1)");

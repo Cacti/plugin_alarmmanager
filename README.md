@@ -94,3 +94,20 @@ Device message formatting is shared across all delivery services. Generic REST A
 Device and Thold producers supply `device.location`, `device.contact` and `device.sysname` from Cacti's cached SNMP device fields; unavailable values are empty. Existing saved mappings are preserved: edit their message field to use the richer format. Previously queued events retain their captured device information.
 
 Additional insertable fields: `device.cacti_location` (configured Cacti location, separate from SNMP `device.location`), `device.collector_name` (originating collector), `device.external_id` (Cacti asset identifier, separate from the receiving service's `integration.id`), `device.uptime` (last known SNMP uptime as days/hours/minutes/seconds), `device.snmp_sysUpTimeInstance` (raw hundredths of a second), `device.status_fail_date`, `device.status_rec_date` (last restored time), and `device.status_last_error`. Transition dates are UTC ISO 8601; unknown dates and uptime are empty. These values are captured when the event is created; existing queued events are not backfilled.
+
+### Maintenance notification queue
+
+Open **Administration → Notification queue** to see the waiting-message count,
+the first 100 waiting messages, and links to the searchable delivery reports.
+**Pause delivery** stops new notification claims in daemon and poller mode;
+alarm ingestion, state processing, and routing continue to queue notifications.
+**Resume delivery** drains that backlog using the normal retry and ordering rules.
+Messages already claimed may finish. Controls apply to the local poller's database;
+manage distributed pollers separately.
+
+**Clear queue** requires confirmation and discards waiting deliveries, including
+scheduled retries. Alarm state, running deliveries, and history are preserved.
+Discarded deliveries appear as failed with reason `queue_cleared` and can be
+explicitly replayed from delivery history. New alarms can still add messages;
+pause before clearing for maintenance. The dashboard shows waiting notifications
+and delivery pause status; its count follows the current visibility and filters.
