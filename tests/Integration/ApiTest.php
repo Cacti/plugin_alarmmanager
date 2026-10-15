@@ -55,6 +55,8 @@ final class ApiTest extends AlarmManagerTestCase {
 		try {
 			$db->exec("CREATE DATABASE `$database`");
 			$db->exec("USE `$database`");
+			require_once __DIR__ . '/../fixtures/device_metadata_schema.php';
+			alarmmanager_test_device_metadata_schema($db);
 			$db->exec('CREATE TABLE settings_user (user_id INT NOT NULL, name VARCHAR(191) NOT NULL, value TEXT NOT NULL, PRIMARY KEY(user_id,name)) ENGINE=InnoDB');
 			$db->exec('CREATE TABLE plugin_config (directory VARCHAR(32) PRIMARY KEY, status INT NOT NULL, version VARCHAR(32) NOT NULL) ENGINE=InnoDB');
 			$db->exec("INSERT INTO plugin_config VALUES ('alarmmanager',1,'0.9.0')");

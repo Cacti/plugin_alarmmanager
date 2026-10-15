@@ -90,6 +90,9 @@ final class ProducerTest extends AlarmManagerTestCase {
 			$GLOBALS['alarmmanager_test_db']->exec('CREATE TABLE settings_user (user_id INT NOT NULL, name VARCHAR(255), value TEXT, PRIMARY KEY (user_id, name)) ENGINE=InnoDB');
 			$GLOBALS['alarmmanager_test_db']->exec('CREATE TABLE plugin_config (directory VARCHAR(64) PRIMARY KEY, version VARCHAR(32), status INT) ENGINE=InnoDB');
 			$GLOBALS['alarmmanager_test_db']->exec("INSERT INTO plugin_config VALUES ('alarmmanager', '0.6.0', 1)");
+
+			require_once __DIR__ . '/../fixtures/device_metadata_schema.php';
+			alarmmanager_test_device_metadata_schema($GLOBALS['alarmmanager_test_db']);
 			$this->assertSame(str_repeat('é', 255), AlarmManagerProducerBridge::text(str_repeat('é', 300), 511), 'UTF-8 truncation retains complete characters');
 			$this->assertTrue(plugin_alarmmanager_install(), 'install');
 			$this->assertTrue(plugin_alarmmanager_install(), 'repeat install');

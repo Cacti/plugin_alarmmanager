@@ -62,6 +62,9 @@ final class RemoteTest extends AlarmManagerTestCase {
 				$GLOBALS['alarmmanager_test_db']->exec("INSERT INTO plugin_config VALUES ('alarmmanager','0.7.0',1)");
 				$GLOBALS['alarmmanager_test_db']->exec("CREATE TABLE host (id INT PRIMARY KEY,poller_id INT,deleted VARCHAR(2) DEFAULT '',status INT,status_event_count INT DEFAULT 0,status_fail_date DATETIME NULL,status_rec_date DATETIME NULL) ENGINE=InnoDB");
 				$GLOBALS['alarmmanager_test_db']->exec("INSERT INTO host (id,poller_id,status) VALUES (42,$poller,3)");
+
+				require_once __DIR__ . '/../fixtures/device_metadata_schema.php';
+				alarmmanager_test_device_metadata_schema($GLOBALS['alarmmanager_test_db']);
 				$this->assertTrue(plugin_alarmmanager_install(), 'node install');
 				$this->assertTrue(plugin_alarmmanager_install(), 'node repeat setup');
 				$this->assertTrue(plugin_alarmmanager_upgrade(), 'node upgrade');

@@ -101,13 +101,18 @@ const render=endpoint=>execFileSync('php',['-r',`function __($s,...$a){return $s
   await combined.fill('Device  is down');await combined.press('Home');for(let n=0;n<7;n++)await combined.press('ArrowRight');
   await combinedRow.getByText('Insert field',{exact:true}).click();
   await combinedRow.getByRole('searchbox',{name:'Search message fields'}).fill('location');
-  await combinedRow.getByRole('button',{name:'Device location',exact:true}).click();
+  await combinedRow.getByRole('button',{name:'SNMP location',exact:true}).click();
   check(JSON.parse(await page.locator('[name=mapping_json]').inputValue()).default[0].template==='Device {{device.location}} is down','Insertion preserves a cursor in the middle of text');
   await combined.press('End');await combined.press('Enter');await combined.pressSequentially('Second line');
   assert.equal(JSON.parse(await page.locator('[name=mapping_json]').inputValue()).default[0].template,'Device {{device.location}} is down\nSecond line','Newlines serialize as plain text');checks++;
   await combinedRow.getByText('Insert field',{exact:true}).click();await combinedRow.getByRole('searchbox',{name:'Search message fields'}).fill('Device tags');
   check(await combinedRow.getByText('No matching fields',{exact:true}).isVisible(),'List fields are excluded from text chips');
   await combinedRow.getByText('Insert field',{exact:true}).click();
+  for(const name of ['Cacti location','Collector name','Device external ID','Last known SNMP uptime (ticks)','Last known SNMP uptime','Last failed datetime','Last restored datetime','Last status error']) {
+   await combinedRow.getByText('Insert field',{exact:true}).click();await combinedRow.getByRole('searchbox',{name:'Search message fields'}).fill(name);
+   await combinedRow.getByRole('button',{name,exact:true}).click();
+  }
+  check(await combined.locator('.alarmmanagerMessageChip').count()===9,'All additional Cacti context fields insert as chips');
   const sentence='Device {{device.id}} with description {{device.description}} went down at {{event.occurred_at}}';
   await combined.fill(sentence);
   const combinedMapping=JSON.parse(await page.locator('[name=mapping_json]').inputValue());

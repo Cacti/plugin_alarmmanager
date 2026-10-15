@@ -23,6 +23,7 @@
 */
 require_once(__DIR__ . '/runtime.php');
 require_once(__DIR__ . '/events.php');
+require_once(__DIR__ . '/../integrations/producer_bridge.php');
 function alarmmanager_device_grant_validate(array $grant): array {
 	$keys = ['device_id', 'deployment_uuid', 'poller_id', 'epoch', 'owner', 'mode', 'profile_id', 'channels', 'valid_from', 'valid_until', 'last_sequence', 'seed_event', 'last_episode', 'last_transition'];
 	alarmmanager_event_keys($grant, $keys);
@@ -138,7 +139,7 @@ function alarmmanager_device_persist(array $grant, array $host, string $kind, bo
 	$event = alarmmanager_validate_event(['event_id' => $id, 'source' => 'cacti_device', 'source_instance' => $grant['deployment_uuid'], 'resource_id' => (string) $host['id'], 'alarm_key' => 'device:' . $host['id'],
 		'episode_id'                                    => $episode, 'sequence' => (int) $grant['epoch'] * 1000000000 + $sequence,
 		'transition'                                    => $kind, 'severity' => $kind === 'raised' ? 'major' : 'clear', 'occurred_at' => gmdate('Y-m-d\TH:i:s\Z', $times[$kind === 'raised' ? 'status_fail_date' : 'status_rec_date']),
-		'collector_id'                                  => alarmmanager_local_poller(), 'device' => ['id' => (int) $host['id'], 'hostname' => (string) $host['hostname'], 'description' => (string) $host['description'], 'location' => (string) ($host['snmp_sysLocation'] ?? ''), 'contact' => (string) ($host['snmp_sysContact'] ?? ''), 'sysname' => (string) ($host['snmp_sysName'] ?? ''), 'tags' => []],
+		'collector_id'                                  => alarmmanager_local_poller(), 'device' => array_replace(['id' => (int) $host['id'], 'hostname' => (string) $host['hostname'], 'description' => (string) $host['description'], 'location' => (string) ($host['snmp_sysLocation'] ?? ''), 'contact' => (string) ($host['snmp_sysContact'] ?? ''), 'sysname' => (string) ($host['snmp_sysName'] ?? ''), 'tags' => []], AlarmManagerProducerBridge::deviceDetails($host, alarmmanager_local_poller())),
 		'summary'                                       => $kind === 'raised' ? 'Device confirmed down' : 'Device confirmed recovered', 'context' => ['rule_type' => $grant['owner'] . '-device', 'ownership_epoch' => (int) $grant['epoch']] + ((int) $grant['profile_id'] > 0 ? ['routing_profile_id' => (int) $grant['profile_id']] : []) + ['source_notification_channels' => ['email', 'script']]]);
 	$result = alarmmanager_persist_event($event, $grant['mode'], alarmmanager_local_poller());
 	alarmmanager_db_write('UPDATE plugin_alarmmanager_device_owners SET last_sequence = ?, last_episode = ?, last_transition = ? WHERE device_id = ? AND epoch = ?', [$sequence, $episode, $kind, $host['id'], $grant['epoch']]);

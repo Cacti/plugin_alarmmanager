@@ -104,7 +104,7 @@ function alarmmanager_validate_event(array $event): array {
 	if (!is_array($device) || !is_array($context)) {
 		throw new InvalidArgumentException('Invalid device or context.');
 	}
-	alarmmanager_event_keys($device, ['id', 'hostname', 'description', 'location', 'contact', 'sysname', 'tags']);
+	alarmmanager_event_keys($device, ['id', 'hostname', 'description', 'location', 'contact', 'sysname', 'tags', 'cacti_location', 'collector_name', 'external_id', 'snmp_sysUpTimeInstance', 'uptime', 'status_fail_date', 'status_rec_date', 'status_last_error']);
 
 	if (isset($device['id']) && (!is_int($device['id']) || $device['id'] < 1)) {
 		throw new InvalidArgumentException('Invalid device ID.');
@@ -118,6 +118,13 @@ function alarmmanager_validate_event(array $event): array {
 		'sysname'     => alarmmanager_event_text($device['sysname'] ?? '', 255),
 		'tags'        => alarmmanager_event_tags($device['tags'] ?? [])
 	];
+	foreach (['cacti_location', 'collector_name', 'external_id', 'snmp_sysUpTimeInstance', 'uptime', 'status_fail_date', 'status_rec_date', 'status_last_error'] as $field) {
+		if (!array_key_exists($field, $device)) {
+			continue;
+		}
+		$value = alarmmanager_event_text($device[$field], $field === 'status_last_error' ? 2048 : 512);
+		$safe_device[$field] = in_array($field, ['status_fail_date', 'status_rec_date'], true) && $value !== '' ? alarmmanager_event_time($value) : $value;
+	}
 	alarmmanager_event_keys($context, ['rule_name', 'rule_type', 'metric', 'metric_value', 'threshold', 'source_suppressed', 'suppression_reason', 'source_notification_channels', 'routing_profile_id', 'ownership_epoch']);
 	$safe_context = [];
 

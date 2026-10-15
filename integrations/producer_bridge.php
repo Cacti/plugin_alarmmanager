@@ -78,6 +78,26 @@ if (!class_exists('AlarmManagerProducerBridge', false)) {
 
 			return $value;
 		}
+		/** Snapshot only safe device fields; retries reuse the saved event rather than refresh metadata. */
+		public static function deviceDetails(array $host, int $collector): array {
+			if (!empty($host['id'])) {
+				$host += self::row('SELECT location, external_id, snmp_sysLocation, snmp_sysContact, snmp_sysName, snmp_sysUpTimeInstance, status_fail_date, status_rec_date, status_last_error FROM host WHERE id = ?', [(int) $host['id']]);
+			}
+			$name = self::row('SELECT name FROM poller WHERE id = ?', [$collector]);
+			$fields = ['collector_name' => (string) ($name['name'] ?? '')];
+			foreach (['cacti_location' => 'location', 'location' => 'snmp_sysLocation', 'contact' => 'snmp_sysContact', 'sysname' => 'snmp_sysName', 'external_id' => 'external_id', 'status_last_error' => 'status_last_error', 'snmp_sysUpTimeInstance' => 'snmp_sysUpTimeInstance'] as $key => $column) {
+				$fields[$key] = self::text((string) ($host[$column] ?? ''), $key === 'status_last_error' ? 2048 : 512);
+			}
+			$ticks = (int) ($host['snmp_sysUpTimeInstance'] ?? 0);
+			$seconds = intdiv(max(0, $ticks), 100);
+			$fields['uptime'] = $ticks > 0 ? sprintf('%dd %dh %dm %ds', intdiv($seconds, 86400), intdiv($seconds % 86400, 3600), intdiv($seconds % 3600, 60), $seconds % 60) : '';
+			foreach (['status_fail_date', 'status_rec_date'] as $column) {
+				$value = $host[$column] ?? 0;
+				$epoch = is_int($value) || ctype_digit((string) $value) ? (int) $value : (int) (self::row('SELECT UNIX_TIMESTAMP(?) AS epoch', [(string) $value])['epoch'] ?? 0);
+				$fields[$column] = $epoch > 0 ? gmdate('Y-m-d\TH:i:s\Z', $epoch) : '';
+			}
+			return $fields;
+		}
 		public static function owns(array $decision, string $channel): bool {
 			return ($decision['owned'] ?? false) === true && in_array($channel, $decision['channels'] ?? [], true);
 		}
@@ -261,7 +281,7 @@ if (!class_exists('AlarmManagerProducerBridge', false)) {
 						'resource_id'          => (string) $resource, 'alarm_key' => $source . ':' . $resource . ':' . ($input['stream_suffix'] ?? ''),
 						'episode_id'           => $episode, 'sequence' => $sequence, 'transition' => $kind, 'severity' => $input['severity'],
 						'occurred_at'          => $input['occurred_at'], 'collector_id' => (int) ($config['poller_id'] ?? 1),
-						'device'               => $input['device'], 'summary' => self::text($input['summary'], 512), 'details' => self::text($input['details'] ?? '', 16384),
+						'device'               => array_replace($input['device'], self::deviceDetails(array_intersect_key($input['device'], ['id' => true]), (int) ($config['poller_id'] ?? 1))), 'summary' => self::text($input['summary'], 512), 'details' => self::text($input['details'] ?? '', 16384),
 						'context'              => ['rule_name' => self::text($input['rule_name'] ?? $input['summary'], 512), 'rule_type' => $input['rule_type'] ?? $source,
 							'source_suppressed'                   => $input['suppressed'] ?? false, 'suppression_reason' => $input['suppression_reason'] ?? '', 'source_notification_channels' => $settings['channels']]];
 

@@ -29,8 +29,8 @@ const ALARMMANAGER_TABS = ['dashboard', 'conditions', 'events', 'deliveries', 'a
 function alarmmanager_web_assets(): void {
 	global $config;
 
-	print '<link rel="stylesheet" href="' . html_escape($config['url_path'] . 'plugins/alarmmanager/css/dashboard.css' . '?v=0.10.2-message-chips') . '">';
-	print '<script src="' . html_escape($config['url_path'] . 'plugins/alarmmanager/js/dashboard.js' . '?v=0.10.2-message-chips') . '" defer></script>';
+	print '<link rel="stylesheet" href="' . html_escape($config['url_path'] . 'plugins/alarmmanager/css/dashboard.css' . '?v=0.10.3-device-context') . '">';
+	print '<script src="' . html_escape($config['url_path'] . 'plugins/alarmmanager/js/dashboard.js' . '?v=0.10.3-device-context') . '" defer></script>';
 }
 /**
  * Filters validated both by the Cacti request-var machinery (persistence in

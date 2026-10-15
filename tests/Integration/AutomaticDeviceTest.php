@@ -22,7 +22,11 @@ final class AutomaticDeviceTest extends AlarmManagerTestCase {
 			$db->exec('CREATE TABLE plugin_config (directory VARCHAR(64) PRIMARY KEY, version VARCHAR(32), status INT)');
 			$db->exec("INSERT INTO plugin_config VALUES ('alarmmanager','0.10.0',1)");
 			$db->exec("CREATE TABLE host (id INT PRIMARY KEY,poller_id INT,status INT,deleted VARCHAR(2) DEFAULT '',status_fail_date DATETIME NULL,status_rec_date DATETIME NULL)");
+
+			require_once __DIR__ . '/../fixtures/device_metadata_schema.php';
+			alarmmanager_test_device_metadata_schema($db);
 			$db->exec('INSERT INTO host (id,poller_id,status) VALUES (42,1,3)');
+			$db->exec("UPDATE host SET location = 'Rack 7', snmp_sysLocation = 'SNMP room', external_id = 'ASSET-42', snmp_sysUpTimeInstance = 9006100, status_last_error = 'SNMP timeout' WHERE id = 42");
 			$this->assertTrue(plugin_alarmmanager_install());
 			$routes = ['version' => 1, 'endpoints' => [
 				['id' => 1, 'name' => 'First endpoint', 'type' => 'restapi', 'transport' => ['url' => 'https://first.example.test']],
@@ -34,6 +38,13 @@ final class AutomaticDeviceTest extends AlarmManagerTestCase {
 			$host = ['id' => 42, 'status' => 1, 'hostname' => 'fixture.example', 'description' => 'Fixture', 'status_fail_date' => $fail, 'status_rec_date' => 0];
 			$write = static fn (): bool => db_execute_prepared('UPDATE host SET status = ?, status_fail_date = FROM_UNIXTIME(?), status_rec_date = FROM_UNIXTIME(?) WHERE id = ?', [$host['status'], $host['status_fail_date'], $host['status_rec_date'], $host['id']]);
 			$this->assertTrue(alarmmanager_device_core_commit($host, 3, $write), 'No enrollment is required to capture a confirmed down transition: ' . json_encode($GLOBALS['alarmmanager_test_log'] ?? []));
+			$captured = json_decode((string) db_fetch_cell_prepared('SELECT payload FROM plugin_alarmmanager_events ORDER BY id LIMIT 1'), true);
+			$this->assertSame('Rack 7', $captured['device']['cacti_location']);
+			$this->assertSame('SNMP room', $captured['device']['location']);
+			$this->assertSame('Main collector', $captured['device']['collector_name']);
+			$this->assertSame('1d 1h 1m 1s', $captured['device']['uptime']);
+			$this->assertSame('SNMP timeout', $captured['device']['status_last_error']);
+			$this->assertSame(gmdate('Y-m-d\TH:i:s', $fail) . '.000000Z', $captured['device']['status_fail_date']);
 			$this->assertFalse(alarmmanager_device_core_commit($host, 3, $write), 'Concurrent duplicate transition is rejected');
 			$event = json_decode((string) db_fetch_cell_prepared('SELECT payload FROM plugin_alarmmanager_events LIMIT 1'), true);
 			$this->assertArrayNotHasKey('routing_profile_id', $event['context']);

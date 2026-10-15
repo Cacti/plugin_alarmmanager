@@ -23,6 +23,23 @@
 */
 
 final class ContractTest extends AlarmManagerTestCase {
+	public function testDeviceContextIsBoundedAndAvailableToTemplates(): void {
+		self::alarmmanager_test_load('includes/mapping.php');
+		self::alarmmanager_test_load('integrations/producer_bridge.php');
+		$fields = AlarmManagerProducerBridge::deviceDetails(['location' => 'Rack 7', 'external_id' => 'ASSET-42', 'snmp_sysUpTimeInstance' => 9006100, 'status_fail_date' => 1791979200, 'status_rec_date' => 0, 'status_last_error' => 'SNMP timeout'], 2);
+		$this->assertSame('1d 1h 1m 1s', $fields['uptime']);
+		$this->assertSame('9006100', $fields['snmp_sysUpTimeInstance']);
+		$this->assertSame('', $fields['status_rec_date']);
+		$this->assertSame('Rack 7', $fields['cacti_location']);
+		$event = $this->sampleEvent();
+		$event['device'] += $fields;
+		$event['device']['collector_name'] = 'Remote collector';
+		$event = alarmmanager_validate_event($event);
+		$payload = alarmmanager_map_payload(['default' => [['to' => 'text', 'template' => '{{device.cacti_location}} | {{device.collector_name}} | {{device.uptime}} | {{device.external_id}} | {{device.status_last_error}} | {{device.status_fail_date}} | {{device.status_rec_date}}']]], $event);
+		$this->assertSame('Rack 7 | Remote collector | 1d 1h 1m 1s | ASSET-42 | SNMP timeout | ' . alarmmanager_event_time($fields['status_fail_date']) . ' | ', $payload->text);
+		$this->assertSame('', AlarmManagerProducerBridge::deviceDetails([], 1)['uptime']);
+	}
+
 	/**
 	 * @return array<string, mixed>
 	 */
