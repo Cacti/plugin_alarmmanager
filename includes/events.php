@@ -104,7 +104,7 @@ function alarmmanager_validate_event(array $event): array {
 	if (!is_array($device) || !is_array($context)) {
 		throw new InvalidArgumentException('Invalid device or context.');
 	}
-	alarmmanager_event_keys($device, ['id', 'hostname', 'description', 'tags']);
+	alarmmanager_event_keys($device, ['id', 'hostname', 'description', 'location', 'contact', 'sysname', 'tags']);
 
 	if (isset($device['id']) && (!is_int($device['id']) || $device['id'] < 1)) {
 		throw new InvalidArgumentException('Invalid device ID.');
@@ -113,6 +113,9 @@ function alarmmanager_validate_event(array $event): array {
 		'id'          => $device['id'] ?? null,
 		'hostname'    => alarmmanager_event_text($device['hostname'] ?? '', 255),
 		'description' => alarmmanager_event_text($device['description'] ?? '', 512),
+		'location'    => alarmmanager_event_text($device['location'] ?? '', 512),
+		'contact'     => alarmmanager_event_text($device['contact'] ?? '', 512),
+		'sysname'     => alarmmanager_event_text($device['sysname'] ?? '', 255),
 		'tags'        => alarmmanager_event_tags($device['tags'] ?? [])
 	];
 	alarmmanager_event_keys($context, ['rule_name', 'rule_type', 'metric', 'metric_value', 'threshold', 'source_suppressed', 'suppression_reason', 'source_notification_channels', 'routing_profile_id', 'ownership_epoch']);

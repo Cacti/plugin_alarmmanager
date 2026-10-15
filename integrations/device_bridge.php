@@ -34,7 +34,7 @@ function alarmmanager_device_bridge_core(array $safe, int $previous, callable $w
 }
 function alarmmanager_device_bridge_decision(array $host, string $kind): array {
 	global $config;
-	$safe = array_intersect_key($host, array_flip(['id', 'status', 'hostname', 'description', 'status_fail_date', 'status_rec_date']));
+	$safe = array_intersect_key($host, array_flip(['id', 'status', 'hostname', 'description', 'snmp_sysLocation', 'snmp_sysContact', 'snmp_sysName', 'status_fail_date', 'status_rec_date']));
 	$path = $config['base_path'] . '/plugins/alarmmanager/includes/device.php';
 
 	if (is_file($path)) {

@@ -68,6 +68,14 @@ final class IntegrationTemplateTest extends AlarmManagerTestCase {
 		foreach (['webhook', 'restapi', 'script'] as $key) {
 			$template  = alarmmanager_integration_templates()[$key];
 			$transport = alarmmanager_transport_configuration($template['type'], $template['transport']);
+			$payload = alarmmanager_map_payload($transport['mapping'], alarmmanager_validate_event($event));
+			$this->assertStringContainsString('Hostname: router.example.test', $payload->message);
+			$this->assertSame('', $payload->location);
+			$withLocation = $event;
+			$withLocation['device']['location'] = 'Toronto DC';
+			$payload = alarmmanager_map_payload($transport['mapping'], alarmmanager_validate_event($withLocation));
+			$this->assertSame('Toronto DC', $payload->location);
+			$this->assertStringContainsString('Location: Toronto DC', $payload->message);
 			$this->assertSame('CASE-42', alarmmanager_map_payload($transport['mapping'], $event, ['id' => 'CASE-42'])->external_id);
 			$event['transition'] = 'recovered';
 			$this->assertSame('recovered', alarmmanager_map_payload($transport['mapping'], $event)->state);
@@ -84,12 +92,23 @@ final class IntegrationTemplateTest extends AlarmManagerTestCase {
 		$slack = alarmmanager_transport_configuration('webhook', $templates['slack']['transport']);
 		$this->assertSame(['path' => 'ok', 'equals' => true], $slack['response_match']);
 		$this->assertSame('REPLACE-WITH-CHANNEL', alarmmanager_map_payload($slack['mapping'], $event)->channel);
-		$this->assertSame('Sample device down', alarmmanager_map_payload($slack['mapping'], $event)->text);
+		$event['device'] += ['location' => 'Toronto DC', 'contact' => 'Network team', 'sysname' => 'edge-01'];
+		$event = alarmmanager_validate_event($event);
+		$text = alarmmanager_map_payload($slack['mapping'], $event)->text;
+		foreach (['Sample device down', 'Hostname: router.example.test', 'Location: Toronto DC', 'Contact: Network team', 'System name: edge-01', 'State: raised'] as $value) {
+			$this->assertStringContainsString($value, $text);
+		}
+		$legacy = $this->sampleEvent();
+		$this->assertStringContainsString("Location: \nContact: ", alarmmanager_map_payload($slack['mapping'], $legacy)->text);
+		$event['transition'] = 'recovered';
+		$this->assertStringContainsString('State: recovered', alarmmanager_map_payload($slack['mapping'], $event)->text);
+		$event['transition'] = 'raised';
 
+		$event = $this->sampleEvent();
 		$telegram = alarmmanager_transport_configuration('webhook', $templates['telegram']['transport']);
 		$this->assertSame(['path' => 'ok', 'equals' => true], $telegram['response_match']);
 		$this->assertSame('REPLACE-WITH-CHAT-ID', alarmmanager_map_payload($telegram['mapping'], $event)->chat_id);
-		$this->assertSame('Sample device down', alarmmanager_map_payload($telegram['mapping'], $event)->text);
+		$this->assertStringContainsString('Hostname: router.example.test', alarmmanager_map_payload($telegram['mapping'], $event)->text);
 
 		$pagerduty = alarmmanager_transport_configuration('webhook', $templates['pagerduty']['transport']);
 		$this->assertSame(['path' => 'status', 'equals' => 'ok'], $pagerduty['response_match']);

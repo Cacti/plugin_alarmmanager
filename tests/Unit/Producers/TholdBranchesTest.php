@@ -109,7 +109,7 @@ final class TholdBranchesTest extends AlarmManagerTestCase {
 		$this->assertSame(1, count(AlarmManagerProducerBridge::$calls), 'one submission per branch');
 		$input = AlarmManagerProducerBridge::$calls[0]['input'];
 		$this->assertTrue($input['transition'] === 'raised' && $input['severity'] === 'major', 'normalized alert');
-		$this->assertSame(['hostname', 'description', 'tags', 'id'], array_keys($input['device']), 'safe device allowlist');
+		$this->assertSame(['hostname', 'description', 'location', 'contact', 'sysname', 'tags', 'id'], array_keys($input['device']), 'safe device allowlist');
 	}
 
 	public function testUnselectedChannelRetainsSourceMail(): void {

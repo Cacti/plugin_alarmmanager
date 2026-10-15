@@ -23,6 +23,10 @@
 */
 require_once(__DIR__ . '/routing.php');
 
+function alarmmanager_message_template(): string {
+	return "{{alarm.summary}}\nHostname: {{device.hostname}}\nDescription: {{device.description}}\nLocation: {{device.location}}\nContact: {{device.contact}}\nSystem name: {{device.sysname}}\nSeverity: {{alarm.severity}}\nState: {{alarm.transition}}\nTime: {{event.occurred_at}}";
+}
+
 /**
  * Templates create disabled drafts only; no endpoint IDs or credentials are copied.
  * The 'auth' and 'hint' keys steer the editor preselect and guidance only and never persist.
@@ -33,6 +37,12 @@ function alarmmanager_integration_templates(): array {
 		['to' => 'event_id', 'source' => 'event.id', 'required' => true],
 		['to' => 'episode_id', 'source' => 'alarm.episode_id', 'required' => true],
 		['to' => 'hostname', 'source' => 'device.hostname'],
+		['to' => 'description', 'source' => 'device.description'],
+		['to' => 'location', 'source' => 'device.location'],
+		['to' => 'contact', 'source' => 'device.contact'],
+		['to' => 'sysname', 'source' => 'device.sysname'],
+		['to' => 'occurred_at', 'source' => 'event.occurred_at'],
+		['to' => 'message', 'template' => alarmmanager_message_template(), 'type' => 'string'],
 		['to' => 'summary', 'source' => 'alarm.summary'],
 		['to' => 'details', 'source' => 'alarm.details'],
 		['to' => 'severity', 'source' => 'alarm.severity'],
@@ -61,13 +71,13 @@ function alarmmanager_integration_templates(): array {
 			'hint'              => 'Enter the bot token under Authentication and replace the channel constant before enabling the endpoint.',
 			'transport'         => ['url' => 'https://slack.com/api/chat.postMessage', 'method' => 'POST', 'credential' => true, 'response_match' => ['path' => 'ok', 'equals' => true], 'mapping' => ['default' => [
 				['to' => 'channel', 'constant' => 'REPLACE-WITH-CHANNEL', 'type' => 'string', 'required' => true],
-				['to' => 'text', 'source' => 'alarm.summary', 'type' => 'string', 'required' => true]
+				['to' => 'text', 'template' => alarmmanager_message_template(), 'type' => 'string', 'required' => true]
 			]]]],
 		'telegram' => ['name' => 'Telegram bot', 'type' => 'webhook',
 			'hint'               => 'Replace the bot token in the URL and the chat ID constant before enabling; no credential record is used.',
 			'transport'          => ['url' => 'https://api.telegram.org/botREPLACE-WITH-TOKEN/sendMessage', 'method' => 'POST', 'credential' => false, 'response_match' => ['path' => 'ok', 'equals' => true], 'mapping' => ['default' => [
 				['to' => 'chat_id', 'constant' => 'REPLACE-WITH-CHAT-ID', 'type' => 'string', 'required' => true],
-				['to' => 'text', 'source' => 'alarm.summary', 'type' => 'string', 'required' => true]
+				['to' => 'text', 'template' => alarmmanager_message_template(), 'type' => 'string', 'required' => true]
 			]]]],
 		'pagerduty' => ['name' => 'PagerDuty Events v2', 'type' => 'webhook',
 			'hint'                => 'Replace the integration key constant before enabling; no credential record is used.',

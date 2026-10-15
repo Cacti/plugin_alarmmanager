@@ -31,7 +31,7 @@ function alarmmanager_thold_begin(array $data, array $host, string $class, strin
 	$recovery = in_array($class, ['warn2normal', 'alert2normal', 'blnormal'], true);
 	$severity = $recovery ? 'clear' : (in_array($class, ['warn', 'alert2warn'], true) ? 'warning' : 'major');
 	$identity = hash('sha256', json_encode([$sample, $class, $data['thold_fail_count'] ?? 0, $data['thold_warning_fail_count'] ?? 0, $data['bl_fail_count'] ?? 0], JSON_THROW_ON_ERROR));
-	$device   = ['hostname' => (string) ($host['hostname'] ?? ''), 'description' => (string) ($host['description'] ?? ''), 'tags' => []];
+	$device   = ['hostname' => (string) ($host['hostname'] ?? ''), 'description' => (string) ($host['description'] ?? ''), 'location' => (string) ($host['snmp_sysLocation'] ?? ''), 'contact' => (string) ($host['snmp_sysContact'] ?? ''), 'sysname' => (string) ($host['snmp_sysName'] ?? ''), 'tags' => []];
 
 	if ((int) ($data['host_id'] ?? 0) > 0) {
 		$device['id'] = (int) $data['host_id'];

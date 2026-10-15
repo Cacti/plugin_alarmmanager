@@ -68,7 +68,7 @@ function alarmmanager_endpoint_editor(array $endpoint, int $revision, bool $new 
 		print '<label class="alarmmanagerFullWidth alarmmanagerServiceNowType" data-endpoint-types="restapi webhook">' . __esc('ServiceNow record type', 'alarmmanager') . ' <select name="servicenow_table" style="width:100%" data-servicenow-presets="' . html_escape(json_encode($presets, JSON_THROW_ON_ERROR)) . '"><option value="incident" ' . (!$events ? 'selected' : '') . '>' . __esc('Incident', 'alarmmanager') . '</option><option value="em_event" ' . ($events ? 'selected' : '') . '>' . __esc('Event', 'alarmmanager') . '</option></select></label>';
 		print '<p class="alarmmanagerFullWidth">' . __esc('Changing the record type replaces the destination table, message fields and recovery settings with its defaults. Your instance and credentials are retained.', 'alarmmanager') . '</p>';
 	}
-	$mapping   = $transport['mapping'] ?? ($new ? ['default' => [['to' => 'hostname', 'source' => 'device.hostname'], ['to' => 'summary', 'source' => 'alarm.summary'], ['to' => 'severity', 'source' => 'alarm.severity'], ['to' => 'state', 'source' => 'alarm.transition']]] : ['default' => []]);
+	$mapping   = $transport['mapping'] ?? ($new ? alarmmanager_integration_templates()['webhook']['transport']['mapping'] : ['default' => []]);
 	unset($transport['mapping']);
 
 	if ($new && isset($endpoint['hint'])) {
@@ -94,7 +94,7 @@ function alarmmanager_endpoint_editor(array $endpoint, int $revision, bool $new 
 	print '</div>';
 	print '<p>' . __esc('JSON output is sent to the script on standard input.', 'alarmmanager') . '</p><p>' . __esc('The executable must exist and be executable by the worker on every delivering poller. Arguments are passed directly without a shell.', 'alarmmanager') . '</p></fieldset>';
 	print '<p class="alarmmanagerFullWidth" data-endpoint-types="websocket">' . __esc('WebSocket delivery is not implemented.', 'alarmmanager') . '</p>';
-	print '<fieldset class="alarmmanagerFullWidth alarmmanagerMapping"><legend>' . __esc('Message fields', 'alarmmanager') . '</legend><p>' . __esc('Choose the alarm information to send. Email uses Subject and Message; API destinations use the field names required by the receiving service.', 'alarmmanager') . '</p><div class="alarmmanagerMappingBuilder"></div>';
+	print '<fieldset class="alarmmanagerFullWidth alarmmanagerMapping" data-message-template="' . html_escape(alarmmanager_message_template()) . '"><legend>' . __esc('Message fields', 'alarmmanager') . '</legend><p>' . __esc('Choose the alarm information to send to any service. Use Combined text to arrange device details, or Use device message to start with a complete message. Email uses Subject and Message; API destinations use the field names required by the receiving service.', 'alarmmanager') . '</p><div class="alarmmanagerMappingBuilder"></div>';
 	print '<details class="alarmmanagerRawMapping"><summary>' . __esc('Advanced message configuration', 'alarmmanager') . '</summary>';
 	alarmmanager_textarea('mapping_json', 'Message configuration JSON', alarmmanager_json_text($mapping));
 

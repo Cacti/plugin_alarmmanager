@@ -31,8 +31,8 @@ function alarmmanager_mapping_fields(array $event, array $reference = []): array
 		$fields[$name] = $event[$key] ?? null;
 	}
 
-	foreach (['id', 'hostname', 'description', 'tags'] as $key) {
-		$fields['device.' . $key] = $event['device'][$key] ?? null;
+	foreach (['id', 'hostname', 'description', 'tags', 'location', 'contact', 'sysname'] as $key) {
+		$fields['device.' . $key] = $event['device'][$key] ?? (in_array($key, ['location', 'contact', 'sysname'], true) ? '' : null);
 	}
 
 	foreach (['rule_name', 'rule_type', 'metric', 'metric_value', 'threshold', 'suppression_reason', 'source_suppressed', 'source_notification_channels', 'ownership_epoch'] as $key) {
