@@ -4,7 +4,7 @@ Cacti plugin under development for reusable webhook/REST and script notification
 
 **Project direction (2026-10-14):** provide functionality inspired by Zabbix media types, custom alert scripts and webhooks: configurable integrations, transition-specific payloads, preview/test sends and independent queued delivery. Email is outside the target scope because Cacti already supports it. The integration workflow is implemented locally; the current build retains the existing email adapter and email handoff logic. Email removal is deferred.
 
-**Current state:** development build 0.10.0. Reusable integration templates and validated per-episode external ticket/message references are implemented. Durable ingestion feeds ordered episode/state processing, routing and independent destination queues. Bounded workers deliver through REST API, webhook, Cacti email and controlled scripts. Endpoint-specific mappings and authenticated encrypted credentials support setup-key backup/rotation and explicit local-poller provisioning. Cacti pages provide a syslog-style operational dashboard, permission-scoped logs and protected configuration/credential/test/replay actions. Opt-in thold/syslog producer integrations and remote collector reconciliation ship as bridge code under `integrations/`; the corresponding code changes are implemented directly in the source plugins, not shipped as patches from this repository. WebSocket delivery and outage policies (spec phase 9) and the release package (spec phase 10) are not built. Do not hand off production notification ownership before qualification is complete.
+**Current state:** development build 0.10.0. Reusable integration templates and validated per-episode external ticket/message references are implemented. Durable ingestion feeds ordered episode/state processing, routing and independent destination queues. Bounded workers deliver through REST API, webhook, Cacti email and controlled scripts. Endpoint-specific mappings and authenticated encrypted credentials support setup-key backup/rotation and explicit local-poller provisioning. Cacti pages provide a syslog-style operational dashboard, permission-scoped logs and protected configuration/credential/test/replay actions. Source plugins such as thold and syslog own alert detection and event mapping, and submit event envelopes through the registered `alarmmanager_submit` hook. Generic producer and device bridge code remains under `integrations/`; source-specific adapters belong in their respective plugin codebases. WebSocket delivery and outage policies (spec phase 9) and the release package (spec phase 10) are not built. Do not hand off production notification ownership before qualification is complete.
 
 Primary source target: pinned Cacti 1.2.x with 1.2.32 version metadata; PHP >=8.2 with OpenSSL. Initial local checks use PHP 8.3.6. This build requires MariaDB >=10.11/InnoDB; MySQL is refused pending qualification. CLI workers require pcntl and posix; HTTP needs cURL; email/scripts require Linux /usr/bin/setsid. Cacti supplies its own local PHPMailer.
 
@@ -29,6 +29,23 @@ Select **ServiceNow** in the template picker, then choose **Incident** or **Even
 A preset that still contains a placeholder is a hint to edit it: unresolved placeholders make the endpoint draft appear with its example values until you replace them. Delivery failures from provider-specific bodies (`ok: false`, missing routing keys, missing incident references) are recorded per delivery with reason codes; the endpoint remains configurable and testable through the preview/test sends before it is enabled.
 
 For any message field, choose **Combined text** and mix literal text with variables using **Insert field**, for example `Device {{device.id}} with description {{device.description}} went down at {{event.occurred_at}}`. Search for a field by its friendly name to insert a chip at the cursor. Select a chip and press Delete or Backspace to remove it. The sample preview uses example values, not live device data. Existing template syntax remains available under **Template syntax**. This works for API/webhook fields, email subjects/messages and script payloads, including per-state mappings. `event.occurred_at` is the current event time, not a calculated downtime duration. Only listed variables are accepted; a missing variable uses the field's configured fallback (or yields null, failing delivery if required), and list/object values cannot be embedded in text. Custom values remain literal.
+
+## Submitting alarms from another Cacti plugin
+
+Alarm submission uses Cacti's in-process `alarmmanager_submit` plugin hook. There is no inbound HTTP API, API token or HTTP client. Outbound REST/webhook destinations are notification transports.
+
+The source plugin builds the event using the fields in [examples/event.json](examples/event.json), with stable event/episode IDs and increasing sequence numbers, then submits it after its own database transaction has finished:
+
+```php
+$result = api_plugin_hook_function('alarmmanager_submit', [
+    'contract_version' => 1,
+    'mode' => 'centralized',
+    'status' => 'unhandled',
+    'event' => $event,
+]);
+```
+
+`accepted` and `already_accepted` mean the event is durably stored; delivery happens through Alarm Manager's queues and configured routing. `unhandled` or `failed` means the caller must handle submission failure. Retry the same event with its original identity. `observe` mode records events without taking over notification delivery. Detection and source-specific event mapping belong to the calling plugin. The generic producer bridge is optional and manages local producer receipts for notification ownership and retries.
 
 ## Local verification
 

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Alarm Manager 0.10.0\n"
 "Report-Msgid-Bugs-To: https://github.com/bmfmancini/plugin_alarmmanager/issues\n"
-"POT-Creation-Date: 2026-10-14 17:59-0400\n"
+"POT-Creation-Date: 2026-10-14 22:17-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alarm Manager Developers <https://github.com/bmfmancini/plugin_alarmmanager>\n"
 "Language-Team: Alarm Manager Developers <https://github.com/bmfmancini/plugin_alarmmanager>\n"
@@ -21,7 +21,7 @@ msgstr ""
 msgid "The administration action succeeded."
 msgstr ""
 
-#: alarmmanager_admin.php:90
+#: alarmmanager_admin.php:69
 msgid "Administration unavailable or permission denied."
 msgstr ""
 
@@ -78,7 +78,7 @@ msgid "WebSocket delivery is not implemented."
 msgstr ""
 
 #: includes/admin_view.php:97
-msgid "Choose the alarm information to send. Email uses Subject and Message; API destinations use the field names required by the receiving service."
+msgid "Choose the alarm information to send to any service. Use Combined text to arrange device details, or Use device message to start with a complete message. Email uses Subject and Message; API destinations use the field names required by the receiving service."
 msgstr ""
 
 #: includes/admin_view.php:97
@@ -134,7 +134,7 @@ msgid "Delete this endpoint, its delivery settings and saved credentials"
 msgstr ""
 
 #: includes/admin_view.php:130
-msgid "Disable this endpoint before deleting it. Endpoints used by routing profiles or delivery history must be retained."
+msgid "Deleting stops future delivery and removes the saved settings and credentials. Remove routing-profile references and resolve queued or running deliveries first. Completed and failed delivery history is preserved."
 msgstr ""
 
 #: includes/admin_view.php:138
@@ -145,312 +145,252 @@ msgstr ""
 msgid "Local configuration revision"
 msgstr ""
 
-#: includes/admin_view.php:149
+#: includes/admin_view.php:147
 msgid "Create an integration, configure its destination and credentials, preview and test a sample alarm, then select it in a routing profile."
 msgstr ""
 
-#: includes/admin_view.php:150
+#: includes/admin_view.php:148
 msgid "Blank endpoint"
 msgstr ""
 
-#: includes/admin_view.php:150
+#: includes/admin_view.php:148
 msgid "Start a new integration from a template"
 msgstr ""
 
-#: includes/admin_view.php:158
+#: includes/admin_view.php:156
 msgid "servicenow"
 msgstr ""
 
-#: includes/admin_view.php:160
+#: includes/admin_view.php:158
 msgid "Prepare new integration"
 msgstr ""
 
-#: includes/admin_view.php:160
+#: includes/admin_view.php:158
 msgid "Templates fill a new disabled draft only. Replace the example destination or executable before saving; existing endpoints and credentials are preserved."
 msgstr ""
 
-#: includes/admin_view.php:172
+#: includes/admin_view.php:170
 msgid "profiles"
 msgstr ""
 
-#: includes/admin_view.php:178
+#: includes/admin_view.php:176
 msgid "Destinations (select multiple)"
 msgstr ""
 
-#: includes/admin_view.php:185
+#: includes/admin_view.php:183
 msgid "Profile"
 msgstr ""
 
-#: includes/admin_view.php:193
+#: includes/admin_view.php:191
 msgid "Save"
 msgstr ""
 
-#: includes/admin_view.php:197
+#: includes/admin_view.php:195
 msgid "Credential values are never loaded into this page. Saving replaces the endpoint record; blank values do not preserve an old password. Use the CLI for protected backup/restore and poller provisioning."
 msgstr ""
 
-#: includes/admin_view.php:200
+#: includes/admin_view.php:198
 msgid "Create endpoint"
 msgstr ""
 
-#: includes/admin_view.php:200
+#: includes/admin_view.php:198
 msgid "No REST API or webhook endpoints have been saved. Create an endpoint to enter its bearer token, Basic authentication username and password, or API-key headers."
 msgstr ""
 
-#: includes/admin_view.php:204
+#: includes/admin_view.php:202
 msgid "Configured"
 msgstr ""
 
-#: includes/admin_view.php:207
+#: includes/admin_view.php:205
 msgid "Replace credential"
 msgstr ""
 
-#: includes/admin_view.php:213
+#: includes/admin_view.php:211
 msgid "Rotate local key"
 msgstr ""
 
-#: includes/admin_view.php:219
+#: includes/admin_view.php:217
 msgid "View delivery results"
 msgstr ""
 
 #: includes/admin_view.php:223
+msgid "Enable and save the endpoint before sending a test. Preview is also available for disabled endpoints and sends no traffic."
+msgstr ""
+
+#: includes/admin_view.php:225
 msgid "Endpoint"
 msgstr ""
 
-#: includes/admin_view.php:237
+#: includes/admin_view.php:228
+msgid " (disabled)"
+msgstr ""
+
+#: includes/admin_view.php:239
 msgid "Apply configuration"
 msgstr ""
 
-#: includes/admin_view.php:237
+#: includes/admin_view.php:239
 msgid "Removed IDs are disabled, preserving history. Concurrent edits reject stale revisions. Provision each remote poller explicitly."
 msgstr ""
 
-#: includes/admin_view.php:241
+#: includes/admin_view.php:243
 msgid "Daemon"
 msgstr ""
 
-#: includes/admin_view.php:241
+#: includes/admin_view.php:243
 msgid "Running"
 msgstr ""
 
-#: includes/admin_view.php:241
+#: includes/admin_view.php:243
 msgid "Supervisor"
 msgstr ""
 
-#: includes/admin_view.php:244
+#: includes/admin_view.php:246
 msgid "Active delivery workers"
 msgstr ""
 
-#: includes/admin_view.php:244
+#: includes/admin_view.php:246
 msgid "Active processing workers"
 msgstr ""
 
-#: includes/admin_view.php:246
+#: includes/admin_view.php:248
 msgid "Install and start the Alarm Manager service on this collector before enabling daemon workers."
 msgstr ""
 
-#: includes/admin_view.php:252
+#: includes/admin_view.php:254
 msgid "Changes apply automatically within a few seconds. Disabling the daemon lets current jobs finish and returns processing to the Cacti poller."
 msgstr ""
 
-#: includes/admin_view.php:252
+#: includes/admin_view.php:254
 msgid "Save daemon settings"
 msgstr ""
 
-#: includes/admin_view.php:256
+#: includes/admin_view.php:258
 msgid "Local queue health"
 msgstr ""
 
-#: includes/admin_view.php:257
+#: includes/admin_view.php:259
 msgid "Jobs"
 msgstr ""
 
-#: includes/admin_view.php:257
+#: includes/admin_view.php:259
 msgid "Oldest job age (seconds)"
 msgstr ""
 
-#: includes/admin_view.php:257
+#: includes/admin_view.php:259
 msgid "Queue"
 msgstr ""
 
-#: includes/admin_view.php:257
+#: includes/admin_view.php:259
 msgid "Retries"
 msgstr ""
 
-#: includes/admin_view.php:257 includes/admin_view.php:276
+#: includes/admin_view.php:259 includes/admin_view.php:278
 msgid "Status"
 msgstr ""
 
-#: includes/admin_view.php:272
+#: includes/admin_view.php:274
 msgid "No queue activity recorded."
 msgstr ""
 
-#: includes/admin_view.php:275
+#: includes/admin_view.php:277
 msgid "Local worker health"
 msgstr ""
 
-#: includes/admin_view.php:276
+#: includes/admin_view.php:278
 msgid "Current job"
 msgstr ""
 
-#: includes/admin_view.php:276
+#: includes/admin_view.php:278
 msgid "Heartbeat age (seconds)"
 msgstr ""
 
-#: includes/admin_view.php:276
+#: includes/admin_view.php:278
 msgid "PID"
 msgstr ""
 
-#: includes/admin_view.php:276
+#: includes/admin_view.php:278
 msgid "Poller"
 msgstr ""
 
-#: includes/admin_view.php:276
+#: includes/admin_view.php:278
 msgid "Role"
 msgstr ""
 
-#: includes/admin_view.php:276
+#: includes/admin_view.php:278
 msgid "Worker"
 msgstr ""
 
-#: includes/admin_view.php:291
+#: includes/admin_view.php:293
 msgid "No local worker heartbeats recorded."
 msgstr ""
 
-#: includes/admin_view.php:294
+#: includes/admin_view.php:296
 msgid "Completed delivery jobs in the last 300 seconds"
 msgstr ""
 
-#: includes/admin_view.php:294
+#: includes/admin_view.php:296
 msgid "Completed processing jobs in the last 300 seconds"
 msgstr ""
 
-#: includes/admin_view.php:294
+#: includes/admin_view.php:296
 msgid "Processing streams blocked behind a failed predecessor"
 msgstr ""
 
-#: includes/admin_view.php:297
+#: includes/admin_view.php:299
 msgid "Pending jobs for destination types without a qualified transport"
 msgstr ""
 
-#: includes/admin_view.php:304
+#: includes/admin_view.php:306
 msgid "Failed deliveries and replay"
 msgstr ""
 
-#: includes/admin_view.php:304
+#: includes/admin_view.php:306
 msgid "Failed processing jobs and replay"
 msgstr ""
 
-#: includes/admin_view.php:309
+#: includes/admin_view.php:311
 msgid "Collectors and remote history"
 msgstr ""
 
-#: includes/admin_view.php:309
+#: includes/admin_view.php:311
 msgid "Each collector owns its local delivery. Imported history records the original events and outcomes. Collector history does not create central delivery jobs."
 msgstr ""
 
-#: includes/admin_view.php:314 includes/admin_view.php:329
+#: includes/admin_view.php:316 includes/admin_view.php:331
 msgid "Collector"
 msgstr ""
 
-#: includes/admin_view.php:317
+#: includes/admin_view.php:319
 msgid "Device ownership grants (first 100)"
 msgstr ""
 
-#: includes/admin_view.php:320
+#: includes/admin_view.php:322
 msgid "Collector (0 selects all)"
 msgstr ""
 
-#: includes/admin_view.php:320
+#: includes/admin_view.php:322
 msgid "Record type"
 msgstr ""
 
-#: includes/admin_view.php:324
+#: includes/admin_view.php:326
 msgid "Filter"
 msgstr ""
 
-#: includes/admin_view.php:326
+#: includes/admin_view.php:328
 msgid "Latest 50 matching remote records; original IDs and delivery ownership are preserved."
 msgstr ""
 
-#: includes/admin_view.php:334
+#: includes/admin_view.php:336
 msgid "Authentication"
 msgstr ""
 
-#: includes/admin_view.php:334
+#: includes/admin_view.php:336
 msgid "Authentication type"
 msgstr ""
 
-#: includes/admin_view.php:354
+#: includes/admin_view.php:356
 msgid "Saved credentials are encrypted and never displayed. New values replace the saved credential record."
-msgstr ""
-
-#: includes/admin_view.php:363
-msgid "Any producer can submit standard JSON alarms to this API. Source-specific event translation and retry queues belong to the sending plugin."
-msgstr ""
-
-#: includes/admin_view.php:364
-msgid "API path"
-msgstr ""
-
-#: includes/admin_view.php:364
-msgid "Use HTTPS, or HTTP only from the same server over loopback."
-msgstr ""
-
-#: includes/admin_view.php:369
-msgid "New API token"
-msgstr ""
-
-#: includes/admin_view.php:369
-msgid "New API token — copy it now"
-msgstr ""
-
-#: includes/admin_view.php:369
-msgid "This token is shown once. Store it securely in the sending plugin. Rotating it invalidates the previous token."
-msgstr ""
-
-#: includes/admin_view.php:382
-msgid "New API client"
-msgstr ""
-
-#: includes/admin_view.php:389
-msgid "Notification ownership"
-msgstr ""
-
-#: includes/admin_view.php:394
-msgid "Matching rules (observe only)"
-msgstr ""
-
-#: includes/admin_view.php:394
-msgid "Routing profile"
-msgstr ""
-
-#: includes/admin_view.php:400
-msgid "Allowed devices"
-msgstr ""
-
-#: includes/admin_view.php:410
-msgid "Device not listed"
-msgstr ""
-
-#: includes/admin_view.php:418
-msgid "Last submission"
-msgstr ""
-
-#: includes/admin_view.php:418
-msgid "Never"
-msgstr ""
-
-#: includes/admin_view.php:420
-msgid "Prepare the destination endpoints and routing rules before selecting centralized ownership. Configure the same mode in the producer; uncertain submissions must remain queued for retry."
-msgstr ""
-
-#: includes/admin_view.php:420
-msgid "Save API client"
-msgstr ""
-
-#: includes/admin_view.php:425
-msgid "Existing legacy producer policies are preserved. Migrate each producer to the API before retiring its old notification handoff."
 msgstr ""
 
 #: includes/web_view.php:88

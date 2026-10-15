@@ -25,7 +25,7 @@ require_once(__DIR__ . '/../../include/auth.php');
 require_once(__DIR__ . '/includes/admin_view.php');
 header('Cache-Control: no-store');
 
-const ALARMMANAGER_SECTIONS = ['endpoints', 'profiles', 'clients', 'producers', 'collectors', 'rules', 'credentials', 'test', 'configuration', 'daemon', 'health'];
+const ALARMMANAGER_SECTIONS = ['endpoints', 'profiles', 'collectors', 'rules', 'credentials', 'test', 'configuration', 'daemon', 'health'];
 
 try {
 	if (!alarmmanager_web_admin()) {
@@ -54,7 +54,7 @@ try {
 			raise_message('alarmmanager_notice', __($message, 'alarmmanager'), MESSAGE_LEVEL_ERROR);
 		}
 		cacti_redirect(match ($post['action'] ?? '') {
-			'preview', 'test_send' => 'alarmmanager_admin.php?section=test', 'daemon_save' => 'alarmmanager_admin.php?section=daemon', 'api_client_save' => 'alarmmanager_admin.php?section=clients', default => 'alarmmanager_admin.php'
+			'preview', 'test_send' => 'alarmmanager_admin.php?section=test', 'daemon_save' => 'alarmmanager_admin.php?section=daemon', default => 'alarmmanager_admin.php'
 		});
 	}
 
@@ -64,10 +64,6 @@ try {
 
 	$state   = alarmmanager_admin_configuration();
 	$section = (string) get_filter_request_var('section', FILTER_CALLBACK, ['options' => static fn ($value) => in_array($value, ALARMMANAGER_SECTIONS, true) ? $value : false, 'default' => 'endpoints']);
-
-	if ($section === 'producers') {
-		$section = 'clients';
-	}
 } catch (Throwable $error) {
 	http_response_code($error instanceof InvalidArgumentException ? 400 : ($error instanceof \AlarmManager\StorageException ? 503 : 403));
 	print html_escape(__('Administration unavailable or permission denied.', 'alarmmanager'));

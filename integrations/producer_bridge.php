@@ -21,7 +21,6 @@
  | http://www.cacti.net/                                                   |
  +-------------------------------------------------------------------------+
 */
-require_once(__DIR__ . '/api_client.php');
 
 // Copied into each patched producer. Deliberately independent of Alarm Manager files/lifecycle.
 if (!class_exists('AlarmManagerProducerBridge', false)) {
@@ -47,11 +46,6 @@ if (!class_exists('AlarmManagerProducerBridge', false)) {
 		public static function configuration(string $source, int $resource, int $template = 0): array {
 			if (!preg_match('/\A[A-Za-z][A-Za-z0-9_.-]{0,31}\z/D', $source)) {
 				throw new InvalidArgumentException('invalid_producer');
-			}
-			$api = AlarmManagerApiClient::configuration($source);
-
-			if ($api !== null) {
-				return self::validate(array_intersect_key($api, array_flip(['mode', 'profile_id', 'channels', 'complete_history']))) + ['api_transport' => true];
 			}
 			$rows = db_fetch_assoc_prepared('SELECT scope, resource_id, definition FROM plugin_alarmmanager_producer_config WHERE source = ? AND ((scope = ? AND resource_id = ?) OR (scope = ? AND resource_id = ?) OR (scope = ? AND resource_id = 0))', [$source, 'resource', $resource, 'template', $template, 'default'], false);
 
@@ -145,47 +139,13 @@ if (!class_exists('AlarmManagerProducerBridge', false)) {
 
 			$envelope = json_decode($row['envelope'], true, 32, JSON_THROW_ON_ERROR);
 
-			if (!empty($envelope['api_transport'])) {
-				self::submitApi($receipt, $envelope);
-			} elseif ($submit !== null) {
-				$submit(json_decode($row['envelope'], true, 32, JSON_THROW_ON_ERROR));
+			if ($submit !== null) {
+				$submit($envelope);
 			} elseif (function_exists('api_plugin_is_enabled') && api_plugin_is_enabled('alarmmanager') && function_exists('api_plugin_hook_function')) {
-				api_plugin_hook_function('alarmmanager_submit', json_decode($row['envelope'], true, 32, JSON_THROW_ON_ERROR));
+				api_plugin_hook_function('alarmmanager_submit', $envelope);
 			}
 
 			return self::row('SELECT status FROM plugin_alarmmanager_producer_receipts WHERE receipt = ?', [$receipt])['status'];
-		}
-		/** Source-owned outbox setup; invoke from producer installation/upgrade or its CLI. */
-		public static function installApiOutbox(): void {
-			self::write("CREATE TABLE IF NOT EXISTS plugin_alarmmanager_producer_streams (stream_key CHAR(64) CHARACTER SET ascii COLLATE ascii_bin PRIMARY KEY, sequence BIGINT UNSIGNED NOT NULL DEFAULT 0, episode_id VARCHAR(128) CHARACTER SET ascii NOT NULL DEFAULT '', active TINYINT NOT NULL DEFAULT 0, severity VARCHAR(16) CHARACTER SET ascii NOT NULL DEFAULT '', updated_at DATETIME(6) NOT NULL) ENGINE=InnoDB");
-			self::write("CREATE TABLE IF NOT EXISTS plugin_alarmmanager_producer_receipts (receipt CHAR(64) CHARACTER SET ascii COLLATE ascii_bin PRIMARY KEY, source VARCHAR(32) CHARACTER SET ascii NOT NULL, stream_key CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL, status VARCHAR(16) CHARACTER SET ascii NOT NULL DEFAULT 'pending', envelope MEDIUMTEXT NOT NULL, channels TEXT NOT NULL, event_row_id BIGINT UNSIGNED NULL, created_at DATETIME(6) NOT NULL, updated_at DATETIME(6) NOT NULL, KEY receipt_status(status,updated_at), KEY source_stream(source,stream_key)) ENGINE=InnoDB");
-			self::write('ALTER TABLE plugin_alarmmanager_producer_receipts MODIFY source VARCHAR(32) CHARACTER SET ascii NOT NULL');
-		}
-		/**
-		 * @param array<string, mixed> $envelope
-		 */
-		private static function submitApi(string $receipt, array $envelope): void {
-			$ack = AlarmManagerApiClient::submit($envelope);
-			self::write('START TRANSACTION');
-
-			try {
-				$row = self::row('SELECT status, stream_key FROM plugin_alarmmanager_producer_receipts WHERE receipt = ? FOR UPDATE', [$receipt]);
-
-				if (!$row) {
-					throw new RuntimeException('producer_receipt_unavailable');
-				}
-
-				if ($row['status'] === 'pending') {
-					self::write('UPDATE plugin_alarmmanager_producer_receipts SET status = ?, event_row_id = ?, updated_at = UTC_TIMESTAMP(6) WHERE receipt = ?', [$envelope['mode'] === 'centralized' ? 'accepted' : 'observed', $ack['event_row_id'], $receipt]);
-					$event = $envelope['event'];
-					self::write('UPDATE plugin_alarmmanager_producer_streams SET active = ?, episode_id = ?, severity = ?, updated_at = UTC_TIMESTAMP(6) WHERE stream_key = ? AND sequence = ?', [in_array($event['transition'], ['recovered', 'occurrence'], true) ? 0 : 1, $event['episode_id'], $event['severity'], $row['stream_key'], $event['sequence']]);
-				}
-				self::write('COMMIT');
-			} catch (Throwable $error) {
-				self::write('ROLLBACK');
-
-				throw $error;
-			}
 		}
 		/** notification identity is producer-owned, stable across submission retries, and contains no credentials. */
 		public static function publish(string $source, int $resource, int $template, string $identity, array $input): array {
@@ -194,7 +154,6 @@ if (!class_exists('AlarmManagerProducerBridge', false)) {
 			$started       = false;
 			$locked        = false;
 			$reserved      = false;
-			$api_transport = false;
 			$receipt       = hash('sha256', $source . '|' . ($config['poller_id'] ?? 1) . '|' . $resource . '|' . $identity);
 			$lock          = 'am-producer:' . substr(hash('sha256', $source . '|' . ($config['poller_id'] ?? 1) . '|' . $resource . '|' . ($input['stream_suffix'] ?? '')), 0, 48);
 
@@ -207,14 +166,6 @@ if (!class_exists('AlarmManagerProducerBridge', false)) {
 
 				if ((int) $transaction !== 0) {
 					$known = self::row('SELECT status, channels, envelope FROM plugin_alarmmanager_producer_receipts WHERE receipt = ?', [$receipt]);
-
-					if ($known && $known['status'] === 'pending') {
-						$saved = json_decode($known['envelope'], true, 32, JSON_THROW_ON_ERROR);
-
-						if (!empty($saved['api_transport'])) {
-							return ['owned' => $saved['mode'] === 'centralized', 'channels' => json_decode($known['channels'], true), 'status' => 'pending'];
-						}
-					}
 
 					return $known && $known['status'] !== 'pending' ? self::decision($known) : $legacy;
 				}
@@ -235,7 +186,6 @@ if (!class_exists('AlarmManagerProducerBridge', false)) {
 				}
 				$reserved      = (bool) $row;
 				$envelope      = $row ? json_decode($row['envelope'], true, 32, JSON_THROW_ON_ERROR) : [];
-				$api_transport = !empty($envelope['api_transport']);
 				$settings      = self::configuration($source, $resource, $template);
 
 				if (!$row && ($settings['mode'] === 'legacy' || (($input['suppressed'] ?? false) && !$settings['complete_history'] && $input['transition'] !== 'recovered'))) {
@@ -243,9 +193,7 @@ if (!class_exists('AlarmManagerProducerBridge', false)) {
 				}
 
 				if (!$row) {
-					$api_transport = !empty($settings['api_transport']);
-
-					if (!$api_transport && (!function_exists('api_plugin_is_enabled') || !api_plugin_is_enabled('alarmmanager') || !function_exists('api_plugin_hook_function'))) {
+					if (!function_exists('api_plugin_is_enabled') || !api_plugin_is_enabled('alarmmanager') || !function_exists('api_plugin_hook_function')) {
 						return $legacy;
 					}
 					$mode   = $settings['mode'];
@@ -294,9 +242,6 @@ if (!class_exists('AlarmManagerProducerBridge', false)) {
 					}
 					$envelope = ['contract_version' => 1, 'mode' => $mode, 'status' => 'unhandled', 'event' => $event, 'producer_receipt' => $receipt];
 
-					if ($api_transport) {
-						$envelope['api_transport'] = true;
-					}
 					self::write('UPDATE plugin_alarmmanager_producer_streams SET sequence = ? WHERE stream_key = ?', [$sequence, $stream]);
 					self::write('INSERT INTO plugin_alarmmanager_producer_receipts (receipt, source, stream_key, envelope, channels, created_at, updated_at) VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6))', [$receipt, $source, $stream, json_encode($envelope, JSON_THROW_ON_ERROR), json_encode($settings['channels'], JSON_THROW_ON_ERROR)]);
 					self::write('COMMIT');
@@ -306,9 +251,7 @@ if (!class_exists('AlarmManagerProducerBridge', false)) {
 				}
 				$envelope = json_decode($row['envelope'], true, 32, JSON_THROW_ON_ERROR);
 
-				if ($api_transport) {
-					self::submitApi($receipt, $envelope);
-				} elseif (function_exists('api_plugin_is_enabled') && api_plugin_is_enabled('alarmmanager') && function_exists('api_plugin_hook_function')) {
+				if (function_exists('api_plugin_is_enabled') && api_plugin_is_enabled('alarmmanager') && function_exists('api_plugin_hook_function')) {
 					// Ignore truthy values and claimed acceptance: the committed receipt is authoritative.
 					api_plugin_hook_function('alarmmanager_submit', $envelope);
 				}
@@ -318,10 +261,6 @@ if (!class_exists('AlarmManagerProducerBridge', false)) {
 					return self::decision($saved);
 				}
 
-				if ($api_transport) {
-					return ['owned' => $envelope['mode'] === 'centralized', 'channels' => json_decode($row['channels'], true), 'status' => 'pending'];
-				}
-
 				return self::fallback($receipt);
 			} catch (Throwable $error) {
 				if ($started) {
@@ -329,19 +268,6 @@ if (!class_exists('AlarmManagerProducerBridge', false)) {
 						self::write('ROLLBACK');
 					} catch (Throwable $ignored) {
 					}
-				}
-
-				if ($api_transport && $reserved) {
-					try {
-						$saved = self::row('SELECT status, channels FROM plugin_alarmmanager_producer_receipts WHERE receipt = ?', [$receipt]);
-
-						if ($saved && $saved['status'] !== 'pending') {
-							return self::decision($saved);
-						}
-					} catch (Throwable $ignored) {
-					}
-
-					return ['owned' => ($envelope['mode'] ?? $settings['mode'] ?? 'centralized') === 'centralized', 'channels' => json_decode($row['channels'] ?? '[]', true, 4, JSON_THROW_ON_ERROR), 'status' => 'pending'];
 				}
 
 				// A hook can throw after committing. Recover ownership from its atomic receipt.

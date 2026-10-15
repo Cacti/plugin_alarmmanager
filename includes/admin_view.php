@@ -137,14 +137,12 @@ function alarmmanager_admin_markup(array $state, string $section): void {
 	$revision = $state['revision'];
 	print '<nav class="alarmmanagerTabs" aria-label="' . __esc('Administration sections', 'alarmmanager') . '">';
 
-	foreach (['endpoints' => 'Integrations and mappings', 'profiles' => 'Routing profiles', 'clients' => 'API clients', 'collectors' => 'Collectors and history', 'rules' => 'Rules and suppression', 'credentials' => 'Credentials', 'test' => 'Preview and test', 'configuration' => 'Configuration', 'daemon' => 'Daemon', 'health' => 'Workers and failed processing'] as $key => $label) {
+	foreach (['endpoints' => 'Integrations and mappings', 'profiles' => 'Routing profiles', 'collectors' => 'Collectors and history', 'rules' => 'Rules and suppression', 'credentials' => 'Credentials', 'test' => 'Preview and test', 'configuration' => 'Configuration', 'daemon' => 'Daemon', 'health' => 'Workers and failed processing'] as $key => $label) {
 		print '<a href="alarmmanager_admin.php?section=' . $key . '" ' . ($section === $key ? 'aria-current="page"' : '') . '>' . __esc($label, 'alarmmanager') . '</a>';
 	} print '</nav><p>' . __esc('Local configuration revision', 'alarmmanager') . ': ' . $revision . '</p>';
 
 	if ($section === 'collectors') {
 		alarmmanager_remote_markup();
-	} elseif (in_array($section, ['clients', 'producers'], true)) {
-		alarmmanager_api_clients_markup($revision, $config['profiles']);
 	} elseif ($section === 'endpoints') {
 		print '<p>' . __esc('Create an integration, configure its destination and credentials, preview and test a sample alarm, then select it in a routing profile.', 'alarmmanager') . '</p>';
 		print '<form method="get" action="alarmmanager_admin.php" class="alarmmanagerTemplatePicker"><input type="hidden" name="section" value="endpoints"><label>' . __esc('Start a new integration from a template', 'alarmmanager') . '<select name="integration_template"><option value="">' . __esc('Blank endpoint', 'alarmmanager') . '</option>';
@@ -359,73 +357,3 @@ function alarmmanager_auth_editor(string $selected, bool $replacement = false, b
 }
 
 /** Generic producer accounts replace the plugin-specific integration editor. */
-/**
- * @param array<int, array<string, mixed>> $profiles
- */
-function alarmmanager_api_clients_markup(int $revision, array $profiles): void {
-	global $config;
-	print '<p>' . __esc('Any producer can submit standard JSON alarms to this API. Source-specific event translation and retry queues belong to the sending plugin.', 'alarmmanager') . '</p>';
-	print '<p>' . __esc('API path', 'alarmmanager') . ': <code>' . html_escape($config['url_path'] . 'plugins/alarmmanager/alarmmanager_api.php') . '</code>. ' . __esc('Use HTTPS, or HTTP only from the same server over loopback.', 'alarmmanager') . '</p>';
-
-	if (isset($_SESSION['alarmmanager_api_token'])) {
-		$issued = $_SESSION['alarmmanager_api_token'];
-		unset($_SESSION['alarmmanager_api_token']);
-		print '<fieldset class="alarmmanagerDashboardCard"><legend>' . __esc('New API token — copy it now', 'alarmmanager') . '</legend><p>' . __esc('This token is shown once. Store it securely in the sending plugin. Rotating it invalidates the previous token.', 'alarmmanager') . '</p><input type="text" readonly autocomplete="off" aria-label="' . __esc('New API token', 'alarmmanager') . '" value="' . html_escape($issued['token']) . '"></fieldset>';
-	}
-	$devices = alarmmanager_db_rows("SELECT id, hostname, description FROM host WHERE deleted = '' ORDER BY description, hostname LIMIT 1000");
-	$rows    = alarmmanager_db_rows('SELECT id, definition, enabled, revision, last_seen, last_status FROM plugin_alarmmanager_api_clients ORDER BY id LIMIT 257');
-
-	if (count($rows) > 256) {
-		throw new RuntimeException('api_client_limit');
-	}
-	$rows[] = ['id' => 0, 'definition' => json_encode(['name' => '', 'source' => '', 'source_instance' => 'cacti-poller-' . alarmmanager_local_poller(), 'collector_id' => alarmmanager_local_poller(), 'mode' => 'observe', 'profile_id' => 0, 'device_ids' => [], 'all_devices' => false, 'unmapped_devices' => false]), 'enabled' => true, 'revision' => 0, 'last_seen' => null, 'last_status' => ''];
-
-	foreach ($rows as $row) {
-		$item = json_decode($row['definition'], true, 16, JSON_THROW_ON_ERROR);
-		$new  = (int) $row['id'] === 0;
-		print '<details class="alarmmanagerDashboardCard" ' . ($new ? 'open' : '') . '><summary>' . html_escape($new ? __('New API client', 'alarmmanager') : $item['name']) . '</summary>';
-		alarmmanager_form_start('api_client_save', $revision, ['id' => (int) $row['id'], 'client_revision' => (int) $row['revision']]);
-		alarmmanager_input('name', 'Name', $item['name'], 'text', 'maxlength="128" required');
-		alarmmanager_checkbox('enabled', 'Enabled', (bool) $row['enabled']);
-		alarmmanager_input('source', 'Source name', $item['source'], 'text', 'maxlength="32" required placeholder="monitoring-system"');
-		alarmmanager_input('source_instance', 'Source instance', $item['source_instance'], 'text', 'maxlength="128" required');
-		alarmmanager_input('collector_id', 'Collector ID', $item['collector_id'], 'number', 'min="1" max="2147483647" required');
-		print '<label>' . __esc('Notification ownership', 'alarmmanager') . ' <select name="mode">';
-
-		foreach (['observe' => 'Observe — producer keeps sending notifications', 'centralized' => 'Centralized — Alarm Manager sends notifications'] as $key => $label) {
-			print '<option value="' . $key . '"' . ($item['mode'] === $key ? ' selected' : '') . '>' . __esc($label, 'alarmmanager') . '</option>';
-		}
-		print '</select></label><label>' . __esc('Routing profile', 'alarmmanager') . ' <select name="profile_id"><option value="0">' . __esc('Matching rules (observe only)', 'alarmmanager') . '</option>';
-
-		foreach ($profiles as $profile) {
-			print '<option value="' . (int) $profile['id'] . '"' . ((int) $item['profile_id'] === (int) $profile['id'] ? ' selected' : '') . '>' . html_escape($profile['name']) . '</option>';
-		}
-		print '</select></label>';
-		print '<label>' . __esc('Allowed devices', 'alarmmanager') . ' <select name="device_ids[]" multiple>';
-		$listed = [];
-
-		foreach ($devices as $device) {
-			$id       = (int) $device['id'];
-			$listed[] = $id;
-			print '<option value="' . $id . '"' . (in_array($id, $item['device_ids'], true) ? ' selected' : '') . '>' . html_escape(($device['description'] ?: $device['hostname']) . ' (' . $device['hostname'] . ')') . '</option>';
-		}
-
-		foreach (array_diff($item['device_ids'], $listed) as $id) {
-			print '<option value="' . (int) $id . '" selected>' . __esc('Device not listed', 'alarmmanager') . ' #' . (int) $id . '</option>';
-		}
-		print '</select></label>';
-		alarmmanager_checkbox('all_devices', 'Allow all devices', $item['all_devices']);
-		alarmmanager_checkbox('unmapped_devices', 'Allow events without a device ID', $item['unmapped_devices']);
-
-		if (!$new) {
-			alarmmanager_checkbox('rotate_token', 'Generate a replacement API token');
-			print '<p class="alarmmanagerFullWidth">' . __esc('Last submission', 'alarmmanager') . ': ' . html_escape($row['last_seen'] ?? __('Never', 'alarmmanager')) . ' ' . html_escape($row['last_status']) . '</p>';
-		}
-		print '<p class="alarmmanagerFullWidth">' . __esc('Prepare the destination endpoints and routing rules before selecting centralized ownership. Configure the same mode in the producer; uncertain submissions must remain queued for retry.', 'alarmmanager') . '</p><button type="submit">' . __esc('Save API client', 'alarmmanager') . '</button></form></details>';
-	}
-	$legacy = (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_producer_config', [], '', false);
-
-	if ($legacy > 0) {
-		print '<p>' . __esc('Existing legacy producer policies are preserved. Migrate each producer to the API before retiring its old notification handoff.', 'alarmmanager') . '</p>';
-	}
-}
