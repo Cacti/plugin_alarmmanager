@@ -24,6 +24,7 @@
 require_once(__DIR__ . '/workers.php');
 require_once(__DIR__ . '/supervisor.php');
 require_once(__DIR__ . '/device.php');
+require_once(__DIR__ . '/schema.php');
 
 /** Bounded per-role drain options for the poller-integrated mode, matching alarmmanager_worker_loop()'s contract.
  * @return array{max_jobs: int, max_seconds: int, lease_seconds: int, idle_ms: int}
@@ -55,6 +56,12 @@ function alarmmanager_poller_bottom(array $args = []): void {
 	}
 
 	try {
+		// A collector missing its schema recreates it before the drain; DDL
+		// also fixes partial replication that disabled remote tables.
+		if (!alarmmanager_schema_ensure()) {
+			return;
+		}
+
 		if (alarmmanager_local_poller() > 1) {
 			try {
 				alarmmanager_apply_replicated_daemon();
@@ -76,7 +83,11 @@ function alarmmanager_poller_bottom(array $args = []): void {
 		}
 		cacti_log(sprintf('ALARMMANAGER STATS: Time:%.4f Mode:poller Processing:%d Delivery:%d Devices:%d', microtime(true) - $started, $counts['processing'], $counts['delivery'], $devices), false, 'SYSTEM');
 	} catch (Throwable $error) {
-		alarmmanager_log('poller drain failed: ' . $error->getMessage());
+		if ($error instanceof \AlarmManager\MissingTableException && alarmmanager_schema_ensure()) {
+			alarmmanager_log('missing plugin tables recreated; processing resumes next cycle');
+		} else {
+			alarmmanager_log('poller drain failed: ' . $error->getMessage());
+		}
 	} finally {
 		// Sync is independent of delivery and also runs when the daemon owns the local queues.
 		if (alarmmanager_local_poller() > 1) {

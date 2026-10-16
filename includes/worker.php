@@ -55,8 +55,13 @@ pcntl_signal(SIGINT, function () use (&$stop): void { $stop = true; });
 $conn_mode = 'offline';
 require_once(__DIR__ . '/../../../include/cli_check.php');
 require_once(__DIR__ . '/workers.php');
+require_once(__DIR__ . '/schema.php');
 
 try {
+	if (!alarmmanager_schema_ensure()) {
+		fwrite(STDERR, "Alarm Manager schema unavailable or unverifiable on this poller.\n");
+		exit(1);
+	}
 	alarmmanager_worker_loop($role, $settings, static function () use (&$stop): bool { return $stop; });
 } catch (Throwable $error) {
 	alarmmanager_log('worker storage/runtime failure: ' . $error->getMessage());

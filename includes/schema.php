@@ -22,6 +22,7 @@
  +-------------------------------------------------------------------------+
 */
 
+require_once(__DIR__ . '/credentials.php');
 require_once(__DIR__ . '/runtime.php');
 
 /** Direct DDL avoids Cacti's destructive plugin_db_changes registry. */
@@ -117,6 +118,41 @@ function alarmmanager_schema_install(): bool {
 
 function alarmmanager_schema_ready(): bool {
 	return (int) db_fetch_cell_prepared('SELECT version FROM plugin_alarmmanager_schema WHERE id = 1', [], '', false) === 10;
+}
+
+/** Self-healing gate for runtime lanes. Full replication carries settings and
+ * plugin registration but never plugin tables, so a poller with a missing or
+ * partial schema recreates it instead of reporting storage_failure until a
+ * manual reinstall. Mirrors the install-time order: setup key first, then the
+ * idempotent CREATE TABLE IF NOT EXISTS statements.
+ * @return bool True when this poller can process and deliver alarms.
+ */
+function alarmmanager_schema_ensure(): bool {
+	try {
+		if (alarmmanager_schema_ready()) {
+			return true;
+		}
+		alarmmanager_log('schema is behind; recreating plugin tables on this poller');
+	} catch (\AlarmManager\StorageException $error) {
+		alarmmanager_log('plugin tables are missing; recreating on this poller');
+	}
+
+	try {
+		alarmmanager_setup_key();
+	} catch (Throwable $error) {
+		alarmmanager_log('setup key unavailable: ' . $error->getMessage());
+
+		return false;
+	}
+
+	if (!alarmmanager_schema_install()) {
+		alarmmanager_log('schema recreation failed; run the plugin install on this poller');
+
+		return false;
+	}
+	alarmmanager_log('plugin schema recreated on this poller');
+
+	return true;
 }
 
 function alarmmanager_schema_column(string $table, string $column, string $definition): void {

@@ -27,3 +27,5 @@ class StorageException extends \RuntimeException {
 }
 class TransientStorageException extends StorageException {
 }
+class MissingTableException extends StorageException {
+}

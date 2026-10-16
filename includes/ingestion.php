@@ -24,6 +24,7 @@
 require_once(__DIR__ . '/events.php');
 require_once(__DIR__ . '/runtime.php');
 require_once(__DIR__ . '/device.php');
+require_once(__DIR__ . '/schema.php');
 
 /** Functional hook: preserve the caller's envelope and explicitly signal ownership. */
 function alarmmanager_submit($envelope) {
@@ -81,6 +82,15 @@ function alarmmanager_submit($envelope) {
 		if ($transaction === false || $transaction === null || (int) $transaction !== 0) {
 			$envelope['status'] = 'failed';
 			$envelope['error']  = 'transaction_unavailable';
+
+			return $envelope;
+		}
+
+		// Repair runs only outside any producer-owned transaction: DDL would
+		// implicitly commit one.
+		if (!alarmmanager_schema_ensure()) {
+			$envelope['status'] = 'failed';
+			$envelope['error']  = 'storage_failure';
 
 			return $envelope;
 		}

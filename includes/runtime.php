@@ -28,7 +28,9 @@ function alarmmanager_storage_error(): RuntimeException {
 	$message = (string) ($database_last_error ?? '');
 
 	return preg_match('/(?:Error |errno[:= ]+)(?:1213|1205)\b/i', $message)
-		? new \AlarmManager\TransientStorageException('storage_contention') : new \AlarmManager\StorageException('storage_failure');
+		? new \AlarmManager\TransientStorageException('storage_contention')
+		: (preg_match('/(?:Error |errno[:= ]+)1146\b/i', $message) || preg_match('/Table .+? doesn.t exist\b/i', $message)
+			? new \AlarmManager\MissingTableException('storage_table_missing') : new \AlarmManager\StorageException('storage_failure'));
 }
 function alarmmanager_db_write(string $sql, array $params = [], ?PDO $connection = null): void {
 	if (!db_execute_prepared($sql, $params, false, $connection)) {
