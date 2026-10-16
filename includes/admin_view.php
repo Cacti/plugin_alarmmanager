@@ -124,8 +124,8 @@ function alarmmanager_endpoint_editor(array $endpoint, int $revision, bool $new 
 	print '<p>' . __esc('Certificate and hostname verification remain enabled. Provision the PEM file on every poller. Saved credentials are never displayed.', 'alarmmanager') . '</p>';
 	print '</fieldset><details><summary>' . __esc('Other delivery options', 'alarmmanager') . '</summary>';
 	alarmmanager_textarea('transport_json', 'Delivery options JSON', alarmmanager_json_text($transport));
-	print '</details></details><div class="alarmmanagerEndpointActions alarmmanagerFullWidth"><a href="alarmmanager_admin.php?section=test">' . __esc('Preview or test a saved destination', 'alarmmanager') . '</a>';
-	print '<button type="submit">' . __esc('Save endpoint', 'alarmmanager') . '</button></div></form>';
+	print '</details></details><div class="alarmmanagerEndpointActions alarmmanagerFullWidth"><a href="alarmmanager_admin.php?section=test">' . __esc('Preview or test a saved destination', 'alarmmanager') . '</a><div>' . ($new ? '<a href="alarmmanager_admin.php?section=endpoints">' . __esc('Cancel', 'alarmmanager') . '</a>' : '');
+	print '<button type="submit">' . __esc('Save endpoint', 'alarmmanager') . '</button></div></div></form>';
 
 	if (!$new) {
 		alarmmanager_form_start('endpoint_delete', $revision, ['id' => $endpoint['id']]);

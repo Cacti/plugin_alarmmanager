@@ -52,6 +52,16 @@ const assert=require('node:assert/strict');
   const presetSaved=page.locator('details.alarmmanagerDashboardCard').filter({has:page.getByText(presetName,{exact:true})});
   check(await presetSaved.count()===1,'Preset draft saves without credentials');
   check(!(await presetSaved.locator('[name=enabled]').isChecked()),'Preset draft stays disabled');
+  // Choosing a template and then Cancel removes the unsaved draft entirely.
+  const beforeCancel=await page.locator('details.alarmmanagerDashboardCard').count();
+  await page.locator('[name=integration_template]').selectOption('telegram');
+  await addIntegration.click();
+  await page.waitForURL('**integration_template=telegram',{timeout:5000});
+  check(await page.locator('details.alarmmanagerDashboardCard').count()===beforeCancel+1,'Cancelled-template draft appears exactly once');
+  await page.locator('details.alarmmanagerDashboardCard').last().getByRole('link',{name:'Cancel',exact:true}).click();
+  await page.waitForURL(admin,{timeout:5000});
+  check(await page.locator('details.alarmmanagerDashboardCard').count()===beforeCancel,'Cancel removes the unsaved draft');
+  check(await page.getByText('New endpoint',{exact:true}).count()===0,'Cancel leaves no blank endpoint behind');
   await page.goto(admin+'?section=test');
   await page.locator('form.alarmmanagerEditor').first().getByRole('button',{name:'Preview (no traffic)',exact:true}).click();
   await page.waitForURL('**section=test');
