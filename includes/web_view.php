@@ -120,14 +120,9 @@ function alarmmanager_web_open(array $scope, string $tab): void {
 	print '<main id="alarmmanager_app" data-theme="' . html_escape((string) get_selected_theme()) . '"><h1>' . __esc('Alarm Manager', 'alarmmanager') . '</h1>';
 
 	if ($tab === 'admin') {
-		print '<p><a href="alarmmanager.php">' . __esc('View alarms', 'alarmmanager') . '</a></p>';
-
 		return;
 	}
 
-	if ($scope['admin']) {
-		print '<p><a href="alarmmanager_admin.php">' . __esc('Administration', 'alarmmanager') . '</a></p>';
-	}
 	print '<div class="tabs"><nav aria-label="' . __esc('Alarm Manager pages', 'alarmmanager') . '"><ul>';
 
 	foreach ([
