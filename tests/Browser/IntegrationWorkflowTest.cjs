@@ -14,12 +14,15 @@ const assert=require('node:assert/strict');
   await page.goto(admin+'?section=endpoints');
   const draftName='Browser script draft '+Date.now();
   const initial=await page.locator('details.alarmmanagerDashboardCard').count();
+  check(await page.getByText('New endpoint',{exact:true}).count()===0,'Loading the section shows no blank endpoint draft');
+  const addIntegration=page.getByRole('button',{name:'Add Integration',exact:true});
+  check(await addIntegration.count()===1,'Add Integration button sits next to the template dropdown');
   for(const template of ['webhook','restapi','script']) {
    await page.locator('[name=integration_template]').selectOption(template);
    await page.waitForURL('**integration_template='+template,{timeout:5000});
    const draft=page.locator('details.alarmmanagerDashboardCard').last();
    check(!(await draft.locator('[name=enabled]').isChecked()),'Template starts disabled');
-   check(await page.locator('details.alarmmanagerDashboardCard').count()===initial,'Template selection preserves saved integrations');
+   check(await page.locator('details.alarmmanagerDashboardCard').count()===initial+1,'Template selection shows exactly one draft and preserves saved integrations');
    check((await draft.locator('[name=type]').inputValue())===template,'Template selects the requested adapter');
    check((await draft.locator('[name=auth_type]').inputValue())==='none','Template copies no credentials');
   }
