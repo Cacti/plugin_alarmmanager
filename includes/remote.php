@@ -83,8 +83,54 @@ function alarmmanager_sync_receiver_ready(): bool {
 		return false;
 	}
 }
-function alarmmanager_sync_key(string $file): string {
-	return alarmmanager_decode_key(trim(alarmmanager_remote_private_read($file, 128)));
+/** Only key mode for zero-touch pairs: the shared secret lives in each node's own database row.
+ * @param array<string, mixed> $peer
+ */
+function alarmmanager_sync_pair_key(#[\SensitiveParameter] array $peer): string {
+	$secret = $peer['pair_secret'] ?? '';
+
+	if (!is_string($secret) || $secret === '') {
+		throw new RuntimeException('sync_peer_key_missing');
+	}
+
+	return alarmmanager_decode_key($secret);
+}
+/** Narrow sync-lane URL predicate: reuses the shared transport URL rules without the endpoint TLS coupling. */
+function alarmmanager_sync_peer_url_validate(mixed $url, bool $allow_http): string {
+	require_once(__DIR__ . '/transport_config.php');
+
+	return alarmmanager_transport_url_validate(alarmmanager_transport_text($url, 2048), $allow_http);
+}
+function alarmmanager_sync_ca_validate(mixed $pem): ?string {
+	if ($pem === null || (is_string($pem) && trim($pem) === '')) {
+		return null;
+	}
+
+	if (!is_string($pem) || strlen($pem) > 65536 || preg_match('/[^\x20-\x7e\r\n]/', $pem) || !str_contains($pem, '-----BEGIN CERTIFICATE-----') || !str_contains($pem, '-----END CERTIFICATE-----')) {
+		throw new InvalidArgumentException('invalid_ca_pem');
+	}
+
+	return trim($pem);
+}
+/** SSL 'cafile' needs a path, so pushed PEM bundles are materialized once, hash-named and owner-private. */
+function alarmmanager_sync_ca_materialize(#[\SensitiveParameter] string $pem): string {
+	$base = $GLOBALS['config']['base_path'] ?? (getenv('CACTI_PATH') ?: '');
+
+	if ($base === '' || !is_dir($base)) {
+		throw new RuntimeException('sync_ca_unavailable');
+	}
+	$dir = $base . '/cache/alarmmanager';
+
+	if (!is_dir($dir) && !@mkdir($dir, 0700, true)) {
+		throw new RuntimeException('sync_ca_unavailable');
+	}
+	$path = $dir . '/sync-ca-' . sha1($pem) . '.pem';
+
+	if (!is_file($path)) {
+		alarmmanager_remote_private_write($path, $pem);
+	}
+
+	return $path;
 }
 function alarmmanager_sync_signature(string $body, int $poller, int $timestamp, string $key, string $domain): string {
 	return hash_hmac('sha256', 'alarmmanager-sync-v1:' . $domain . "\n" . $poller . "\n" . $timestamp . "\n" . hash('sha256', $body), $key);
@@ -217,7 +263,14 @@ function alarmmanager_sync_receive(string $body, int $poller): string {
 	}
 	$peer = alarmmanager_db_row('SELECT instance_uuid FROM plugin_alarmmanager_sync_peers WHERE poller_id = ? AND enabled = 1', [$poller]);
 
-	if (!$peer || $packet['instance_uuid'] !== $peer['instance_uuid']) {
+	if (!$peer || !is_string($packet['instance_uuid']) || !preg_match('/\A[a-f0-9]{32}\z/D', $packet['instance_uuid'])) {
+		throw new RuntimeException('sync_peer_invalid');
+	}
+
+	// Zero-touch pairs provision unregistered; the verified signature proves the claimed identity.
+	$register = $peer['instance_uuid'] === '';
+
+	if (!$register && !hash_equals($peer['instance_uuid'], $packet['instance_uuid'])) {
 		throw new RuntimeException('sync_peer_invalid');
 	}
 
@@ -272,8 +325,12 @@ function alarmmanager_sync_receive(string $body, int $poller): string {
 	}
 	unset($record);
 	$digest = hash('sha256', $body);
-	alarmmanager_transaction(function () use ($packet, $digest, $poller): void {
-		alarmmanager_db_write('UPDATE plugin_alarmmanager_sync_peers SET last_seen = UTC_TIMESTAMP(6) WHERE poller_id = ?', [$poller]);
+	alarmmanager_transaction(function () use ($packet, $digest, $poller, $register): void {
+		if ($register) {
+			alarmmanager_db_write('UPDATE plugin_alarmmanager_sync_peers SET instance_uuid = ?, last_seen = UTC_TIMESTAMP(6) WHERE poller_id = ?', [$packet['instance_uuid'], $poller]);
+		} else {
+			alarmmanager_db_write('UPDATE plugin_alarmmanager_sync_peers SET last_seen = UTC_TIMESTAMP(6) WHERE poller_id = ?', [$poller]);
+		}
 
 		if ($packet['heartbeat'] ?? false) {
 			return;
@@ -316,23 +373,29 @@ function alarmmanager_sync_acknowledge(string $ack): void {
 }
 /** Bounded TLS transport independent of main DB connectivity; errors preserve pending bytes. */
 function alarmmanager_sync_send(int $limit = 100): bool {
+	$target = alarmmanager_db_row('SELECT * FROM plugin_alarmmanager_sync_peers WHERE poller_id = 1', []);
+
+	if (!$target || !(int) $target['enabled']) {
+		return false;
+	}
 	$body      = alarmmanager_sync_export($limit);
 	$heartbeat = $body === null;
-	$target    = alarmmanager_db_row('SELECT * FROM plugin_alarmmanager_sync_peers WHERE poller_id = 1 AND enabled = 1');
 
 	if ($heartbeat) {
 		$body = json_encode(['version' => 1, 'poller_id' => alarmmanager_local_poller(), 'instance_uuid' => alarmmanager_node_uuid(), 'receiver_uuid' => $target['instance_uuid'], 'through' => (int) db_fetch_cell_prepared('SELECT acked FROM plugin_alarmmanager_sync_sender WHERE id = 1', [], '', false), 'records' => [], 'heartbeat' => true], JSON_THROW_ON_ERROR);
 	}
-	require_once(__DIR__ . '/transport_config.php');
-	$settings  = alarmmanager_transport_configuration('restapi', ['url' => $target['endpoint_url'], 'credential' => true, 'ca_bundle' => $target['ca_bundle'], 'mapping' => []]);
-	$key       = alarmmanager_sync_key($target['key_file']);
+	$url       = alarmmanager_sync_peer_url_validate($target['endpoint_url'], (int) $target['allow_http'] === 1);
+	$key       = alarmmanager_sync_pair_key($target);
 	$timestamp = time();
 	$poller    = alarmmanager_local_poller();
 	$headers   = "Content-Type: application/json\r\nX-AlarmManager-Poller: $poller\r\nX-AlarmManager-Time: $timestamp\r\nX-AlarmManager-Signature: " . alarmmanager_sync_signature($body, $poller, $timestamp, $key, 'history') . "\r\nConnection: close\r\n";
 	$ssl       = ['verify_peer' => true, 'verify_peer_name' => true, 'allow_self_signed' => false];
+	$ca_pem    = trim((string) ($target['ca_pem'] ?? ''));
 
-	if ($settings['ca_bundle'] !== null) {
-		$ssl['cafile'] = $settings['ca_bundle'];
+	if ($ca_pem !== '') {
+		$ssl['cafile'] = alarmmanager_sync_ca_materialize($ca_pem);
+	} elseif (is_string($target['ca_bundle']) && $target['ca_bundle'] !== '' && str_starts_with($target['ca_bundle'], '/') && strlen($target['ca_bundle']) <= 1024) {
+		$ssl['cafile'] = $target['ca_bundle'];
 	}
 	$context = stream_context_create(['ssl' => $ssl, 'http' => ['method' => 'POST', 'header' => $headers, 'content' => $body, 'timeout' => 10, 'follow_location' => 0, 'max_redirects' => 0, 'ignore_errors' => true, 'protocol_version' => 1.1]]);
 
@@ -345,7 +408,7 @@ function alarmmanager_sync_send(int $limit = 100): bool {
 	pcntl_alarm(11);
 
 	try {
-		$stream = @fopen($settings['url'], 'rb', false, $context);
+		$stream = @fopen($url, 'rb', false, $context);
 
 		if (!$stream) {
 			throw new RuntimeException('sync_network_failed');
@@ -519,6 +582,91 @@ function alarmmanager_install_device_grant(array $grant): void {
 		}
 	}
 	alarmmanager_db_write("INSERT INTO plugin_alarmmanager_device_owners (device_id, deployment_uuid, poller_id, epoch, owner, mode, profile_id, channels, valid_from, valid_until, seed_event) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE last_sequence = IF(VALUES(epoch) > epoch, 0, last_sequence), last_episode = IF(VALUES(epoch) > epoch, '', last_episode), last_transition = IF(VALUES(epoch) > epoch, '', last_transition), seed_event = VALUES(seed_event), deployment_uuid = VALUES(deployment_uuid), poller_id = VALUES(poller_id), epoch = VALUES(epoch), owner = VALUES(owner), mode = VALUES(mode), profile_id = VALUES(profile_id), channels = VALUES(channels), valid_from = VALUES(valid_from), valid_until = VALUES(valid_until)", [$grant['device_id'], $grant['deployment_uuid'], $grant['poller_id'], $grant['epoch'], $grant['owner'], $grant['mode'], $grant['profile_id'], json_encode($grant['channels']), $grant['valid_from'], $grant['valid_until'], $grant['seed_event'] !== null ? json_encode($grant['seed_event'], JSON_THROW_ON_ERROR) : null]);
+}
+
+/** Zero-touch provisioning runs only on the main poller, for collectors Cacti knows. */
+function alarmmanager_sync_peer_guard(int $poller): void {
+	alarmmanager_secret_guard();
+
+	if (alarmmanager_local_poller() !== 1 || $poller < 2) {
+		throw new RuntimeException('sync_peer_provision_invalid');
+	}
+
+	if (!alarmmanager_db_rows('SELECT id FROM poller WHERE id = ?', [$poller])) {
+		throw new RuntimeException('sync_peer_missing');
+	}
+}
+
+/** Re-enable keeps an existing pair secret so a collector may already hold a copy; fresh pairs get one. */
+function alarmmanager_sync_peer_enable(int $poller, string $url, ?string $ca_pem, bool $allow_http): void {
+	alarmmanager_sync_peer_guard($poller);
+	$url  = alarmmanager_sync_peer_url_validate($url, $allow_http);
+	$pem  = alarmmanager_sync_ca_validate($ca_pem);
+	$pair = alarmmanager_db_row('SELECT pair_secret FROM plugin_alarmmanager_sync_peers WHERE poller_id = ?', [$poller]);
+	$now  = base64_encode(random_bytes(32));
+
+	// The stored secret stays in its base64 form; decode_key only re-validates the format.
+	try {
+		alarmmanager_decode_key((string) ($pair['pair_secret'] ?? ''));
+		$secret = (string) $pair['pair_secret'];
+	} catch (RuntimeException) {
+		$secret = $now;
+	}
+	alarmmanager_db_write("INSERT INTO plugin_alarmmanager_sync_peers
+			(poller_id, instance_uuid, key_file, pair_secret, endpoint_url, ca_pem, allow_http, enabled)
+		VALUES (?, '', '', ?, ?, ?, ?, 1)
+		ON DUPLICATE KEY UPDATE instance_uuid = VALUES(instance_uuid), key_file = VALUES(key_file), pair_secret = VALUES(pair_secret),
+			endpoint_url = VALUES(endpoint_url), ca_pem = VALUES(ca_pem), allow_http = VALUES(allow_http), enabled = VALUES(enabled)",
+		[$poller, $secret, $url, $pem, (int) $allow_http]);
+	alarmmanager_request_configuration_replication();
+	alarmmanager_log('history sync enabled for collector ' . $poller . '; it adopts the shared secret from replication');
+}
+
+/** Later URL/CA edits keep the existing pair secret and any registered collector identity. */
+function alarmmanager_sync_peer_save(int $poller, string $url, ?string $ca_pem, bool $allow_http): void {
+	alarmmanager_sync_peer_guard($poller);
+
+	if (!alarmmanager_db_rows('SELECT poller_id FROM plugin_alarmmanager_sync_peers WHERE poller_id = ?', [$poller])) {
+		throw new RuntimeException('sync_peer_missing');
+	}
+	alarmmanager_db_write('UPDATE plugin_alarmmanager_sync_peers SET endpoint_url = ?, ca_pem = ?, allow_http = ? WHERE poller_id = ?', [alarmmanager_sync_peer_url_validate($url, $allow_http), alarmmanager_sync_ca_validate($ca_pem), (int) $allow_http, $poller]);
+	alarmmanager_request_configuration_replication();
+	alarmmanager_log('history sync endpoint updated for collector ' . $poller);
+}
+
+/** A new secret plus a forgotten identity: the collector re-registers on its next successful packet. */
+function alarmmanager_sync_peer_rotate(int $poller): void {
+	alarmmanager_sync_peer_guard($poller);
+
+	if (!alarmmanager_db_rows('SELECT poller_id FROM plugin_alarmmanager_sync_peers WHERE poller_id = ?', [$poller])) {
+		throw new RuntimeException('sync_peer_missing');
+	}
+	alarmmanager_db_write("UPDATE plugin_alarmmanager_sync_peers SET pair_secret = ?, instance_uuid = '' WHERE poller_id = ?", [base64_encode(random_bytes(32)), $poller]);
+	alarmmanager_request_configuration_replication();
+	alarmmanager_log('history sync secret rotated for collector ' . $poller);
+}
+
+function alarmmanager_sync_peer_disable(int $poller): void {
+	alarmmanager_sync_peer_guard($poller);
+
+	if (!alarmmanager_db_rows('SELECT poller_id FROM plugin_alarmmanager_sync_peers WHERE poller_id = ?', [$poller])) {
+		throw new RuntimeException('sync_peer_missing');
+	}
+	alarmmanager_db_write('UPDATE plugin_alarmmanager_sync_peers SET enabled = 0 WHERE poller_id = ?', [$poller]);
+	alarmmanager_request_configuration_replication();
+	alarmmanager_log('history sync disabled for collector ' . $poller);
+}
+
+/** Form default only: derived from Cacti's trusted base_url, never from the current request headers. */
+function alarmmanager_sync_self_url(): string {
+	$parts = parse_url(trim((string) read_config_option('base_url')));
+
+	if (!$parts || empty($parts['host']) || empty($parts['path'])) {
+		return '';
+	}
+	$authority = $parts['host'] . (isset($parts['port']) ? ':' . $parts['port'] : '');
+
+	return 'https://' . $authority . rtrim($parts['path'], '/') . '/plugins/alarmmanager/alarmmanager_sync.php';
 }
 
 /** Explicit main-poller export to a private file; selected profiles determine credential scope. */

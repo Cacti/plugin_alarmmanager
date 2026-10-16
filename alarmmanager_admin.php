@@ -54,7 +54,7 @@ try {
 			raise_message('alarmmanager_notice', __($message, 'alarmmanager'), MESSAGE_LEVEL_ERROR);
 		}
 		cacti_redirect(match ($post['action'] ?? '') {
-			'queue_pause', 'queue_resume', 'queue_clear' => 'alarmmanager_admin.php?section=queue', 'preview', 'test_send' => 'alarmmanager_admin.php?section=test', 'daemon_save' => 'alarmmanager_admin.php?section=daemon', 'rule_save' => 'alarmmanager_admin.php?section=rules', 'profile_save' => 'alarmmanager_admin.php?section=profiles', default => 'alarmmanager_admin.php'
+			'queue_pause', 'queue_resume', 'queue_clear' => 'alarmmanager_admin.php?section=queue', 'preview', 'test_send' => 'alarmmanager_admin.php?section=test', 'daemon_save' => 'alarmmanager_admin.php?section=daemon', 'rule_save' => 'alarmmanager_admin.php?section=rules', 'profile_save' => 'alarmmanager_admin.php?section=profiles', 'sync_peer_enable', 'sync_peer_save', 'sync_peer_rotate', 'sync_peer_disable' => 'alarmmanager_admin.php?section=collectors', default => 'alarmmanager_admin.php'
 		});
 	}
 

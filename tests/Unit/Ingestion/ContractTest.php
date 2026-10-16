@@ -43,8 +43,8 @@ final class ContractTest extends AlarmManagerTestCase {
 		$event = $this->sampleEvent();
 		$event['device'] += $fields;
 		$event['device']['collector_name'] = 'Remote collector';
-		$event = alarmmanager_validate_event($event);
-		$payload = alarmmanager_map_payload(['default' => [['to' => 'text', 'template' => '{{device.cacti_location}} | {{device.collector_name}} | {{device.uptime}} | {{device.external_id}} | {{device.status_last_error}} | {{device.status_fail_date}} | {{device.status_rec_date}}']]], $event);
+		$event                             = alarmmanager_validate_event($event);
+		$payload                           = alarmmanager_map_payload(['default' => [['to' => 'text', 'template' => '{{device.cacti_location}} | {{device.collector_name}} | {{device.uptime}} | {{device.external_id}} | {{device.status_last_error}} | {{device.status_fail_date}} | {{device.status_rec_date}}']]], $event);
 		$this->assertSame('Rack 7 | Remote collector | 1d 1h 1m 1s | ASSET-42 | SNMP timeout | ' . alarmmanager_event_time($fields['status_fail_date']) . ' | ', $payload->text);
 		$this->assertSame('', AlarmManagerProducerBridge::deviceDetails([], 1)['uptime']);
 	}

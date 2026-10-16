@@ -46,6 +46,7 @@ final class RemoteHttpTest extends AlarmManagerTestCase {
 
 		require_once dirname(__DIR__, 2) . '/setup.php';
 		require_once dirname(__DIR__, 2) . '/includes/remote.php';
+		require_once dirname(__DIR__, 2) . '/includes/ingestion.php';
 		require_once dirname(__DIR__, 2) . '/includes/queue.php';
 		require_once dirname(__DIR__, 2) . '/includes/processor.php';
 		require_once dirname(__DIR__, 2) . '/includes/delivery.php';
@@ -74,8 +75,7 @@ final class RemoteHttpTest extends AlarmManagerTestCase {
 				$this->assertTrue(plugin_alarmmanager_install(), 'fixture install');
 				$uuid[$poller] = alarmmanager_node_uuid();
 			}
-			$keyFile = $fixture . '/peer.key';
-			alarmmanager_remote_private_write($keyFile, base64_encode(random_bytes(32)) . "\n");
+			$pairSecret  = base64_encode(random_bytes(32));
 			$certificate = $fixture . '/cert.pem';
 			$private     = $fixture . '/tls.key';
 			$cmd         = ['openssl', 'req', '-x509', '-newkey', 'rsa:2048', '-nodes', '-keyout', $private, '-out', $certificate, '-days', '1', '-subj', '/CN=localhost', '-addext', 'subjectAltName=DNS:localhost,IP:127.0.0.1'];
@@ -103,7 +103,7 @@ final class RemoteHttpTest extends AlarmManagerTestCase {
 			file_put_contents($web . '/include/global.php', $global);
 			chmod($web . '/include/global.php', 0600);
 			$this->huse(1);
-			alarmmanager_db_write('INSERT INTO plugin_alarmmanager_sync_peers (poller_id,instance_uuid,key_file) VALUES (2,?,?)', [$uuid[2], $keyFile]);
+			alarmmanager_db_write('INSERT INTO plugin_alarmmanager_sync_peers (poller_id,instance_uuid,key_file,pair_secret) VALUES (2,?, \'\', ?)', [$uuid[2], $pairSecret]);
 			putenv('ALARMMANAGER_TEST_WEB=1');
 			$command = [PHP_BINARY];
 
@@ -169,7 +169,7 @@ final class RemoteHttpTest extends AlarmManagerTestCase {
 			$this->huse(2);
 			$base = 'https://127.0.0.1:38569';
 			$url  = $base . '/plugins/alarmmanager/alarmmanager_sync.php';
-			alarmmanager_db_write('INSERT INTO plugin_alarmmanager_sync_peers (poller_id,instance_uuid,key_file,endpoint_url,ca_bundle) VALUES (1,?,?,?,?)', [$uuid[1], $keyFile, $base . '/offline', $certificate]);
+			alarmmanager_db_write("INSERT INTO plugin_alarmmanager_sync_peers (poller_id,instance_uuid,key_file,pair_secret,endpoint_url,ca_bundle) VALUES (1,?, '', ?, ?, ?)", [$uuid[1], $pairSecret, $base . '/offline', $certificate]);
 			$routes = json_decode(file_get_contents($repo . '/examples/routing-delivery.json'), true);
 
 			foreach ($routes['endpoints'] as &$endpoint) {
@@ -229,7 +229,7 @@ final class RemoteHttpTest extends AlarmManagerTestCase {
 			$this->hreject(fn () => alarmmanager_sync_send(), 'tampered ack rejected');
 			alarmmanager_db_write('UPDATE plugin_alarmmanager_sync_peers SET endpoint_url=? WHERE poller_id=1', [$url]);
 			require_once($repo . '/includes/polling.php');
-			$beforeConfig = $GLOBALS['config'];
+			$beforeConfig                   = $GLOBALS['config'];
 			$GLOBALS['config']['base_path'] = $fixture;
 			alarmmanager_save_supervisor_options(array_replace(alarmmanager_supervisor_options(), ['enabled' => true]));
 			alarmmanager_daemon_write_json(dirname(alarmmanager_daemon_config_path()) . '/status.json', ['updated_at' => time(), 'enabled' => true]);
@@ -248,6 +248,17 @@ final class RemoteHttpTest extends AlarmManagerTestCase {
 			$counts = json_decode(file_get_contents($fixture . '/counts.json'), true);
 			$this->assertSame(2, array_sum($counts['alarms']), 'reconnect no notification resend');
 			$this->assertFalse(str_contains($pending, 'Bearer fixture'), 'history excludes endpoint credentials');
+			// Replicated pair CA: a pushed PEM bundle materializes once into an owner-private hashed cache file.
+			$this->huse(2);
+			$certPem                        = trim((string) file_get_contents($certificate));
+			$GLOBALS['config']['base_path'] = $fixture . '/sender';
+			mkdir($fixture . '/sender', 0700, true);
+			alarmmanager_db_write('UPDATE plugin_alarmmanager_sync_peers SET ca_pem=?, ca_bundle=NULL WHERE poller_id=1', [$certPem]);
+			$this->assertTrue(alarmmanager_sync_send(), 'pushed PEM bundle signs a fresh heartbeat through the materialized CA');
+			$caFile = $fixture . '/sender/cache/alarmmanager/sync-ca-' . sha1($certPem) . '.pem';
+			$this->assertFileExists($caFile);
+			$this->assertSame(0600, fileperms($caFile) & 0777, 'materialized CA bundle is owner-private');
+			$this->assertSame($caFile, alarmmanager_sync_ca_materialize($certPem), 'identical PEM reuses its materialized file');
 		} finally {
 			foreach ($children as $child) {
 				proc_terminate($child);

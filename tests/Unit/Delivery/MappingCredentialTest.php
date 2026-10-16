@@ -25,6 +25,7 @@
 final class MappingCredentialTest extends AlarmManagerTestCase {
 	public function testAdminMappingErrorsAreSpecificWithoutExposingSubmittedValues(): void {
 		self::alarmmanager_test_load('includes/admin.php');
+
 		foreach (['conflicting_mapping' => 'unique destination name', 'unknown_mapping_field' => 'unknown variable', 'invalid_mapping_template' => 'Combined text', 'mapping_required' => 'required message value'] as $code => $expected) {
 			$this->assertStringContainsString($expected, alarmmanager_admin_error_message(new InvalidArgumentException($code)));
 		}
@@ -93,25 +94,28 @@ final class MappingCredentialTest extends AlarmManagerTestCase {
 	 */
 	public function testCombinesWhitelistedVariablesWithText(): void {
 		self::alarmmanager_test_load('includes/mapping.php');
-		$event = alarmmanager_validate_event($this->sampleEvent());
+		$event    = alarmmanager_validate_event($this->sampleEvent());
 		$template = 'Device {{device.id}} with description {{ device.description }} went down at {{event.occurred_at}}';
-		$mapping = ['default' => [['to' => 'summary', 'template' => $template, 'required' => true]]];
-		$this->assertSame('Device 42 with description Sample router went down at '.$event['occurred_at'], alarmmanager_map_payload($mapping, $event)->summary);
+		$mapping  = ['default' => [['to' => 'summary', 'template' => $template, 'required' => true]]];
+		$this->assertSame('Device 42 with description Sample router went down at ' . $event['occurred_at'], alarmmanager_map_payload($mapping, $event)->summary);
 		$event['device']['description'] = '<script>"\\ & {{device.id}}';
-		$mapping['default'][0]['type'] = 'html';
-		$this->assertSame(htmlspecialchars('Device 42 with description '.$event['device']['description'].' went down at '.$event['occurred_at'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'), alarmmanager_map_payload($mapping, $event)->summary);
+		$mapping['default'][0]['type']  = 'html';
+		$this->assertSame(htmlspecialchars('Device 42 with description ' . $event['device']['description'] . ' went down at ' . $event['occurred_at'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'), alarmmanager_map_payload($mapping, $event)->summary);
 		$this->assertSame('{{device.id}}', alarmmanager_map_payload(['default' => [['to' => 'literal', 'constant' => '{{device.id}}']]], $event)->literal);
 		$this->assertSame('Ticket CASE-42', alarmmanager_map_payload(['recovered' => [['to' => 'summary', 'template' => 'Ticket {{integration.id}}']]], ['transition' => 'recovered'], ['id' => 'CASE-42'])->summary);
 		$missing = ['default' => [['to' => 'summary', 'template' => 'Metric {{context.metric}}']]];
 		$this->assertNull(alarmmanager_map_payload($missing, $event)->summary);
 		$missing['default'][0]['default'] = 'Metric unavailable';
 		$this->assertSame('Metric unavailable', alarmmanager_map_payload($missing, $event)->summary);
-		unset($missing['default'][0]['default']);$missing['default'][0]['required'] = true;
+		unset($missing['default'][0]['default']);
+		$missing['default'][0]['required'] = true;
 		$this->assertRejects(fn () => alarmmanager_map_payload($missing, $event), 'Required template variable is missing');
 		$this->assertRejects(fn () => alarmmanager_map_payload(['default' => [['to' => 'a', 'template' => '{{device.tags}}']]], $event), 'Arrays cannot become text');
+
 		foreach ([null, '{{device.password}}', '{{device.id}', '{{}}', str_repeat('x', 16385)] as $bad) {
 			$this->assertRejects(fn () => alarmmanager_mapping_validate(['default' => [['to' => 'a', 'template' => $bad]]]), 'Invalid template rejected');
 		}
+
 		foreach (['source' => 'device.id', 'constant' => 'literal'] as $key => $value) {
 			$this->assertRejects(fn () => alarmmanager_mapping_validate(['default' => [['to' => 'a', 'template' => '{{device.id}}', $key => $value]]]), 'Ambiguous template rejected');
 		}

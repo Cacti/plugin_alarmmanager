@@ -83,6 +83,7 @@ function alarmmanager_mapping_validate($mapping): array {
 			if (array_key_exists('source', $item) && (!is_string($item['source']) || !in_array($item['source'], $allowed, true))) {
 				throw new InvalidArgumentException('unknown_mapping_field');
 			}
+
 			if (array_key_exists('template', $item)) {
 				if (!is_string($item['template'])) {
 					throw new InvalidArgumentException('invalid_mapping_template');
@@ -115,27 +116,34 @@ function alarmmanager_mapping_validate($mapping): array {
 function alarmmanager_mapping_template_fields(string $template): array {
 	preg_match_all('/{{([^{}]*)}}/', $template, $matches);
 	$remaining = preg_replace('/{{[^{}]*}}/', '', $template);
+
 	if (str_contains($remaining, '{{') || str_contains($remaining, '}}')) {
 		throw new InvalidArgumentException('invalid_mapping_template');
 	}
 	$fields = array_map('trim', $matches[1]);
+
 	if (array_diff($fields, array_keys(alarmmanager_mapping_fields([])))) {
 		throw new InvalidArgumentException('unknown_mapping_field');
 	}
+
 	return $fields;
 }
 
 /** @param array<string, mixed> $fields */
 function alarmmanager_mapping_template(string $template, array $fields): ?string {
 	$missing = false;
-	$text = preg_replace_callback('/{{([^{}]*)}}/', static function (array $match) use ($fields, &$missing): string {
+	$text    = preg_replace_callback('/{{([^{}]*)}}/', static function (array $match) use ($fields, &$missing): string {
 		$value = $fields[trim($match[1])];
+
 		if ($value === null) {
 			$missing = true;
+
 			return '';
 		}
+
 		return alarmmanager_mapping_convert($value, 'string');
 	}, $template);
+
 	return $missing ? null : $text;
 }
 

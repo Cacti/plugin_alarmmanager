@@ -58,12 +58,12 @@ try {
 	if (!$poller || !$timestamp) {
 		throw new RuntimeException('invalid_peer');
 	}
-	$peer = alarmmanager_db_row('SELECT key_file FROM plugin_alarmmanager_sync_peers WHERE poller_id = ? AND enabled = 1', [$poller]);
+	$peer = alarmmanager_db_row('SELECT pair_secret FROM plugin_alarmmanager_sync_peers WHERE poller_id = ? AND enabled = 1', [$poller]);
 
 	if (!$peer) {
 		throw new RuntimeException('invalid_peer');
 	}
-	$key = alarmmanager_sync_key($peer['key_file']);
+	$key = alarmmanager_sync_pair_key($peer);
 	alarmmanager_sync_verify($body, $poller, $timestamp, $_SERVER['HTTP_X_ALARMMANAGER_SIGNATURE'] ?? '', $key, 'history');
 	$ack  = alarmmanager_sync_receive($body, $poller);
 	$time = time();

@@ -67,9 +67,19 @@ final class CactiMailerTest extends AlarmManagerTestCase {
 			stream_set_timeout($pipes[1], 5);
 			$port = (int) fgets($pipes[1]);
 			$this->assertGreaterThan(0, $port, 'SMTP fixture ready');
-			$cached       = ['settings_how' => 2, 'settings_smtp_host' => '127.0.0.1', 'settings_smtp_port' => $port, 'settings_smtp_username' => '', 'settings_smtp_password' => '', 'settings_smtp_secure' => 'none', 'settings_smtp_timeout' => 2, 'settings_from_name' => 'Alarm', 'settings_from_email' => 'alarm@example.test', 'settings_wordwrap' => 76, 'selective_debug' => '', 'selective_plugin_debug' => '', 'log_verbosity' => 0, 'log_destination' => 1, 'path_cactilog' => $tmp . '/cacti.log', 'client_timezone_support' => ''];
+			$cached       = ['settings_how' => 2, 'settings_smtp_host' => '127.0.0.1', 'settings_smtp_port' => $port, 'settings_smtp_username' => '', 'settings_smtp_password' => '', 'settings_smtp_secure' => 'none', 'settings_smtp_timeout' => 2, 'settings_from_name' => 'Alarm', 'settings_from_email' => 'alarm@example.test', 'settings_wordwrap' => 76, 'selective_debug' => '', 'selective_plugin_debug' => '', 'log_verbosity' => 0, 'log_destination' => 1, 'path_cactilog' => $tmp . '/cacti.log', 'client_timezone_support' => '', 'i18n_language_support' => 0];
 			$child_config = ['base_path' => $cacti, 'include_path' => $cacti . '/include', 'is_web' => false, 'poller_id' => 2, 'config_options_array' => $cached];
-			$bootstrap    = '<?php if (($conn_mode ?? null) !== "offline") { throw new RuntimeException("main_connection_attempted"); } $config = ' . var_export($child_config, true) . '; $cacti_locale = "en-US"; $mail_methods = [2 => "SMTP"]; require_once ' . var_export($cacti . '/include/global_constants.php', true) . '; require_once ' . var_export($cacti . '/lib/functions.php', true) . ';';
+			/*
+			 * The mail child must survive current pinned-Cacti drift without a real database:
+			 * functions.php now reads CACTI_WEB and i18n support, mailer() autoloads Symfony
+			 * Mailer, and global_languages.php needs the helpers and paths those files set.
+			 */
+			$bootstrap    = '<?php if (($conn_mode ?? null) !== "offline") { throw new RuntimeException("main_connection_attempted"); } define("CACTI_WEB", false); $config = '
+				. var_export($child_config, true) . '; $cacti_locale = "en-US"; $mail_methods = [2 => "SMTP"]; require_once '
+				. var_export($cacti . '/include/global_constants.php', true) . '; require_once ' . var_export($cacti . '/include/global_path.php', true) . '; require_once '
+				. var_export($cacti . '/lib/functions.php', true) . '; require_once ' . var_export($cacti . '/lib/html_utility.php', true) . '; require_once '
+				. var_export($cacti . '/lib/database.php', true) . '; require_once ' . var_export($cacti . '/include/vendor/autoload.php', true) . '; require_once '
+				. var_export($cacti . '/include/global_languages.php', true) . ';';
 			file_put_contents($tmp . '/include/cli_check.php', $bootstrap);
 			$GLOBALS['config']                    = ['base_path' => $tmp];
 			$event                                = alarmmanager_validate_event(json_decode(file_get_contents(__DIR__ . '/../../examples/event.json'), true));

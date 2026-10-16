@@ -69,7 +69,11 @@ if (!class_exists('AlarmManagerProducerBridge', false)) {
 
 			return $value;
 		}
-		/** Snapshot only safe device fields; retries reuse the saved event rather than refresh metadata. */
+		/** Snapshot only safe device fields; retries reuse the saved event rather than refresh metadata.
+		 * @param array<string, mixed> $host
+		 *
+		 * @return array<string, mixed>
+		 */
 		public static function deviceDetails(array $host, int $collector): array {
 			if (!empty($host['id'])) {
 				$host += self::row('SELECT location, external_id, snmp_sysLocation, snmp_sysContact, snmp_sysName, snmp_sysUpTimeInstance, status_fail_date, status_rec_date, status_last_error FROM host WHERE id = ?', [(int) $host['id']]);

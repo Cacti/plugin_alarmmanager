@@ -72,4 +72,43 @@ final class SchemaIdentityTest extends AlarmManagerTestCase {
 			$db->exec("DROP DATABASE `$name`");
 		}
 	}
+
+	public function testUpgradeFromV10AddsZeroTouchSyncColumnsInPlace(): void {
+		self::requireAlarmManagerTestDb();
+
+		if (getenv('ALARMMANAGER_TEST_ALLOW_CREATE') !== '1') {
+			$this->markTestSkipped('Dedicated database create opt-in required.');
+		}
+		self::alarmmanager_test_load('includes/schema.php');
+		$db                              = alarmmanager_test_connect();
+		$GLOBALS['alarmmanager_test_db'] = $db;
+		$name                            = 'alarmmanager_test_' . bin2hex(random_bytes(6));
+		$db->exec("CREATE DATABASE `$name`");
+		$db->exec("USE `$name`");
+
+		try {
+			$this->assertTrue(alarmmanager_schema_install());
+			// A pre-upgrade v10 install: file-era pairs only, no zero-touch columns.
+			$db->exec("INSERT INTO plugin_alarmmanager_sync_peers (poller_id, instance_uuid, key_file) VALUES (2, 'legacy-pair-row', 'legacy.key')");
+			$db->exec('ALTER TABLE plugin_alarmmanager_sync_peers DROP COLUMN pair_secret, DROP COLUMN allow_http, DROP COLUMN ca_pem');
+			$db->exec('UPDATE plugin_alarmmanager_schema SET version = 10 WHERE id = 1');
+			$this->assertTrue(alarmmanager_schema_install(), 'Upgrade from schema v10');
+			$this->assertTrue(alarmmanager_schema_ready());
+
+			$type = static fn (string $column): string => strtolower((string) db_fetch_cell_prepared('SELECT COLUMN_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?', ['plugin_alarmmanager_sync_peers', $column]));
+			$this->assertSame('varchar(64)', $type('pair_secret'), 're-created pair_secret');
+			$this->assertTrue(in_array($type('allow_http'), ['tinyint', 'tinyint(4)'], true), 're-created allow_http');
+			$this->assertSame('mediumtext', $type('ca_pem'), 're-created ca_pem');
+			$row = $db->query('SELECT * FROM plugin_alarmmanager_sync_peers WHERE poller_id = 2')->fetch(PDO::FETCH_ASSOC);
+			$this->assertSame('legacy-pair-row', $row['instance_uuid'], 'Unprovisioned legacy pair preserved on upgrade');
+			$this->assertSame('legacy.key', $row['key_file'], 'File-era key reference preserved on upgrade');
+			$this->assertNull($row['pair_secret'], 'Legacy row starts unprovisioned; the GUI enables it.');
+			$this->assertSame(0, (int) $row['allow_http']);
+			$db->exec("INSERT INTO plugin_alarmmanager_sync_peers (poller_id, instance_uuid, key_file) VALUES (3, 'another-pair-row', 'other.key')");
+			$this->assertTrue(alarmmanager_schema_install(), 'Repeat upgrade is idempotent');
+			$this->assertTrue(alarmmanager_schema_ready());
+		} finally {
+			$db->exec("DROP DATABASE `$name`");
+		}
+	}
 }

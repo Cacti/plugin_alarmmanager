@@ -36,6 +36,13 @@ final class WebTest extends AlarmManagerTestCase {
 			$this->markTestSkipped('Set ALARMMANAGER_TEST_ALLOW_CREATE=1 and a dedicated test-server DSN to run the web lane.');
 		}
 
+		// Loading the pinned Cacti source below redefines cacti_log(), which this phpunit
+		// process already holds from the integration bootstrap doubles. The web lane runs
+		// through fixtures/web_bootstrap.php (the cli-server fixture) instead of this file.
+		if (function_exists('cacti_log')) {
+			$this->markTestSkipped('Web fixtures need a process without preloaded helper doubles; see fixtures/web_bootstrap.php.');
+		}
+
 		// web_auth.php and web_view.php probe these Cacti CSRF fixtures with function_exists().
 		if (!function_exists('csrf_check')) {
 			function csrf_check($fatal = true) {
@@ -106,7 +113,7 @@ final class WebTest extends AlarmManagerTestCase {
 			$routes                         = json_decode(file_get_contents(__DIR__ . '/../../examples/routing.json'), true);
 			$routes['endpoints'][0]['name'] = '<img src=x onerror=window.ALARM_BAD=1>';
 			alarmmanager_apply_configuration($routes);
-			$event = json_decode(file_get_contents(__DIR__ . '/../../examples/event.json'), true);
+			$event                 = json_decode(file_get_contents(__DIR__ . '/../../examples/event.json'), true);
 			$event['collector_id'] = 2;
 
 			for ($i = 1; $i <= 400; $i++) {
@@ -320,6 +327,29 @@ final class WebTest extends AlarmManagerTestCase {
 			$this->assertTrue(alarmmanager_secret_key() !== $old && alarmmanager_load_credential(1) === $record, 'Browser local key rotation');
 			$this->waction(['action'=>'credential_remove', 'id'=>'1']);
 			$this->assertSame(0, (int)db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_credentials'), 'Credential remove');
+			// Zero-touch collector synchronization: GUI generates the pair secret; replication delivers it.
+			$this->wuser(1);
+			$syncUrl = 'https://main.example.test/cacti/plugins/alarmmanager/alarmmanager_sync.php';
+			$this->assertSame('History sync provisioned; the collector adopts it on the next replication cycle.', $this->waction(['action'=>'sync_peer_enable', 'id'=>'2', 'url'=>$syncUrl]));
+			$this->assertSame('on', db_fetch_cell_prepared('SELECT requires_sync FROM poller WHERE id=2'), 'Provisioning schedules native replication');
+			$this->assertSame(1, (int)db_fetch_cell_prepared('SELECT enabled FROM plugin_alarmmanager_sync_peers WHERE poller_id=2'), 'Pair provisioned online for replication');
+			$this->assertTrue(is_string(db_fetch_cell_prepared('SELECT pair_secret FROM plugin_alarmmanager_sync_peers WHERE poller_id=2')) && db_fetch_cell_prepared('SELECT LENGTH(pair_secret) FROM plugin_alarmmanager_sync_peers WHERE poller_id=2') === '44', 'Pair secret generated server-side');
+			ob_start();
+			alarmmanager_admin_markup(alarmmanager_admin_configuration(), 'collectors');
+			$collectors_html = ob_get_clean();
+			$this->assertStringNotContainsString((string)db_fetch_cell_prepared('SELECT pair_secret FROM plugin_alarmmanager_sync_peers WHERE poller_id=2'), $collectors_html, 'Pair secrets never render in the browser');
+			$this->wreject(fn () => $this->waction(['action'=>'sync_peer_enable', 'id'=>'2', 'url'=>str_replace('https://', 'http://', $syncUrl)]), 'Plain HTTP needs the explicit allow option');
+			$this->wreject(fn () => $this->waction(['action'=>'sync_peer_enable', 'id'=>'2', 'url'=>$syncUrl, 'ca_pem'=>'not-a-certificate']), 'CA validation refuses non-PEM text');
+			$this->assertSame('History sync endpoint updated; the collector refreshes on the next replication cycle.', $this->waction(['action'=>'sync_peer_save', 'id'=>'2', 'url'=>$syncUrl]));
+			$this->wreject(fn () => $this->waction(['action'=>'sync_peer_rotate', 'id'=>'2']), 'Rotation requires explicit confirmation');
+			$beforeRotate = db_fetch_cell_prepared('SELECT pair_secret FROM plugin_alarmmanager_sync_peers WHERE poller_id=2');
+			$this->assertSame('Pair secret rotated; the collector re-registers after replication.', $this->waction(['action'=>'sync_peer_rotate', 'id'=>'2', 'confirmed'=>'yes']));
+			$this->assertTrue(db_fetch_cell_prepared('SELECT pair_secret FROM plugin_alarmmanager_sync_peers WHERE poller_id=2') !== $beforeRotate, 'Rotation changes the pair secret');
+			$this->assertSame('', (string)db_fetch_cell_prepared('SELECT instance_uuid FROM plugin_alarmmanager_sync_peers WHERE poller_id=2'), 'Rotation forgets the registered identity');
+			$this->assertSame('History sync disabled for that collector; the change replicates on the next cycle.', $this->waction(['action'=>'sync_peer_disable', 'id'=>'2']));
+			$this->assertSame(0, (int)db_fetch_cell_prepared('SELECT enabled FROM plugin_alarmmanager_sync_peers WHERE poller_id=2'), 'Disable persists');
+			$this->wuser(2);
+			$this->wreject(fn () => $this->waction(['action'=>'sync_peer_enable', 'id'=>'2', 'url'=>$syncUrl]), 'Readers cannot provision collector pairs');
 			// Real Cacti policy generator: default-deny + group grants, deleted/disabled hosts and default-allow exclusions.
 			$policy_filters           = $filters;
 			$policy_filters['source'] = 'fixture';

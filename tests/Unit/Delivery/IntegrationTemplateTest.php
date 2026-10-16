@@ -68,12 +68,12 @@ final class IntegrationTemplateTest extends AlarmManagerTestCase {
 		foreach (['webhook', 'restapi', 'script'] as $key) {
 			$template  = alarmmanager_integration_templates()[$key];
 			$transport = alarmmanager_transport_configuration($template['type'], $template['transport']);
-			$payload = alarmmanager_map_payload($transport['mapping'], alarmmanager_validate_event($event));
+			$payload   = alarmmanager_map_payload($transport['mapping'], alarmmanager_validate_event($event));
 			$this->assertStringContainsString('Hostname: router.example.test', $payload->message);
 			$this->assertSame('', $payload->location);
-			$withLocation = $event;
+			$withLocation                       = $event;
 			$withLocation['device']['location'] = 'Toronto DC';
-			$payload = alarmmanager_map_payload($transport['mapping'], alarmmanager_validate_event($withLocation));
+			$payload                            = alarmmanager_map_payload($transport['mapping'], alarmmanager_validate_event($withLocation));
 			$this->assertSame('Toronto DC', $payload->location);
 			$this->assertStringContainsString('Location: Toronto DC', $payload->message);
 			$this->assertSame('CASE-42', alarmmanager_map_payload($transport['mapping'], $event, ['id' => 'CASE-42'])->external_id);
@@ -94,7 +94,8 @@ final class IntegrationTemplateTest extends AlarmManagerTestCase {
 		$this->assertSame('REPLACE-WITH-CHANNEL', alarmmanager_map_payload($slack['mapping'], $event)->channel);
 		$event['device'] += ['location' => 'Toronto DC', 'contact' => 'Network team', 'sysname' => 'edge-01'];
 		$event = alarmmanager_validate_event($event);
-		$text = alarmmanager_map_payload($slack['mapping'], $event)->text;
+		$text  = alarmmanager_map_payload($slack['mapping'], $event)->text;
+
 		foreach (['Sample device down', 'Hostname: router.example.test', 'Location: Toronto DC', 'Contact: Network team', 'System name: edge-01', 'State: raised'] as $value) {
 			$this->assertStringContainsString($value, $text);
 		}
@@ -104,7 +105,7 @@ final class IntegrationTemplateTest extends AlarmManagerTestCase {
 		$this->assertStringContainsString('State: recovered', alarmmanager_map_payload($slack['mapping'], $event)->text);
 		$event['transition'] = 'raised';
 
-		$event = $this->sampleEvent();
+		$event    = $this->sampleEvent();
 		$telegram = alarmmanager_transport_configuration('webhook', $templates['telegram']['transport']);
 		$this->assertSame(['path' => 'ok', 'equals' => true], $telegram['response_match']);
 		$this->assertSame('REPLACE-WITH-CHAT-ID', alarmmanager_map_payload($telegram['mapping'], $event)->chat_id);
@@ -163,20 +164,22 @@ final class IntegrationTemplateTest extends AlarmManagerTestCase {
 
 	public function testServiceNowEventsUseEventFieldsAndPostRecoveryWithTheSameKey(): void {
 		self::alarmmanager_test_load('includes/integrations.php');
-		$template = alarmmanager_integration_templates()['servicenow_events'];
+		$template  = alarmmanager_integration_templates()['servicenow_events'];
 		$transport = alarmmanager_transport_configuration('webhook', $template['transport']);
 		$this->assertStringEndsWith('/api/now/table/em_event', $transport['url']);
 		$this->assertArrayNotHasKey('transition_overrides', $transport);
 		$this->assertNull($transport['response_reference']);
 		$event = $this->sampleEvent();
+
 		foreach (['critical' => 1, 'major' => 2, 'minor' => 3, 'warning' => 4, 'info' => 5, 'clear' => 0] as $severity => $expected) {
 			$event['severity'] = $severity;
 			$this->assertSame($expected, alarmmanager_map_payload($transport['mapping'], $event)->severity);
 		}
 		$event['severity'] = 'major';
+
 		foreach (['raised', 'updated', 'reminder', 'occurrence', 'recovered'] as $transition) {
 			$event['transition'] = $transition;
-			$payload = alarmmanager_map_payload($transport['mapping'], $event);
+			$payload             = alarmmanager_map_payload($transport['mapping'], $event);
 			$this->assertSame('Cacti Alarm Manager', $payload->source);
 			$this->assertSame('router.example.test', $payload->node);
 			$this->assertSame('sample', $payload->type);

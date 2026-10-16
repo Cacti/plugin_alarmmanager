@@ -26,6 +26,7 @@ require_once(__DIR__ . '/routing.php');
 require_once(__DIR__ . '/credentials.php');
 require_once(__DIR__ . '/delivery.php');
 require_once(__DIR__ . '/supervisor.php');
+require_once(__DIR__ . '/remote.php');
 
 function alarmmanager_admin_configuration(): array {
 	if (!alarmmanager_web_admin()) {
@@ -252,6 +253,35 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 		} alarmmanager_rotate_key();
 
 		return 'Local key rotated. Create a new protected backup using the credential CLI.';
+	}
+
+	if ($action === 'sync_peer_enable' || $action === 'sync_peer_save') {
+		$poller = alarmmanager_admin_int($input['id'] ?? null, 2);
+		$ca_pem = alarmmanager_sync_ca_validate($input['ca_pem'] ?? null);
+		$allow  = isset($input['allow_http']);
+
+		if ($action === 'sync_peer_enable') {
+			alarmmanager_sync_peer_enable($poller, (string) ($input['url'] ?? ''), $ca_pem, $allow);
+
+			return 'History sync provisioned; the collector adopts it on the next replication cycle.';
+		}
+		alarmmanager_sync_peer_save($poller, (string) ($input['url'] ?? ''), $ca_pem, $allow);
+
+		return 'History sync endpoint updated; the collector refreshes on the next replication cycle.';
+	}
+
+	if ($action === 'sync_peer_rotate') {
+		if (($input['confirmed'] ?? '') !== 'yes') {
+			throw new InvalidArgumentException('confirmation_required');
+		} alarmmanager_sync_peer_rotate(alarmmanager_admin_int($input['id'] ?? null, 2));
+
+		return 'Pair secret rotated; the collector re-registers after replication.';
+	}
+
+	if ($action === 'sync_peer_disable') {
+		alarmmanager_sync_peer_disable(alarmmanager_admin_int($input['id'] ?? null, 2));
+
+		return 'History sync disabled for that collector; the change replicates on the next cycle.';
 	}
 
 	if ($action === 'replay') {
@@ -534,6 +564,8 @@ function alarmmanager_admin_error_message(Throwable $error): string {
 		'permission_denied'              => 'Action failed. Administrator access, POST and a valid CSRF token are required.',
 		'invalid_transport'              => 'Action failed. Transport settings do not match the endpoint type.',
 		'invalid_transport_url'          => 'Action failed. Use an HTTPS URL without credentials, query parameters or fragments.',
+		'invalid_ca_pem'                 => 'The CA bundle must be PEM certificate text of at most 64 KiB.',
+		'sync_peer_missing'              => 'The selected collector does not exist.',
 		'invalid_mapping_path'           => 'Message field names must start with a letter or underscore and use letters, digits, underscores or dot-separated paths.',
 		'conflicting_mapping'            => 'Message fields have duplicate or overlapping destination names. Give each field a unique destination name.',
 		'ambiguous_mapping'              => 'Each message field must use exactly one Cacti value, custom value or combined text template.',

@@ -252,7 +252,9 @@ function alarmmanager_device_thold_decision(array $host, string $kind): array {
 	}
 }
 
-/** Caller holds the device owner lock; profile 0 uses global routing. */
+/** Caller holds the device owner lock; profile 0 uses global routing.
+ * @return array<string, mixed>
+ */
 function alarmmanager_device_auto_grant(int $device): array {
 	$instance = db_fetch_cell_prepared('SELECT instance_uuid FROM plugin_alarmmanager_node WHERE id = 1', [], '', false);
 
@@ -294,7 +296,7 @@ function alarmmanager_device_status_check(): int {
 				if ($state && ((int) $state['poller_id'] !== $poller || (int) $state['epoch'] !== (int) ($grant['epoch'] ?? 0))) {
 					$state = [];
 				}
-				$kind    = $status    === 1 ? 'raised' : 'recovered';
+				$kind    = $status === 1 ? 'raised' : 'recovered';
 				$changed = $status === 1
 					? (!$state || (int) $state['status'] !== 1 || (int) $state['fail_epoch'] !== $times['status_fail_date'])
 					: (($state && (int) $state['status'] === 1) || ($grant['last_transition'] ?? '') === 'raised');

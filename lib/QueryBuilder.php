@@ -16,13 +16,13 @@ use InvalidArgumentException;
 
 /** Compile versioned visual-filter documents into parameterized SQL. */
 class QueryBuilder {
-	private const MAX_DEPTH = 16;
+	private const MAX_DEPTH      = 16;
 	private const MAX_CONDITIONS = 128;
 	private const MAX_JSON_BYTES = 8192;
 
 	/**
-	 * @param string $json Versioned filter document.
-	 * @param array  $fields Map of logical field names to trusted column/type/operator definitions.
+	 * @param string               $json   Versioned filter document.
+	 * @param array<string, mixed> $fields Map of logical field names to trusted column/type/operator definitions.
 	 *
 	 * @return array{sql:string,params:array<int, string>}
 	 */
@@ -52,11 +52,11 @@ class QueryBuilder {
 	/**
 	 * Recursively compile a condition list into SQL.
 	 *
-	 * @param mixed $conditions The condition list from the untrusted filter document.
-	 * @param array<string, mixed> $fields Map of logical field names to trusted column/type/operator definitions.
-	 * @param array<int, string> $params The bound parameters, accumulated by reference.
-	 * @param int $count The number of conditions compiled so far, passed by reference.
-	 * @param int $depth The current nesting depth.
+	 * @param mixed                $conditions The condition list from the untrusted filter document.
+	 * @param array<string, mixed> $fields     Map of logical field names to trusted column/type/operator definitions.
+	 * @param array<int, string>   $params     The bound parameters, accumulated by reference.
+	 * @param int                  $count      The number of conditions compiled so far, passed by reference.
+	 * @param int                  $depth      The current nesting depth.
 	 *
 	 * @return string The compiled SQL fragment.
 	 *
@@ -68,10 +68,12 @@ class QueryBuilder {
 		}
 
 		$parts = [];
-		foreach (array_values($conditions) as $index => $condition) {
+
+		foreach ($conditions as $index => $condition) {
 			if (!is_array($condition)) {
 				throw new InvalidArgumentException('Each filter condition must be an object.');
 			}
+
 			if (++$count > self::MAX_CONDITIONS) {
 				throw new InvalidArgumentException('The filter contains too many conditions.');
 			}
@@ -80,6 +82,7 @@ class QueryBuilder {
 				throw new InvalidArgumentException('A filter connector must be AND or OR.');
 			}
 			$join = $index === 0 ? '' : strtoupper($condition['join'] ?? '');
+
 			if ($index > 0 && !in_array($join, ['AND', 'OR'], true)) {
 				throw new InvalidArgumentException('A filter connector must be AND or OR.');
 			}
@@ -98,8 +101,6 @@ class QueryBuilder {
 
 			if (($condition['negative'] ?? false) === true) {
 				$clause = '(NOT ' . $clause . ')';
-			} elseif (($condition['negative'] ?? false) !== false) {
-				throw new InvalidArgumentException('The filter negative flag must be boolean.');
 			}
 
 			$parts[] = ($join !== '' ? $join . ' ' : '') . $clause;
@@ -108,6 +109,17 @@ class QueryBuilder {
 		return implode(' ', $parts);
 	}
 
+	/**
+	 * Compile a trusted-operator field row into a parameterized predicate.
+	 *
+	 * @param array<string, mixed> $condition A single filter condition document.
+	 * @param array<string, mixed> $fields    Map of logical field names to trusted column/type/operator definitions.
+	 * @param array<int, string>   $params    The bound parameters, accumulated by reference.
+	 *
+	 * @return string The compiled SQL fragment.
+	 *
+	 * @throws InvalidArgumentException When the field, operator, or value is invalid.
+	 */
 	private static function compilePredicate(array $condition, array $fields, array &$params): string {
 		$field    = $condition['field'] ?? '';
 		$operator = $condition['operator'] ?? '';
@@ -119,28 +131,35 @@ class QueryBuilder {
 
 		$definition = $fields[$field];
 		$allowed    = $definition['operators'] ?? [];
+
 		if (!in_array($operator, $allowed, true)) {
 			throw new InvalidArgumentException('The selected operator is not allowed for this field.');
 		}
 
 		$value = (string) $value;
+
 		if ($value === '' || strlen($value) > 2048) {
 			throw new InvalidArgumentException('Filter values must contain between 1 and 2048 bytes.');
 		}
+
 		if (($definition['type'] ?? 'string') === 'integer' && !ctype_digit($value)) {
 			throw new InvalidArgumentException('The selected field requires a nonnegative integer.');
 		}
 
 		$column = $definition['column'];
+
 		switch ($operator) {
 			case 'contains':
 				$params[] = '%' . self::escapeLike($value) . '%';
+
 				return "($column LIKE ? ESCAPE '!')";
 			case 'begins':
 				$params[] = self::escapeLike($value) . '%';
+
 				return "($column LIKE ? ESCAPE '!')";
 			case 'ends':
 				$params[] = '%' . self::escapeLike($value);
+
 				return "($column LIKE ? ESCAPE '!')";
 			case '=':
 			case '!=':
@@ -149,6 +168,7 @@ class QueryBuilder {
 			case '<':
 			case '<=':
 				$params[] = $value;
+
 				return "($column $operator ?)";
 		}
 
@@ -159,6 +179,14 @@ class QueryBuilder {
 		return str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $value);
 	}
 
+	/**
+	 * Reject condition property names outside a whitelist.
+	 *
+	 * @param array<string, mixed> $value   The condition or document to inspect.
+	 * @param list<string>         $allowed The allowed property names.
+	 *
+	 * @throws InvalidArgumentException When an unsupported property is present.
+	 */
 	private static function assertKeys(array $value, array $allowed): void {
 		if (array_diff(array_keys($value), $allowed)) {
 			throw new InvalidArgumentException('The filter contains unsupported properties.');

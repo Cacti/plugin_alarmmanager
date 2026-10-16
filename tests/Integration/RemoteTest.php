@@ -338,6 +338,97 @@ final class RemoteTest extends AlarmManagerTestCase {
 	}
 
 	/**
+	 * Zero-touch pairs: provisioning stores the pair secret on main, the collector's first
+	 * packet registers its identity, and a missing pair secret aborts before any wire activity.
+	 */
+	public function testZeroTouchSyncPairAutoRegistrationAndKeyRequirement(): void {
+		self::requireAlarmManagerTestDb();
+
+		if (getenv('ALARMMANAGER_TEST_ALLOW_CREATE') !== '1') {
+			$this->markTestSkipped('Set ALARMMANAGER_TEST_ALLOW_CREATE=1 and a dedicated test-server DSN to run the remote lane.');
+		}
+		require_once dirname(__DIR__, 2) . '/setup.php';
+		require_once dirname(__DIR__, 2) . '/includes/replication.php';
+		require_once dirname(__DIR__, 2) . '/includes/remote.php';
+		require_once dirname(__DIR__, 2) . '/includes/ingestion.php';
+		require_once dirname(__DIR__, 2) . '/tests/fixtures/device_metadata_schema.php';
+		$databases                       = [];
+		$this->connections               = [];
+		$GLOBALS['config']               = ['poller_id' => 1];
+		$server                          = alarmmanager_test_connect();
+		$GLOBALS['alarmmanager_test_db'] = $server;
+
+		try {
+			foreach ([1, 2] as $poller) {
+				$database                 = 'alarmmanager_test_' . bin2hex(random_bytes(6));
+				$databases[$poller]       = $database;
+				$server->exec("CREATE DATABASE `$database` CHARACTER SET utf8mb4");
+				$this->connections[$poller] = alarmmanager_test_connect();
+				$this->connections[$poller]->exec("USE `$database`");
+				$this->ruse($poller);
+				$GLOBALS['alarmmanager_test_db']->exec('CREATE TABLE settings (name VARCHAR(255) PRIMARY KEY, value TEXT) ENGINE=InnoDB');
+				$GLOBALS['alarmmanager_test_db']->exec('CREATE TABLE settings_user (user_id INT, name VARCHAR(255), value TEXT, PRIMARY KEY (user_id,name)) ENGINE=InnoDB');
+				$GLOBALS['alarmmanager_test_db']->exec('CREATE TABLE plugin_config (directory VARCHAR(64) PRIMARY KEY,version VARCHAR(32),status INT) ENGINE=InnoDB');
+				$GLOBALS['alarmmanager_test_db']->exec("INSERT INTO plugin_config VALUES ('alarmmanager','0.7.0',1)");
+				alarmmanager_test_device_metadata_schema($GLOBALS['alarmmanager_test_db']);
+				$this->assertTrue(plugin_alarmmanager_install(), 'node install');
+				$nodes[$poller] = (string) $this->connections[$poller]->query('SELECT instance_uuid FROM plugin_alarmmanager_node')->fetchColumn();
+			}
+			// Provision on main through the same helper the Collectors page uses.
+			$this->ruse(1);
+			alarmmanager_sync_peer_enable(2, 'https://main.example.test/cacti/plugins/alarmmanager/alarmmanager_sync.php', null, false);
+			$this->assertSame('', (string)db_fetch_cell_prepared('SELECT instance_uuid FROM plugin_alarmmanager_sync_peers WHERE poller_id=2'), 'provisioned pair starts unregistered');
+			// The collector receives the pushed pair via replication; this fixture writes the pushed row directly.
+			$secret = (string)db_fetch_cell_prepared('SELECT pair_secret FROM plugin_alarmmanager_sync_peers WHERE poller_id=2');
+			$this->ruse(2);
+			alarmmanager_db_write("INSERT INTO plugin_alarmmanager_sync_peers (poller_id,instance_uuid,key_file,pair_secret,endpoint_url) VALUES (1,?, '', ?, ?)", [$nodes[1], $secret, 'https://main.example.test/cacti/plugins/alarmmanager/alarmmanager_sync.php']);
+
+			// First signed packet: heartbeat registers the claimed identity inside the receive transaction.
+			$heartbeat = json_encode(['version' => 1, 'poller_id' => 2, 'instance_uuid' => $nodes[2], 'receiver_uuid' => $nodes[1], 'through' => 0, 'records' => [], 'heartbeat' => true]);
+			$this->ruse(1);
+			alarmmanager_sync_receive($heartbeat, 2);
+			$this->assertSame($nodes[2], (string)db_fetch_cell_prepared('SELECT instance_uuid FROM plugin_alarmmanager_sync_peers WHERE poller_id=2'), 'first packet registers the collector identity');
+			$this->assertNotNull(db_fetch_cell_prepared('SELECT last_seen FROM plugin_alarmmanager_sync_peers WHERE poller_id=2'), 'registration stamps last_seen');
+			$spoofed = str_replace($nodes[2], str_repeat('a', 32), $heartbeat);
+			$this->rreject(fn () => alarmmanager_sync_receive($spoofed, 2), 'post-registration identity mismatch rejected');
+
+			// A real record completes export -> receive -> acknowledge with the registered pair.
+			$this->ruse(2);
+			alarmmanager_db_write('INSERT IGNORE INTO plugin_alarmmanager_decisions (event_row_id,rule_id,endpoint_id,reason,created_at) VALUES (1,0,0,?,UTC_TIMESTAMP(6))', ['fixture']);
+			alarmmanager_db_write('INSERT IGNORE INTO plugin_alarmmanager_sync_outbox (entity,entity_id,seed,created_at) VALUES (?,1,1,UTC_TIMESTAMP(6))', ['decision']);
+			$body     = alarmmanager_sync_export(100);
+			$this->assertStringContainsString('fixture', (string) $body, 'batch exported with the pending record');
+			$this->ruse(1);
+			$ack = alarmmanager_sync_receive((string) $body, 2);
+			$this->ruse(2);
+			alarmmanager_sync_acknowledge($ack);
+			$this->assertNull(alarmmanager_sync_export(100), 'acknowledged record advances the outbox cursor');
+
+			// Without a stored pair secret the sender refuses before building a request.
+			alarmmanager_db_write('UPDATE plugin_alarmmanager_sync_peers SET pair_secret = NULL WHERE poller_id=1');
+
+			try {
+				alarmmanager_sync_send();
+				$this->fail('sender without a pair secret refuses');
+			} catch (RuntimeException $error) {
+				$this->assertSame('sync_peer_key_missing', $error->getMessage());
+			}
+			$this->assertTrue(alarmmanager_sync_export(100) === null, 'refused send did not duplicate batches');
+
+			try {
+				alarmmanager_sync_pair_key(['pair_secret' => '']);
+				$this->fail('empty pair secret refuses');
+			} catch (RuntimeException $error) {
+				$this->assertSame('sync_peer_key_missing', $error->getMessage());
+			}
+		} finally {
+			foreach ($databases as $database) {
+				$server->exec("DROP DATABASE IF EXISTS `$database`");
+			}
+		}
+	}
+
+	/**
 	 * Throw the label unless the action throws, mirroring the original rejection fixture.
 	 */
 	private function rreject(callable $action, string $label): void {

@@ -25,7 +25,9 @@ require_once(__DIR__ . '/web_auth.php');
 require_once(__DIR__ . '/routing.php');
 require_once(dirname(__DIR__) . '/lib/QueryBuilder.php');
 
-/** Trusted columns and operators shared by the visual editor and SQL compiler. */
+/** Trusted columns and operators shared by the visual editor and SQL compiler.
+ * @return array<string, array<string, mixed>>
+ */
 function alarmmanager_report_query_fields(string $kind = 'dashboard', string $severity = 'e.severity'): array {
 	$text   = ['contains', 'begins', 'ends', '=', '!='];
 	$number = ['=', '!=', '>', '>=', '<', '<='];

@@ -49,10 +49,10 @@ function alarmmanager_integration_templates(): array {
 		['to' => 'state', 'source' => 'alarm.transition'],
 		['to' => 'external_id', 'source' => 'integration.id']
 	]];
-	$http        = ['url' => 'https://receiver.example.invalid/alarms', 'method' => 'POST', 'credential' => false, 'mapping' => $mapping];
-	$pd_severity = ['critical' => 'critical', 'major' => 'error', 'minor' => 'warning', 'warning' => 'warning', 'info' => 'info', 'clear' => 'info'];
-	$sn_urgency  = ['critical' => 1, 'major' => 2, 'minor' => 3, 'warning' => 3, 'info' => 3, 'clear' => 3];
-	$sn_target   = ['url' => 'https://REPLACE-INSTANCE.service-now.com/api/now/table/incident/{{integration.id}}', 'method' => 'PATCH'];
+	$http            = ['url' => 'https://receiver.example.invalid/alarms', 'method' => 'POST', 'credential' => false, 'mapping' => $mapping];
+	$pd_severity     = ['critical' => 'critical', 'major' => 'error', 'minor' => 'warning', 'warning' => 'warning', 'info' => 'info', 'clear' => 'info'];
+	$sn_urgency      = ['critical' => 1, 'major' => 2, 'minor' => 3, 'warning' => 3, 'info' => 3, 'clear' => 3];
+	$sn_target       = ['url' => 'https://REPLACE-INSTANCE.service-now.com/api/now/table/incident/{{integration.id}}', 'method' => 'PATCH'];
 	$sn_event_fields = [
 		['to' => 'source', 'constant' => 'Cacti Alarm Manager', 'type' => 'string', 'required' => true],
 		['to' => 'node', 'source' => 'device.hostname', 'type' => 'string'],
@@ -120,8 +120,8 @@ function alarmmanager_integration_templates(): array {
 					['to' => 'urgency', 'source' => 'alarm.severity', 'type' => 'integer', 'values' => $sn_urgency]
 				]]]],
 		'servicenow_events' => ['name' => 'ServiceNow events', 'provider' => 'servicenow', 'type' => 'webhook', 'auth' => 'basic',
-			'hint' => 'Writes Event Management records to em_event. Replace the instance URL and enter credentials with permission to create events. Recovery posts severity 0 with the same message key; review the event fields for your instance.',
-			'transport' => ['url' => 'https://REPLACE-INSTANCE.service-now.com/api/now/table/em_event', 'method' => 'POST', 'credential' => true, 'mapping' => [
+			'hint'                        => 'Writes Event Management records to em_event. Replace the instance URL and enter credentials with permission to create events. Recovery posts severity 0 with the same message key; review the event fields for your instance.',
+			'transport'                   => ['url' => 'https://REPLACE-INSTANCE.service-now.com/api/now/table/em_event', 'method' => 'POST', 'credential' => true, 'mapping' => [
 				'default' => [...$sn_event_fields,
 					['to' => 'severity', 'source' => 'alarm.severity', 'type' => 'integer', 'values' => ['critical' => 1, 'major' => 2, 'minor' => 3, 'warning' => 4, 'info' => 5, 'clear' => 0], 'required' => true]
 				],
@@ -225,13 +225,15 @@ function alarmmanager_response_reference(string $body, array $paths): array {
  * @return array<string, mixed>
  */
 function alarmmanager_delivery_reference(array $event, int $endpoint_id, ?array $mapping = null, ?array $overrides = null): array {
-	$items = $mapping[$event['transition']] ?? $mapping['default'] ?? [];
+	$items   = $mapping[$event['transition']] ?? $mapping['default'] ?? [];
 	$sources = array_column($items, 'source');
+
 	foreach ($items as $item) {
 		if (isset($item['template'])) {
 			$sources = array_merge($sources, alarmmanager_mapping_template_fields($item['template']));
 		}
 	}
+
 	if ($mapping !== null && !array_intersect($sources, ['integration.id', 'integration.url']) && !str_contains($overrides[$event['transition']]['url'] ?? '', '{{integration.id}}')) {
 		return [];
 	}

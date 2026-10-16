@@ -412,13 +412,13 @@ final class RuntimeTest extends AlarmManagerTestCase {
 	 * Fixture envelope built from the shared example event.
 	 */
 	private function am_fixture(string $id, int $seq = 1, string $kind = 'raised', string $episode = 'outage-1', string $key = 'device:42'): array {
-		$event               = json_decode(file_get_contents(__DIR__ . '/../../examples/event.json'), true, 32, JSON_THROW_ON_ERROR);
-		$event['event_id']   = $id;
+		$event                 = json_decode(file_get_contents(__DIR__ . '/../../examples/event.json'), true, 32, JSON_THROW_ON_ERROR);
+		$event['event_id']     = $id;
 		$event['collector_id'] = 2;
-		$event['sequence']   = $seq;
-		$event['transition'] = $kind;
-		$event['episode_id'] = $episode;
-		$event['alarm_key']  = $key;
+		$event['sequence']     = $seq;
+		$event['transition']   = $kind;
+		$event['episode_id']   = $episode;
+		$event['alarm_key']    = $key;
 
 		return ['contract_version' => 1, 'status' => 'unhandled', 'event' => $event];
 	}

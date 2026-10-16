@@ -63,7 +63,7 @@ final class IngestionTest extends AlarmManagerTestCase {
 			$this->assertSame(1, (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_jobs'), 'Processing job missing.');
 			$this->assertSame(2, (int) db_fetch_cell_prepared('SELECT processing_poller_id FROM plugin_alarmmanager_events'), 'Local processing owner missing.');
 			$this->assertSame(0, (int) db_fetch_cell_prepared('SELECT @@in_transaction'), 'Acceptance preceded commit.');
-			$foreign = $this->alarmmanager_db_sample('foreign-collector');
+			$foreign                          = $this->alarmmanager_db_sample('foreign-collector');
 			$foreign['event']['collector_id'] = 3;
 			$this->assertSame('invalid_event', alarmmanager_submit($foreign)['error'], 'Collectors may only submit their own events.');
 			$again = alarmmanager_submit($this->alarmmanager_db_sample('first'));
@@ -158,8 +158,8 @@ final class IngestionTest extends AlarmManagerTestCase {
 	 * Fixture envelope built from the shared example event.
 	 */
 	private function alarmmanager_db_sample(string $id, string $mode = 'centralized'): array {
-		$event             = json_decode(file_get_contents(__DIR__ . '/../../examples/event.json'), true, 32, JSON_THROW_ON_ERROR);
-		$event['event_id'] = $id;
+		$event                 = json_decode(file_get_contents(__DIR__ . '/../../examples/event.json'), true, 32, JSON_THROW_ON_ERROR);
+		$event['event_id']     = $id;
 		$event['collector_id'] = 2;
 
 		return ['contract_version' => 1] + ($mode === 'centralized' ? [] : ['mode' => $mode]) + [ 'status' => 'unhandled', 'event' => $event, 'producer_marker' => 'preserve'];

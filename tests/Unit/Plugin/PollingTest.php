@@ -31,7 +31,7 @@ final class PollingTest extends AlarmManagerTestCase {
 			$GLOBALS['config']['poller_id'] = 2;
 			alarmmanager_poller_bottom();
 			$this->assertCount(2, $GLOBALS['alarmmanager_test_workers']);
-			$this->assertStringContainsString('collector history sync failed; pending history retained', end($GLOBALS['alarmmanager_test_log']));
+			$this->assertStringNotContainsString('collector history sync failed', implode("\n", $GLOBALS['alarmmanager_test_log']), 'A collector without a provisioned pair idles silently.');
 		} finally {
 			$GLOBALS['config'] = $before;
 		}

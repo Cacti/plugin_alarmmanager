@@ -3,6 +3,7 @@
 final class DeviceStatusTest extends AlarmManagerTestCase {
 	public function testPollerComparisonCapturesSpineChangesAndDeduplicatesPhpEvents(): void {
 		self::requireAlarmManagerTestDb();
+
 		if (getenv('ALARMMANAGER_TEST_ALLOW_CREATE') !== '1') {
 			$this->markTestSkipped('Disposable database creation must be enabled.');
 		}
@@ -10,11 +11,12 @@ final class DeviceStatusTest extends AlarmManagerTestCase {
 		require_once dirname(__DIR__, 2) . '/includes/polling.php';
 		require_once dirname(__DIR__, 2) . '/includes/processor.php';
 		require_once dirname(__DIR__, 2) . '/includes/queue.php';
-		$db = alarmmanager_test_connect();
+		$db                              = alarmmanager_test_connect();
 		$GLOBALS['alarmmanager_test_db'] = $db;
-		$GLOBALS['config'] = ['poller_id' => 1];
-		$database = 'alarmmanager_test_' . bin2hex(random_bytes(6));
+		$GLOBALS['config']               = ['poller_id' => 1];
+		$database                        = 'alarmmanager_test_' . bin2hex(random_bytes(6));
 		$db->exec("CREATE DATABASE `$database` CHARACTER SET utf8mb4");
+
 		try {
 			$db->exec("USE `$database`");
 			$db->exec('CREATE TABLE settings (name VARCHAR(255) PRIMARY KEY, value TEXT) ENGINE=InnoDB');
@@ -54,11 +56,14 @@ final class DeviceStatusTest extends AlarmManagerTestCase {
 			self::assertSame(['raised', 'recovered'], array_column($events, 'transition'));
 			self::assertSame($events[0]['episode_id'], $events[1]['episode_id']);
 			self::assertGreaterThan((int) $events[0]['sequence'], (int) $events[1]['sequence']);
-			while ($claim = alarmmanager_claim_processing()) { alarmmanager_process_job($claim); }
+
+			while ($claim = alarmmanager_claim_processing()) {
+				alarmmanager_process_job($claim);
+			}
 			self::assertSame(2, (int) $db->query('SELECT COUNT(*) FROM plugin_alarmmanager_deliveries')->fetchColumn(), 'Both transitions route');
 			// Existing PHP integration remains synchronous and comparison reuses its receipt.
 			$fail += 20;
-			$host = ['id' => 42, 'hostname' => 'fixture.test', 'description' => 'Fixture', 'status' => 1, 'status_fail_date' => $fail, 'status_rec_date' => time()];
+			$host  = ['id' => 42, 'hostname' => 'fixture.test', 'description' => 'Fixture', 'status' => 1, 'status_fail_date' => $fail, 'status_rec_date' => time()];
 			$write = static fn (): bool => db_execute_prepared('UPDATE host SET status=1,status_fail_date=FROM_UNIXTIME(?) WHERE id=42', [$fail]);
 			self::assertTrue(alarmmanager_device_core_commit($host, 3, $write));
 			self::assertSame(0, alarmmanager_device_status_check(), 'No duplicate PHP raise');
@@ -69,11 +74,14 @@ final class DeviceStatusTest extends AlarmManagerTestCase {
 			mkdir($root . '/cache/alarmmanager', 0700, true);
 			file_put_contents($root . '/cache/alarmmanager/workers.json', '{"enabled":true}');
 			$GLOBALS['config']['base_path'] = $root;
+
 			try {
 				alarmmanager_poller_bottom();
 			} finally {
 				unlink($root . '/cache/alarmmanager/workers.json');
-				rmdir($root . '/cache/alarmmanager'); rmdir($root . '/cache'); rmdir($root);
+				rmdir($root . '/cache/alarmmanager');
+				rmdir($root . '/cache');
+				rmdir($root);
 				unset($GLOBALS['config']['base_path']);
 			}
 			self::assertSame(4, (int) $db->query('SELECT COUNT(*) FROM plugin_alarmmanager_events')->fetchColumn(), 'Daemon mode still captures recovery');
@@ -81,7 +89,7 @@ final class DeviceStatusTest extends AlarmManagerTestCase {
 			// Existing active episodes also recover on the first comparison after upgrade.
 			$fail += 20;
 			$host['status_fail_date'] = $fail;
-			$write = static fn (): bool => db_execute_prepared('UPDATE host SET status=1,status_fail_date=FROM_UNIXTIME(?) WHERE id=42', [$fail]);
+			$write                    = static fn (): bool => db_execute_prepared('UPDATE host SET status=1,status_fail_date=FROM_UNIXTIME(?) WHERE id=42', [$fail]);
 			self::assertTrue(alarmmanager_device_core_commit($host, 3, $write));
 			$db->exec('DELETE FROM plugin_alarmmanager_device_status WHERE device_id=42');
 			$db->exec("UPDATE host SET status=3,status_rec_date=FROM_UNIXTIME($fail-1) WHERE id=42");
@@ -101,7 +109,6 @@ final class DeviceStatusTest extends AlarmManagerTestCase {
 			$db->prepare("UPDATE plugin_alarmmanager_device_owners SET owner='core',epoch=2,seed_event=? WHERE device_id=47")->execute([$seed]);
 			$db->exec('UPDATE host SET status=1 WHERE id=47');
 			self::assertSame(0, alarmmanager_device_status_check(), 'Ownership handoff seed is not resent as a new outage');
-
 		} finally {
 			unset($GLOBALS['alarmmanager_fail_commit']);
 			$db->exec("DROP DATABASE `$database`");
