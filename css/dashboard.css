@@ -139,10 +139,7 @@
 #alarmmanager_app { --search-border:#cbd8d1; --search-card:#fff; --search-text:#23362f; --search-tint:#e2ede6; --search-muted:#596d64; --search-accent:#276448; color:var(--search-text); padding:12px; max-width:1800px; box-sizing:border-box; }
 #alarmmanager_app[data-theme="dark"], #alarmmanager_app[data-theme="midwinter"], #alarmmanager_app[data-theme="deepness"] { --search-border:#53606b; --search-card:#20272e; --search-text:#e6edf3; --search-tint:#303c47; --search-muted:#b7c4d0; --search-accent:#8ed6b2; }
 #alarmmanager_app h1 { font-size:22px; margin:0 0 12px; }
-.alarmmanagerTabs { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:16px; }
-#alarmmanager_app a { color:var(--search-accent); text-decoration:underline; overflow-wrap:anywhere; }
-.alarmmanagerTabs a { display:inline-block; padding:7px 10px; border:1px solid var(--search-border); border-radius:5px; background:var(--search-card); }
-.alarmmanagerTabs a[aria-current="page"] { background:var(--search-tint); font-weight:bold; }
+#alarmmanager_app a:not(.tab) { color:var(--search-accent); text-decoration:underline; overflow-wrap:anywhere; }
 .alarmmanagerDashboardBar { padding:12px; border:1px solid var(--search-border); border-radius:8px; background:var(--search-card); }
 .alarmmanagerSearchHeader h2 { margin:0; font-size:16px; }
 #alarmmanager_app label { display:inline-flex; flex-wrap:wrap; align-items:center; gap:6px; }

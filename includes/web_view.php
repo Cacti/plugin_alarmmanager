@@ -29,7 +29,7 @@ const ALARMMANAGER_TABS = ['dashboard', 'conditions', 'events', 'deliveries', 'a
 function alarmmanager_web_assets(): void {
 	global $config;
 
-	print '<link rel="stylesheet" href="' . html_escape($config['url_path'] . 'plugins/alarmmanager/css/dashboard.css' . '?v=0.10.4-notification-queue') . '">';
+	print '<link rel="stylesheet" href="' . html_escape($config['url_path'] . 'plugins/alarmmanager/css/dashboard.css' . '?v=0.11.0-cacti-tabs') . '">';
 	print '<script src="' . html_escape($config['url_path'] . 'plugins/alarmmanager/js/dashboard.js' . '?v=0.10.4-notification-queue') . '" defer></script>';
 }
 /**
@@ -128,7 +128,7 @@ function alarmmanager_web_open(array $scope, string $tab): void {
 	if ($scope['admin']) {
 		print '<p><a href="alarmmanager_admin.php">' . __esc('Administration', 'alarmmanager') . '</a></p>';
 	}
-	print '<nav class="alarmmanagerTabs" aria-label="' . __esc('Alarm Manager pages', 'alarmmanager') . '">';
+	print '<div class="tabs"><nav aria-label="' . __esc('Alarm Manager pages', 'alarmmanager') . '"><ul>';
 
 	foreach ([
 		'dashboard'  => 'Dashboard',
@@ -139,10 +139,10 @@ function alarmmanager_web_open(array $scope, string $tab): void {
 		'decisions'  => 'Routing decisions',
 		'processing' => 'Processing'
 	] as $key => $label) {
-		print '<a ' . ($tab === $key ? 'aria-current="page" ' : '') . 'href="' . html_escape('alarmmanager.php?tab=' . $key) . '">' . __esc($label, 'alarmmanager') . '</a>';
+		print '<li><a class="tab' . ($tab === $key ? ' selected' : '') . '" ' . ($tab === $key ? 'aria-current="page" ' : '') . 'href="' . html_escape('alarmmanager.php?tab=' . $key) . '">' . __esc($label, 'alarmmanager') . '</a></li>';
 	}
 
-	print '</nav>';
+	print '</ul></nav></div>';
 }
 function alarmmanager_web_filters(array $filters, string $tab, bool $dashboard = false): void {
 	html_start_box($dashboard ? __esc('Alarm statistics', 'alarmmanager') : __esc('Filters', 'alarmmanager'), '100%', false, 3, 'center', '');
