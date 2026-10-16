@@ -112,11 +112,11 @@ function alarmmanager_schema_install(): bool {
 		return false;
 	}
 
-	return alarmmanager_schema_remote() && alarmmanager_schema_record_ids() && alarmmanager_schema_integrations();
+	return alarmmanager_schema_remote() && alarmmanager_schema_record_ids() && alarmmanager_schema_integrations() && alarmmanager_schema_device_status();
 }
 
 function alarmmanager_schema_ready(): bool {
-	return (int) db_fetch_cell_prepared('SELECT version FROM plugin_alarmmanager_schema WHERE id = 1', [], '', false) === 9;
+	return (int) db_fetch_cell_prepared('SELECT version FROM plugin_alarmmanager_schema WHERE id = 1', [], '', false) === 10;
 }
 
 function alarmmanager_schema_column(string $table, string $column, string $definition): void {
@@ -149,7 +149,7 @@ function alarmmanager_schema_runtime(): bool {
 	try {
 		$version = db_fetch_cell_prepared('SELECT version FROM plugin_alarmmanager_schema WHERE id = 1', [], '', false);
 
-		if ($version === false || (int) $version > 9) {
+		if ($version === false || (int) $version > 10) {
 			return false;
 		}
 		alarmmanager_schema_column('plugin_alarmmanager_schema', 'config_revision', 'BIGINT UNSIGNED NOT NULL DEFAULT 0');
@@ -377,7 +377,7 @@ function alarmmanager_schema_record_ids(): bool {
 				alarmmanager_db_write("ALTER TABLE `$table` MODIFY COLUMN id INT UNSIGNED NOT NULL AUTO_INCREMENT");
 			}
 		}
-		alarmmanager_db_write('UPDATE plugin_alarmmanager_schema SET version = 7 WHERE id = 1');
+		alarmmanager_db_write('UPDATE plugin_alarmmanager_schema SET version = GREATEST(version, 7) WHERE id = 1');
 	} catch (Throwable $error) {
 		return false;
 	}
@@ -389,8 +389,24 @@ function alarmmanager_schema_record_ids(): bool {
 function alarmmanager_schema_integrations(): bool {
 	try {
 		alarmmanager_schema_column('plugin_alarmmanager_deliveries', 'external_reference', 'TEXT NULL');
-		alarmmanager_db_write('UPDATE plugin_alarmmanager_schema SET version = 9 WHERE id = 1');
+		alarmmanager_db_write('UPDATE plugin_alarmmanager_schema SET version = GREATEST(version, 9) WHERE id = 1');
 
+		return true;
+	} catch (Throwable $error) {
+		return false;
+	}
+}
+
+/** v10: poller-independent comparison with Cacti's confirmed device state. */
+function alarmmanager_schema_device_status(): bool {
+	try {
+		alarmmanager_db_write("CREATE TABLE IF NOT EXISTS plugin_alarmmanager_device_status (
+			device_id INT UNSIGNED PRIMARY KEY, poller_id INT UNSIGNED NOT NULL,
+			epoch INT UNSIGNED NOT NULL, status TINYINT NOT NULL,
+			fail_epoch BIGINT UNSIGNED NOT NULL, rec_epoch BIGINT UNSIGNED NOT NULL,
+			updated_at DATETIME(6) NOT NULL, KEY collector (poller_id, device_id)
+		) ENGINE=InnoDB");
+		alarmmanager_db_write('UPDATE plugin_alarmmanager_schema SET version = 10 WHERE id = 1');
 		return true;
 	} catch (Throwable $error) {
 		return false;

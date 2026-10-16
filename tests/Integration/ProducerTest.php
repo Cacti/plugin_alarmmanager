@@ -97,7 +97,7 @@ final class ProducerTest extends AlarmManagerTestCase {
 			$this->assertSame(str_repeat('é', 255), AlarmManagerProducerBridge::text(str_repeat('é', 300), 511), 'UTF-8 truncation retains complete characters');
 			$this->assertTrue(plugin_alarmmanager_install(), 'install');
 			$this->assertTrue(plugin_alarmmanager_install(), 'repeat install');
-			$this->assertSame(9, (int) db_fetch_cell_prepared('SELECT version FROM plugin_alarmmanager_schema'), 'schema v9');
+			$this->assertSame(10, (int) db_fetch_cell_prepared('SELECT version FROM plugin_alarmmanager_schema'), 'schema v10');
 			$this->assertFalse($this->producer_publish('legacy-default')['owned'], 'legacy default');
 			$this->assertSame(0, (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_events'), 'legacy no events');
 			$this->producer_policy('thold', 'default', 0, 'observe');

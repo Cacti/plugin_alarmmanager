@@ -181,13 +181,7 @@ function alarmmanager_device_core_commit(array $host, int $previous_status, call
 			}
 
 			if (!$grant) {
-				$instance = db_fetch_cell_prepared('SELECT instance_uuid FROM plugin_alarmmanager_node WHERE id = 1', [], '', false);
-				if (!is_string($instance) || !preg_match('/\A[a-f0-9]{32}\z/D', $instance)) {
-					throw new RuntimeException('node_identity_unavailable');
-				}
-				// Local ownership is automatic; profile 0 uses global routing without a per-device setup step.
-				alarmmanager_db_write("INSERT INTO plugin_alarmmanager_device_owners (device_id, deployment_uuid, poller_id, epoch, owner, mode, profile_id, channels, valid_from, valid_until) VALUES (?, ?, ?, 1, 'core', 'centralized', 0, ?, UTC_TIMESTAMP(6), '9999-12-31 23:59:59')", [(int) $host['id'], $instance, alarmmanager_local_poller(), json_encode(['email', 'script'])]);
-				$grant = alarmmanager_device_grant((int) $host['id'], true);
+				$grant = alarmmanager_device_auto_grant((int) $host['id']);
 			}
 			if (!$write_status()) {
 				throw new RuntimeException('device_status_write_failed');
@@ -248,4 +242,70 @@ function alarmmanager_device_thold_decision(array $host, string $kind): array {
 	} catch (Throwable $error) {
 		return $legacy;
 	}
+}
+
+/** Caller holds the device owner lock; profile 0 uses global routing. */
+function alarmmanager_device_auto_grant(int $device): array {
+	$instance = db_fetch_cell_prepared('SELECT instance_uuid FROM plugin_alarmmanager_node WHERE id = 1', [], '', false);
+	if (!is_string($instance) || !preg_match('/\A[a-f0-9]{32}\z/D', $instance)) {
+		throw new RuntimeException('node_identity_unavailable');
+	}
+	alarmmanager_db_write("INSERT INTO plugin_alarmmanager_device_owners (device_id, deployment_uuid, poller_id, epoch, owner, mode, profile_id, channels, valid_from, valid_until) VALUES (?, ?, ?, 1, 'core', 'centralized', 0, ?, UTC_TIMESTAMP(6), '9999-12-31 23:59:59')", [$device, $instance, alarmmanager_local_poller(), json_encode(['email', 'script'])]);
+	return alarmmanager_device_grant($device, true);
+}
+
+/** Compare once per poller cycle, as thold does with plugin_thold_host_failed. */
+// shortcut: transitions between comparisons can be missed; use a journal if every transition is required.
+function alarmmanager_device_status_check(): int {
+	$poller = alarmmanager_local_poller();
+	$devices = alarmmanager_db_rows("SELECT h.id FROM host AS h
+		LEFT JOIN plugin_alarmmanager_device_status AS s ON s.device_id = h.id
+		LEFT JOIN plugin_alarmmanager_device_owners AS g ON g.device_id = h.id
+		WHERE h.poller_id = ? AND h.deleted = '' AND h.disabled = '' AND h.availability_method > 0 AND h.status IN (1, 3)
+		AND (s.device_id IS NULL OR s.poller_id <> h.poller_id OR s.epoch <> COALESCE(g.epoch, 0) OR s.status <> h.status
+			OR s.fail_epoch <> COALESCE(UNIX_TIMESTAMP(h.status_fail_date), 0)
+			OR s.rec_epoch <> COALESCE(UNIX_TIMESTAMP(h.status_rec_date), 0)) ORDER BY h.id", [$poller]);
+	$count = 0;
+	foreach ($devices as $device) {
+		try {
+			$count += alarmmanager_transaction(static function () use ($device, $poller): int {
+				// Match the PHP bridge's owner -> host lock order.
+				$grant = alarmmanager_device_grant((int) $device['id'], true);
+				$host = alarmmanager_db_row("SELECT * FROM host WHERE id = ? AND poller_id = ? AND deleted = '' AND disabled = '' AND availability_method > 0 AND status IN (1, 3) FOR UPDATE", [$device['id'], $poller]);
+				if (!$host) {
+					return 0;
+				}
+				$state = alarmmanager_db_row('SELECT * FROM plugin_alarmmanager_device_status WHERE device_id = ? FOR UPDATE', [$device['id']]);
+				$times = alarmmanager_device_times($host);
+				$status = (int) $host['status'];
+				if ($state && ((int) $state['poller_id'] !== $poller || (int) $state['epoch'] !== (int) ($grant['epoch'] ?? 0))) {
+					$state = [];
+				}
+				$kind = $status === 1 ? 'raised' : 'recovered';
+				$changed = $status === 1
+					? (!$state || (int) $state['status'] !== 1 || (int) $state['fail_epoch'] !== $times['status_fail_date'])
+					: (($state && (int) $state['status'] === 1) || ($grant['last_transition'] ?? '') === 'raised');
+				$emitted = 0;
+				if ($changed && $times['status_fail_date'] > 0 && ($status === 1 || $times['status_rec_date'] >= $times['status_fail_date'])
+					&& ($status === 1 || $grant)
+					&& (!$grant || ($grant['owner'] === 'core' && $grant['mode'] !== 'legacy' && alarmmanager_device_live($grant)))) {
+					$grant = $grant ?: alarmmanager_device_auto_grant((int) $host['id']);
+					$seed = empty($grant['seed_event']) ? [] : json_decode($grant['seed_event'], true, 32, JSON_THROW_ON_ERROR);
+					$seeded = ($seed['transition'] ?? '') === $kind && (int) strtotime($seed['occurred_at']) === $times[$kind === 'raised' ? 'status_fail_date' : 'status_rec_date'];
+					if (!$seeded && !alarmmanager_device_receipt($grant, $host, $kind)) {
+						alarmmanager_device_persist($grant, $host, $kind, true);
+						$emitted = 1;
+					}
+				}
+				// Queueing and comparison state commit together, so failures retry next cycle.
+				alarmmanager_db_write('INSERT INTO plugin_alarmmanager_device_status (device_id, poller_id, epoch, status, fail_epoch, rec_epoch, updated_at)
+					VALUES (?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(6)) ON DUPLICATE KEY UPDATE poller_id = VALUES(poller_id), epoch = VALUES(epoch), status = VALUES(status), fail_epoch = VALUES(fail_epoch), rec_epoch = VALUES(rec_epoch), updated_at = VALUES(updated_at)',
+					[$host['id'], $poller, (int) ($grant['epoch'] ?? 0), $status, $times['status_fail_date'], $times['status_rec_date']]);
+				return $emitted;
+			});
+		} catch (Throwable $error) {
+			alarmmanager_log('device status check failed for device ' . $device['id'] . '; next cycle will retry: ' . $error->getMessage());
+		}
+	}
+	return $count;
 }

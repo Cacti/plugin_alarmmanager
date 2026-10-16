@@ -23,6 +23,7 @@
 */
 require_once(__DIR__ . '/workers.php');
 require_once(__DIR__ . '/supervisor.php');
+require_once(__DIR__ . '/device.php');
 
 /** Bounded per-role drain options for the poller-integrated mode, matching alarmmanager_worker_loop()'s contract.
  * @return array{max_jobs: int, max_seconds: int, lease_seconds: int, idle_ms: int}
@@ -54,17 +55,18 @@ function alarmmanager_poller_bottom(array $args = []): void {
 	}
 
 	try {
+		$started = microtime(true);
+		$devices = alarmmanager_device_status_check();
 		if (alarmmanager_supervisor_options()['enabled']) {
 			return;
 		}
 
-		$started = microtime(true);
-		$counts  = [];
+		$counts = [];
 
 		foreach (['processing', 'delivery'] as $role) {
 			$counts[$role] = alarmmanager_worker_loop($role, alarmmanager_poller_budget() + ['once' => true, 'worker_id' => alarmmanager_poller_worker_id($role)], static fn (): bool => false);
 		}
-		cacti_log(sprintf('ALARMMANAGER STATS: Time:%.4f Mode:poller Processing:%d Delivery:%d', microtime(true) - $started, $counts['processing'], $counts['delivery']), false, 'SYSTEM');
+		cacti_log(sprintf('ALARMMANAGER STATS: Time:%.4f Mode:poller Processing:%d Delivery:%d Devices:%d', microtime(true) - $started, $counts['processing'], $counts['delivery'], $devices), false, 'SYSTEM');
 	} catch (Throwable $error) {
 		alarmmanager_log('poller drain failed: ' . $error->getMessage());
 	}
