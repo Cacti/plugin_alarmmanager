@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Alarm Manager 0.11.0\n"
 "Report-Msgid-Bugs-To: https://github.com/bmfmancini/plugin_alarmmanager/issues\n"
-"POT-Creation-Date: 2026-10-16 17:39-0400\n"
+"POT-Creation-Date: 2026-10-16 17:45-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alarm Manager Developers <https://github.com/bmfmancini/plugin_alarmmanager>\n"
 "Language-Team: Alarm Manager Developers <https://github.com/bmfmancini/plugin_alarmmanager>\n"
@@ -309,7 +309,7 @@ msgstr ""
 msgid "Endpoint"
 msgstr ""
 
-#: includes/admin_view.php:256 includes/admin_view.php:465
+#: includes/admin_view.php:256
 msgid "ID"
 msgstr ""
 
@@ -546,7 +546,7 @@ msgstr ""
 msgid "PID"
 msgstr ""
 
-#: includes/admin_view.php:424
+#: includes/admin_view.php:424 includes/admin_view.php:487
 msgid "Poller"
 msgstr ""
 
@@ -602,43 +602,51 @@ msgstr ""
 msgid "Collectors"
 msgstr ""
 
-#: includes/admin_view.php:465 includes/admin_view.php:493
-msgid "Collector"
+#: includes/admin_view.php:465
+msgid "Last history sync (UTC)"
 msgstr ""
 
 #: includes/admin_view.php:465
-msgid "Last history sync (UTC)"
+msgid "Poller name"
+msgstr ""
+
+#: includes/admin_view.php:465
+msgid "Poller_id"
 msgstr ""
 
 #: includes/admin_view.php:478
 msgid "No remote collectors configured."
 msgstr ""
 
-#: includes/admin_view.php:484
-msgid "Collector (0 selects all)"
+#: includes/admin_view.php:487
+msgid "All pollers"
 msgstr ""
 
-#: includes/admin_view.php:484
-msgid "Record type"
+#: includes/admin_view.php:492
+msgid "History record type"
 msgstr ""
 
-#: includes/admin_view.php:488
+#: includes/admin_view.php:496
 msgid "Filter"
 msgstr ""
 
-#: includes/admin_view.php:490
+#: includes/admin_view.php:498
 msgid "Latest 50 matching remote records; original IDs and delivery ownership are preserved."
 msgstr ""
 
-#: includes/admin_view.php:498
+#: includes/admin_view.php:501
+msgid "Collector"
+msgstr ""
+
+#: includes/admin_view.php:506
 msgid "Authentication"
 msgstr ""
 
-#: includes/admin_view.php:498
+#: includes/admin_view.php:506
 msgid "Authentication type"
 msgstr ""
 
-#: includes/admin_view.php:518
+#: includes/admin_view.php:526
 msgid "Saved credentials are encrypted and never displayed. New values replace the saved credential record."
 msgstr ""
 

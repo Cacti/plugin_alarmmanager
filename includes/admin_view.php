@@ -462,13 +462,13 @@ function alarmmanager_remote_markup(): void {
 		WHERE q.id > 1 ORDER BY q.name, q.id LIMIT 256');
 
 	html_start_box(__esc('Collectors', 'alarmmanager'), '100%', false, 3, 'center', '');
-	html_header([__esc('Collector', 'alarmmanager'), __esc('ID', 'alarmmanager'), __esc('Status', 'alarmmanager'), __esc('Last history sync (UTC)', 'alarmmanager')], 1);
+	html_header([__esc('Poller_id', 'alarmmanager'), __esc('Poller name', 'alarmmanager'), __esc('Status', 'alarmmanager'), __esc('Last history sync (UTC)', 'alarmmanager')], 1);
 
 	foreach ($peers as $peer) {
 		$status = $peer['last_seen'] === null ? 'Not yet seen' : ((int) $peer['age_seconds'] <= 2 * (int) (read_config_option('poller_interval') ?: 300) + 30 ? 'Online' : 'Offline');
 		form_alternate_row();
+		form_selectable_cell((string) (int) $peer['poller_id'], 0, '', 'left');
 		form_selectable_cell(html_escape((string) $peer['name']), 0, '', 'left');
-		form_selectable_cell((string) (int) $peer['poller_id'], 0, '', 'right');
 		form_selectable_cell(__esc($status, 'alarmmanager'), 0, '', 'left');
 		form_selectable_cell(html_escape($peer['last_seen'] ?? '—'), 0, '', 'left');
 		form_end_row();
@@ -481,7 +481,15 @@ function alarmmanager_remote_markup(): void {
 
 	$poller = get_filter_request_var('collector', FILTER_VALIDATE_INT, ['options' => ['min_range' => 0, 'max_range' => 2147483647], 'default' => 0]);
 	$entity = get_filter_request_var('entity', FILTER_CALLBACK, ['options' => static fn ($value) => is_string($value) && isset(alarmmanager_sync_entities()[$value]) ? $value : false, 'default' => 'event']);
-	print '<form method="get"><input type="hidden" name="section" value="collectors"><label>' . __esc('Collector (0 selects all)', 'alarmmanager') . ' <input name="collector" type="number" min="0" value="' . $poller . '"></label><label>' . __esc('Record type', 'alarmmanager') . ' <select name="entity">';
+	if (!in_array($poller, array_column($peers, 'poller_id'))) {
+		$poller = 0;
+	}
+	print '<form method="get"><input type="hidden" name="section" value="collectors"><label for="alarmmanager_history_poller">' . __esc('Poller', 'alarmmanager') . '</label> <select id="alarmmanager_history_poller" name="collector"><option value="0">' . __esc('All pollers', 'alarmmanager') . '</option>';
+
+	foreach ($peers as $peer) {
+		print '<option value="' . (int) $peer['poller_id'] . '"' . ($poller === (int) $peer['poller_id'] ? ' selected' : '') . '>' . html_escape($peer['poller_id'] . ' - ' . $peer['name']) . '</option>';
+	}
+	print '</select> <label>' . __esc('History record type', 'alarmmanager') . ' <select name="entity">';
 
 	foreach (array_keys(alarmmanager_sync_entities()) as $type) {
 		print '<option ' . ($type === $entity ? 'selected' : '') . '>' . $type . '</option>';
