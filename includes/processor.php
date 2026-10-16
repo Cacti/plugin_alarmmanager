@@ -31,18 +31,27 @@ function alarmmanager_decision(int $event_id, int $rule_id, int $endpoint_id, st
 function alarmmanager_route_event(array $record, array $event, array $state, string $disposition): void {
 	$event_id = (int) $record['id'];
 
+	// Archived observations remain history; upgrading must never send their old notifications.
+	if ($record['mode'] !== 'centralized') {
+		alarmmanager_decision($event_id, 0, 0, 'historical_only');
+
+		return;
+	}
+
 	if (!in_array($disposition, ['applied', 'occurrence'], true)) {
 		alarmmanager_decision($event_id, 0, 0, $disposition);
 
 		return;
 	}
 	$snapshot = alarmmanager_routing_snapshot();
+
 	// With no custom rules, every enabled endpoint receives alarms through the global default route.
 	if ($snapshot['default_route']) {
 		$endpoints = array_keys(array_filter($snapshot['endpoints'], static fn (array $endpoint): bool => (bool) $endpoint['enabled']));
+
 		if ($endpoints) {
 			$snapshot['profiles'][0] = ['enabled' => true, 'endpoints' => $endpoints];
-			$snapshot['rules'][0] = ['id' => 0, 'profile_id' => 0, 'enabled' => true, 'stop_processing' => false, 'policy' => alarmmanager_validate_rule_definition([])];
+			$snapshot['rules'][0]    = ['id' => 0, 'profile_id' => 0, 'enabled' => true, 'stop_processing' => false, 'policy' => alarmmanager_validate_rule_definition([])];
 		}
 	}
 
@@ -93,8 +102,10 @@ function alarmmanager_route_event(array $record, array $event, array $state, str
 				} elseif ($policy['suppress_acknowledged'] && (bool) $state['acknowledged'] && $event['transition'] !== 'recovered' && $event['transition'] !== 'occurrence') {
 					$reason = 'acknowledged';
 				}
+
 				if ($reason === 'queued') {
 					$live_endpoint = alarmmanager_db_row('SELECT enabled FROM plugin_alarmmanager_endpoints WHERE id = ? FOR UPDATE', [$endpoint_id]);
+
 					if (!$live_endpoint || !$live_endpoint['enabled']) {
 						$reason = 'endpoint_disabled';
 					}
@@ -122,16 +133,12 @@ function alarmmanager_route_event(array $record, array $event, array $state, str
 						VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE episode_id = VALUES(episode_id), fingerprint = VALUES(fingerprint), queued_at = VALUES(queued_at)',
 						[$record['stream_key'], $endpoint_id, $event['episode_id'], $fingerprint, $now]);
 
-					if ($record['mode'] === 'observe') {
-						$reason = 'observe';
-					} else {
-						$key = hash('sha256', implode('|', [$event['source'], $event['source_instance'], $event['event_id'], 'centralized', (string) $endpoint_id]));
-						alarmmanager_db_write('INSERT INTO plugin_alarmmanager_deliveries
-							(event_row_id, endpoint_id, stream_key, sequence, priority, available_at, created_at, updated_at, idempotency_key)
-							VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6), UTC_TIMESTAMP(6), ?)
-							ON DUPLICATE KEY UPDATE event_row_id = event_row_id',
-							[$event_id, $endpoint_id, $record['stream_key'], $event['sequence'], alarmmanager_priority($event['severity']), $key]);
-					}
+					$key = hash('sha256', implode('|', [$event['source'], $event['source_instance'], $event['event_id'], 'centralized', (string) $endpoint_id]));
+					alarmmanager_db_write('INSERT INTO plugin_alarmmanager_deliveries
+						(event_row_id, endpoint_id, stream_key, sequence, priority, available_at, created_at, updated_at, idempotency_key)
+						VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6), UTC_TIMESTAMP(6), ?)
+						ON DUPLICATE KEY UPDATE event_row_id = event_row_id',
+						[$event_id, $endpoint_id, $record['stream_key'], $event['sequence'], alarmmanager_priority($event['severity']), $key]);
 				}
 				alarmmanager_decision($event_id, $rule_id, $endpoint_id, $reason, $snapshot['revision']);
 			}
@@ -186,16 +193,7 @@ function alarmmanager_process_job(array $claim): bool {
 			alarmmanager_db_write('UPDATE plugin_alarmmanager_states SET episode_id = ?, last_sequence = ?, active = ?, acknowledged = ?, severity = ?, summary = ?, last_event_id = ?, updated_at = UTC_TIMESTAMP(6) WHERE stream_key = ?',
 				[$next['episode_id'], $next['last_sequence'], $next['active'], $next['acknowledged'], $next['severity'], $next['summary'], $record['id'], $record['stream_key']]);
 		}
-		$notification_state = $next;
-
-		if ($record['mode'] === 'observe') {
-			$live = alarmmanager_db_row('SELECT episode_id, acknowledged FROM plugin_alarmmanager_states WHERE stream_key = ?', [alarmmanager_stream_key($event, 'centralized')]);
-
-			if ($live && $live['episode_id'] === $event['episode_id']) {
-				$notification_state['acknowledged'] = $live['acknowledged'];
-			}
-		}
-		alarmmanager_route_event($record, $event, $notification_state, $disposition);
+		alarmmanager_route_event($record, $event, $next, $disposition);
 		$owner = alarmmanager_db_row("SELECT id FROM plugin_alarmmanager_jobs WHERE id = ? AND status = 'leased' AND lease_token = ? AND lease_until > UTC_TIMESTAMP(6)", [$claim['id'], $claim['lease_token']]);
 
 		if (!$owner) {

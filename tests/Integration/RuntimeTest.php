@@ -140,12 +140,14 @@ final class RuntimeTest extends AlarmManagerTestCase {
 			$this->assertTrue($this->am_count('deliveries') === 2 && (int) db_fetch_cell_prepared("SELECT COUNT(*) FROM plugin_alarmmanager_decisions WHERE reason = 'duplicate'") === 2, 'Content duplicate suppression failed.');
 			$this->am_reset();
 			$this->am_routes();
-			$this->am_submit($this->am_fixture('observe', 1, 'raised', 'outage-1', 'device:42', 'observe'));
+			$archived = $this->am_fixture('archived-observation');
+			alarmmanager_transaction(fn () => alarmmanager_persist_event(alarmmanager_validate_event($archived['event']), 'observe', 2));
 			$this->am_process_all();
-			$this->assertTrue($this->am_count('deliveries') === 0 && (int) db_fetch_cell_prepared("SELECT COUNT(*) FROM plugin_alarmmanager_decisions WHERE reason = 'observe'") === 2, 'Observation dispatched.');
-			$this->am_submit($this->am_fixture('observe'));
+			$this->assertSame(0, $this->am_count('deliveries'), 'Archived observations must never dispatch after upgrade.');
+			$this->assertSame(1, (int) db_fetch_cell_prepared("SELECT COUNT(*) FROM plugin_alarmmanager_decisions WHERE reason = 'historical_only'"));
+			$this->am_submit($this->am_fixture('local-delivery'));
 			$this->am_process_all();
-			$this->assertTrue($this->am_count('deliveries') === 2 && $this->am_count('states') === 2, 'Observation changed centralized ownership/state.');
+			$this->assertTrue($this->am_count('deliveries') === 2 && $this->am_count('states') === 2, 'Local delivery keeps historical streams separate.');
 			$this->am_reset();
 			$this->am_routes();
 			$this->am_submit($this->am_fixture('out-of-order-recovery', 2, 'recovered'));
@@ -409,15 +411,16 @@ final class RuntimeTest extends AlarmManagerTestCase {
 	/**
 	 * Fixture envelope built from the shared example event.
 	 */
-	private function am_fixture(string $id, int $seq = 1, string $kind = 'raised', string $episode = 'outage-1', string $key = 'device:42', string $mode = 'centralized'): array {
+	private function am_fixture(string $id, int $seq = 1, string $kind = 'raised', string $episode = 'outage-1', string $key = 'device:42'): array {
 		$event               = json_decode(file_get_contents(__DIR__ . '/../../examples/event.json'), true, 32, JSON_THROW_ON_ERROR);
 		$event['event_id']   = $id;
+		$event['collector_id'] = 2;
 		$event['sequence']   = $seq;
 		$event['transition'] = $kind;
 		$event['episode_id'] = $episode;
 		$event['alarm_key']  = $key;
 
-		return ['contract_version' => 1, 'status' => 'unhandled', 'mode' => $mode, 'event' => $event];
+		return ['contract_version' => 1, 'status' => 'unhandled', 'event' => $event];
 	}
 
 	/**

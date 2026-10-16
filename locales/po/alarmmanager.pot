@@ -6,9 +6,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Alarm Manager 0.10.0\n"
+"Project-Id-Version: Alarm Manager 0.10.1\n"
 "Report-Msgid-Bugs-To: https://github.com/bmfmancini/plugin_alarmmanager/issues\n"
-"POT-Creation-Date: 2026-10-15 17:19-0400\n"
+"POT-Creation-Date: 2026-10-15 21:01-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alarm Manager Developers <https://github.com/bmfmancini/plugin_alarmmanager>\n"
 "Language-Team: Alarm Manager Developers <https://github.com/bmfmancini/plugin_alarmmanager>\n"
@@ -625,152 +625,148 @@ msgstr ""
 msgid "Saved credentials are encrypted and never displayed. New values replace the saved credential record."
 msgstr ""
 
-#: includes/web_view.php:88
+#: includes/web_view.php:87
 msgid "Report unavailable or permission denied."
 msgstr ""
 
-#: includes/web_view.php:114
+#: includes/web_view.php:113
 msgid "Statistics could not be rendered."
 msgstr ""
 
-#: includes/web_view.php:121 setup.php:116 setup.php:132 setup.php:133
+#: includes/web_view.php:120 setup.php:116 setup.php:132 setup.php:133
 msgid "Alarm Manager"
 msgstr ""
 
-#: includes/web_view.php:124
+#: includes/web_view.php:123
 msgid "View alarms"
 msgstr ""
 
-#: includes/web_view.php:130 setup.php:103
+#: includes/web_view.php:129 setup.php:103
 msgid "Administration"
 msgstr ""
 
-#: includes/web_view.php:132
+#: includes/web_view.php:131
 msgid "Alarm Manager pages"
 msgstr ""
 
-#: includes/web_view.php:149 includes/web_view.php:152
+#: includes/web_view.php:148 includes/web_view.php:151
 msgid "Alarm statistics"
 msgstr ""
 
-#: includes/web_view.php:149
+#: includes/web_view.php:148
 msgid "Filters"
 msgstr ""
 
-#: includes/web_view.php:152
+#: includes/web_view.php:151
 msgid "Time range"
 msgstr ""
 
-#: includes/web_view.php:158
+#: includes/web_view.php:157
 msgid "Off"
 msgstr ""
 
-#: includes/web_view.php:158
+#: includes/web_view.php:157
 msgid "Refresh"
 msgstr ""
 
 #: includes/web_view.php:159
-msgid "Mode"
-msgstr ""
-
-#: includes/web_view.php:167
 msgid "Advanced filter JSON"
 msgstr ""
 
-#: includes/web_view.php:167
+#: includes/web_view.php:159
 msgid "Filter document"
 msgstr ""
 
-#: includes/web_view.php:167
+#: includes/web_view.php:159
 msgid "Quick filters"
 msgstr ""
 
-#: includes/web_view.php:167
+#: includes/web_view.php:159
 msgid "Search conditions"
 msgstr ""
 
-#: includes/web_view.php:168
+#: includes/web_view.php:160
 msgid "All"
 msgstr ""
 
-#: includes/web_view.php:168
+#: includes/web_view.php:160
 msgid "Severity"
 msgstr ""
 
-#: includes/web_view.php:168
+#: includes/web_view.php:160
 msgid "Source"
 msgstr ""
 
-#: includes/web_view.php:175
+#: includes/web_view.php:167
 msgid "Device ID"
 msgstr ""
 
-#: includes/web_view.php:179
+#: includes/web_view.php:171
 msgid "event_id"
 msgstr ""
 
-#: includes/web_view.php:185
+#: includes/web_view.php:177
 msgid "Apply"
 msgstr ""
 
-#: includes/web_view.php:185
+#: includes/web_view.php:177
 msgid "Reset"
 msgstr ""
 
-#: includes/web_view.php:187
-msgid "Historical window uses UTC. Current conditions and queues ignore the time window. Observe mode never dispatches delivery jobs."
+#: includes/web_view.php:179
+msgid "Historical window uses UTC. Current conditions and queues ignore the time window."
 msgstr ""
 
-#: includes/web_view.php:199
+#: includes/web_view.php:191
 msgid "Loading statistics…"
 msgstr ""
 
-#: includes/web_view.php:212
+#: includes/web_view.php:204
 msgid "Collapse"
 msgstr ""
 
-#: includes/web_view.php:224
+#: includes/web_view.php:216
 msgid "conditions"
 msgstr ""
 
-#: includes/web_view.php:227
+#: includes/web_view.php:219
 msgid "No matching records."
 msgstr ""
 
-#: includes/web_view.php:237
+#: includes/web_view.php:229
 msgid "attempts"
 msgstr ""
 
-#: includes/web_view.php:241
+#: includes/web_view.php:233
 msgid "Action"
 msgstr ""
 
-#: includes/web_view.php:286
+#: includes/web_view.php:278
 msgid "Showing at most 50 records per page."
 msgstr ""
 
-#: includes/web_view.php:287
+#: includes/web_view.php:279
 msgid "Pages"
 msgstr ""
 
-#: includes/web_view.php:290
+#: includes/web_view.php:282
 msgid "Previous"
 msgstr ""
 
-#: includes/web_view.php:293
+#: includes/web_view.php:285
 #, php-format
 msgid "Page %d"
 msgstr ""
 
-#: includes/web_view.php:296
+#: includes/web_view.php:288
 msgid "Next"
 msgstr ""
 
-#: includes/web_view.php:302
+#: includes/web_view.php:294
 msgid "Selected event details"
 msgstr ""
 
-#: includes/web_view.php:327
+#: includes/web_view.php:319
 msgid "Confirm replay may repeat an external effect"
 msgstr ""
 

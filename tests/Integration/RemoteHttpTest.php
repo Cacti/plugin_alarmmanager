@@ -44,6 +44,11 @@ final class RemoteHttpTest extends AlarmManagerTestCase {
 			}
 		}
 
+		require_once dirname(__DIR__, 2) . '/setup.php';
+		require_once dirname(__DIR__, 2) . '/includes/remote.php';
+		require_once dirname(__DIR__, 2) . '/includes/queue.php';
+		require_once dirname(__DIR__, 2) . '/includes/processor.php';
+		require_once dirname(__DIR__, 2) . '/includes/delivery.php';
 		$databases                       = [];
 		$this->connections               = [];
 		$children                        = [];
@@ -178,7 +183,7 @@ final class RemoteHttpTest extends AlarmManagerTestCase {
 			$event                    = json_decode(file_get_contents($repo . '/examples/event.json'), true);
 			$event['collector_id']    = 2;
 			$event['source_instance'] = 'tls-remote';
-			$result                   = alarmmanager_submit(['contract_version'=>1, 'mode'=>'centralized', 'event'=>$event]);
+			$result                   = alarmmanager_submit(['contract_version'=>1, 'event'=>$event]);
 			$this->assertTrue($result['status'] === 'accepted', 'remote ingest main unavailable');
 			$this->hreject(fn () => alarmmanager_sync_send(), 'main outage retains batch');
 			$pending = alarmmanager_sync_export();
@@ -223,13 +228,19 @@ final class RemoteHttpTest extends AlarmManagerTestCase {
 			alarmmanager_db_write('UPDATE plugin_alarmmanager_sync_peers SET endpoint_url=? WHERE poller_id=1', [$base . '/badack']);
 			$this->hreject(fn () => alarmmanager_sync_send(), 'tampered ack rejected');
 			alarmmanager_db_write('UPDATE plugin_alarmmanager_sync_peers SET endpoint_url=? WHERE poller_id=1', [$url]);
-			$this->assertTrue(alarmmanager_sync_send(), 'reconnect replay acknowledged');
+			require_once($repo . '/includes/polling.php');
+			$beforeConfig = $GLOBALS['config'];
+			$GLOBALS['config']['base_path'] = $fixture;
+			alarmmanager_save_supervisor_options(array_replace(alarmmanager_supervisor_options(), ['enabled' => true]));
+			alarmmanager_poller_bottom();
+			$this->assertNull(db_fetch_cell_prepared('SELECT pending_body FROM plugin_alarmmanager_sync_sender WHERE id=1'), 'poller sync acknowledges history while daemon owns local delivery');
+			$GLOBALS['config'] = $beforeConfig;
 
 			for ($i = 0; $i < 20 && alarmmanager_sync_export() !== null; $i++) {
 				alarmmanager_sync_send();
 			}
 			$this->assertNull(alarmmanager_sync_export(), 'all outcomes synchronized and acknowledged');
-			alarmmanager_sync_send();
+			alarmmanager_poller_bottom();
 			$this->huse(1);
 			$this->assertLessThan(10, (int)db_fetch_cell_prepared('SELECT TIMESTAMPDIFF(SECOND,last_seen,UTC_TIMESTAMP()) FROM plugin_alarmmanager_sync_peers WHERE poller_id=2'), 'signed quiet heartbeat health');
 			$this->assertSame(0, (int)db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_jobs'), 'no central processing after final reconciliation');

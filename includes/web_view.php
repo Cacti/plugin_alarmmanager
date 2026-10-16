@@ -41,7 +41,6 @@ function alarmmanager_web_assets(): void {
 function alarmmanager_view_filters(): array {
 	$spec = [
 		'range'        => ['filter' => FILTER_VALIDATE_INT, 'pageset' => true, 'default' => 86400, 'options' => ['options' => ['min_range' => 0, 'max_range' => PHP_INT_MAX]]],
-		'mode'         => ['filter' => FILTER_CALLBACK, 'pageset' => true, 'default' => 'centralized', 'options' => ['options' => static fn ($value) => in_array($value, ['centralized', 'observe'], true) ? $value : false]],
 		'severity'     => ['filter' => FILTER_CALLBACK, 'pageset' => true, 'default' => '', 'options' => ['options' => static fn ($value) => in_array($value, ['critical', 'major', 'minor', 'warning', 'info', 'clear'], true) ? $value : false]],
 		'transition'   => ['filter' => FILTER_CALLBACK, 'pageset' => true, 'default' => '', 'options' => ['options' => static fn ($value) => in_array($value, ['raised', 'updated', 'reminder', 'recovered', 'occurrence'], true) ? $value : false]],
 		'status'       => ['filter' => FILTER_CALLBACK, 'pageset' => true, 'default' => '', 'options' => ['options' => static fn ($value) => in_array($value, ['pending', 'leased', 'completed', 'failed', 'success', 'retry', 'failure', 'abandoned', 'in_progress'], true) ? $value : false]],
@@ -156,13 +155,6 @@ function alarmmanager_web_filters(array $filters, string $tab, bool $dashboard =
 	}
 
 	print '</select></label></div><label>' . __esc('Refresh', 'alarmmanager') . ' <select id="alarmmanager_refresh"><option value="0">' . __esc('Off', 'alarmmanager') . '</option><option value="30">30s</option><option value="60">60s</option><option value="300">5m</option></select></label></div><div class="alarmmanagerDashboardBarRow">';
-	print '<label>' . __esc('Mode', 'alarmmanager') . ' <select name="mode">';
-
-	foreach (['centralized', 'observe'] as $mode) {
-		print '<option ' . ($filters['mode'] === $mode ? 'selected' : '') . '>' . html_escape($mode) . '</option>';
-	}
-
-	print '</select></label>';
 	$fields = array_map(static fn (array $field): array => array_diff_key($field, ['column' => true]), alarmmanager_report_query_fields($tab));
 	print '</div><fieldset class="alarmmanagerQueryBuilder" data-query-fields="' . html_escape(json_encode($fields, JSON_THROW_ON_ERROR)) . '"><legend>' . __esc('Search conditions', 'alarmmanager') . '</legend><div class="alarmmanagerQueryRows"></div><details class="alarmmanagerQueryRaw"><summary>' . __esc('Advanced filter JSON', 'alarmmanager') . '</summary><label>' . __esc('Filter document', 'alarmmanager') . '<textarea name="query" maxlength="8192">' . html_escape($filters['query'] ?? '') . '</textarea></label></details></fieldset><details class="alarmmanagerQuickFilters"><summary>' . __esc('Quick filters', 'alarmmanager') . '</summary><div class="alarmmanagerDashboardBarRow">';
 	print '<label>' . __esc('Source', 'alarmmanager') . ' <input name="source" maxlength="32" value="' . html_escape((string) $filters['source']) . '"></label><label>' . __esc('Severity', 'alarmmanager') . ' <select name="severity"><option value="">' . __esc('All', 'alarmmanager') . '</option>';
@@ -184,10 +176,10 @@ function alarmmanager_web_filters(array $filters, string $tab, bool $dashboard =
 	print '<input type="hidden" name="current" value="' . ($filters['current'] ? '1' : '0') . '">';
 	print '<button type="submit">' . __esc('Apply', 'alarmmanager') . '</button><a href="' . html_escape('alarmmanager.php?tab=' . $tab . '&clear=1') . '">' . __esc('Reset', 'alarmmanager') . '</a></div></form></td></tr>';
 	html_end_box(false);
-	print '<p class="alarmmanagerHint">' . __esc('Historical window uses UTC. Current conditions and queues ignore the time window. Observe mode never dispatches delivery jobs.', 'alarmmanager') . '</p>';
+	print '<p class="alarmmanagerHint">' . __esc('Historical window uses UTC. Current conditions and queues ignore the time window.', 'alarmmanager') . '</p>';
 }
 function alarmmanager_report_url(array $filters, string $tab, array $extra = []): string {
-	$values = array_intersect_key($filters, array_flip(['range', 'until', 'mode', 'source', 'severity', 'transition', 'status', 'reason', 'device_id', 'endpoint_id', 'event_id', 'current', 'acknowledged', 'query']));
+	$values = array_intersect_key($filters, array_flip(['range', 'until', 'source', 'severity', 'transition', 'status', 'reason', 'device_id', 'endpoint_id', 'event_id', 'current', 'acknowledged', 'query']));
 
 	if ($tab === 'events' && isset($extra['event_id'])) {
 		unset($values['query']);

@@ -23,6 +23,20 @@
 */
 
 final class PollingTest extends AlarmManagerTestCase {
+	public function testCollectorSyncFailureDoesNotPreventLocalPollerDelivery(): void {
+		self::alarmmanager_test_load('includes/polling.php');
+		$before = $GLOBALS['config'];
+
+		try {
+			$GLOBALS['config']['poller_id'] = 2;
+			alarmmanager_poller_bottom();
+			$this->assertCount(2, $GLOBALS['alarmmanager_test_workers']);
+			$this->assertStringContainsString('collector history sync failed; pending history retained', end($GLOBALS['alarmmanager_test_log']));
+		} finally {
+			$GLOBALS['config'] = $before;
+		}
+	}
+
 	public function testPollerBudgetIsBounded(): void {
 		self::alarmmanager_test_load('includes/polling.php');
 		$budget = alarmmanager_poller_budget();

@@ -58,7 +58,7 @@ function alarmmanager_device_bridge_decision(array $host, string $kind): array {
 			return ['owned' => $rows[0]['mode'] === 'centralized', 'channels' => json_decode($rows[0]['channels'], true)];
 		}
 
-		if ($grant['mode'] === 'centralized' && ((int) $grant['poller_id'] !== (int) ($config['poller_id'] ?? 1) || (int) db_fetch_cell_prepared('SELECT UTC_TIMESTAMP() > ?', [$grant['valid_until']], '', false))) {
+		if ((int) $grant['poller_id'] !== (int) ($config['poller_id'] ?? 1) || (int) db_fetch_cell_prepared('SELECT UTC_TIMESTAMP() > ?', [$grant['valid_until']], '', false)) {
 			return ['owned' => true, 'channels' => ['email', 'script']];
 		}
 	} catch (Throwable $error) {
@@ -79,7 +79,7 @@ function alarmmanager_device_bridge_poll_allowed(int $device): bool {
 		$expires = time() + 30;
 
 		try {
-			$rows = db_fetch_assoc_prepared("SELECT device_id, poller_id, valid_from, valid_until FROM plugin_alarmmanager_device_owners WHERE mode = 'centralized' AND poller_id = ? LIMIT 4097", [(int) ($config['poller_id'] ?? 1)], false);
+			$rows = db_fetch_assoc_prepared('SELECT device_id, poller_id, valid_from, valid_until FROM plugin_alarmmanager_device_owners WHERE poller_id = ? LIMIT 4097', [(int) ($config['poller_id'] ?? 1)], false);
 
 			if (is_array($rows)) {
 				foreach ($rows as $row) {

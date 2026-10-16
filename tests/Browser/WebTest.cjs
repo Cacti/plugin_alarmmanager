@@ -15,6 +15,7 @@ const fs=require('node:fs'), path=require('node:path');
   // Wait for the fixture listener without a fixed blocking sleep.
   for(let attempt=0;attempt<30;attempt++){try{await context.request.get(base+'/__fixture/login?user=1');break;}catch(error){if(attempt===29)throw error;await new Promise(resolve=>setTimeout(resolve,100));}}
   await login(1,'modern');check(await page.locator('#tab-alarmmanager').count()===1,'Alarm Manager top-level tab');check(await page.getByRole('link',{name:'Administration',exact:true}).count()===1,'Administrator return link');check(await page.locator('.bb').count()>=6,'Local Billboard charts rendered');
+  check(await page.locator('select[name=mode]').count()===0,'No Observe/Centralized mode selector');
   check((await page.locator('#alarmmanager_historical').innerText()).includes('All 80'),'Administrator count');
   check(await page.locator('.alarmmanagerDashboardCard').count()===9,'Adapted panel grid');
   check(await page.locator('#alarmmanager_chart_transitions .bb-bar').evaluateAll(paths=>paths.some(p=>p.getBoundingClientRect().height>2)),'Transition chart contains nonzero UTC data');

@@ -4,7 +4,7 @@ final class QueryBuilderTest extends AlarmManagerTestCase {
 	private function document(array $conditions): string {
 		return json_encode(['version' => 1, 'conditions' => $conditions], JSON_THROW_ON_ERROR);
 	}
-	public function testGroupsAndWildcardValuesRemainBoundWithinVisibilityAndMode(): void {
+	public function testGroupsAndWildcardValuesRemainBoundWithinVisibility(): void {
 		self::alarmmanager_test_load('includes/reports.php');
 		$query=$this->document([
 			['field'=>'source','operator'=>'=','value'=>"x' OR 1=1 --"],
@@ -15,10 +15,10 @@ final class QueryBuilderTest extends AlarmManagerTestCase {
 		]);
 		$filters=alarmmanager_report_filters(['query'=>$query]);
 		[$where,$params]=alarmmanager_report_where(['device_sql'=>'e.device_id = 42'],$filters);
-		$this->assertStringStartsWith('(e.device_id = 42) AND e.mode = ? AND e.received_at >= ? AND e.received_at < ? AND (',$where);
+		$this->assertStringStartsWith('(e.device_id = 42) AND e.received_at >= ? AND e.received_at < ? AND (',$where);
 		$this->assertStringNotContainsString("x' OR",$where);
 		$this->assertStringContainsString(' OR (NOT (',$where);
-		$this->assertSame(['centralized',$filters['from'],$filters['to'],"x' OR 1=1 --",'%50!%!_!!%','42'],$params);
+		$this->assertSame([$filters['from'],$filters['to'],"x' OR 1=1 --",'%50!%!_!!%','42'],$params);
 
 	}
 	public function testFieldsUseTheReportAliasesAndCurrentSeverity(): void {
@@ -27,7 +27,7 @@ final class QueryBuilderTest extends AlarmManagerTestCase {
 			$query=$this->document([['field'=>'status','operator'=>'=','value'=>'failed']]);
 			$filters=alarmmanager_report_filters(['tab'=>$kind,'query'=>$query]);
 			[$where,$params]=alarmmanager_report_where(['device_sql'=>'1=1'],$filters,null,'e.severity',$kind);
-			$this->assertStringContainsString('('.$column.' = ?)',$where);$this->assertSame(['centralized','failed'],$params);
+			$this->assertStringContainsString('('.$column.' = ?)',$where);$this->assertSame(['failed'],$params);
 		}
 		$query=$this->document([['field'=>'severity','operator'=>'=','value'=>'critical']]);
 		$filters=alarmmanager_report_filters(['query'=>$query]);

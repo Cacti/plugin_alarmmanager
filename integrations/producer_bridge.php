@@ -29,7 +29,8 @@ if (!class_exists('AlarmManagerProducerBridge', false)) {
 			if (array_diff(array_keys($definition), ['mode', 'profile_id', 'channels', 'complete_history'])) {
 				throw new InvalidArgumentException('invalid_producer_configuration');
 			}
-			$mode     = $definition['mode'] ?? 'legacy';
+			// Accept saved mode keys during upgrades; they no longer select delivery behavior.
+			$mode     = $definition['mode'] ?? 'centralized';
 			$profile  = $definition['profile_id'] ?? 0;
 			$channels = $definition['channels'] ?? [];
 
@@ -37,11 +38,7 @@ if (!class_exists('AlarmManagerProducerBridge', false)) {
 				throw new InvalidArgumentException('invalid_producer_configuration');
 			}
 
-			if ($mode === 'centralized' && $profile < 1) {
-				throw new InvalidArgumentException('producer_profile_required');
-			}
-
-			return ['mode' => $mode, 'profile_id' => $profile, 'channels' => array_values(array_unique($channels)), 'complete_history' => $definition['complete_history'] ?? false];
+			return ['profile_id' => $profile, 'channels' => array_values(array_unique($channels)), 'complete_history' => $definition['complete_history'] ?? false];
 		}
 		public static function configuration(string $source, int $resource, int $template = 0): array {
 			if (!preg_match('/\A[A-Za-z][A-Za-z0-9_.-]{0,31}\z/D', $source)) {
@@ -77,19 +74,22 @@ if (!class_exists('AlarmManagerProducerBridge', false)) {
 			if (!empty($host['id'])) {
 				$host += self::row('SELECT location, external_id, snmp_sysLocation, snmp_sysContact, snmp_sysName, snmp_sysUpTimeInstance, status_fail_date, status_rec_date, status_last_error FROM host WHERE id = ?', [(int) $host['id']]);
 			}
-			$name = self::row('SELECT name FROM poller WHERE id = ?', [$collector]);
+			$name   = self::row('SELECT name FROM poller WHERE id = ?', [$collector]);
 			$fields = ['collector_name' => (string) ($name['name'] ?? '')];
+
 			foreach (['cacti_location' => 'location', 'location' => 'snmp_sysLocation', 'contact' => 'snmp_sysContact', 'sysname' => 'snmp_sysName', 'external_id' => 'external_id', 'status_last_error' => 'status_last_error', 'snmp_sysUpTimeInstance' => 'snmp_sysUpTimeInstance'] as $key => $column) {
 				$fields[$key] = self::text((string) ($host[$column] ?? ''), $key === 'status_last_error' ? 2048 : 512);
 			}
-			$ticks = (int) ($host['snmp_sysUpTimeInstance'] ?? 0);
-			$seconds = intdiv(max(0, $ticks), 100);
+			$ticks            = (int) ($host['snmp_sysUpTimeInstance'] ?? 0);
+			$seconds          = intdiv(max(0, $ticks), 100);
 			$fields['uptime'] = $ticks > 0 ? sprintf('%dd %dh %dm %ds', intdiv($seconds, 86400), intdiv($seconds % 86400, 3600), intdiv($seconds % 3600, 60), $seconds % 60) : '';
+
 			foreach (['status_fail_date', 'status_rec_date'] as $column) {
-				$value = $host[$column] ?? 0;
-				$epoch = is_int($value) || ctype_digit((string) $value) ? (int) $value : (int) (self::row('SELECT UNIX_TIMESTAMP(?) AS epoch', [(string) $value])['epoch'] ?? 0);
+				$value           = $host[$column] ?? 0;
+				$epoch           = is_int($value) || ctype_digit((string) $value) ? (int) $value : (int) (self::row('SELECT UNIX_TIMESTAMP(?) AS epoch', [(string) $value])['epoch'] ?? 0);
 				$fields[$column] = $epoch > 0 ? gmdate('Y-m-d\TH:i:s\Z', $epoch) : '';
 			}
+
 			return $fields;
 		}
 		public static function owns(array $decision, string $channel): bool {
@@ -188,7 +188,7 @@ if (!class_exists('AlarmManagerProducerBridge', false)) {
 				$envelope      = $row ? json_decode($row['envelope'], true, 32, JSON_THROW_ON_ERROR) : [];
 				$settings      = self::configuration($source, $resource, $template);
 
-				if (!$row && ($settings['mode'] === 'legacy' || (($input['suppressed'] ?? false) && !$settings['complete_history'] && $input['transition'] !== 'recovered'))) {
+				if (!$row && (($input['suppressed'] ?? false) && !$settings['complete_history'] && $input['transition'] !== 'recovered')) {
 					return $legacy;
 				}
 
@@ -196,7 +196,8 @@ if (!class_exists('AlarmManagerProducerBridge', false)) {
 					if (!function_exists('api_plugin_is_enabled') || !api_plugin_is_enabled('alarmmanager') || !function_exists('api_plugin_hook_function')) {
 						return $legacy;
 					}
-					$mode   = $settings['mode'];
+					// Preserve existing producer stream identities after removing mode selection.
+					$mode   = 'centralized';
 					$stream = hash('sha256', $source . '|' . ($config['poller_id'] ?? 1) . '|' . $resource . '|' . ($input['stream_suffix'] ?? '') . '|' . $mode);
 					self::write('START TRANSACTION');
 					$started = true;
@@ -240,7 +241,7 @@ if (!class_exists('AlarmManagerProducerBridge', false)) {
 					if ($settings['profile_id'] > 0) {
 						$event['context']['routing_profile_id'] = $settings['profile_id'];
 					}
-					$envelope = ['contract_version' => 1, 'mode' => $mode, 'status' => 'unhandled', 'event' => $event, 'producer_receipt' => $receipt];
+					$envelope = ['contract_version' => 1, 'status' => 'unhandled', 'event' => $event, 'producer_receipt' => $receipt];
 
 					self::write('UPDATE plugin_alarmmanager_producer_streams SET sequence = ? WHERE stream_key = ?', [$sequence, $stream]);
 					self::write('INSERT INTO plugin_alarmmanager_producer_receipts (receipt, source, stream_key, envelope, channels, created_at, updated_at) VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6))', [$receipt, $source, $stream, json_encode($envelope, JSON_THROW_ON_ERROR), json_encode($settings['channels'], JSON_THROW_ON_ERROR)]);

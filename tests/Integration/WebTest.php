@@ -107,6 +107,7 @@ final class WebTest extends AlarmManagerTestCase {
 			$routes['endpoints'][0]['name'] = '<img src=x onerror=window.ALARM_BAD=1>';
 			alarmmanager_apply_configuration($routes);
 			$event = json_decode(file_get_contents(__DIR__ . '/../../examples/event.json'), true);
+			$event['collector_id'] = 2;
 
 			for ($i = 1; $i <= 400; $i++) {
 				$sample                 = $event;
@@ -136,7 +137,7 @@ final class WebTest extends AlarmManagerTestCase {
 			$sample['event_id']  = 'web:observe';
 			$sample['alarm_key'] = 'web:observe';
 			$sample['source']    = 'fixture';
-			alarmmanager_submit(['contract_version'=>1, 'status'=>'unhandled', 'mode'=>'observe', 'event'=>$sample]);
+			alarmmanager_transaction(fn () => alarmmanager_persist_event(alarmmanager_validate_event($sample), 'observe', 2));
 			alarmmanager_process_job(alarmmanager_claim_processing());
 			$filters = alarmmanager_report_filters(['until'=>time() + 1]);
 			$this->wuser(2);
@@ -147,7 +148,7 @@ final class WebTest extends AlarmManagerTestCase {
 			$dashboard   = alarmmanager_dashboard_data($scope,$filters);
 			$duration    = (microtime(true) - $started) * 1000;
 			$query_count = $GLOBALS['alarmmanager_test_queries'] - $queries;
-			$this->assertTrue((int)$dashboard['historical']['events']['events'] === 250 && (int)$dashboard['current']['conditions']['active'] === 250, 'Scoped aggregates exclude hidden/global');
+			$this->assertTrue((int)$dashboard['historical']['events']['events'] === 251 && (int)$dashboard['current']['conditions']['active'] === 251, 'Scoped aggregates exclude hidden/global');
 			$buckets = $dashboard['panels']['transitions'];
 			$GLOBALS['alarmmanager_test_db']->exec("SET time_zone='+04:00'");
 			$this->assertTrue(alarmmanager_dashboard_data($scope,$filters)['panels']['transitions'] === $buckets, 'UTC buckets independent of DB session timezone');
@@ -177,7 +178,7 @@ final class WebTest extends AlarmManagerTestCase {
 				['field' => 'source', 'operator' => '=', 'value' => 'fixture'],
 				['join' => 'OR', 'field' => 'device_id', 'operator' => '=', 'value' => '43']
 			]], JSON_THROW_ON_ERROR);
-			$this->assertSame(250, (int) alarmmanager_dashboard_data($scope, $advanced)['historical']['events']['events'], 'OR conditions cannot escape permission or mode scope');
+			$this->assertSame(251, (int) alarmmanager_dashboard_data($scope, $advanced)['historical']['events']['events'], 'OR conditions cannot escape permission scope');
 			$this->assertSame([42], array_values(array_unique(array_map('intval', array_column(alarmmanager_report_list('events', $scope, $advanced)['rows'], 'device_id')))), 'Advanced filter applies permissions before LIMIT');
 			$advanced['query'] = json_encode(['version' => 1, 'conditions' => [['field' => 'summary', 'operator' => 'contains', 'value' => 'HIDDEN_FORBIDDEN_MARKER']]], JSON_THROW_ON_ERROR);
 			$this->assertSame([], alarmmanager_report_list('events', $scope, $advanced)['rows'], 'Advanced summary search cannot expose hidden data');
@@ -204,18 +205,18 @@ final class WebTest extends AlarmManagerTestCase {
 			$this->assertNull(alarmmanager_event_detail($scope,$selected), 'Hidden selected event detail denied');
 			$specific             = $filters;
 			$specific['severity'] = 'major';
-			$this->assertSame(250, (int)alarmmanager_dashboard_data($scope,$specific)['historical']['events']['events'], 'Filter aggregate');
+			$this->assertSame(251, (int)alarmmanager_dashboard_data($scope,$specific)['historical']['events']['events'], 'Filter aggregate');
 			$specific['device_id'] = 43;
 			$this->assertSame([], alarmmanager_report_list('events',$scope,$specific)['rows'], 'Hidden explicit ID');
 			$obs         = $filters;
 			$obs['mode'] = 'observe';
-			$this->assertSame(1, (int)alarmmanager_dashboard_data($scope,$obs)['historical']['events']['events'], 'Observation separate counts');
+			$this->assertSame(251, (int)alarmmanager_dashboard_data($scope,$obs)['historical']['events']['events'], 'Obsolete URL mode does not hide history');
 			$this->wreject(fn () =>$this->waction(['action'=>'credential_remove', 'id'=>'1']), 'Read-only mutation denied');
 			$this->wuser(3);
 			$this->wreject(fn () =>alarmmanager_web_scope(), 'Unassigned realm denied');
 			$this->wuser(1);
 			$admin = alarmmanager_web_scope();
-			$this->assertTrue($admin['admin'] && (int)alarmmanager_dashboard_data($admin,$filters)['historical']['events']['events'] === 401, 'Administrator scope includes global');
+			$this->assertTrue($admin['admin'] && (int)alarmmanager_dashboard_data($admin,$filters)['historical']['events']['events'] === 402, 'Administrator scope includes global');
 			$_SERVER['REQUEST_METHOD'] = 'GET';
 			$_POST                     = [];
 			$this->wreject(fn () =>alarmmanager_admin_action(['action'=>'credential_remove', 'id'=>'1']), 'GET mutation denied');
@@ -224,7 +225,7 @@ final class WebTest extends AlarmManagerTestCase {
 			$_POST = ['__csrf_magic'=>'bad'];
 			$this->wreject(fn () =>alarmmanager_admin_action(['action'=>'credential_remove', 'id'=>'1']), 'Bad CSRF denied');
 
-			foreach ([['range'=>'999999'], ['mode'=>'all'], ['page'=>'201'], ['until'=>'999999999999'], ['source'=>"' OR 1=1"], ['device_id'=>['42']]] as $bad) {
+			foreach ([['range'=>'999999'], ['page'=>'201'], ['until'=>'999999999999'], ['source'=>"' OR 1=1"], ['device_id'=>['42']]] as $bad) {
 				$this->wreject(fn () =>alarmmanager_report_filters($bad), 'Invalid filter rejected');
 			}
 			$state                      = alarmmanager_admin_configuration();
@@ -326,21 +327,21 @@ final class WebTest extends AlarmManagerTestCase {
 			$GLOBALS['alarmmanager_test_db']->exec("INSERT INTO user_auth_group (id,name,enabled) VALUES (1,'Readers','on')");
 			$GLOBALS['alarmmanager_test_db']->exec('INSERT INTO user_auth_group_members VALUES (2,1)');
 			$GLOBALS['alarmmanager_test_db']->exec('INSERT INTO user_auth_group_perms VALUES (1,3,43)');
-			$this->assertSame(400, (int)alarmmanager_dashboard_data(alarmmanager_web_scope(),$policy_filters)['historical']['events']['events'], 'Group device grant union');
+			$this->assertSame(401, (int)alarmmanager_dashboard_data(alarmmanager_web_scope(),$policy_filters)['historical']['events']['events'], 'Group device grant union');
 			$GLOBALS['alarmmanager_test_db']->exec("UPDATE host SET deleted='on' WHERE id=43");
-			$this->assertSame(250, (int)alarmmanager_dashboard_data(alarmmanager_web_scope(),$policy_filters)['historical']['events']['events'], 'Deleted host hidden');
+			$this->assertSame(251, (int)alarmmanager_dashboard_data(alarmmanager_web_scope(),$policy_filters)['historical']['events']['events'], 'Deleted host hidden');
 			$GLOBALS['alarmmanager_test_db']->exec("UPDATE host SET deleted='' WHERE id=43");
 			$GLOBALS['alarmmanager_test_db']->exec("UPDATE user_auth_group SET enabled='' WHERE id=1");
 			$GLOBALS['alarmmanager_test_db']->exec('UPDATE user_auth SET policy_hosts=1 WHERE id=2');
 			$GLOBALS['alarmmanager_test_db']->exec('DELETE FROM user_auth_perms WHERE user_id=2');
 			$GLOBALS['alarmmanager_test_db']->exec('INSERT INTO user_auth_perms VALUES (2,3,43)');
-			$this->assertSame(250, (int)alarmmanager_dashboard_data(alarmmanager_web_scope(),$policy_filters)['historical']['events']['events'], 'Default allow respects explicit deny');
+			$this->assertSame(251, (int)alarmmanager_dashboard_data(alarmmanager_web_scope(),$policy_filters)['historical']['events']['events'], 'Default allow respects explicit deny');
 			$GLOBALS['alarmmanager_test_db']->exec("INSERT INTO settings_user VALUES (2,'hide_disabled','on')");
 			$GLOBALS['alarmmanager_test_db']->exec("UPDATE host SET disabled='on' WHERE id=42");
 			$this->assertSame(0, (int)alarmmanager_dashboard_data(alarmmanager_web_scope(),$policy_filters)['historical']['events']['events'], 'Disabled host preference');
 			[$where,$params] = alarmmanager_report_where($scope,$filters);
 			$plan            = alarmmanager_db_rows("EXPLAIN SELECT e.id FROM plugin_alarmmanager_events AS e WHERE $where ORDER BY e.id DESC LIMIT 51",$params);
-			$measure         = ['events'=>401, 'reader_visible_events'=>250, 'dashboard_queries'=>$query_count, 'dashboard_ms'=>round($duration,3), 'php_peak_bytes'=>memory_get_peak_usage(true), 'list_explain'=>$plan, 'database'=>db_fetch_cell_prepared('SELECT VERSION()')];
+			$measure         = ['events'=>402, 'reader_visible_events'=>251, 'dashboard_queries'=>$query_count, 'dashboard_ms'=>round($duration,3), 'php_peak_bytes'=>memory_get_peak_usage(true), 'list_explain'=>$plan, 'database'=>db_fetch_cell_prepared('SELECT VERSION()')];
 
 			if (getenv('ALARMMANAGER_WEB_MEASUREMENT')) {
 				file_put_contents(getenv('ALARMMANAGER_WEB_MEASUREMENT'),json_encode($measure,JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR) . "\n");
@@ -356,7 +357,7 @@ final class WebTest extends AlarmManagerTestCase {
 			$this->wreject(fn () =>alarmmanager_admin_action(['action'=>'credential_save', 'id'=>1]), 'credential invalid CSRF denied');
 			$producer = ['action'=>'producer_save', 'source'=>'thold', 'scope'=>'default', 'resource_id'=>0, 'producer_revision'=>0, 'mode'=>'centralized', 'profile_id'=>1, 'channels'=>['email']];
 			$this->wreject(fn () =>$this->waction($producer + ['migration_confirmed'=>'yes']), 'Retired source-specific policy action is rejected');
-			$this->assertSame('legacy', AlarmManagerProducerBridge::configuration('thold',42)['mode'], 'Retired action leaves legacy source policy unchanged');
+			$this->assertArrayNotHasKey('mode', AlarmManagerProducerBridge::configuration('thold',42), 'Retired action cannot introduce an operating mode');
 			ob_start();
 			alarmmanager_admin_markup(alarmmanager_admin_configuration(),'endpoints');
 			$html = ob_get_clean();

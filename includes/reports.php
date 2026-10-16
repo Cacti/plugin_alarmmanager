@@ -27,37 +27,39 @@ require_once(dirname(__DIR__) . '/lib/QueryBuilder.php');
 
 /** Trusted columns and operators shared by the visual editor and SQL compiler. */
 function alarmmanager_report_query_fields(string $kind = 'dashboard', string $severity = 'e.severity'): array {
-	$text = ['contains', 'begins', 'ends', '=', '!='];
+	$text   = ['contains', 'begins', 'ends', '=', '!='];
 	$number = ['=', '!=', '>', '>=', '<', '<='];
-	$json = static fn (string $path): string => "JSON_UNQUOTE(JSON_EXTRACT(e.payload, '$.$path'))";
+	$json   = static fn (string $path): string => "JSON_UNQUOTE(JSON_EXTRACT(e.payload, '$.$path'))";
 	$fields = [
-		'summary' => ['label' => 'Summary', 'column' => $json('summary'), 'operators' => $text],
-		'details' => ['label' => 'Details', 'column' => $json('details'), 'operators' => $text],
-		'hostname' => ['label' => 'Hostname', 'column' => $json('device.hostname'), 'operators' => $text],
-		'description' => ['label' => 'Device description', 'column' => $json('device.description'), 'operators' => $text],
-		'source' => ['label' => 'Source', 'column' => 'e.source', 'operators' => $text],
+		'summary'         => ['label' => 'Summary', 'column' => $json('summary'), 'operators' => $text],
+		'details'         => ['label' => 'Details', 'column' => $json('details'), 'operators' => $text],
+		'hostname'        => ['label' => 'Hostname', 'column' => $json('device.hostname'), 'operators' => $text],
+		'description'     => ['label' => 'Device description', 'column' => $json('device.description'), 'operators' => $text],
+		'source'          => ['label' => 'Source', 'column' => 'e.source', 'operators' => $text],
 		'source_instance' => ['label' => 'Source instance', 'column' => 'e.source_instance', 'operators' => $text],
-		'severity' => ['label' => 'Severity', 'column' => $severity, 'operators' => ['=', '!='], 'choices' => ['critical', 'major', 'minor', 'warning', 'info', 'clear']],
-		'transition' => ['label' => 'Alarm state', 'column' => 'e.transition', 'operators' => ['=', '!='], 'choices' => ['raised', 'updated', 'reminder', 'recovered', 'occurrence']],
-		'device_id' => ['label' => 'Device ID', 'column' => 'e.device_id', 'operators' => $number, 'type' => 'integer'],
-		'collector_id' => ['label' => 'Collector ID', 'column' => 'e.collector_id', 'operators' => $number, 'type' => 'integer'],
-		'event_row_id' => ['label' => 'Event row ID', 'column' => 'e.id', 'operators' => $number, 'type' => 'integer'],
-		'event_id' => ['label' => 'Event identifier', 'column' => 'e.event_id', 'operators' => $text],
-		'alarm_key' => ['label' => 'Alarm key', 'column' => 'e.alarm_key', 'operators' => $text],
-		'episode_id' => ['label' => 'Episode ID', 'column' => 'e.episode_id', 'operators' => $text]
+		'severity'        => ['label' => 'Severity', 'column' => $severity, 'operators' => ['=', '!='], 'choices' => ['critical', 'major', 'minor', 'warning', 'info', 'clear']],
+		'transition'      => ['label' => 'Alarm state', 'column' => 'e.transition', 'operators' => ['=', '!='], 'choices' => ['raised', 'updated', 'reminder', 'recovered', 'occurrence']],
+		'device_id'       => ['label' => 'Device ID', 'column' => 'e.device_id', 'operators' => $number, 'type' => 'integer'],
+		'collector_id'    => ['label' => 'Collector ID', 'column' => 'e.collector_id', 'operators' => $number, 'type' => 'integer'],
+		'event_row_id'    => ['label' => 'Event row ID', 'column' => 'e.id', 'operators' => $number, 'type' => 'integer'],
+		'event_id'        => ['label' => 'Event identifier', 'column' => 'e.event_id', 'operators' => $text],
+		'alarm_key'       => ['label' => 'Alarm key', 'column' => 'e.alarm_key', 'operators' => $text],
+		'episode_id'      => ['label' => 'Episode ID', 'column' => 'e.episode_id', 'operators' => $text]
 	];
 	$extra = match ($kind) {
 		'dashboard', 'events' => [],
-		'conditions' => ['acknowledged' => ['Acknowledged', 's.acknowledged', 'integer']],
-		'deliveries' => ['status' => ['Delivery status', 'd.status', 'string'], 'endpoint_id' => ['Endpoint ID', 'd.endpoint_id', 'integer'], 'endpoint' => ['Endpoint name', 'ep.name', 'string'], 'attempts' => ['Attempts', 'd.attempts', 'integer'], 'error' => ['Last error', 'd.last_error', 'string']],
-		'attempts' => ['status' => ['Attempt outcome', 'a.outcome', 'string'], 'endpoint_id' => ['Endpoint ID', 'd.endpoint_id', 'integer'], 'attempts' => ['Attempt number', 'a.attempt_number', 'integer'], 'code' => ['Response code', 'a.code', 'string']],
-		'decisions' => ['reason' => ['Decision reason', 'r.reason', 'string'], 'endpoint_id' => ['Endpoint ID', 'r.endpoint_id', 'integer'], 'rule_id' => ['Rule ID', 'r.rule_id', 'integer']],
-		'processing' => ['status' => ['Processing status', 'j.status', 'string'], 'attempts' => ['Attempts', 'j.attempts', 'integer'], 'error' => ['Last error', 'j.last_error', 'string']],
-		default => throw new InvalidArgumentException('invalid_report')
+		'conditions'          => ['acknowledged' => ['Acknowledged', 's.acknowledged', 'integer']],
+		'deliveries'          => ['status' => ['Delivery status', 'd.status', 'string'], 'endpoint_id' => ['Endpoint ID', 'd.endpoint_id', 'integer'], 'endpoint' => ['Endpoint name', 'ep.name', 'string'], 'attempts' => ['Attempts', 'd.attempts', 'integer'], 'error' => ['Last error', 'd.last_error', 'string']],
+		'attempts'            => ['status' => ['Attempt outcome', 'a.outcome', 'string'], 'endpoint_id' => ['Endpoint ID', 'd.endpoint_id', 'integer'], 'attempts' => ['Attempt number', 'a.attempt_number', 'integer'], 'code' => ['Response code', 'a.code', 'string']],
+		'decisions'           => ['reason' => ['Decision reason', 'r.reason', 'string'], 'endpoint_id' => ['Endpoint ID', 'r.endpoint_id', 'integer'], 'rule_id' => ['Rule ID', 'r.rule_id', 'integer']],
+		'processing'          => ['status' => ['Processing status', 'j.status', 'string'], 'attempts' => ['Attempts', 'j.attempts', 'integer'], 'error' => ['Last error', 'j.last_error', 'string']],
+		default               => throw new InvalidArgumentException('invalid_report')
 	};
+
 	foreach ($extra as $key => [$label, $column, $type]) {
 		$fields[$key] = ['label' => $label, 'column' => $column, 'type' => $type, 'operators' => $type === 'integer' ? $number : $text];
 	}
+
 	return $fields;
 }
 
@@ -79,15 +81,12 @@ function alarmmanager_report_filters(array $input): array {
 	if (!$until) {
 		throw new InvalidArgumentException('invalid_filter');
 	}
-	$result = ['range' => $range, 'until' => $until, 'from' => gmdate('Y-m-d H:i:s', $until - $range), 'to' => gmdate('Y-m-d H:i:s', $until), 'mode' => $input['mode'] ?? 'centralized', 'page' => 1, 'current' => (string) ($input['current'] ?? '0') === '1'];
+	$result = ['range' => $range, 'until' => $until, 'from' => gmdate('Y-m-d H:i:s', $until - $range), 'to' => gmdate('Y-m-d H:i:s', $until), 'page' => 1, 'current' => (string) ($input['current'] ?? '0') === '1'];
 
 	if (!in_array((string) ($input['current'] ?? '0'), ['0', '1'], true)) {
 		throw new InvalidArgumentException('invalid_filter');
 	}
 
-	if (!in_array($result['mode'], ['centralized', 'observe'], true)) {
-		throw new InvalidArgumentException('invalid_filter');
-	}
 	$result['acknowledged'] = (string) ($input['acknowledged'] ?? '');
 
 	if (!in_array($result['acknowledged'], ['', '0', '1'], true)) {
@@ -120,17 +119,20 @@ function alarmmanager_report_filters(array $input): array {
 	}
 
 	$result['query'] = $input['query'] ?? '';
+
 	if (!is_string($result['query'])) {
 		throw new InvalidArgumentException('invalid_filter');
 	}
+
 	if ($result['query'] !== '') {
 		AlarmManager\QueryBuilder::compile($result['query'], alarmmanager_report_query_fields($input['tab'] ?? 'dashboard'));
 	}
+
 	return $result;
 }
 function alarmmanager_report_where(array $scope, array $filters, ?string $time_column = 'e.received_at', string $severity_column = 'e.severity', string $kind = 'dashboard'): array {
-	$where  = ['(' . $scope['device_sql'] . ')', 'e.mode = ?'];
-	$params = [$filters['mode']];
+	$where  = ['(' . $scope['device_sql'] . ')'];
+	$params = [];
 
 	if ($time_column !== null) {
 		$where[]  = "$time_column >= ? AND $time_column < ?";
@@ -146,10 +148,11 @@ function alarmmanager_report_where(array $scope, array $filters, ?string $time_c
 	}
 
 	if (($filters['query'] ?? '') !== '') {
-		$query = AlarmManager\QueryBuilder::compile($filters['query'], alarmmanager_report_query_fields($kind, $severity_column));
+		$query   = AlarmManager\QueryBuilder::compile($filters['query'], alarmmanager_report_query_fields($kind, $severity_column));
 		$where[] = '(' . $query['sql'] . ')';
-		$params = array_merge($params, $query['params']);
+		$params  = array_merge($params, $query['params']);
 	}
+
 	return [implode(' AND ', $where), $params];
 }
 /** Every report joins the event and applies the same visibility predicate before LIMIT. */
@@ -158,19 +161,19 @@ function alarmmanager_report_list(string $kind, array $scope, array $filters): a
 	$order    = 'e.id';
 	$time     = 'e.received_at';
 	$severity = 'e.severity';
-	$columns  = 'e.id, e.received_at, e.source, e.transition, e.severity, e.device_id, COALESCE(NULLIF(JSON_UNQUOTE(JSON_EXTRACT(e.payload, \'$.device.description\')), \'\'), JSON_UNQUOTE(JSON_EXTRACT(e.payload, \'$.device.hostname\'))) AS device_name, e.event_id, JSON_UNQUOTE(JSON_EXTRACT(e.payload, \'$.summary\')) AS summary, e.mode';
+	$columns  = 'e.id, e.received_at, e.source, e.transition, e.severity, e.device_id, COALESCE(NULLIF(JSON_UNQUOTE(JSON_EXTRACT(e.payload, \'$.device.description\')), \'\'), JSON_UNQUOTE(JSON_EXTRACT(e.payload, \'$.device.hostname\'))) AS device_name, e.event_id, JSON_UNQUOTE(JSON_EXTRACT(e.payload, \'$.summary\')) AS summary';
 
 	switch ($kind) {
 		case 'events': break;
 		case 'conditions': $base = 'plugin_alarmmanager_states AS s INNER JOIN plugin_alarmmanager_events AS e ON e.id = s.last_event_id';
-			$columns                = 's.stream_key, s.updated_at, s.active, s.acknowledged, s.severity, s.summary, e.id, e.source, e.device_id, e.mode';
+			$columns                = 's.stream_key, s.updated_at, s.active, s.acknowledged, s.severity, s.summary, e.id, e.source, e.device_id';
 			$order                  = 's.updated_at DESC, e.id';
 			$time                   = null;
 			$severity               = 's.severity';
 
 			break;
 		case 'deliveries': $base = 'plugin_alarmmanager_deliveries AS d INNER JOIN plugin_alarmmanager_events AS e ON e.id = d.event_row_id LEFT JOIN plugin_alarmmanager_endpoints AS ep ON ep.id = d.endpoint_id';
-			$columns                = 'd.id, d.event_row_id, d.created_at, d.updated_at, d.endpoint_id, COALESCE(ep.name, CONCAT(\'Deleted endpoint #\', d.endpoint_id)) AS endpoint, d.status, d.attempts, d.last_error, JSON_UNQUOTE(JSON_EXTRACT(d.external_reference, \'$.id\')) AS external_id, JSON_UNQUOTE(JSON_EXTRACT(d.external_reference, \'$.url\')) AS external_url, JSON_UNQUOTE(JSON_EXTRACT(e.payload, \'$.summary\')) AS summary, e.device_id, e.mode';
+			$columns                = 'd.id, d.event_row_id, d.created_at, d.updated_at, d.endpoint_id, COALESCE(ep.name, CONCAT(\'Deleted endpoint #\', d.endpoint_id)) AS endpoint, d.status, d.attempts, d.last_error, JSON_UNQUOTE(JSON_EXTRACT(d.external_reference, \'$.id\')) AS external_id, JSON_UNQUOTE(JSON_EXTRACT(d.external_reference, \'$.url\')) AS external_url, JSON_UNQUOTE(JSON_EXTRACT(e.payload, \'$.summary\')) AS summary, e.device_id';
 			$order                  = 'd.id';
 			$time                   = 'd.created_at';
 

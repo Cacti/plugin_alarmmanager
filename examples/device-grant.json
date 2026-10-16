@@ -4,7 +4,6 @@
   "poller_id": 2,
   "epoch": 1,
   "owner": "core",
-  "mode": "observe",
   "profile_id": 1,
   "channels": ["email", "script"],
   "valid_from": "2026-10-13T00:00:00Z",

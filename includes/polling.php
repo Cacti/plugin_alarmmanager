@@ -57,6 +57,7 @@ function alarmmanager_poller_bottom(array $args = []): void {
 	try {
 		$started = microtime(true);
 		$devices = alarmmanager_device_status_check();
+
 		if (alarmmanager_supervisor_options()['enabled']) {
 			return;
 		}
@@ -69,5 +70,15 @@ function alarmmanager_poller_bottom(array $args = []): void {
 		cacti_log(sprintf('ALARMMANAGER STATS: Time:%.4f Mode:poller Processing:%d Delivery:%d Devices:%d', microtime(true) - $started, $counts['processing'], $counts['delivery'], $devices), false, 'SYSTEM');
 	} catch (Throwable $error) {
 		alarmmanager_log('poller drain failed: ' . $error->getMessage());
+	} finally {
+		// Sync is independent of delivery and also runs when the daemon owns the local queues.
+		if (alarmmanager_local_poller() > 1) {
+			try {
+				require_once(__DIR__ . '/remote.php');
+				alarmmanager_sync_send(500);
+			} catch (Throwable $error) {
+				alarmmanager_log('collector history sync failed; pending history retained');
+			}
+		}
 	}
 }

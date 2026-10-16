@@ -23,6 +23,15 @@
 */
 
 final class ContractTest extends AlarmManagerTestCase {
+	public function testProducerConfigurationHasNoModeAndUsesGlobalRoutingByDefault(): void {
+		self::alarmmanager_test_load('integrations/producer_bridge.php');
+		$this->assertSame(['profile_id' => 0, 'channels' => [], 'complete_history' => false], AlarmManagerProducerBridge::validate([]));
+
+		foreach (['observe', 'centralized', 'legacy'] as $oldMode) {
+			$this->assertSame(AlarmManagerProducerBridge::validate([]), AlarmManagerProducerBridge::validate(['mode' => $oldMode]), 'Saved configurations lose their old operating mode.');
+		}
+	}
+
 	public function testDeviceContextIsBoundedAndAvailableToTemplates(): void {
 		self::alarmmanager_test_load('includes/mapping.php');
 		self::alarmmanager_test_load('integrations/producer_bridge.php');

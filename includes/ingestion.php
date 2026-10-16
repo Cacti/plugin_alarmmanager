@@ -51,13 +51,13 @@ function alarmmanager_submit($envelope) {
 		}
 
 		if (($envelope['contract_version'] ?? null) !== 1
-			|| !in_array($envelope['mode'] ?? null, ['observe', 'centralized'], true)
+			|| (isset($envelope['mode']) && $envelope['mode'] !== 'centralized')
 			|| !is_array($envelope['event'] ?? null)) {
 			throw new InvalidArgumentException('Invalid event envelope.');
 		}
 		$event = alarmmanager_validate_event($envelope['event']);
 
-		if (!alarmmanager_device_event_authorized($event, 0, $envelope['mode'])) {
+		if (!alarmmanager_device_event_authorized($event)) {
 			throw new RuntimeException('device_owner_invalid');
 		}
 		$payload = json_encode($event, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
@@ -70,6 +70,10 @@ function alarmmanager_submit($envelope) {
 
 		if (!is_int($poller_id) || $poller_id < 1 || $poller_id > 2147483647) {
 			throw new RuntimeException('Invalid processing owner.');
+		}
+
+		if ($event['collector_id'] !== $poller_id) {
+			throw new InvalidArgumentException('Event belongs to another collector.');
 		}
 		// Never commit or roll back a producer-owned transaction.
 		$transaction = db_fetch_cell_prepared('SELECT @@in_transaction', [], '', false);
@@ -85,7 +89,7 @@ function alarmmanager_submit($envelope) {
 			throw new RuntimeException('Cannot start ingestion.');
 		}
 		$started   = true;
-		$persisted = alarmmanager_persist_event($event, $envelope['mode'], $poller_id, $envelope);
+		$persisted = alarmmanager_persist_event($event, 'centralized', $poller_id, $envelope);
 
 		if (!db_execute_prepared('COMMIT', [], false)) {
 			throw new RuntimeException('Cannot confirm ingestion commit.');
@@ -117,7 +121,7 @@ function alarmmanager_submit($envelope) {
 	return $envelope;
 }
 
-/** Internal caller owns the transaction; never returns durable acceptance before its commit. */
+/** Internal caller owns the transaction; the stored mode is retained for historical identity compatibility. */
 function alarmmanager_persist_event(array $event, string $mode, int $poller_id, array $envelope = []): array {
 	$payload = json_encode($event, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 
@@ -185,10 +189,10 @@ function alarmmanager_accept_producer_receipt(array $envelope, array $event, int
 	}
 	$saved = json_decode($row['envelope'], true, 32, JSON_THROW_ON_ERROR);
 
-	if (($saved['mode'] ?? null) !== $envelope['mode'] || alarmmanager_validate_event($saved['event']) !== $event) {
+	if (($saved['mode'] ?? 'centralized') !== 'centralized' || alarmmanager_validate_event($saved['event']) !== $event) {
 		throw new InvalidArgumentException('producer_receipt_conflict');
 	}
-	alarmmanager_db_write('UPDATE plugin_alarmmanager_producer_receipts SET status = ?, event_row_id = ?, updated_at = UTC_TIMESTAMP(6) WHERE receipt = ?', [$envelope['mode'] === 'centralized' ? 'accepted' : 'observed', $id, $receipt]);
+	alarmmanager_db_write('UPDATE plugin_alarmmanager_producer_receipts SET status = ?, event_row_id = ?, updated_at = UTC_TIMESTAMP(6) WHERE receipt = ?', ['accepted', $id, $receipt]);
 	// Duplicate receipts cannot rewind newer source ordering.
 	alarmmanager_db_write('UPDATE plugin_alarmmanager_producer_streams SET active = ?, episode_id = ?, severity = ?, updated_at = UTC_TIMESTAMP(6) WHERE stream_key = ? AND sequence = ?', [$event['transition'] === 'recovered' || $event['transition'] === 'occurrence' ? 0 : 1, $event['episode_id'], $event['severity'], $row['stream_key'], $event['sequence']]);
 }

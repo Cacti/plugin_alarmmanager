@@ -98,6 +98,10 @@ if (!function_exists('db_fetch_cell_prepared')) {
 			return $GLOBALS['alarmmanager_test_status'];
 		}
 
+		if ($sql === 'SELECT @@tx_isolation') {
+			return 'REPEATABLE-READ';
+		}
+
 		if (str_contains($sql, '@@in_transaction')) {
 			return 0;
 		}

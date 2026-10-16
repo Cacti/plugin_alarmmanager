@@ -63,6 +63,7 @@ for ($i = 1; $i <= 80; $i++) {
 	$sample                 = $event;
 	$sample['event_id']     = 'browser:' . $i;
 	$sample['alarm_key']    = 'browser:' . $i;
+	$sample['collector_id'] = 2;
 	$sample['source']       = $i % 2 ? 'cacti' : 'thold';
 	$sample['device']['id'] = $i <= 60 ? 42 : 43;
 	$sample['summary']      = $i <= 60 ? 'Visible <img src=x onerror=window.ALARM_BAD=1>' : 'HIDDEN_FORBIDDEN_MARKER';

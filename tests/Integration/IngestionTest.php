@@ -63,6 +63,9 @@ final class IngestionTest extends AlarmManagerTestCase {
 			$this->assertSame(1, (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_jobs'), 'Processing job missing.');
 			$this->assertSame(2, (int) db_fetch_cell_prepared('SELECT processing_poller_id FROM plugin_alarmmanager_events'), 'Local processing owner missing.');
 			$this->assertSame(0, (int) db_fetch_cell_prepared('SELECT @@in_transaction'), 'Acceptance preceded commit.');
+			$foreign = $this->alarmmanager_db_sample('foreign-collector');
+			$foreign['event']['collector_id'] = 3;
+			$this->assertSame('invalid_event', alarmmanager_submit($foreign)['error'], 'Collectors may only submit their own events.');
 			$again = alarmmanager_submit($this->alarmmanager_db_sample('first'));
 			$this->assertTrue($again['status'] === 'already_accepted' && $again['event_row_id'] === $first['event_row_id'], 'Duplicate was not recognized.');
 			$conflict                     = $this->alarmmanager_db_sample('first');
@@ -72,9 +75,9 @@ final class IngestionTest extends AlarmManagerTestCase {
 			$GLOBALS['alarmmanager_test_db']->exec("UPDATE plugin_alarmmanager_jobs SET status = 'completed'");
 			alarmmanager_submit($this->alarmmanager_db_sample('first'));
 			$this->assertSame('completed', db_fetch_cell_prepared('SELECT status FROM plugin_alarmmanager_jobs'), 'Duplicate reopened a completed job.');
-			$this->assertTrue(alarmmanager_submit($this->alarmmanager_db_sample('mode-switch', 'observe'))['status'] === 'accepted', 'Observation failed.');
-			$this->assertTrue(alarmmanager_submit($this->alarmmanager_db_sample('mode-switch'))['status'] === 'accepted', 'Observation consumed centralized ownership.');
-			$this->assertSame(2, (int) db_fetch_cell_prepared("SELECT COUNT(DISTINCT mode) FROM plugin_alarmmanager_events WHERE event_id = 'mode-switch'"), 'Mode identities were combined.');
+			$this->assertTrue(alarmmanager_submit($this->alarmmanager_db_sample('mode-switch', 'observe'))['status'] === 'failed', 'Removed observation mode must be rejected.');
+			$this->assertTrue(alarmmanager_submit($this->alarmmanager_db_sample('mode-switch'))['status'] === 'accepted', 'Rejected observation consumed event identity.');
+			$this->assertSame(1, (int) db_fetch_cell_prepared("SELECT COUNT(*) FROM plugin_alarmmanager_events WHERE event_id = 'mode-switch'"), 'One local event identity.');
 			$GLOBALS['alarmmanager_test_db']->exec('UPDATE plugin_config SET status = 4');
 			$this->assertTrue(alarmmanager_submit($this->alarmmanager_db_sample('disabled'))['status'] === 'unhandled', 'Disabled plugin accepted events.');
 			$GLOBALS['alarmmanager_test_db']->exec('DELETE FROM plugin_config');
@@ -157,7 +160,8 @@ final class IngestionTest extends AlarmManagerTestCase {
 	private function alarmmanager_db_sample(string $id, string $mode = 'centralized'): array {
 		$event             = json_decode(file_get_contents(__DIR__ . '/../../examples/event.json'), true, 32, JSON_THROW_ON_ERROR);
 		$event['event_id'] = $id;
+		$event['collector_id'] = 2;
 
-		return ['contract_version' => 1, 'mode' => $mode, 'status' => 'unhandled', 'event' => $event, 'producer_marker' => 'preserve'];
+		return ['contract_version' => 1] + ($mode === 'centralized' ? [] : ['mode' => $mode]) + [ 'status' => 'unhandled', 'event' => $event, 'producer_marker' => 'preserve'];
 	}
 }

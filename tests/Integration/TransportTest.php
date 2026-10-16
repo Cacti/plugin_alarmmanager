@@ -94,6 +94,7 @@ final class TransportTest extends AlarmManagerTestCase {
 			$http  = 'http://127.0.0.1:' . $ports['http'];
 			$https = 'https://localhost:' . $ports['https'];
 			$event = alarmmanager_validate_event(json_decode(file_get_contents(__DIR__ . '/../../examples/event.json'), true));
+			$event['collector_id'] = 2;
 			$map   = ['default' => [['to' => 'hostname', 'source' => 'device.id'], ['to' => 'message', 'source' => 'alarm.summary']]];
 			$base  = ['url' => $https . '/echo', 'ca_bundle' => $tmp . '/cert.pem', 'mapping' => $map, 'credential' => true, 'response_match' => ['path' => 'authenticated', 'equals' => true]];
 			$this->tdefinition(1, 'restapi', $base);

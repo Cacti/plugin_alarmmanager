@@ -28,12 +28,11 @@ if (PHP_SAPI !== 'cli') {
 $options = getopt('', ['file:', 'mode:', 'help']);
 
 if (isset($options['help']) || !isset($options['file'])) {
-	print "Usage: php cli/submit_event.php --file=examples/event.json [--mode=observe|centralized]\n";
+	print "Usage: php cli/submit_event.php --file=examples/event.json\n";
 	exit(isset($options['help']) ? 0 : 2);
 }
-$mode = $options['mode'] ?? 'observe';
 
-if (!in_array($mode, ['observe', 'centralized'], true) || !is_string($options['file'])) {
+if (isset($options['mode']) || !is_string($options['file'])) {
 	fwrite(STDERR, "Invalid arguments.\n");
 	exit(2);
 }
@@ -56,7 +55,7 @@ try {
 // Force Cacti's documented local/offline bootstrap: never wait for the main DB.
 $conn_mode = 'offline';
 require_once(__DIR__ . '/../../../include/cli_check.php');
-$envelope = ['contract_version' => 1, 'mode' => $mode, 'status' => 'unhandled', 'event' => $event];
+$envelope = ['contract_version' => 1, 'status' => 'unhandled', 'event' => $event];
 $result   = api_plugin_hook_function('alarmmanager_submit', $envelope);
 $status   = is_array($result) ? ($result['status'] ?? 'failed') : 'failed';
 print json_encode(['status' => $status, 'error' => $result['error'] ?? null, 'event_row_id' => $result['event_row_id'] ?? null], JSON_THROW_ON_ERROR) . "\n";
