@@ -155,6 +155,11 @@ if (!function_exists('db_execute_prepared')) {
 		}
 
 		if (str_starts_with($sql, 'UPDATE plugin_config')) {
+			if (str_contains($sql, 'SET status = 1')) {
+				$GLOBALS['alarmmanager_test_status'] = 1;
+
+				return true;
+			}
 			$GLOBALS['alarmmanager_test_version'] = $params[0];
 
 			return true;

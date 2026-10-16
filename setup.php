@@ -46,7 +46,24 @@ function plugin_alarmmanager_install(): bool {
 }
 
 function plugin_alarmmanager_check_config(): bool {
-	return PHP_VERSION_ID >= 80200 && extension_loaded('openssl') && alarmmanager_key_ready() && plugin_alarmmanager_upgrade();
+	$ready = PHP_VERSION_ID >= 80200 && extension_loaded('openssl') && alarmmanager_key_ready() && plugin_alarmmanager_upgrade();
+	static $scheduled = false;
+
+	if ($ready && !$scheduled && alarmmanager_local_poller() === 1) {
+		$scheduled = true;
+		// Cacti 1.2 enables hooks before saving status; replicate after the enable request finishes.
+		register_shutdown_function(static function (): void {
+			try {
+				if (alarmmanager_runtime_enabled()) {
+					api_plugin_replicate_config();
+				}
+			} catch (Throwable $error) {
+				alarmmanager_log('plugin activation replication failed; retry Cacti synchronization from main');
+			}
+		});
+	}
+
+	return $ready;
 }
 
 function plugin_alarmmanager_upgrade(): bool {

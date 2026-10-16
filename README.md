@@ -48,6 +48,9 @@ $result = api_plugin_hook_function('alarmmanager_submit', [
 
 ## Distributed delivery and central visibility
 
+Enable Alarm Manager on main through Cacti's Plugin Management page. At the end of a successful activation request, Alarm Manager uses Cacti's native plugin replication API to send the final enabled status and hooks to online collectors. No Cacti core patch or per-collector enable command is required; offline collectors receive plugin state through Cacti's normal full synchronization.
+
+
 Each collector, including main poller **1**, processes its own events and sends its own notifications using local routing and credentials. Events must identify the local collector. There is no Observe/Centralized choice.
 
 Remote collectors automatically send up to 500 queued history changes to poller **1** at the end of every Cacti poller cycle, including when daemon workers handle delivery. Events, processing results, routing decisions, deliveries and attempts are mirrored for **Administration → Collectors and remote history**. The receiver never creates delivery jobs from mirrored history.

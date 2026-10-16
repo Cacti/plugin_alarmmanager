@@ -2,6 +2,8 @@
 
 --- main (development) ---
 
+* After successful activation on main, repeat Cacti's native plugin-state replication at request shutdown so collectors receive the final enabled status. This handles Cacti 1.2's hook-before-status enable ordering within Alarm Manager, without core patches or per-collector activation.
+
 * 0.11.0: Use Cacti's existing collector-to-main database connection for history transfer. Remove separate HTTP endpoints, shared-secret provisioning and CA controls. Retain durable pending batches, transactional mirror imports and retry-safe acknowledgments; configuration continues through Cacti's `replicate_out` hook.
 
 * 0.10.2: Replicate main-poller destinations, mappings, profiles, rules, credentials, daemon worker configuration and Alarm Queue pause/resume through Cacti's native full remote synchronization. Main saves request synchronization; remote credentials use each collector's own key. Updates are atomic, disable removed destinations, remove retired credentials, and preserve queued alarms, leases and history. Remote daemon settings apply on the next poller cycle, with poller fallback when no daemon heartbeat is available. VERIFIED locally with `ConfigurationReplicationTest` against three disposable MariaDB node databases, including rollback and independent-key checks. Live multi-server deployment and systemd reload remain UNVERIFIED.
