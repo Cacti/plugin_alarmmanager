@@ -48,7 +48,6 @@ function alarmmanager_view_filters(): array {
 		'reason'       => ['filter' => FILTER_VALIDATE_REGEXP, 'pageset' => true, 'default' => '', 'options' => ['options' => ['regexp' => '/\A[A-Za-z0-9_.:@\/-]*\z/D']]],
 		'device_id'    => ['filter' => FILTER_VALIDATE_INT, 'pageset' => true, 'default' => 0, 'options' => ['options' => ['min_range' => 0, 'max_range' => 2147483647]]],
 		'endpoint_id'  => ['filter' => FILTER_VALIDATE_INT, 'pageset' => true, 'default' => 0, 'options' => ['options' => ['min_range' => 0, 'max_range' => 2147483647]]],
-		'event_id'     => ['filter' => FILTER_VALIDATE_INT, 'pageset' => true, 'default' => 0, 'options' => ['options' => ['min_range' => 0, 'max_range' => PHP_INT_MAX]]],
 		'current'      => ['filter' => FILTER_CALLBACK, 'pageset' => true, 'default' => '0', 'options' => ['options' => static fn ($value) => in_array($value, ['0', '1'], true) ? $value : false]],
 		'acknowledged' => ['filter' => FILTER_CALLBACK, 'pageset' => true, 'default' => '', 'options' => ['options' => static fn ($value) => in_array($value, ['', '0', '1'], true) ? $value : false]],
 	];
@@ -65,6 +64,8 @@ function alarmmanager_view_filters(): array {
 	$values['page']  = get_filter_request_var('page', FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 200], 'default' => 1]);
 	$values['query'] = get_nfilter_request_var('query') ?? '';
 	$values['tab']   = alarmmanager_view_tab();
+	$values['event_id'] = $values['tab'] === 'events'
+		? get_filter_request_var('event_id', FILTER_VALIDATE_INT, ['options' => ['min_range' => 0, 'max_range' => PHP_INT_MAX], 'default' => 0]) : 0;
 
 	return alarmmanager_report_filters($values);
 }
@@ -162,7 +163,7 @@ function alarmmanager_web_filters(array $filters, string $tab, bool $dashboard =
 	print '<label>' . __esc('Device ID', 'alarmmanager') . ' <input name="device_id" type="number" min="0" max="2147483647" value="' . html_escape((string) $filters['device_id']) . '"></label>';
 
 	if (!$dashboard) {
-		foreach (['transition', 'status', 'reason', 'endpoint_id', 'event_id', 'acknowledged'] as $key) {
+		foreach (array_merge(['transition', 'status', 'reason', 'endpoint_id', 'acknowledged'], $tab === 'events' ? ['event_id'] : []) as $key) {
 			print '<label>' . __esc($key === 'event_id' ? 'Event row ID' : str_replace('_', ' ', ucfirst($key)), 'alarmmanager') . ' <input name="' . html_escape($key) . '" maxlength="32" value="' . html_escape((string) $filters[$key]) . '"></label>';
 		}
 	}
@@ -180,7 +181,13 @@ function alarmmanager_report_url(array $filters, string $tab, array $extra = [])
 		unset($values['query']);
 	}
 
-	return 'alarmmanager.php?' . http_build_query(array_merge($values, ['tab' => $tab], $extra));
+	$values = array_merge($values, ['tab' => $tab], $extra);
+
+	if ($tab !== 'events') {
+		unset($values['event_id']);
+	}
+
+	return 'alarmmanager.php?' . http_build_query($values);
 }
 function alarmmanager_dashboard_markup(): void {
 	print '<div id="alarmmanager_dashboard" aria-live="polite"><p id="alarmmanager_dashboard_status" role="status">' . __esc('Loading statistics…', 'alarmmanager') . '</p><div id="alarmmanager_current" class="alarmmanagerSummary"></div><div id="alarmmanager_historical" class="alarmmanagerSummary"></div><div class="alarmmanagerDashboardGrid">';

@@ -143,7 +143,7 @@ function alarmmanager_report_where(array $scope, array $filters, ?string $time_c
 	}
 
 	foreach (['source' => 'e.source', 'severity' => $severity_column, 'transition' => 'e.transition', 'device_id' => 'e.device_id', 'event_id' => 'e.id'] as $key => $column) {
-		if ($filters[$key] !== '' && $filters[$key] !== 0) {
+		if (($key !== 'event_id' || $kind === 'events') && $filters[$key] !== '' && $filters[$key] !== 0) {
 			$where[]  = "$column = ?";
 			$params[] = $filters[$key];
 		}
@@ -244,7 +244,7 @@ function alarmmanager_event_detail(array $scope, array $filters): ?array {
 	if ($filters['event_id'] < 1) {
 		return null;
 	}
-	[$where, $params] = alarmmanager_report_where($scope, $filters, null);
+	[$where, $params] = alarmmanager_report_where($scope, $filters, null, 'e.severity', 'events');
 	$row              = alarmmanager_report_row("SELECT LEFT(e.payload, 32769) AS payload FROM plugin_alarmmanager_events AS e WHERE $where LIMIT 1", $params);
 
 	if (!$row) {

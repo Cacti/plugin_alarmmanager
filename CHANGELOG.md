@@ -2,6 +2,8 @@
 
 --- main (development) ---
 
+* Reconcile locally raised device outages after reassignment to another collector: a confirmed-UP host closes the old local episode without changing current poller ownership or capturing new remote-owned outages.
+
 * Clear tracked device conditions automatically when Cacti confirms the device UP, even when its recovery timestamp is stale or missing. Use the host status as the recovery authority and revisit stranded open episodes on the next poller cycle; timestamps are event history metadata only. Preserve acknowledgment, history, ownership and Cacti host data.
 
 * After successful activation on main, repeat Cacti's native plugin-state replication at request shutdown so collectors receive the final enabled status. This handles Cacti 1.2's hook-before-status enable ordering within Alarm Manager, without core patches or per-collector activation.

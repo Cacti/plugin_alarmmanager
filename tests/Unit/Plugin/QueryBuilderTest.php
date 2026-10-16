@@ -67,4 +67,21 @@ final class QueryBuilderTest extends AlarmManagerTestCase {
 		parse_str(parse_url(alarmmanager_report_url($filters,'events',['event_id'=>12]),PHP_URL_QUERY),$params);
 		$this->assertArrayNotHasKey('query',$params);
 	}
+	public function testEventSelectionCannotHideOtherReports(): void {
+		self::alarmmanager_test_load('includes/reports.php');
+		self::alarmmanager_test_load('includes/web_view.php');
+		$filters = alarmmanager_report_filters(['event_id' => 94]);
+
+		foreach (['dashboard', 'conditions', 'deliveries', 'attempts', 'decisions', 'processing'] as $kind) {
+			[$where, $params] = alarmmanager_report_where(['device_sql' => 'e.device_id = 42'], $filters, null, 'e.severity', $kind);
+			$this->assertSame('(e.device_id = 42)', $where);
+			$this->assertSame([], $params);
+			parse_str(parse_url(alarmmanager_report_url($filters, $kind), PHP_URL_QUERY), $values);
+			$this->assertArrayNotHasKey('event_id', $values);
+		}
+		[$where, $params] = alarmmanager_report_where(['device_sql' => 'e.device_id = 42'], $filters, null, 'e.severity', 'events');
+		$this->assertSame('(e.device_id = 42) AND e.id = ?', $where);
+		$this->assertSame([94], $params);
+	}
+
 }

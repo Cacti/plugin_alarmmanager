@@ -140,6 +140,7 @@ final class DeviceStatusTest extends AlarmManagerTestCase {
 				alarmmanager_process_job($claim);
 			}
 			self::assertSame(1, (int) $db->query('SELECT active FROM plugin_alarmmanager_states')->fetchColumn());
+			alarmmanager_acknowledge($db->query('SELECT stream_key FROM plugin_alarmmanager_states')->fetchColumn(), true);
 			$db->exec('UPDATE host SET poller_id=3 WHERE id=42');
 			self::assertSame(0, alarmmanager_device_status_check(), 'Main does not detect new remote-owned outages');
 			$db->exec('UPDATE host SET status=2 WHERE id=42');
@@ -152,7 +153,7 @@ final class DeviceStatusTest extends AlarmManagerTestCase {
 				alarmmanager_process_job($claim);
 			}
 			self::assertSame(0, (int) $db->query('SELECT active FROM plugin_alarmmanager_states')->fetchColumn());
-			self::assertSame(0, (int) $db->query('SELECT acknowledged FROM plugin_alarmmanager_states')->fetchColumn());
+			self::assertSame(1, (int) $db->query('SELECT acknowledged FROM plugin_alarmmanager_states')->fetchColumn(), 'Recovery is independent of prior acknowledgment');
 			self::assertSame(3, (int) $db->query('SELECT poller_id FROM host WHERE id=42')->fetchColumn(), 'Host ownership stays with the remote poller');
 			// Initial down creates an episode, so a later recovery has a matching raise.
 			$db->exec("INSERT INTO host (id,poller_id,status,status_fail_date) VALUES (47,1,1,FROM_UNIXTIME($fail))");
