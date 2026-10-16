@@ -25,7 +25,6 @@ require_once(__DIR__ . '/routing.php');
 require_once(__DIR__ . '/credentials.php');
 require_once(__DIR__ . '/supervisor.php');
 require_once(__DIR__ . '/queue.php');
-require_once(__DIR__ . '/remote.php');
 require_once(__DIR__ . '/../integrations/producer_bridge.php');
 
 /** Cacti's full replication supplies an already connected remote database. */
@@ -107,29 +106,8 @@ function alarmmanager_replication_state(PDO $connection): string {
 		alarmmanager_db_rows("SELECT name, value FROM settings_user WHERE user_id = 1 AND name = 'alarmmanager_daemon_configuration'", [], $connection),
 		alarmmanager_db_rows("SELECT value FROM settings WHERE name = 'alarmmanager_notifications_paused'", [], $connection),
 		alarmmanager_db_rows('SELECT endpoint_id, ciphertext FROM plugin_alarmmanager_credentials ORDER BY endpoint_id', [], $connection),
-		alarmmanager_db_rows('SELECT source, scope, resource_id, definition FROM plugin_alarmmanager_producer_config ORDER BY source, scope, resource_id', [], $connection),
-		alarmmanager_db_row('SELECT endpoint_url, pair_secret, allow_http, enabled FROM plugin_alarmmanager_sync_peers WHERE poller_id = 1', [], $connection)
+		alarmmanager_db_rows('SELECT source, scope, resource_id, definition FROM plugin_alarmmanager_producer_config ORDER BY source, scope, resource_id', [], $connection)
 	], JSON_THROW_ON_ERROR));
-}
-
-/** Zero-touch pair records travel inside the regular configuration bundle; file-era rows push nothing.
- * @return array<string, mixed>|null
- */
-function alarmmanager_replication_peer_record(int $poller): ?array {
-	$row = alarmmanager_db_row('SELECT instance_uuid, pair_secret, endpoint_url, ca_pem, allow_http, enabled FROM plugin_alarmmanager_sync_peers WHERE poller_id = ?', [$poller]);
-
-	if (($row['pair_secret'] ?? '') === '') {
-		return null;
-	}
-
-	return [
-		'source_uuid'  => alarmmanager_node_uuid(),
-		'pair_secret'  => $row['pair_secret'],
-		'endpoint_url' => $row['endpoint_url'],
-		'ca_pem'       => $row['ca_pem'],
-		'allow_http'   => (int) $row['allow_http'],
-		'enabled'      => (int) $row['enabled'],
-	];
 }
 
 /** Replace settings atomically, preserving each collector's key, queues, leases and history. */
@@ -141,13 +119,6 @@ function alarmmanager_replicate_configuration(PDO $connection, int $poller): voi
 	}
 	$bundle         = alarmmanager_replication_configuration();
 	$source         = alarmmanager_db_row('SELECT instance_uuid FROM plugin_alarmmanager_node WHERE id = 1');
-	$bundle['sync'] = alarmmanager_replication_peer_record($poller);
-
-	if (is_array($bundle['sync'])) {
-		alarmmanager_decode_key($bundle['sync']['pair_secret']);
-		alarmmanager_sync_peer_url_validate($bundle['sync']['endpoint_url'], (int) $bundle['sync']['allow_http'] === 1);
-		alarmmanager_sync_ca_validate($bundle['sync']['ca_pem']);
-	}
 	alarmmanager_transaction(static function () use ($connection, $poller, $bundle, $source): void {
 		$owner = alarmmanager_db_row('SELECT instance_uuid FROM plugin_alarmmanager_node WHERE id = 1 FOR UPDATE', [], $connection);
 
@@ -177,30 +148,7 @@ function alarmmanager_replicate_configuration(PDO $connection, int $poller): voi
 		}
 		alarmmanager_db_write('REPLACE INTO settings_user (user_id, name, value) VALUES (?, ?, ?)', [1, 'alarmmanager_daemon_configuration', json_encode($bundle['daemon'], JSON_THROW_ON_ERROR)], $connection);
 		alarmmanager_db_write("REPLACE INTO settings (name, value) VALUES ('alarmmanager_notifications_paused', ?)", [$bundle['paused'] ? '1' : '0'], $connection);
-		alarmmanager_replicate_sync_peer($bundle, $connection);
 		$marker = json_encode(['digest' => $digest, 'state' => alarmmanager_replication_state($connection)], JSON_THROW_ON_ERROR);
 		alarmmanager_db_write('REPLACE INTO settings_user (user_id, name, value) VALUES (?, ?, ?)', [1, 'alarmmanager_replicated_configuration', $marker], $connection);
 	}, $connection);
-}
-
-/** Collectors may still lag schema v11; the push simply re-runs on the next cycle after self-heal.
- * @param array<string, mixed> $bundle
- */
-function alarmmanager_replicate_sync_peer(array $bundle, PDO $connection): void {
-	if (!is_array($bundle['sync'] ?? null)) {
-		return;
-	}
-	$columns = alarmmanager_db_rows("SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'plugin_alarmmanager_sync_peers' AND COLUMN_NAME IN ('pair_secret', 'allow_http', 'ca_pem')", [], $connection);
-
-	if (count($columns) !== 3) {
-		alarmmanager_log('collector schema is behind; history-sync provisioning retries next cycle');
-
-		return;
-	}
-	alarmmanager_db_write("INSERT INTO plugin_alarmmanager_sync_peers
-			(poller_id, instance_uuid, key_file, endpoint_url, ca_pem, pair_secret, allow_http, enabled)
-		VALUES (1, ?, '', ?, ?, ?, ?, ?)
-		ON DUPLICATE KEY UPDATE instance_uuid = VALUES(instance_uuid), endpoint_url = VALUES(endpoint_url),
-			ca_pem = VALUES(ca_pem), pair_secret = VALUES(pair_secret), allow_http = VALUES(allow_http), enabled = VALUES(enabled)",
-		[$bundle['sync']['source_uuid'], $bundle['sync']['endpoint_url'], $bundle['sync']['ca_pem'], $bundle['sync']['pair_secret'], $bundle['sync']['allow_http'], $bundle['sync']['enabled']], $connection);
 }

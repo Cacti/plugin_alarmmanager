@@ -14,7 +14,7 @@ const fs=require('node:fs'), path=require('node:path');
  try {
   // Wait for the fixture listener without a fixed blocking sleep.
   for(let attempt=0;attempt<30;attempt++){try{await context.request.get(base+'/__fixture/login?user=1');break;}catch(error){if(attempt===29)throw error;await new Promise(resolve=>setTimeout(resolve,100));}}
-  await login(1,'modern');check(await page.locator('#tab-alarmmanager').count()===1,'Alarm Manager top-level tab');check(await page.getByRole('link',{name:'Administration',exact:true}).count()===1,'Administrator return link');check(await page.locator('.bb').count()>=6,'Local Billboard charts rendered');
+  await login(1,'modern');check(await page.locator('#tab-alarmmanager').count()===1,'Alarm Manager top-level tab');check(await page.getByRole('link',{name:'Administration',exact:true}).count()===0,'Administration cross-link removed');check(await page.locator('.bb').count()>=6,'Local Billboard charts rendered');
   check(await page.locator('select[name=mode]').count()===0,'No Observe/Centralized mode selector');
   check((await page.locator('#alarmmanager_historical').innerText()).includes('All 80'),'Administrator count');
   check(await page.locator('.alarmmanagerDashboardCard').count()===9,'Adapted panel grid');
@@ -23,8 +23,12 @@ const fs=require('node:fs'), path=require('node:path');
   if(screenDir)await page.screenshot({path:path.join(screenDir,'modern-dashboard.png'),fullPage:true});
   const toggle=page.locator('#alarmmanager_panel_source .alarmmanagerCardToggle');await toggle.click();check(await toggle.getAttribute('aria-expanded')==='false','Panel collapse');await toggle.click();
   await page.locator('#alarmmanager_legend_severity a').first().click();await page.waitForURL('**/alarmmanager.php?*tab=events*');check(await page.locator('.alarmmanagerTable tbody tr').count()>0,'Statistics links matching records');
+  await page.goto(base+'/plugins/alarmmanager/alarmmanager_admin.php?section=collectors');
+  check((await page.locator('#alarmmanager_app').innerText()).includes('no separate synchronization setup is required'),'Collectors use Cacti connectivity');
+  check(await page.locator('[name=ca_pem], [name=url], [value^=sync_peer_]').count()===0,'No custom collector provisioning controls');
+  check(await page.locator('.tabs .tab.selected').innerText()==='Collectors and history','Selected native collector tab');
   await page.goto(base+'/plugins/alarmmanager/alarmmanager_admin.php?section=credentials');
-  check(await page.getByRole('link',{name:'View alarms',exact:true}).count()===1,'Administration links back to reports');
+  check(await page.getByRole('link',{name:'View alarms',exact:true}).count()===0,'View alarms cross-link removed');
   check(await page.locator('a[href*="alarmmanager.php?tab="]').count()===0,'Report tabs excluded from administration');
   check(!(await page.content()).includes('WEB_BROWSER_SECRET')&&!(await page.content()).includes('am1:'),'Credential DOM redaction');
   check(await page.locator('input[type=password]').first().inputValue()==='','Existing password blank');

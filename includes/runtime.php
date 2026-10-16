@@ -81,10 +81,10 @@ function alarmmanager_transaction(callable $action, ?PDO $connection = null) {
 function alarmmanager_stream_key(array $event, string $mode): string {
 	return hash('sha256', implode('|', [$event['source'], $event['source_instance'], $event['alarm_key'], $mode]));
 }
-function alarmmanager_runtime_enabled(): bool {
+function alarmmanager_runtime_enabled(?PDO $connection = null): bool {
 	global $config;
 
-	return empty($config['DEBUG_SQL_FLOW']) && (int) db_fetch_cell_prepared('SELECT status FROM plugin_config WHERE directory = ?', ['alarmmanager'], '', false) === 1;
+	return empty($config['DEBUG_SQL_FLOW']) && (int) db_fetch_cell_prepared('SELECT status FROM plugin_config WHERE directory = ?', ['alarmmanager'], '', false, $connection) === 1;
 }
 function alarmmanager_local_poller(): int {
 	global $config;

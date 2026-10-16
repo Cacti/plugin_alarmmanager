@@ -327,29 +327,14 @@ final class WebTest extends AlarmManagerTestCase {
 			$this->assertTrue(alarmmanager_secret_key() !== $old && alarmmanager_load_credential(1) === $record, 'Browser local key rotation');
 			$this->waction(['action'=>'credential_remove', 'id'=>'1']);
 			$this->assertSame(0, (int)db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_credentials'), 'Credential remove');
-			// Zero-touch collector synchronization: GUI generates the pair secret; replication delivers it.
 			$this->wuser(1);
-			$syncUrl = 'https://main.example.test/cacti/plugins/alarmmanager/alarmmanager_sync.php';
-			$this->assertSame('History sync provisioned; the collector adopts it on the next replication cycle.', $this->waction(['action'=>'sync_peer_enable', 'id'=>'2', 'url'=>$syncUrl]));
-			$this->assertSame('on', db_fetch_cell_prepared('SELECT requires_sync FROM poller WHERE id=2'), 'Provisioning schedules native replication');
-			$this->assertSame(1, (int)db_fetch_cell_prepared('SELECT enabled FROM plugin_alarmmanager_sync_peers WHERE poller_id=2'), 'Pair provisioned online for replication');
-			$this->assertTrue(is_string(db_fetch_cell_prepared('SELECT pair_secret FROM plugin_alarmmanager_sync_peers WHERE poller_id=2')) && db_fetch_cell_prepared('SELECT LENGTH(pair_secret) FROM plugin_alarmmanager_sync_peers WHERE poller_id=2') === '44', 'Pair secret generated server-side');
 			ob_start();
 			alarmmanager_admin_markup(alarmmanager_admin_configuration(), 'collectors');
 			$collectors_html = ob_get_clean();
-			$this->assertStringNotContainsString((string)db_fetch_cell_prepared('SELECT pair_secret FROM plugin_alarmmanager_sync_peers WHERE poller_id=2'), $collectors_html, 'Pair secrets never render in the browser');
-			$this->wreject(fn () => $this->waction(['action'=>'sync_peer_enable', 'id'=>'2', 'url'=>str_replace('https://', 'http://', $syncUrl)]), 'Plain HTTP needs the explicit allow option');
-			$this->wreject(fn () => $this->waction(['action'=>'sync_peer_enable', 'id'=>'2', 'url'=>$syncUrl, 'ca_pem'=>'not-a-certificate']), 'CA validation refuses non-PEM text');
-			$this->assertSame('History sync endpoint updated; the collector refreshes on the next replication cycle.', $this->waction(['action'=>'sync_peer_save', 'id'=>'2', 'url'=>$syncUrl]));
-			$this->wreject(fn () => $this->waction(['action'=>'sync_peer_rotate', 'id'=>'2']), 'Rotation requires explicit confirmation');
-			$beforeRotate = db_fetch_cell_prepared('SELECT pair_secret FROM plugin_alarmmanager_sync_peers WHERE poller_id=2');
-			$this->assertSame('Pair secret rotated; the collector re-registers after replication.', $this->waction(['action'=>'sync_peer_rotate', 'id'=>'2', 'confirmed'=>'yes']));
-			$this->assertTrue(db_fetch_cell_prepared('SELECT pair_secret FROM plugin_alarmmanager_sync_peers WHERE poller_id=2') !== $beforeRotate, 'Rotation changes the pair secret');
-			$this->assertSame('', (string)db_fetch_cell_prepared('SELECT instance_uuid FROM plugin_alarmmanager_sync_peers WHERE poller_id=2'), 'Rotation forgets the registered identity');
-			$this->assertSame('History sync disabled for that collector; the change replicates on the next cycle.', $this->waction(['action'=>'sync_peer_disable', 'id'=>'2']));
-			$this->assertSame(0, (int)db_fetch_cell_prepared('SELECT enabled FROM plugin_alarmmanager_sync_peers WHERE poller_id=2'), 'Disable persists');
-			$this->wuser(2);
-			$this->wreject(fn () => $this->waction(['action'=>'sync_peer_enable', 'id'=>'2', 'url'=>$syncUrl]), 'Readers cannot provision collector pairs');
+			$this->assertStringContainsString('no separate synchronization setup is required', $collectors_html);
+			$this->assertStringNotContainsString('sync_peer_', $collectors_html);
+			$this->assertStringNotContainsString('name="ca_pem"', $collectors_html);
+			$this->wreject(fn () => $this->waction(['action' => 'sync_peer_enable', 'id' => '2']), 'Removed provisioning action is refused.');
 			// Real Cacti policy generator: default-deny + group grants, deleted/disabled hosts and default-allow exclusions.
 			$policy_filters           = $filters;
 			$policy_filters['source'] = 'fixture';

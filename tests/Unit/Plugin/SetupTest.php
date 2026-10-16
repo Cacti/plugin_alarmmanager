@@ -170,13 +170,13 @@ final class SetupTest extends AlarmManagerTestCase {
 			ob_start();
 			alarmmanager_web_open(['admin' => $admin], 'dashboard');
 			$html = ob_get_clean();
-			$this->assertSame($admin, str_contains($html, 'href="alarmmanager_admin.php"'));
+			$this->assertStringNotContainsString('href="alarmmanager_admin.php"', $html);
 			$this->assertSame(7, substr_count($html, 'href="alarmmanager.php?tab='));
 		}
 		ob_start();
 		alarmmanager_web_open(['admin' => true], 'admin');
 		$html = ob_get_clean();
-		$this->assertStringContainsString('href="alarmmanager.php"', $html);
+		$this->assertStringNotContainsString('href="alarmmanager.php"', $html);
 		$this->assertStringNotContainsString('alarmmanager.php?tab=', $html);
 	}
 

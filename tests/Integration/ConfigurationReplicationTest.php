@@ -105,7 +105,11 @@ final class ConfigurationReplicationTest extends AlarmManagerTestCase {
 			// A collector without a running resident service keeps processing through its poller.
 			$GLOBALS['config']               = ['poller_id' => 2, 'base_path' => $root . '/2'];
 			$GLOBALS['alarmmanager_test_db'] = $connections[2];
+			$GLOBALS['remote_db_cnn_id'] = $connections[1];
+			mkdir($root . '/2/cache/alarmmanager', 0700, true);
+			file_put_contents($root . '/2/cache/alarmmanager/status.json', '{}');
 			alarmmanager_poller_bottom();
+			$this->assertGreaterThan(0, (int) $connections[1]->query('SELECT COUNT(*) FROM plugin_alarmmanager_remote_history WHERE poller_id = 2')->fetchColumn(), 'Poller hook returns history over Cacti connection.');
 			$this->assertSame('completed', $connections[2]->query('SELECT status FROM plugin_alarmmanager_jobs')->fetchColumn(), 'Replicated daemon enablement must not strand alarms on collectors without the service.');
 			$this->assertSame($daemon, alarmmanager_supervisor_options());
 			$this->assertSame(0, (int) $connections[2]->query('SELECT COUNT(*) FROM plugin_alarmmanager_attempts')->fetchColumn(), 'Replicated queue pause prevents sends.');
@@ -165,6 +169,7 @@ final class ConfigurationReplicationTest extends AlarmManagerTestCase {
 			$this->assertSame(0, (int) $connections[2]->query('SELECT COUNT(*) FROM plugin_alarmmanager_endpoints WHERE enabled=1')->fetchColumn(), 'Removed destinations cannot send on a remote.');
 			$this->assertSame(1, (int) $connections[2]->query('SELECT COUNT(*) FROM plugin_alarmmanager_jobs')->fetchColumn(), 'Settings replication never clears queued alarms.');
 		} finally {
+			unset($GLOBALS['remote_db_cnn_id']);
 			$GLOBALS['config'] = $before;
 
 			foreach ($names as $name) {
@@ -178,140 +183,4 @@ final class ConfigurationReplicationTest extends AlarmManagerTestCase {
 		}
 	}
 
-	/**
-	 * Zero-touch pairs: the main GUI generates the shared secret and replication delivers it; a
-	 * legacy file-era collector row is overwritten; disable/rotate propagate on the next cycle.
-	 */
-	public function testZeroTouchSyncPeerProvisioningReplicatesToCollector(): void {
-		self::requireAlarmManagerTestDb();
-
-		if (getenv('ALARMMANAGER_TEST_ALLOW_CREATE') !== '1') {
-			$this->markTestSkipped('Disposable test database creation must be enabled.');
-		}
-		require_once dirname(__DIR__, 2) . '/setup.php';
-		require_once dirname(__DIR__, 2) . '/includes/replication.php';
-		require_once dirname(__DIR__, 2) . '/includes/remote.php';
-		require_once dirname(__DIR__, 2) . '/tests/fixtures/device_metadata_schema.php';
-		$server      = alarmmanager_test_connect();
-		$connections = $names = [];
-		$root        = sys_get_temp_dir() . '/alarmmanager_zerotouch_' . bin2hex(random_bytes(6));
-		mkdir($root, 0700);
-		$before = $GLOBALS['config'];
-		$url    = 'https://main.example.test/cacti/plugins/alarmmanager/alarmmanager_sync.php';
-
-		try {
-			foreach ([1, 2] as $poller) {
-				$names[$poller] = 'alarmmanager_test_' . bin2hex(random_bytes(6));
-				$server->exec("CREATE DATABASE `{$names[$poller]}` CHARACTER SET utf8mb4");
-				$db = $connections[$poller] = alarmmanager_test_connect();
-				$db->exec("USE `{$names[$poller]}`");
-				$GLOBALS['config']               = ['poller_id' => $poller, 'base_path' => $root . '/' . $poller];
-				$GLOBALS['alarmmanager_test_db'] = $db;
-				$db->exec('CREATE TABLE settings (name VARCHAR(255) PRIMARY KEY, value TEXT) ENGINE=InnoDB');
-				$db->exec('CREATE TABLE settings_user (user_id INT, name VARCHAR(255), value TEXT, PRIMARY KEY(user_id,name)) ENGINE=InnoDB');
-				$db->exec('CREATE TABLE plugin_config (directory VARCHAR(64) PRIMARY KEY, version VARCHAR(32), status INT) ENGINE=InnoDB');
-				$db->exec("INSERT INTO plugin_config VALUES ('alarmmanager','0.10.1',1)");
-				alarmmanager_test_device_metadata_schema($db);
-				$this->assertTrue(plugin_alarmmanager_install());
-				$nodes[$poller] = $db->query('SELECT instance_uuid FROM plugin_alarmmanager_node')->fetchColumn();
-			}
-			// Legacy file-era pair on the collector: zero-touch must overwrite it, never stack a second row.
-			$connections[2]->exec("INSERT INTO plugin_alarmmanager_sync_peers (poller_id, instance_uuid, key_file) VALUES (1, '" . str_repeat('9', 32) . "', 'legacy.key')");
-
-			// Provisioning runs only on the main poller, for collectors Cacti knows.
-			$GLOBALS['config']               = ['poller_id' => 2, 'base_path' => $root . '/2'];
-			$GLOBALS['alarmmanager_test_db'] = $connections[2];
-
-			try {
-				alarmmanager_sync_peer_enable(2, $url, null, false);
-				$this->fail('Provisioning on a collector is rejected.');
-			} catch (RuntimeException $error) {
-				$this->assertSame('sync_peer_provision_invalid', $error->getMessage());
-			}
-
-			// The main poller only provisions real collector rows, never itself or unknown pollers.
-			$GLOBALS['config']               = ['poller_id' => 1, 'base_path' => $root . '/1'];
-			$GLOBALS['alarmmanager_test_db'] = $connections[1];
-
-			try {
-				alarmmanager_sync_peer_enable(1, $url, null, false);
-				$this->fail('Provisioning the main poller itself is rejected.');
-			} catch (RuntimeException $error) {
-				$this->assertSame('sync_peer_provision_invalid', $error->getMessage());
-			}
-
-			try {
-				alarmmanager_sync_peer_enable(9, $url, null, false);
-				$this->fail('Provisioning an unknown collector is rejected.');
-			} catch (RuntimeException $error) {
-				$this->assertSame('sync_peer_missing', $error->getMessage());
-			}
-
-			try {
-				alarmmanager_sync_peer_enable(2, 'http://main.example.test/cacti/plugins/alarmmanager/alarmmanager_sync.php', '---no', false);
-				$this->fail('Input validation happens before anything is stored.');
-			} catch (InvalidArgumentException $error) {
-				$this->assertContains($error->getMessage(), ['invalid_transport_url', 'invalid_ca_pem']);
-			}
-			$this->assertSame(0, (int) $connections[1]->query('SELECT COUNT(*) FROM plugin_alarmmanager_sync_peers')->fetchColumn(), 'Rejected provisioning stored no pair.');
-
-			alarmmanager_sync_peer_enable(2, $url, null, false);
-			$pair = $connections[1]->query('SELECT pair_secret, endpoint_url, ca_pem, allow_http, enabled, instance_uuid, key_file FROM plugin_alarmmanager_sync_peers WHERE poller_id=2')->fetch(PDO::FETCH_ASSOC);
-			$this->assertMatchesRegularExpression('/\A[A-Za-z0-9+\/]{43}=\z/', $pair['pair_secret'], 'Fresh provision generates a 32-byte base64 pair secret.');
-			$this->assertSame($url, $pair['endpoint_url']);
-			$this->assertNull($pair['ca_pem']);
-			$this->assertSame(0, (int) $pair['allow_http']);
-			$this->assertSame(1, (int) $pair['enabled']);
-			$this->assertSame('', $pair['instance_uuid'], 'Pair ships unregistered; the first signed packet proves identity.');
-			$this->assertSame('', $pair['key_file'], 'Provisioned pairs have no file-era key reference.');
-			$this->assertSame('on', $connections[1]->query('SELECT requires_sync FROM poller WHERE id=2')->fetchColumn(), 'Provisioning schedules native replication.');
-
-			// Re-enable keeps the existing secret so a collector may already hold a copy.
-			alarmmanager_sync_peer_enable(2, $url, null, true);
-			$second = $connections[1]->query('SELECT pair_secret, allow_http, enabled FROM plugin_alarmmanager_sync_peers WHERE poller_id=2')->fetch(PDO::FETCH_ASSOC);
-			$this->assertSame($pair['pair_secret'], $second['pair_secret'], 'Re-enable never regenerates a live pair secret.');
-			$this->assertSame(1, (int) $second['allow_http']);
-
-			$this->assertSame(['class' => 'all', 'remote_poller_id' => 2, 'rcnn_id' => $connections[2]], alarmmanager_replicate_out(['class' => 'all', 'remote_poller_id' => 2, 'rcnn_id' => $connections[2]]));
-			$pushed = $connections[2]->query('SELECT * FROM plugin_alarmmanager_sync_peers WHERE poller_id=1')->fetch(PDO::FETCH_ASSOC);
-			$this->assertSame($pair['pair_secret'], $pushed['pair_secret'], 'The collector adopts the shared secret.');
-			$this->assertSame($nodes[1], $pushed['instance_uuid'], 'Collector target row carries the main node identity.');
-			$this->assertSame($url, $pushed['endpoint_url']);
-			$this->assertSame(1, (int) $pushed['allow_http']);
-			$this->assertSame(1, (int) $pushed['enabled']);
-			$this->assertNull($pushed['ca_pem']);
-			$this->assertSame('legacy.key', $pushed['key_file'], 'Push never touches the retired file column.');
-
-			$revision = $connections[2]->query('SELECT config_revision FROM plugin_alarmmanager_schema')->fetchColumn();
-			alarmmanager_replicate_out(['class' => 'all', 'remote_poller_id' => 2, 'rcnn_id' => $connections[2]]);
-			$this->assertSame($revision, $connections[2]->query('SELECT config_revision FROM plugin_alarmmanager_schema')->fetchColumn(), 'Unchanged pair state is skipped by the digest marker.');
-
-			// Rotation: a new secret plus a forgotten identity reaches the collector next cycle.
-			alarmmanager_sync_peer_rotate(2);
-			$rotated = $connections[1]->query('SELECT pair_secret, instance_uuid FROM plugin_alarmmanager_sync_peers WHERE poller_id=2')->fetch(PDO::FETCH_ASSOC);
-			$this->assertNotSame($pair['pair_secret'], $rotated['pair_secret'], 'Rotation generates a new pair secret.');
-			$this->assertSame('', $rotated['instance_uuid'], 'Rotation forgets the registered identity for re-registration.');
-			alarmmanager_replicate_out(['class' => 'all', 'remote_poller_id' => 2, 'rcnn_id' => $connections[2]]);
-			$this->assertSame($rotated['pair_secret'], $connections[2]->query('SELECT pair_secret FROM plugin_alarmmanager_sync_peers WHERE poller_id=1')->fetchColumn(), 'Rotated secret replays to the collector.');
-
-			// Disable propagates; an idle collector keeps silent instead of failing every cycle.
-			alarmmanager_sync_peer_disable(2);
-			alarmmanager_replicate_out(['class' => 'all', 'remote_poller_id' => 2, 'rcnn_id' => $connections[2]]);
-			$this->assertSame(0, (int) $connections[2]->query('SELECT enabled FROM plugin_alarmmanager_sync_peers WHERE poller_id=1')->fetchColumn(), 'Disable propagates to the collector pair.');
-			$GLOBALS['config']               = ['poller_id' => 2, 'base_path' => $root . '/2'];
-			$GLOBALS['alarmmanager_test_db'] = $connections[2];
-			$this->assertFalse(alarmmanager_sync_send(), 'A disabled pair idles silently.');
-		} finally {
-			$GLOBALS['config'] = $before;
-
-			foreach ($names as $name) {
-				$server->exec("DROP DATABASE IF EXISTS `$name`");
-			}
-
-			foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root, FilesystemIterator::SKIP_DOTS), RecursiveIteratorIterator::CHILD_FIRST) as $file) {
-				$file->isDir() ? rmdir($file->getPathname()) : unlink($file->getPathname());
-			}
-			rmdir($root);
-		}
-	}
 }

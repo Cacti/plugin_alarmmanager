@@ -455,45 +455,15 @@ function alarmmanager_admin_markup(array $state, string $section): void {
 
 function alarmmanager_remote_markup(): void {
 	print '<h2>' . __esc('Collectors and remote history', 'alarmmanager') . '</h2><p>' . __esc('Each collector owns its local delivery. Imported history records the original events and outcomes. Collector history does not create central delivery jobs.', 'alarmmanager') . '</p>';
-	print '<p>' . __esc('Enabling synchronization here generates a shared secret that Cacti replication delivers to the collector; no per-poller command line steps are required. Editing or rotating a provisioned collector also replicates automatically.', 'alarmmanager') . '</p>';
-	$peers = [];
-
-	try {
-		$peers = alarmmanager_db_rows('SELECT p.poller_id, q.name, p.instance_uuid, p.enabled, p.endpoint_url,
-				(p.pair_secret IS NULL) AS legacy_file, (p.ca_pem IS NOT NULL) AS ca_uploaded,
-				p.last_seen, TIMESTAMPDIFF(SECOND, p.last_seen, UTC_TIMESTAMP(6)) AS age_seconds
-			FROM plugin_alarmmanager_sync_peers AS p LEFT JOIN poller AS q ON q.id = p.poller_id
-			ORDER BY p.poller_id LIMIT 256');
-	} catch (Throwable) {
-		print '<p>' . __esc('History-sync provisioning becomes available on the first poller cycle after upgrade, when the plugin schema is current.', 'alarmmanager') . '</p>';
-	}
-	$known = [];
+	print '<p>' . __esc("Configuration uses Cacti replication. Collectors automatically return history through Cacti's existing main database connection; no separate synchronization setup is required.", 'alarmmanager') . '</p>';
+	$peers = alarmmanager_db_rows('SELECT q.id AS poller_id, q.name, p.last_seen,
+		TIMESTAMPDIFF(SECOND, p.last_seen, UTC_TIMESTAMP(6)) AS age_seconds
+		FROM poller AS q LEFT JOIN plugin_alarmmanager_sync_peers AS p ON p.poller_id = q.id
+		WHERE q.id > 1 ORDER BY q.name, q.id LIMIT 256');
 
 	foreach ($peers as $peer) {
-		$known[(int) $peer['poller_id']] = true;
-		$status                          = !$peer['enabled'] ? 'Disabled' : ($peer['last_seen'] === null ? 'Not yet seen' : ((int) $peer['age_seconds'] <= 2 * (int) (read_config_option('poller_interval') ?: 300) + 30 ? 'Online' : 'Offline'));
-		print '<details class="alarmmanagerDashboardCard"><summary>' . html_escape((string) ($peer['name'] ?? '')) . ' #' . (int) $peer['poller_id'] . ' — ' . __esc($status, 'alarmmanager') . '</summary><p>' . html_escape($peer['last_seen'] ?? '') . ' — ' . html_escape((string) ($peer['endpoint_url'] ?? '')) . ($peer['ca_uploaded'] ? ' — ' . __esc('CA bundle stored', 'alarmmanager') : '') . '</p>';
-		alarmmanager_post_form('sync_peer_disable', ['id' => $peer['poller_id']], __esc('Disable synchronization', 'alarmmanager'));
-		print '<form method="post" action="alarmmanager_admin.php" class="alarmmanagerInlineForm">';
-		alarmmanager_csrf_field();
-		print '<input type="hidden" name="action" value="sync_peer_rotate"><input type="hidden" name="id" value="' . (int) $peer['poller_id'] . '"><label><input type="checkbox" name="confirmed" value="yes" required> ' . __esc('Rotate the shared secret; the collector re-registers on its next cycle', 'alarmmanager') . '</label><button type="submit">' . __esc('Rotate secret', 'alarmmanager') . '</button></form>';
-		print '<details><summary>' . __esc('Edit sync endpoint', 'alarmmanager') . '</summary>';
-		alarmmanager_sync_peer_editor('sync_peer_save', (int) $peer['poller_id'], (string) ($peer['endpoint_url'] ?? ''));
-		print '</details>';
-
-		if ($peer['legacy_file']) {
-			print '<p>' . __esc('This peer was provisioned with a key file. Enable it again here to switch to the zero-touch replicated secret.', 'alarmmanager') . '</p>';
-		}
-		print '</details>';
-	}
-	$pollers  = alarmmanager_db_rows('SELECT id, name FROM poller WHERE id > 1 ORDER BY name, id LIMIT 256');
-	$unknown  = array_values(array_filter($pollers, static fn (array $row) => !isset($known[(int) $row['id']])));
-	$defaults = alarmmanager_sync_self_url();
-
-	foreach ($unknown as $row) {
-		print '<details class="alarmmanagerDashboardCard"><summary>' . html_escape((string) $row['name']) . ' #' . (int) $row['id'] . ' — ' . __esc('No synchronization', 'alarmmanager') . '</summary>';
-		alarmmanager_sync_peer_editor('sync_peer_enable', (int) $row['id'], $defaults);
-		print '</details>';
+		$status = $peer['last_seen'] === null ? 'Not yet seen' : ((int) $peer['age_seconds'] <= 2 * (int) (read_config_option('poller_interval') ?: 300) + 30 ? 'Online' : 'Offline');
+		print '<p>' . html_escape((string) $peer['name']) . ' #' . (int) $peer['poller_id'] . ' — ' . __esc($status, 'alarmmanager') . ' — ' . html_escape($peer['last_seen'] ?? '') . '</p>';
 	}
 	$grants = alarmmanager_db_rows('SELECT device_id, poller_id, epoch, owner, valid_from, valid_until FROM plugin_alarmmanager_device_owners ORDER BY device_id LIMIT 100');
 	print '<details><summary>' . __esc('Device ownership grants (first 100)', 'alarmmanager') . '</summary><pre>' . html_escape(json_encode($grants, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR)) . '</pre></details>';
@@ -510,15 +480,6 @@ function alarmmanager_remote_markup(): void {
 	foreach ($rows as $row) {
 		print '<details class="alarmmanagerDashboardCard"><summary>' . __esc('Collector', 'alarmmanager') . ' ' . (int) $row['poller_id'] . ' / ' . html_escape($entity) . ' #' . (int) $row['entity_id'] . ' — ' . html_escape($row['received_at']) . '</summary><pre>' . html_escape(json_encode(json_decode($row['definition'], true, 32, JSON_THROW_ON_ERROR), JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR)) . '</pre></details>';
 	}
-}
-
-/** Shared form body for provisioning/editing one collector history-sync pair. */
-function alarmmanager_sync_peer_editor(string $action, int $poller, string $url): void {
-	alarmmanager_form_start($action, 0, ['id' => $poller]);
-	alarmmanager_input('url', 'Collector-to-main synchronization URL', $url, 'url', 'maxlength="2048" required');
-	alarmmanager_textarea('ca_pem', 'Custom certificate authority bundle (PEM, optional; leave empty to remove a saved bundle)', '', 65536);
-	alarmmanager_checkbox('allow_http', 'Allow plain HTTP for synchronization (not recommended)');
-	print '<button type="submit">' . __esc($action === 'sync_peer_enable' ? 'Enable synchronization' : 'Save sync endpoint', 'alarmmanager') . '</button></form>';
 }
 
 function alarmmanager_auth_editor(string $selected, bool $replacement = false, bool $optional = false): void {

@@ -34,8 +34,7 @@ edit that file; follow it.
   escaping, never invent UI helpers.
 - Request variables go through `get_filter_request_var()`, `get_request_var()`,
   `get_nfilter_request_var()` and `validate_store_request_vars()`. Never read
-  `$_GET`/`$_POST`/`$_REQUEST` directly (the one sanctioned exception: header
-  and transport metadata in `alarmmanager_sync.php`).
+  `$_GET`/`$_POST`/`$_REQUEST` directly.
 - Errors and operational events are reported through `alarmmanager_log()` in
   `includes/runtime.php` (`cacti_log('[alarmmanager] …', false,
   'alarmmanager')`). The supervisor parent process (`includes/supervisor.php`,

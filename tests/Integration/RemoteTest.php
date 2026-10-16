@@ -136,23 +136,13 @@ final class RemoteTest extends AlarmManagerTestCase {
 			}
 			$this->assertSame(2, count($sent), 'disconnected local fanout delivered');
 			$this->assertSame(2, (int)db_fetch_cell_prepared("SELECT COUNT(*) FROM plugin_alarmmanager_deliveries WHERE status='completed'"), 'remote outcomes durable');
-			$remoteNode   = alarmmanager_node_uuid();
 			$remoteEvents = (int)db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_events');
 			$this->ruse(1);
 			$GLOBALS['alarmmanager_test_db']->exec('UPDATE plugin_config SET status=1');
-			alarmmanager_db_write('INSERT INTO plugin_alarmmanager_sync_peers (poller_id,instance_uuid,key_file) VALUES (2,?,?)', [$remoteNode, 'unused-fixture']);
-			$centralNode = alarmmanager_node_uuid();
 			$this->ruse(2);
-			alarmmanager_db_write('INSERT INTO plugin_alarmmanager_sync_peers (poller_id,instance_uuid,key_file) VALUES (1,?,?)', [$centralNode, 'unused-fixture']);
 			$body = alarmmanager_sync_export(100);
 			$this->assertTrue(is_string($body), 'remote batch created');
 			$this->assertTrue(alarmmanager_sync_export(100) === $body, 'unacknowledged exact bytes retained');
-			$key       = random_bytes(32);
-			$signature = alarmmanager_sync_signature($body, 2, time(), $key, 'history');
-			alarmmanager_sync_verify($body, 2, time(), $signature, $key, 'history');
-			$this->assertTrue(true, 'signed transfer verified');
-			$this->rreject(fn () => alarmmanager_sync_verify($body . ' ', 2, time(), $signature, $key, 'history'), 'tampering rejected');
-			$this->rreject(fn () => alarmmanager_sync_verify($body, 2, time() - 600, $signature, $key, 'history'), 'stale signature rejected');
 			$this->ruse(1);
 			$ack = alarmmanager_sync_receive($body, 2);
 			$this->assertGreaterThan(0, (int)db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_remote_history'), 'central history imported');
@@ -331,17 +321,14 @@ final class RemoteTest extends AlarmManagerTestCase {
 				file_put_contents(getenv('ALARMMANAGER_DEVICE_MEASUREMENT'), json_encode($measurement, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR) . "\n");
 			}
 		} finally {
+			unset($GLOBALS['remote_db_cnn_id']);
 			foreach ($databases as $database) {
 				$server->exec("DROP DATABASE IF EXISTS `$database`");
 			}
 		}
 	}
 
-	/**
-	 * Zero-touch pairs: provisioning stores the pair secret on main, the collector's first
-	 * packet registers its identity, and a missing pair secret aborts before any wire activity.
-	 */
-	public function testZeroTouchSyncPairAutoRegistrationAndKeyRequirement(): void {
+	public function testNativeCactiConnectionPreservesHistoryAcrossFailures(): void {
 		self::requireAlarmManagerTestDb();
 
 		if (getenv('ALARMMANAGER_TEST_ALLOW_CREATE') !== '1') {
@@ -374,54 +361,49 @@ final class RemoteTest extends AlarmManagerTestCase {
 				$this->assertTrue(plugin_alarmmanager_install(), 'node install');
 				$nodes[$poller] = (string) $this->connections[$poller]->query('SELECT instance_uuid FROM plugin_alarmmanager_node')->fetchColumn();
 			}
-			// Provision on main through the same helper the Collectors page uses.
-			$this->ruse(1);
-			alarmmanager_sync_peer_enable(2, 'https://main.example.test/cacti/plugins/alarmmanager/alarmmanager_sync.php', null, false);
-			$this->assertSame('', (string)db_fetch_cell_prepared('SELECT instance_uuid FROM plugin_alarmmanager_sync_peers WHERE poller_id=2'), 'provisioned pair starts unregistered');
-			// The collector receives the pushed pair via replication; this fixture writes the pushed row directly.
-			$secret = (string)db_fetch_cell_prepared('SELECT pair_secret FROM plugin_alarmmanager_sync_peers WHERE poller_id=2');
 			$this->ruse(2);
-			alarmmanager_db_write("INSERT INTO plugin_alarmmanager_sync_peers (poller_id,instance_uuid,key_file,pair_secret,endpoint_url) VALUES (1,?, '', ?, ?)", [$nodes[1], $secret, 'https://main.example.test/cacti/plugins/alarmmanager/alarmmanager_sync.php']);
+			$this->assertSame(0, (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_sync_peers'), 'No collector pairing required.');
+			$this->assertTrue(alarmmanager_sync_send(), 'Heartbeat uses Cacti connection without provisioning.');
+			$this->assertSame($nodes[2], $this->connections[1]->query('SELECT instance_uuid FROM plugin_alarmmanager_sync_peers WHERE poller_id = 2')->fetchColumn());
+			$this->assertNotFalse($this->connections[1]->query('SELECT last_seen FROM plugin_alarmmanager_sync_peers WHERE poller_id = 2')->fetchColumn());
 
-			// First signed packet: heartbeat registers the claimed identity inside the receive transaction.
-			$heartbeat = json_encode(['version' => 1, 'poller_id' => 2, 'instance_uuid' => $nodes[2], 'receiver_uuid' => $nodes[1], 'through' => 0, 'records' => [], 'heartbeat' => true]);
-			$this->ruse(1);
-			alarmmanager_sync_receive($heartbeat, 2);
-			$this->assertSame($nodes[2], (string)db_fetch_cell_prepared('SELECT instance_uuid FROM plugin_alarmmanager_sync_peers WHERE poller_id=2'), 'first packet registers the collector identity');
-			$this->assertNotNull(db_fetch_cell_prepared('SELECT last_seen FROM plugin_alarmmanager_sync_peers WHERE poller_id=2'), 'registration stamps last_seen');
-			$spoofed = str_replace($nodes[2], str_repeat('a', 32), $heartbeat);
-			$this->rreject(fn () => alarmmanager_sync_receive($spoofed, 2), 'post-registration identity mismatch rejected');
+			alarmmanager_db_write("INSERT INTO plugin_alarmmanager_decisions (event_row_id, rule_id, endpoint_id, reason, created_at) VALUES (1, 0, 0, 'native-fixture', UTC_TIMESTAMP(6))");
+			$body = alarmmanager_sync_export(100);
+			$this->assertStringContainsString('native-fixture', $body);
+			unset($GLOBALS['remote_db_cnn_id']);
+			$this->rreject(fn () => alarmmanager_sync_send(), 'Offline main preserves pending history.');
+			$this->assertSame($body, alarmmanager_sync_export(100), 'Exact pending batch survives connection loss.');
+			$this->assertSame(0, (int) db_fetch_cell_prepared('SELECT acked FROM plugin_alarmmanager_sync_sender'));
 
-			// A real record completes export -> receive -> acknowledge with the registered pair.
-			$this->ruse(2);
-			alarmmanager_db_write('INSERT IGNORE INTO plugin_alarmmanager_decisions (event_row_id,rule_id,endpoint_id,reason,created_at) VALUES (1,0,0,?,UTC_TIMESTAMP(6))', ['fixture']);
-			alarmmanager_db_write('INSERT IGNORE INTO plugin_alarmmanager_sync_outbox (entity,entity_id,seed,created_at) VALUES (?,1,1,UTC_TIMESTAMP(6))', ['decision']);
-			$body     = alarmmanager_sync_export(100);
-			$this->assertStringContainsString('fixture', (string) $body, 'batch exported with the pending record');
-			$this->ruse(1);
-			$ack = alarmmanager_sync_receive((string) $body, 2);
-			$this->ruse(2);
-			alarmmanager_sync_acknowledge($ack);
-			$this->assertNull(alarmmanager_sync_export(100), 'acknowledged record advances the outbox cursor');
+			$GLOBALS['remote_db_cnn_id'] = $this->connections[1];
+			$this->connections[1]->exec("UPDATE plugin_config SET status = 4 WHERE directory = 'alarmmanager'");
+			$this->rreject(fn () => alarmmanager_sync_send(), 'Disabled main plugin refuses import.');
+			$this->assertSame($body, alarmmanager_sync_export(100));
+			$this->connections[1]->exec("UPDATE plugin_config SET status = 1 WHERE directory = 'alarmmanager'");
 
-			// Without a stored pair secret the sender refuses before building a request.
-			alarmmanager_db_write('UPDATE plugin_alarmmanager_sync_peers SET pair_secret = NULL WHERE poller_id=1');
+			// Failure after a history write rolls back main and leaves the collector cursor intact.
+			$this->connections[1]->exec("CREATE TRIGGER reject_batch BEFORE INSERT ON plugin_alarmmanager_sync_batches FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'fixture rollback'");
+			$this->rreject(fn () => alarmmanager_sync_send(), 'Main transaction failure preserves pending history.');
+			$this->assertSame(0, (int) $this->connections[1]->query('SELECT COUNT(*) FROM plugin_alarmmanager_remote_history')->fetchColumn());
+			$this->assertSame($body, alarmmanager_sync_export(100));
+			$this->connections[1]->exec('DROP TRIGGER reject_batch');
 
-			try {
-				alarmmanager_sync_send();
-				$this->fail('sender without a pair secret refuses');
-			} catch (RuntimeException $error) {
-				$this->assertSame('sync_peer_key_missing', $error->getMessage());
-			}
-			$this->assertTrue(alarmmanager_sync_export(100) === null, 'refused send did not duplicate batches');
-
-			try {
-				alarmmanager_sync_pair_key(['pair_secret' => '']);
-				$this->fail('empty pair secret refuses');
-			} catch (RuntimeException $error) {
-				$this->assertSame('sync_peer_key_missing', $error->getMessage());
-			}
+			// Simulate main committing before the collector receives its acknowledgment.
+			$ack = alarmmanager_sync_receive($body, 2, $this->connections[1]);
+			$this->assertSame($body, alarmmanager_sync_export(100));
+			$this->assertTrue(alarmmanager_sync_send(), 'Reconnect safely replays the committed batch.');
+			$this->assertNull(alarmmanager_sync_export(100));
+			$this->assertSame(1, (int) $this->connections[1]->query('SELECT COUNT(*) FROM plugin_alarmmanager_remote_history')->fetchColumn());
+			$this->assertSame(0, (int) $this->connections[1]->query('SELECT COUNT(*) FROM plugin_alarmmanager_deliveries')->fetchColumn(), 'Mirroring creates no delivery jobs.');
+			$this->rreject(fn () => alarmmanager_sync_acknowledge($ack), 'Stale acknowledgment cannot advance another batch.');
+			$unknown = json_decode($body, true);
+			$unknown['poller_id'] = 9;
+			$this->rreject(fn () => alarmmanager_sync_receive(json_encode($unknown), 9, $this->connections[1]), 'Unknown Cacti poller refused.');
+			$wrong = json_decode($body, true);
+			$wrong['receiver_uuid'] = $nodes[2];
+			$this->rreject(fn () => alarmmanager_sync_receive(json_encode($wrong), 2, $this->connections[1]), 'Wrong receiver refused.');
 		} finally {
+			unset($GLOBALS['remote_db_cnn_id']);
 			foreach ($databases as $database) {
 				$server->exec("DROP DATABASE IF EXISTS `$database`");
 			}
@@ -449,6 +431,7 @@ final class RemoteTest extends AlarmManagerTestCase {
 	private function ruse(int $poller): void {
 		$GLOBALS['config']               = ['poller_id' => $poller];
 		$GLOBALS['alarmmanager_test_db'] = $this->connections[$poller];
+		$GLOBALS['remote_db_cnn_id'] = $this->connections[1] ?? null;
 		unset($GLOBALS['alarmmanager_route_cache']);
 	}
 

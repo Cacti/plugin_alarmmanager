@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Alarm Manager 0.11.0\n"
 "Report-Msgid-Bugs-To: https://github.com/bmfmancini/plugin_alarmmanager/issues\n"
-"POT-Creation-Date: 2026-10-15 23:38-0400\n"
+"POT-Creation-Date: 2026-10-16 17:35-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alarm Manager Developers <https://github.com/bmfmancini/plugin_alarmmanager>\n"
 "Language-Team: Alarm Manager Developers <https://github.com/bmfmancini/plugin_alarmmanager>\n"
@@ -594,78 +594,42 @@ msgid "Each collector owns its local delivery. Imported history records the orig
 msgstr ""
 
 #: includes/admin_view.php:458
-msgid "Enabling synchronization here generates a shared secret that Cacti replication delivers to the collector; no per-poller command line steps are required. Editing or rotating a provisioned collector also replicates automatically."
+msgid "Configuration uses Cacti replication. Collectors automatically return history through Cacti's existing main database connection; no separate synchronization setup is required."
 msgstr ""
 
-#: includes/admin_view.php:468
-msgid "History-sync provisioning becomes available on the first poller cycle after upgrade, when the plugin schema is current."
-msgstr ""
-
-#: includes/admin_view.php:475
-msgid "CA bundle stored"
-msgstr ""
-
-#: includes/admin_view.php:476
-msgid "Disable synchronization"
-msgstr ""
-
-#: includes/admin_view.php:479
-msgid "Rotate secret"
-msgstr ""
-
-#: includes/admin_view.php:479
-msgid "Rotate the shared secret; the collector re-registers on its next cycle"
-msgstr ""
-
-#: includes/admin_view.php:480
-msgid "Edit sync endpoint"
-msgstr ""
-
-#: includes/admin_view.php:485
-msgid "This peer was provisioned with a key file. Enable it again here to switch to the zero-touch replicated secret."
-msgstr ""
-
-#: includes/admin_view.php:494
-msgid "No synchronization"
-msgstr ""
-
-#: includes/admin_view.php:499
+#: includes/admin_view.php:469
 msgid "Device ownership grants (first 100)"
 msgstr ""
 
-#: includes/admin_view.php:502
+#: includes/admin_view.php:472
 msgid "Collector (0 selects all)"
 msgstr ""
 
-#: includes/admin_view.php:502
+#: includes/admin_view.php:472
 msgid "Record type"
 msgstr ""
 
-#: includes/admin_view.php:506
+#: includes/admin_view.php:476
 msgid "Filter"
 msgstr ""
 
-#: includes/admin_view.php:508
+#: includes/admin_view.php:478
 msgid "Latest 50 matching remote records; original IDs and delivery ownership are preserved."
 msgstr ""
 
-#: includes/admin_view.php:511
+#: includes/admin_view.php:481
 msgid "Collector"
 msgstr ""
 
-#: includes/admin_view.php:521
-msgid "sync_peer_enable"
-msgstr ""
-
-#: includes/admin_view.php:525
+#: includes/admin_view.php:486
 msgid "Authentication"
 msgstr ""
 
-#: includes/admin_view.php:525
+#: includes/admin_view.php:486
 msgid "Authentication type"
 msgstr ""
 
-#: includes/admin_view.php:545
+#: includes/admin_view.php:506
 msgid "Saved credentials are encrypted and never displayed. New values replace the saved credential record."
 msgstr ""
 
@@ -681,136 +645,128 @@ msgstr ""
 msgid "Alarm Manager"
 msgstr ""
 
-#: includes/web_view.php:123
-msgid "View alarms"
-msgstr ""
-
-#: includes/web_view.php:129 setup.php:103
-msgid "Administration"
-msgstr ""
-
-#: includes/web_view.php:131
+#: includes/web_view.php:126
 msgid "Alarm Manager pages"
 msgstr ""
 
-#: includes/web_view.php:148 includes/web_view.php:151
+#: includes/web_view.php:143 includes/web_view.php:146
 msgid "Alarm statistics"
 msgstr ""
 
-#: includes/web_view.php:148
+#: includes/web_view.php:143
 msgid "Filters"
 msgstr ""
 
-#: includes/web_view.php:151
+#: includes/web_view.php:146
 msgid "Time range"
 msgstr ""
 
-#: includes/web_view.php:157
+#: includes/web_view.php:152
 msgid "Off"
 msgstr ""
 
-#: includes/web_view.php:157
+#: includes/web_view.php:152
 msgid "Refresh"
 msgstr ""
 
-#: includes/web_view.php:159
+#: includes/web_view.php:154
 msgid "Advanced filter JSON"
 msgstr ""
 
-#: includes/web_view.php:159
+#: includes/web_view.php:154
 msgid "Filter document"
 msgstr ""
 
-#: includes/web_view.php:159
+#: includes/web_view.php:154
 msgid "Quick filters"
 msgstr ""
 
-#: includes/web_view.php:159
+#: includes/web_view.php:154
 msgid "Search conditions"
 msgstr ""
 
-#: includes/web_view.php:160
+#: includes/web_view.php:155
 msgid "All"
 msgstr ""
 
-#: includes/web_view.php:160
+#: includes/web_view.php:155
 msgid "Severity"
 msgstr ""
 
-#: includes/web_view.php:160
+#: includes/web_view.php:155
 msgid "Source"
 msgstr ""
 
-#: includes/web_view.php:167
+#: includes/web_view.php:162
 msgid "Device ID"
 msgstr ""
 
-#: includes/web_view.php:171
+#: includes/web_view.php:166
 msgid "event_id"
 msgstr ""
 
-#: includes/web_view.php:177
+#: includes/web_view.php:172
 msgid "Apply"
 msgstr ""
 
-#: includes/web_view.php:177
+#: includes/web_view.php:172
 msgid "Reset"
 msgstr ""
 
-#: includes/web_view.php:179
+#: includes/web_view.php:174
 msgid "Historical window uses UTC. Current conditions and queues ignore the time window."
 msgstr ""
 
-#: includes/web_view.php:191
+#: includes/web_view.php:186
 msgid "Loading statistics…"
 msgstr ""
 
-#: includes/web_view.php:204
+#: includes/web_view.php:199
 msgid "Collapse"
 msgstr ""
 
-#: includes/web_view.php:216
+#: includes/web_view.php:211
 msgid "conditions"
 msgstr ""
 
-#: includes/web_view.php:219
+#: includes/web_view.php:214
 msgid "No matching records."
 msgstr ""
 
-#: includes/web_view.php:229
+#: includes/web_view.php:224
 msgid "attempts"
 msgstr ""
 
-#: includes/web_view.php:233
+#: includes/web_view.php:228
 msgid "Action"
 msgstr ""
 
-#: includes/web_view.php:278
+#: includes/web_view.php:273
 msgid "Showing at most 50 records per page."
 msgstr ""
 
-#: includes/web_view.php:279
+#: includes/web_view.php:274
 msgid "Pages"
 msgstr ""
 
-#: includes/web_view.php:282
+#: includes/web_view.php:277
 msgid "Previous"
 msgstr ""
 
-#: includes/web_view.php:285
+#: includes/web_view.php:280
 #, php-format
 msgid "Page %d"
 msgstr ""
 
-#: includes/web_view.php:288
+#: includes/web_view.php:283
 msgid "Next"
 msgstr ""
 
-#: includes/web_view.php:294
+#: includes/web_view.php:289
 msgid "Selected event details"
 msgstr ""
 
-#: includes/web_view.php:319
+#: includes/web_view.php:314
 msgid "Confirm replay may repeat an external effect"
 msgstr ""
 
@@ -824,6 +780,10 @@ msgstr ""
 
 #: setup.php:102
 msgid "Import/Export"
+msgstr ""
+
+#: setup.php:103
+msgid "Administration"
 msgstr ""
 
 #: setup.php:103 setup.php:108 setup.php:114

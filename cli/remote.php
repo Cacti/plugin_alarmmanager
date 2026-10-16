@@ -28,10 +28,10 @@ if (PHP_SAPI !== 'cli') {
 $options = getopt('', ['identity', 'provision:', 'configure:', 'grant-file:', 'send', 'limit:', 'seed:', 'after:', 'export-for:', 'profiles:', 'output:', 'help']);
 
 if (isset($options['help'])) {
-	print "Usage:\n  php cli/remote.php --identity\n  php cli/remote.php --export-for=2 --profiles=1,2 --output=/secure/poller-config.json\n  php cli/remote.php --provision=/secure/poller-config.json\n  php cli/remote.php --configure=/secure/routing.json\n  php cli/remote.php --grant-file=/secure/device-grant.json\n  php cli/remote.php --send [--limit=100]\n  php cli/remote.php --seed=event|processing|decision|delivery|attempt [--after=0 --limit=100]\nHistory-sync peers are provisioned on the main poller's Collectors page; the shared secret, endpoint and CA bundle replicate to every collector automatically. Secrets are read/written only through owner-private files. Seed is bounded migration of prior local history.\n";
+	print "Usage:\n  php cli/remote.php --identity\n  php cli/remote.php --export-for=2 --profiles=1,2 --output=/secure/poller-config.json\n  php cli/remote.php --provision=/secure/poller-config.json\n  php cli/remote.php --configure=/secure/routing.json\n  php cli/remote.php --grant-file=/secure/device-grant.json\n  php cli/remote.php --send [--limit=100]\n  php cli/remote.php --seed=event|processing|decision|delivery|attempt [--after=0 --limit=100]\nHistory uses Cacti's existing main database connection; no peer provisioning is required. Secrets are read/written only through owner-private files. Seed is bounded migration of prior local history.\n";
 	exit;
 }
-$conn_mode = 'offline';
+$conn_mode = isset($options['send']) ? 'online' : 'offline';
 require_once(__DIR__ . '/../../../include/cli_check.php');
 require_once(__DIR__ . '/../includes/remote.php');
 
@@ -89,7 +89,7 @@ try {
 		print "Device ownership grant installed; provision it on its authorized owner.\n";
 	} elseif ($action === 'send') {
 		alarmmanager_sync_send($limit);
-		print "Signed history/heartbeat acknowledged.\n";
+		print "History/heartbeat committed to main through Cacti.\n";
 	} else {
 		$entities = alarmmanager_sync_entities();
 		$entity   = $options['seed'];
