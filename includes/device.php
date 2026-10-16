@@ -273,11 +273,12 @@ function alarmmanager_device_status_check(): int {
 	$devices = alarmmanager_db_rows("SELECT h.id FROM host AS h
 		LEFT JOIN plugin_alarmmanager_device_status AS s ON s.device_id = h.id
 		LEFT JOIN plugin_alarmmanager_device_owners AS g ON g.device_id = h.id
-		WHERE h.poller_id = ? AND h.deleted = '' AND h.disabled = '' AND h.availability_method > 0 AND h.status IN (1, 3)
+		WHERE (h.poller_id = ? OR (h.status = 3 AND g.poller_id = ? AND g.owner = 'core' AND g.last_transition = 'raised'))
+		AND h.deleted = '' AND h.disabled = '' AND h.availability_method > 0 AND h.status IN (1, 3)
 		AND (s.device_id IS NULL OR s.poller_id <> h.poller_id OR s.epoch <> COALESCE(g.epoch, 0) OR s.status <> h.status
 			OR s.fail_epoch <> COALESCE(UNIX_TIMESTAMP(h.status_fail_date), 0)
 			OR s.rec_epoch <> COALESCE(UNIX_TIMESTAMP(h.status_rec_date), 0)
-			OR (h.status = 3 AND g.owner = 'core' AND g.last_transition = 'raised')) ORDER BY h.id", [$poller]);
+			OR (h.status = 3 AND g.owner = 'core' AND g.last_transition = 'raised')) ORDER BY h.id", [$poller, $poller]);
 	$count = 0;
 
 	foreach ($devices as $device) {
@@ -285,7 +286,9 @@ function alarmmanager_device_status_check(): int {
 			$count += alarmmanager_transaction(static function () use ($device, $poller): int {
 				// Match the PHP bridge's owner -> host lock order.
 				$grant = alarmmanager_device_grant((int) $device['id'], true);
-				$host  = alarmmanager_db_row("SELECT *, UNIX_TIMESTAMP() AS alarmmanager_observed_epoch FROM host WHERE id = ? AND poller_id = ? AND deleted = '' AND disabled = '' AND availability_method > 0 AND status IN (1, 3) FOR UPDATE", [$device['id'], $poller]);
+				// A reassigned device may still have an outage raised locally; only confirmed UP can close it.
+				$local_outage = ($grant['owner'] ?? '') === 'core' && (int) ($grant['poller_id'] ?? 0) === $poller && ($grant['last_transition'] ?? '') === 'raised';
+				$host  = alarmmanager_db_row("SELECT *, UNIX_TIMESTAMP() AS alarmmanager_observed_epoch FROM host WHERE id = ? AND (poller_id = ? OR (status = 3 AND ? = 1)) AND deleted = '' AND disabled = '' AND availability_method > 0 AND status IN (1, 3) FOR UPDATE", [$device['id'], $poller, (int) $local_outage]);
 
 				if (!$host) {
 					return 0;

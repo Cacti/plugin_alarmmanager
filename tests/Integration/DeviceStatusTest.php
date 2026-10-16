@@ -132,6 +132,28 @@ final class DeviceStatusTest extends AlarmManagerTestCase {
 				alarmmanager_process_job($claim);
 			}
 			self::assertSame(0, (int) $db->query('SELECT active FROM plugin_alarmmanager_states')->fetchColumn());
+			// A device moved to another poller must not strand the old local outage.
+			$db->exec('UPDATE host SET poller_id=1,status=1,status_fail_date=UTC_TIMESTAMP() WHERE id=42');
+			self::assertSame(1, alarmmanager_device_status_check());
+
+			while ($claim = alarmmanager_claim_processing()) {
+				alarmmanager_process_job($claim);
+			}
+			self::assertSame(1, (int) $db->query('SELECT active FROM plugin_alarmmanager_states')->fetchColumn());
+			$db->exec('UPDATE host SET poller_id=3 WHERE id=42');
+			self::assertSame(0, alarmmanager_device_status_check(), 'Main does not detect new remote-owned outages');
+			$db->exec('UPDATE host SET status=2 WHERE id=42');
+			self::assertSame(0, alarmmanager_device_status_check(), 'Recovering is not UP after reassignment');
+			$db->exec('UPDATE host SET status=3,status_rec_date=UTC_TIMESTAMP() WHERE id=42');
+			self::assertSame(1, alarmmanager_device_status_check(), 'Confirmed host UP recovers the old locally raised outage');
+			self::assertSame(0, alarmmanager_device_status_check(), 'Reassigned recovery is emitted once');
+
+			while ($claim = alarmmanager_claim_processing()) {
+				alarmmanager_process_job($claim);
+			}
+			self::assertSame(0, (int) $db->query('SELECT active FROM plugin_alarmmanager_states')->fetchColumn());
+			self::assertSame(0, (int) $db->query('SELECT acknowledged FROM plugin_alarmmanager_states')->fetchColumn());
+			self::assertSame(3, (int) $db->query('SELECT poller_id FROM host WHERE id=42')->fetchColumn(), 'Host ownership stays with the remote poller');
 			// Initial down creates an episode, so a later recovery has a matching raise.
 			$db->exec("INSERT INTO host (id,poller_id,status,status_fail_date) VALUES (47,1,1,FROM_UNIXTIME($fail))");
 			self::assertSame(1, alarmmanager_device_status_check());
