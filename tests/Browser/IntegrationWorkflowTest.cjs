@@ -14,18 +14,14 @@ const assert=require('node:assert/strict');
   await page.goto(admin+'?section=endpoints');
   const draftName='Browser script draft '+Date.now();
   const initial=await page.locator('details.alarmmanagerDashboardCard').count();
-  check(!(await page.locator('details.alarmmanagerTemplatePicker').isOpen()),'Add Integration stays collapsed until used');
-  const names={'webhook':'Generic webhook','restapi':'Generic REST API','script':'JSON script'};
   for(const template of ['webhook','restapi','script']) {
-   await page.locator('details.alarmmanagerTemplatePicker > summary').click();
-   await page.locator('.alarmmanagerTemplateChoices').getByRole('link',{name:names[template],exact:true}).click();
+   await page.locator('[name=integration_template]').selectOption(template);
    await page.waitForURL('**integration_template='+template,{timeout:5000});
    const draft=page.locator('details.alarmmanagerDashboardCard').last();
    check(!(await draft.locator('[name=enabled]').isChecked()),'Template starts disabled');
    check(await page.locator('details.alarmmanagerDashboardCard').count()===initial,'Template selection preserves saved integrations');
    check((await draft.locator('[name=type]').inputValue())===template,'Template selects the requested adapter');
    check((await draft.locator('[name=auth_type]').inputValue())==='none','Template copies no credentials');
-   check(await draft.evaluate(el=>el.open),'Choosing a template opens the draft');
   }
   const draft=page.locator('details.alarmmanagerDashboardCard').last();
   await draft.locator('[name=name]').fill(draftName);
@@ -40,8 +36,7 @@ const assert=require('node:assert/strict');
   // A provider preset that preselects credential authentication saves the draft
   // before any secret exists; the credential record is attached afterwards.
   const presetName='Preset draft '+Date.now();
-  await page.locator('details.alarmmanagerTemplatePicker > summary').click();
-  await page.locator('.alarmmanagerTemplateChoices').getByRole('link',{name:'Slack message',exact:true}).click();
+  await page.locator('[name=integration_template]').selectOption('slack');
   await page.waitForURL('**integration_template=slack',{timeout:5000});
   const preset=page.locator('details.alarmmanagerDashboardCard').last();
   check((await preset.locator('[name=auth_type]').inputValue())==='bearer','Slack preset preselects bearer authentication');

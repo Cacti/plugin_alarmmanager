@@ -185,6 +185,13 @@
    showFields();
   });
  }
+ function initTemplatePicker(app) {
+  app.querySelectorAll('form.alarmmanagerTemplatePicker').forEach(form => {
+   const select=form.querySelector('[name=integration_template]');if(!select)return;
+   const button=form.querySelector('button[type=submit]');if(button)button.hidden=true;
+   jQuery(form).on('change','[name=integration_template]',()=>form.submit());
+  });
+ }
  // The Syslog version-1 document keeps grouped AND/OR/NOT conditions parameterized on the server.
  function initReportQuery(app) {
   const builder=app.querySelector('.alarmmanagerQueryBuilder');if(!builder)return;
@@ -245,7 +252,7 @@
   });
  }
  function init() {
-  const app=document.getElementById('alarmmanager_app'); if(!app||app.dataset.initialized)return;app.dataset.initialized='yes';initRuleEditors(app);initReportQuery(app);initMappings(app);initLists(app);initDeliveryIntervals(app);initAuthentication(app);initEndpointTypes(app);initServiceNow(app);
+  const app=document.getElementById('alarmmanager_app'); if(!app||app.dataset.initialized)return;app.dataset.initialized='yes';initRuleEditors(app);initReportQuery(app);initMappings(app);initLists(app);initDeliveryIntervals(app);initAuthentication(app);initEndpointTypes(app);initServiceNow(app);initTemplatePicker(app);
   const dashboard=app.querySelector('#alarmmanager_dashboard');if(!dashboard)return;
   const form=app.querySelector('#alarmmanager_filters'), status=app.querySelector('#alarmmanager_dashboard_status'), refresh=app.querySelector('#alarmmanager_refresh');
   const charts={}; let inFlight=false, timer=null;

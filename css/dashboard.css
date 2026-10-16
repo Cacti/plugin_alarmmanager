@@ -175,11 +175,6 @@
 .alarmmanagerEditor fieldset { box-sizing:border-box; border:1px solid var(--search-border); padding:12px; }
 .alarmmanagerDashboardCard > summary { cursor:pointer; padding:12px; font-weight:bold; background:var(--search-tint); overflow-wrap:anywhere; }
 .alarmmanagerDashboardCard details, .alarmmanagerDashboardCard form { border:0; }
-.alarmmanagerTemplatePicker { margin:0 0 16px; background:var(--search-card); border:1px solid var(--search-border); border-radius:8px; }
-.alarmmanagerTemplatePicker > summary { cursor:pointer; padding:12px; font-weight:bold; background:var(--search-tint); }
-.alarmmanagerTemplatePicker > p { margin:8px 0 0; padding:0 12px; }
-.alarmmanagerTemplateChoices { display:flex; flex-wrap:wrap; gap:8px; padding:12px; }
-.alarmmanagerTemplateChoices a { padding:6px 12px; border:1px solid var(--search-border); border-radius:6px; background:var(--search-tint); }
 .alarmmanagerMappingBuilder { display:grid; gap:8px; }
 .alarmmanagerMappingRow { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(160px,100%),1fr)); gap:8px; padding:8px; border:1px solid var(--search-border); }
 .alarmmanagerMappingRow label { min-width:0; display:flex !important; flex-direction:column; align-items:stretch !important; }

@@ -272,28 +272,22 @@ function alarmmanager_admin_markup(array $state, string $section): void {
 		alarmmanager_remote_markup();
 	} elseif ($section === 'endpoints') {
 		print '<p>' . __esc('Create an integration, configure its destination and credentials, preview and test a sample alarm, then select it in a routing profile.', 'alarmmanager') . '</p>';
+		print '<form method="get" action="alarmmanager_admin.php" class="alarmmanagerTemplatePicker"><input type="hidden" name="section" value="endpoints"><label>' . __esc('Start a new integration from a template', 'alarmmanager') . '<select name="integration_template"><option value="">' . __esc('Blank endpoint', 'alarmmanager') . '</option>';
 		$templates = alarmmanager_integration_templates();
 		$selected  = (string) get_filter_request_var('integration_template', FILTER_CALLBACK, ['options' => static fn ($value) => is_string($value) && isset($templates[$value]) ? $value : false, 'default' => '']);
-		$adding    = $selected !== '' || (string) get_filter_request_var('add', FILTER_CALLBACK, ['options' => static fn ($value) => $value === '1' ? '1' : false, 'default' => '']) === '1';
-		print '<details class="alarmmanagerTemplatePicker"><summary>' . __esc('Add Integration', 'alarmmanager') . '</summary>';
-		print '<p class="alarmmanagerFullWidth">' . __esc('Templates fill a new disabled draft only. Replace the example destination or executable before saving; existing endpoints and credentials are preserved.', 'alarmmanager') . '</p>';
-		print '<div class="alarmmanagerTemplateChoices"><a href="alarmmanager_admin.php?section=endpoints&amp;add=1">' . __esc('Blank endpoint', 'alarmmanager') . '</a>';
 
 		foreach ($templates as $key => $template) {
 			if ($key === 'servicenow_events') {
 				continue;
 			}
-			print '<a href="alarmmanager_admin.php?section=endpoints&amp;integration_template=' . rawurlencode((string) $key) . '&amp;add=1">' . __esc($key === 'servicenow' ? 'ServiceNow' : $template['name'], 'alarmmanager') . '</a>';
+			print '<option value="' . $key . '" ' . ($selected === $key ? 'selected' : '') . '>' . __esc($key === 'servicenow' ? 'ServiceNow' : $template['name'], 'alarmmanager') . '</option>';
 		}
-		print '</div></details>';
+		print '</select></label><button type="submit">' . __esc('Add Integration', 'alarmmanager') . '</button></form><p>' . __esc('Templates fill a new disabled draft only. Replace the example destination or executable before saving; existing endpoints and credentials are preserved.', 'alarmmanager') . '</p>';
 
 		foreach ($config['endpoints'] as $item) {
 			alarmmanager_endpoint_editor($item, $revision);
 		}
-
-		if ($adding) {
-			alarmmanager_endpoint_editor(['id' => 0, 'enabled' => false] + ($templates[$selected] ?? ['name' => '', 'type' => 'restapi']), $revision, true);
-		}
+		alarmmanager_endpoint_editor(['id' => 0, 'enabled' => false] + ($templates[$selected] ?? ['name' => '', 'type' => 'restapi']), $revision, true);
 	} elseif ($section === 'rules') {
 		print '<h2>' . __esc('Rules and suppression', 'alarmmanager') . '</h2><p>' . __esc('Choose which alarms should notify, where to send them and when to pause notifications. Rules run from lowest to highest priority.', 'alarmmanager') . '</p>';
 
