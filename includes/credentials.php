@@ -206,6 +206,7 @@ function alarmmanager_write_credential(int $endpoint_id, #[\SensitiveParameter] 
 	}
 	$ciphertext = alarmmanager_encrypt_credential($record, $endpoint_id, $key);
 	alarmmanager_db_write('INSERT INTO plugin_alarmmanager_credentials (endpoint_id, ciphertext, updated_at) VALUES (?, ?, UTC_TIMESTAMP(6)) ON DUPLICATE KEY UPDATE ciphertext = VALUES(ciphertext), updated_at = VALUES(updated_at)', [$endpoint_id, $ciphertext]);
+	alarmmanager_request_configuration_replication();
 }
 function alarmmanager_load_credential(int $endpoint_id): array {
 	// One transaction snapshot prevents a rotation between key and ciphertext reads.
@@ -290,6 +291,7 @@ function alarmmanager_credential_restore(#[\SensitiveParameter] array $bundle, #
 			}
 		}
 		alarmmanager_db_write('DELETE FROM plugin_alarmmanager_credentials');
+		alarmmanager_request_configuration_replication();
 
 		foreach ($bundle['credentials'] as $row) {
 			alarmmanager_db_write('INSERT INTO plugin_alarmmanager_credentials (endpoint_id, ciphertext, updated_at) VALUES (?, ?, UTC_TIMESTAMP(6))', [$row['endpoint_id'], $row['ciphertext']]);

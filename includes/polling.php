@@ -55,10 +55,17 @@ function alarmmanager_poller_bottom(array $args = []): void {
 	}
 
 	try {
+		if (alarmmanager_local_poller() > 1) {
+			try {
+				alarmmanager_apply_replicated_daemon();
+			} catch (Throwable $error) {
+				alarmmanager_log('replicated daemon settings could not be applied; previous local settings retained');
+			}
+		}
 		$started = microtime(true);
 		$devices = alarmmanager_device_status_check();
 
-		if (alarmmanager_supervisor_options()['enabled']) {
+		if (alarmmanager_supervisor_options()['enabled'] && (alarmmanager_local_poller() === 1 || alarmmanager_daemon_status())) {
 			return;
 		}
 
@@ -80,5 +87,24 @@ function alarmmanager_poller_bottom(array $args = []): void {
 				alarmmanager_log('collector history sync failed; pending history retained');
 			}
 		}
+	}
+}
+
+/** Apply the desired main-poller daemon configuration on the collector's own filesystem. */
+function alarmmanager_apply_replicated_daemon(): void {
+	$row = alarmmanager_db_row('SELECT value FROM settings_user WHERE user_id = ? AND name = ?', [1, 'alarmmanager_daemon_configuration']);
+
+	if (!$row) {
+		return;
+	}
+	$settings = json_decode($row['value'], true, 8, JSON_THROW_ON_ERROR);
+
+	if (!is_array($settings)) {
+		throw new RuntimeException('invalid_supervisor_config');
+	}
+	alarmmanager_supervisor_validate($settings);
+
+	if (alarmmanager_supervisor_options() !== $settings) {
+		alarmmanager_save_supervisor_options($settings);
 	}
 }

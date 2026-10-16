@@ -378,7 +378,7 @@ function alarmmanager_admin_markup(array $state, string $section): void {
 	} elseif ($section === 'configuration') {
 		alarmmanager_form_start('configuration_save', $revision);
 		alarmmanager_textarea('configuration_json', 'Complete local routing configuration (no secrets)', alarmmanager_json_text($config), 1048576);
-		print '<button type="submit">' . __esc('Apply configuration', 'alarmmanager') . '</button></form><p>' . __esc('Removed IDs are disabled, preserving history. Concurrent edits reject stale revisions. Provision each remote poller explicitly.', 'alarmmanager') . '</p>';
+		print '<button type="submit">' . __esc('Apply configuration', 'alarmmanager') . '</button></form><p>' . __esc('Removed IDs are disabled, preserving history. Concurrent edits reject stale revisions. Main-poller settings replicate through Cacti synchronization.', 'alarmmanager') . '</p>';
 	} elseif ($section === 'daemon') {
 		$settings = alarmmanager_supervisor_options();
 		$status   = alarmmanager_daemon_status();

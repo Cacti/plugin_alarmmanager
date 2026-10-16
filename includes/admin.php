@@ -190,7 +190,10 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 	}
 
 	if (in_array($action, ['queue_pause', 'queue_resume'], true)) {
-		alarmmanager_db_write("REPLACE INTO settings (name, value) VALUES ('alarmmanager_notifications_paused', ?)", [$action === 'queue_pause' ? '1' : '0']);
+		alarmmanager_transaction(function () use ($action): void {
+			alarmmanager_db_write("REPLACE INTO settings (name, value) VALUES ('alarmmanager_notifications_paused', ?)", [$action === 'queue_pause' ? '1' : '0']);
+			alarmmanager_request_configuration_replication();
+		});
 		alarmmanager_log('Alarm Queue ' . ($action === 'queue_pause' ? 'paused' : 'resumed') . ' by user ' . alarmmanager_web_user());
 
 		return 'Alarm Queue updated.';
@@ -219,6 +222,7 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 			throw new RuntimeException('daemon_not_running');
 		}
 		alarmmanager_save_supervisor_options($settings);
+		alarmmanager_request_configuration_replication();
 
 		return 'Daemon settings saved.';
 	}
@@ -236,6 +240,7 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 		alarmmanager_transaction(function () use ($id): void {
 			alarmmanager_secret_key(true);
 			alarmmanager_db_write('DELETE FROM plugin_alarmmanager_credentials WHERE endpoint_id = ?', [$id]);
+			alarmmanager_request_configuration_replication();
 		});
 
 		return 'Credential removed.';

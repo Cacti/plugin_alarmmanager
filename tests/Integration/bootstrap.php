@@ -88,7 +88,7 @@ if (!function_exists('alarmmanager_test_connect')) {
 }
 
 if (!function_exists('db_execute_prepared')) {
-	function db_execute_prepared($sql, $params = [], $log = true) {
+	function db_execute_prepared($sql, $params = [], $log = true, $connection = false) {
 		$GLOBALS['alarmmanager_test_queries'] = ($GLOBALS['alarmmanager_test_queries'] ?? 0) + 1;
 		global $alarmmanager_test_db, $alarmmanager_fail_commit;
 
@@ -104,7 +104,7 @@ if (!function_exists('db_execute_prepared')) {
 		}
 
 		try {
-			return $alarmmanager_test_db->prepare($sql)->execute($params);
+			return ($connection ?: $alarmmanager_test_db)->prepare($sql)->execute($params);
 		} catch (PDOException $error) {
 			$code                                                = (string) ($error->errorInfo[1] ?? $error->getCode());
 			$GLOBALS['database_last_error']                      = 'DB Failed!, Error ' . $code;
@@ -116,12 +116,12 @@ if (!function_exists('db_execute_prepared')) {
 }
 
 if (!function_exists('db_fetch_cell_prepared')) {
-	function db_fetch_cell_prepared($sql, $params = [], $column = '', $log = true) {
+	function db_fetch_cell_prepared($sql, $params = [], $column = '', $log = true, $connection = false) {
 		$GLOBALS['alarmmanager_test_queries'] = ($GLOBALS['alarmmanager_test_queries'] ?? 0) + 1;
 		global $alarmmanager_test_db;
 
 		try {
-			$query = $alarmmanager_test_db->prepare($sql);
+			$query = ($connection ?: $alarmmanager_test_db)->prepare($sql);
 			$query->execute($params);
 
 			return $query->fetchColumn();
@@ -156,12 +156,12 @@ if (!function_exists('db_fetch_row_prepared')) {
 }
 
 if (!function_exists('db_fetch_assoc_prepared')) {
-	function db_fetch_assoc_prepared($sql, $params = [], $log = true) {
+	function db_fetch_assoc_prepared($sql, $params = [], $log = true, $connection = false) {
 		$GLOBALS['alarmmanager_test_queries'] = ($GLOBALS['alarmmanager_test_queries'] ?? 0) + 1;
 		global $alarmmanager_test_db;
 
 		try {
-			$query = $alarmmanager_test_db->prepare($sql);
+			$query = ($connection ?: $alarmmanager_test_db)->prepare($sql);
 			$query->execute($params);
 
 			return $query->fetchAll(PDO::FETCH_ASSOC);

@@ -2,6 +2,8 @@
 
 --- main (development) ---
 
+* 0.10.2: Replicate main-poller destinations, mappings, profiles, rules, credentials, daemon worker configuration and Alarm Queue pause/resume through Cacti's native full remote synchronization. Main saves request synchronization; remote credentials use each collector's own key. Updates are atomic, disable removed destinations, remove retired credentials, and preserve queued alarms, leases and history. Remote daemon settings apply on the next poller cycle, with poller fallback when no daemon heartbeat is available. VERIFIED locally with `ConfigurationReplicationTest` against three disposable MariaDB node databases, including rollback and independent-key checks. Live multi-server deployment and systemd reload remain UNVERIFIED.
+
 * Rules and suppression: replace mandatory policy JSON with labeled alarm filters, named device/collector pickers, routing profiles, notification schedules, maintenance windows and repeat-suppression controls. Preserve the stored policy format and return to the appropriate editor after saving rules or profiles.
 
 * Events: show the captured device name beside its ID, falling back to the hostname when the description is empty.

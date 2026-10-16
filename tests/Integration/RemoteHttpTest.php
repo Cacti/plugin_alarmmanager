@@ -232,6 +232,7 @@ final class RemoteHttpTest extends AlarmManagerTestCase {
 			$beforeConfig = $GLOBALS['config'];
 			$GLOBALS['config']['base_path'] = $fixture;
 			alarmmanager_save_supervisor_options(array_replace(alarmmanager_supervisor_options(), ['enabled' => true]));
+			alarmmanager_daemon_write_json(dirname(alarmmanager_daemon_config_path()) . '/status.json', ['updated_at' => time(), 'enabled' => true]);
 			alarmmanager_poller_bottom();
 			$this->assertNull(db_fetch_cell_prepared('SELECT pending_body FROM plugin_alarmmanager_sync_sender WHERE id=1'), 'poller sync acknowledges history while daemon owns local delivery');
 			$GLOBALS['config'] = $beforeConfig;

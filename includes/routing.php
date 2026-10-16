@@ -252,6 +252,7 @@ function alarmmanager_routing_snapshot(): array {
 		return $cache;
 	}
 	$rule_count = db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_rules', [], '', false);
+
 	if ($rule_count === false) {
 		throw new RuntimeException('storage_failure');
 	}
@@ -275,6 +276,7 @@ function alarmmanager_routing_snapshot(): array {
 				throw new RuntimeException('configuration_limit');
 			}
 			$where = $cache['default_route'] ? 'enabled = 1' : ($params ? 'id IN (' . implode(',', array_fill(0, count($params), '?')) . ')' : '1 = 0');
+
 			if ($cache['default_route']) {
 				$params = [];
 			}
@@ -300,41 +302,41 @@ function alarmmanager_routing_snapshot(): array {
 }
 
 /** Internal configuration writer: caller must own a transaction. */
-function alarmmanager_write_configuration(array $settings, ?int $expected_revision = null): void {
-	$locked_revision = alarmmanager_db_row('SELECT config_revision FROM plugin_alarmmanager_schema WHERE id = 1 FOR UPDATE');
+function alarmmanager_write_configuration(array $settings, ?int $expected_revision = null, ?PDO $connection = null): void {
+	$locked_revision = alarmmanager_db_row('SELECT config_revision FROM plugin_alarmmanager_schema WHERE id = 1 FOR UPDATE', [], $connection);
 
 	if ($expected_revision !== null && (int) ($locked_revision['config_revision'] ?? -1) !== $expected_revision) {
 		throw new InvalidArgumentException('configuration_changed');
 	}
 
 	foreach (['endpoints', 'profiles', 'rules'] as $section) {
-		alarmmanager_db_write('UPDATE plugin_alarmmanager_' . $section . ' SET enabled = 0');
+		alarmmanager_db_write('UPDATE plugin_alarmmanager_' . $section . ' SET enabled = 0', [], $connection);
 	}
 
 	foreach ($settings['endpoints'] as $endpoint) {
 		alarmmanager_db_write('INSERT INTO plugin_alarmmanager_endpoints (id, name, type, enabled, max_concurrency, min_interval_ms, timeout_seconds, max_attempts)
 				VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE name = VALUES(name), type = VALUES(type), enabled = VALUES(enabled),
 				max_concurrency = VALUES(max_concurrency), min_interval_ms = VALUES(min_interval_ms), timeout_seconds = VALUES(timeout_seconds), max_attempts = VALUES(max_attempts)',
-			[$endpoint['id'], $endpoint['name'], $endpoint['type'], (int) $endpoint['enabled'], $endpoint['max_concurrency'], $endpoint['min_interval_ms'], $endpoint['timeout_seconds'], $endpoint['max_attempts']]);
+			[$endpoint['id'], $endpoint['name'], $endpoint['type'], (int) $endpoint['enabled'], $endpoint['max_concurrency'], $endpoint['min_interval_ms'], $endpoint['timeout_seconds'], $endpoint['max_attempts']], $connection);
 	}
 
 	foreach ($settings['endpoints'] as $endpoint) {
-		alarmmanager_db_write('INSERT INTO plugin_alarmmanager_transports (endpoint_id, definition) VALUES (?, ?) ON DUPLICATE KEY UPDATE definition = VALUES(definition)', [$endpoint['id'], json_encode($endpoint['transport'], JSON_THROW_ON_ERROR)]);
+		alarmmanager_db_write('INSERT INTO plugin_alarmmanager_transports (endpoint_id, definition) VALUES (?, ?) ON DUPLICATE KEY UPDATE definition = VALUES(definition)', [$endpoint['id'], json_encode($endpoint['transport'], JSON_THROW_ON_ERROR)], $connection);
 	}
 
 	foreach ($settings['profiles'] as $profile) {
 		alarmmanager_db_write('INSERT INTO plugin_alarmmanager_profiles (id, name, enabled, endpoints_json) VALUES (?, ?, ?, ?)
 				ON DUPLICATE KEY UPDATE name = VALUES(name), enabled = VALUES(enabled), endpoints_json = VALUES(endpoints_json)',
-			[$profile['id'], $profile['name'], (int) $profile['enabled'], json_encode($profile['endpoints'], JSON_THROW_ON_ERROR)]);
+			[$profile['id'], $profile['name'], (int) $profile['enabled'], json_encode($profile['endpoints'], JSON_THROW_ON_ERROR)], $connection);
 	}
 
 	foreach ($settings['rules'] as $rule) {
 		alarmmanager_db_write('INSERT INTO plugin_alarmmanager_rules (id, name, priority, enabled, profile_id, stop_processing, definition) VALUES (?, ?, ?, ?, ?, ?, ?)
 				ON DUPLICATE KEY UPDATE name = VALUES(name), priority = VALUES(priority), enabled = VALUES(enabled), profile_id = VALUES(profile_id), stop_processing = VALUES(stop_processing), definition = VALUES(definition)',
-			[$rule['id'], $rule['name'], $rule['priority'], (int) $rule['enabled'], $rule['profile_id'], (int) $rule['stop'], json_encode($rule['policy'], JSON_THROW_ON_ERROR)]);
+			[$rule['id'], $rule['name'], $rule['priority'], (int) $rule['enabled'], $rule['profile_id'], (int) $rule['stop'], json_encode($rule['policy'], JSON_THROW_ON_ERROR)], $connection);
 	}
-	alarmmanager_db_write('UPDATE plugin_alarmmanager_schema SET config_revision = config_revision + 1 WHERE id = 1');
-	$revision = db_fetch_cell_prepared('SELECT config_revision FROM plugin_alarmmanager_schema WHERE id = 1', [], '', false);
+	alarmmanager_db_write('UPDATE plugin_alarmmanager_schema SET config_revision = config_revision + 1 WHERE id = 1', [], $connection);
+	$revision = db_fetch_cell_prepared('SELECT config_revision FROM plugin_alarmmanager_schema WHERE id = 1', [], '', false, $connection);
 
 	if ($revision === false) {
 		throw new RuntimeException('storage_failure');
@@ -344,5 +346,9 @@ function alarmmanager_write_configuration(array $settings, ?int $expected_revisi
 	foreach (['endpoints', 'profiles', 'rules'] as $section) {
 		$history[$section] = array_values($history[$section]);
 	}
-	alarmmanager_db_write('INSERT INTO plugin_alarmmanager_configuration_history (revision, definition, created_at) VALUES (?, ?, UTC_TIMESTAMP(6))', [(int) $revision, json_encode($history, JSON_THROW_ON_ERROR)]);
+	alarmmanager_db_write('INSERT INTO plugin_alarmmanager_configuration_history (revision, definition, created_at) VALUES (?, ?, UTC_TIMESTAMP(6))', [(int) $revision, json_encode($history, JSON_THROW_ON_ERROR)], $connection);
+
+	if ($connection === null) {
+		alarmmanager_request_configuration_replication();
+	}
 }
