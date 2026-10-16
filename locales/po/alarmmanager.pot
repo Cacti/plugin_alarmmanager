@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Alarm Manager 0.11.0\n"
 "Report-Msgid-Bugs-To: https://github.com/bmfmancini/plugin_alarmmanager/issues\n"
-"POT-Creation-Date: 2026-10-16 17:35-0400\n"
+"POT-Creation-Date: 2026-10-16 17:39-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alarm Manager Developers <https://github.com/bmfmancini/plugin_alarmmanager>\n"
 "Language-Team: Alarm Manager Developers <https://github.com/bmfmancini/plugin_alarmmanager>\n"
@@ -309,7 +309,7 @@ msgstr ""
 msgid "Endpoint"
 msgstr ""
 
-#: includes/admin_view.php:256
+#: includes/admin_view.php:256 includes/admin_view.php:465
 msgid "ID"
 msgstr ""
 
@@ -522,6 +522,7 @@ msgid "Retries"
 msgstr ""
 
 #: includes/admin_view.php:405 includes/admin_view.php:424
+#: includes/admin_view.php:465
 msgid "Status"
 msgstr ""
 
@@ -597,39 +598,47 @@ msgstr ""
 msgid "Configuration uses Cacti replication. Collectors automatically return history through Cacti's existing main database connection; no separate synchronization setup is required."
 msgstr ""
 
-#: includes/admin_view.php:469
-msgid "Device ownership grants (first 100)"
+#: includes/admin_view.php:464
+msgid "Collectors"
 msgstr ""
 
-#: includes/admin_view.php:472
-msgid "Collector (0 selects all)"
-msgstr ""
-
-#: includes/admin_view.php:472
-msgid "Record type"
-msgstr ""
-
-#: includes/admin_view.php:476
-msgid "Filter"
-msgstr ""
-
-#: includes/admin_view.php:478
-msgid "Latest 50 matching remote records; original IDs and delivery ownership are preserved."
-msgstr ""
-
-#: includes/admin_view.php:481
+#: includes/admin_view.php:465 includes/admin_view.php:493
 msgid "Collector"
 msgstr ""
 
-#: includes/admin_view.php:486
+#: includes/admin_view.php:465
+msgid "Last history sync (UTC)"
+msgstr ""
+
+#: includes/admin_view.php:478
+msgid "No remote collectors configured."
+msgstr ""
+
+#: includes/admin_view.php:484
+msgid "Collector (0 selects all)"
+msgstr ""
+
+#: includes/admin_view.php:484
+msgid "Record type"
+msgstr ""
+
+#: includes/admin_view.php:488
+msgid "Filter"
+msgstr ""
+
+#: includes/admin_view.php:490
+msgid "Latest 50 matching remote records; original IDs and delivery ownership are preserved."
+msgstr ""
+
+#: includes/admin_view.php:498
 msgid "Authentication"
 msgstr ""
 
-#: includes/admin_view.php:486
+#: includes/admin_view.php:498
 msgid "Authentication type"
 msgstr ""
 
-#: includes/admin_view.php:506
+#: includes/admin_view.php:518
 msgid "Saved credentials are encrypted and never displayed. New values replace the saved credential record."
 msgstr ""
 

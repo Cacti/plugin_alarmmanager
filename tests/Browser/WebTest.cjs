@@ -27,6 +27,8 @@ const fs=require('node:fs'), path=require('node:path');
   check((await page.locator('#alarmmanager_app').innerText()).includes('no separate synchronization setup is required'),'Collectors use Cacti connectivity');
   check(await page.locator('[name=ca_pem], [name=url], [value^=sync_peer_]').count()===0,'No custom collector provisioning controls');
   check(await page.locator('.tabs .tab.selected').innerText()==='Collectors and history','Selected native collector tab');
+  check(await page.getByRole('columnheader',{name:'Last history sync (UTC)',exact:true}).count()===1,'Native collectors table header');
+  check(await page.getByRole('cell',{name:'Remote collector',exact:true}).count()===1,'Collector displayed in table');
   await page.goto(base+'/plugins/alarmmanager/alarmmanager_admin.php?section=credentials');
   check(await page.getByRole('link',{name:'View alarms',exact:true}).count()===0,'View alarms cross-link removed');
   check(await page.locator('a[href*="alarmmanager.php?tab="]').count()===0,'Report tabs excluded from administration');

@@ -461,12 +461,24 @@ function alarmmanager_remote_markup(): void {
 		FROM poller AS q LEFT JOIN plugin_alarmmanager_sync_peers AS p ON p.poller_id = q.id
 		WHERE q.id > 1 ORDER BY q.name, q.id LIMIT 256');
 
+	html_start_box(__esc('Collectors', 'alarmmanager'), '100%', false, 3, 'center', '');
+	html_header([__esc('Collector', 'alarmmanager'), __esc('ID', 'alarmmanager'), __esc('Status', 'alarmmanager'), __esc('Last history sync (UTC)', 'alarmmanager')], 1);
+
 	foreach ($peers as $peer) {
 		$status = $peer['last_seen'] === null ? 'Not yet seen' : ((int) $peer['age_seconds'] <= 2 * (int) (read_config_option('poller_interval') ?: 300) + 30 ? 'Online' : 'Offline');
-		print '<p>' . html_escape((string) $peer['name']) . ' #' . (int) $peer['poller_id'] . ' — ' . __esc($status, 'alarmmanager') . ' — ' . html_escape($peer['last_seen'] ?? '') . '</p>';
+		form_alternate_row();
+		form_selectable_cell(html_escape((string) $peer['name']), 0, '', 'left');
+		form_selectable_cell((string) (int) $peer['poller_id'], 0, '', 'right');
+		form_selectable_cell(__esc($status, 'alarmmanager'), 0, '', 'left');
+		form_selectable_cell(html_escape($peer['last_seen'] ?? '—'), 0, '', 'left');
+		form_end_row();
 	}
-	$grants = alarmmanager_db_rows('SELECT device_id, poller_id, epoch, owner, valid_from, valid_until FROM plugin_alarmmanager_device_owners ORDER BY device_id LIMIT 100');
-	print '<details><summary>' . __esc('Device ownership grants (first 100)', 'alarmmanager') . '</summary><pre>' . html_escape(json_encode($grants, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR)) . '</pre></details>';
+
+	if (!$peers) {
+		print '<tr class="odd"><td colspan="4">' . __esc('No remote collectors configured.', 'alarmmanager') . '</td></tr>';
+	}
+	html_end_box(true);
+
 	$poller = get_filter_request_var('collector', FILTER_VALIDATE_INT, ['options' => ['min_range' => 0, 'max_range' => 2147483647], 'default' => 0]);
 	$entity = get_filter_request_var('entity', FILTER_CALLBACK, ['options' => static fn ($value) => is_string($value) && isset(alarmmanager_sync_entities()[$value]) ? $value : false, 'default' => 'event']);
 	print '<form method="get"><input type="hidden" name="section" value="collectors"><label>' . __esc('Collector (0 selects all)', 'alarmmanager') . ' <input name="collector" type="number" min="0" value="' . $poller . '"></label><label>' . __esc('Record type', 'alarmmanager') . ' <select name="entity">';
