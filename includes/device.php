@@ -140,7 +140,7 @@ function alarmmanager_device_persist(array $grant, array $host, string $kind, bo
 	$id       = alarmmanager_device_identity($grant, $host, $kind, $sequence);
 	$episode  = $kind === 'raised' ? hash('sha256', $id . '|episode') : ($grant['last_episode'] ?: hash('sha256', $grant['deployment_uuid'] . '|' . $host['id'] . '|unobserved|' . $times['status_fail_date']));
 
-	if ($sequence >= 1000000000 || $times['status_fail_date'] < 1 || ($kind === 'recovered' && $times['status_rec_date'] < 1)) {
+	if ($sequence >= 1000000000 || ($kind === 'raised' && $times['status_fail_date'] < 1) || ($kind === 'recovered' && $times['status_rec_date'] < 1)) {
 		throw new InvalidArgumentException('invalid_device_transition');
 	}
 	$event = alarmmanager_validate_event(['event_id' => $id, 'source' => 'cacti_device', 'source_instance' => $grant['deployment_uuid'], 'resource_id' => (string) $host['id'], 'alarm_key' => 'device:' . $host['id'],
@@ -276,7 +276,8 @@ function alarmmanager_device_status_check(): int {
 		WHERE h.poller_id = ? AND h.deleted = '' AND h.disabled = '' AND h.availability_method > 0 AND h.status IN (1, 3)
 		AND (s.device_id IS NULL OR s.poller_id <> h.poller_id OR s.epoch <> COALESCE(g.epoch, 0) OR s.status <> h.status
 			OR s.fail_epoch <> COALESCE(UNIX_TIMESTAMP(h.status_fail_date), 0)
-			OR s.rec_epoch <> COALESCE(UNIX_TIMESTAMP(h.status_rec_date), 0)) ORDER BY h.id", [$poller]);
+			OR s.rec_epoch <> COALESCE(UNIX_TIMESTAMP(h.status_rec_date), 0)
+			OR (h.status = 3 AND g.owner = 'core' AND g.last_transition = 'raised')) ORDER BY h.id", [$poller]);
 	$count = 0;
 
 	foreach ($devices as $device) {
@@ -284,7 +285,7 @@ function alarmmanager_device_status_check(): int {
 			$count += alarmmanager_transaction(static function () use ($device, $poller): int {
 				// Match the PHP bridge's owner -> host lock order.
 				$grant = alarmmanager_device_grant((int) $device['id'], true);
-				$host  = alarmmanager_db_row("SELECT * FROM host WHERE id = ? AND poller_id = ? AND deleted = '' AND disabled = '' AND availability_method > 0 AND status IN (1, 3) FOR UPDATE", [$device['id'], $poller]);
+				$host  = alarmmanager_db_row("SELECT *, UNIX_TIMESTAMP() AS alarmmanager_observed_epoch FROM host WHERE id = ? AND poller_id = ? AND deleted = '' AND disabled = '' AND availability_method > 0 AND status IN (1, 3) FOR UPDATE", [$device['id'], $poller]);
 
 				if (!$host) {
 					return 0;
@@ -300,17 +301,24 @@ function alarmmanager_device_status_check(): int {
 				$changed = $status === 1
 					? (!$state || (int) $state['status'] !== 1 || (int) $state['fail_epoch'] !== $times['status_fail_date'])
 					: (($state && (int) $state['status'] === 1) || ($grant['last_transition'] ?? '') === 'raised');
-				$emitted = 0;
+				$emitted    = 0;
+				$event_host = $host;
 
-				if ($changed && $times['status_fail_date'] > 0 && ($status === 1 || $times['status_rec_date'] >= $times['status_fail_date'])
+				// Recovery eligibility uses host status; this timestamp is only event history metadata.
+				if ($status === 3 && ($times['status_rec_date'] < 1 || $times['status_rec_date'] < $times['status_fail_date'])) {
+					$event_host['status_rec_date'] = (int) $host['alarmmanager_observed_epoch'];
+				}
+				$event_times = alarmmanager_device_times($event_host);
+
+				if ($changed && ($status === 3 || $times['status_fail_date'] > 0)
 					&& ($status === 1 || $grant)
 					&& (!$grant || ($grant['owner'] === 'core' && alarmmanager_device_live($grant)))) {
 					$grant  = $grant ?: alarmmanager_device_auto_grant((int) $host['id']);
 					$seed   = empty($grant['seed_event']) ? [] : json_decode($grant['seed_event'], true, 32, JSON_THROW_ON_ERROR);
-					$seeded = ($seed['transition'] ?? '') === $kind && (int) strtotime($seed['occurred_at']) === $times[$kind === 'raised' ? 'status_fail_date' : 'status_rec_date'];
+					$seeded = ($seed['transition'] ?? '') === $kind && (int) strtotime($seed['occurred_at']) === $event_times[$kind === 'raised' ? 'status_fail_date' : 'status_rec_date'];
 
-					if (!$seeded && !alarmmanager_device_receipt($grant, $host, $kind)) {
-						alarmmanager_device_persist($grant, $host, $kind, true);
+					if (!$seeded && !alarmmanager_device_receipt($grant, $event_host, $kind)) {
+						alarmmanager_device_persist($grant, $event_host, $kind, true);
 						$emitted = 1;
 					}
 				}

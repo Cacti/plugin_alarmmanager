@@ -2,6 +2,8 @@
 
 --- main (development) ---
 
+* Clear tracked device conditions automatically when Cacti confirms the device UP, even when its recovery timestamp is stale or missing. Use the host status as the recovery authority and revisit stranded open episodes on the next poller cycle; timestamps are event history metadata only. Preserve acknowledgment, history, ownership and Cacti host data.
+
 * After successful activation on main, repeat Cacti's native plugin-state replication at request shutdown so collectors receive the final enabled status. This handles Cacti 1.2's hook-before-status enable ordering within Alarm Manager, without core patches or per-collector activation.
 
 * 0.11.0: Use Cacti's existing collector-to-main database connection for history transfer. Remove separate HTTP endpoints, shared-secret provisioning and CA controls. Retain durable pending batches, transactional mirror imports and retry-safe acknowledgments; configuration continues through Cacti's `replicate_out` hook.

@@ -76,6 +76,8 @@ const fs=require('node:fs'), path=require('node:path');
   check(await page.getByRole('link',{name:'Administration',exact:true}).count()===0,'Read-only administration hidden');
   check(!(await page.locator('#alarmmanager_panel_workers').isVisible()),'Read-only worker details hidden');
   await page.goto(base+'/plugins/alarmmanager/alarmmanager.php?tab=events');
+  check(await page.getByRole('columnheader',{name:'Collector name',exact:true}).count()===1,'Collector name column');
+  check(await page.getByRole('cell',{name:'Remote collector',exact:true}).count()>0,'Originating collector name displayed');
   check(await page.locator('.alarmmanagerTable tbody tr').count()===50,'Server page bound');check(!(await page.content()).includes('HIDDEN_FORBIDDEN_MARKER'),'Hidden alarms excluded from page');
   check(await page.evaluate(()=>window.ALARM_BAD===undefined),'Event summary escaping');
   await page.getByRole('link',{name:'Next',exact:true}).click();await page.getByText('Page 2',{exact:true}).waitFor();check(await page.locator('.alarmmanagerTable tbody tr').count()===10,'Second filtered page');

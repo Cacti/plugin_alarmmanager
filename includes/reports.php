@@ -233,6 +233,8 @@ function alarmmanager_report_list(string $kind, array $scope, array $filters): a
 		$where .= ' AND r.reason = ?';
 		$params[] = $filters['reason'];
 	}
+	$base .= ' LEFT JOIN poller AS collector ON collector.id = e.collector_id';
+	$columns .= ", e.collector_id, COALESCE(NULLIF(collector.name, ''), CONCAT('Poller #', e.collector_id)) AS collector_name";
 	$offset = ($filters['page'] - 1) * 50;
 	$rows   = alarmmanager_report_rows("SELECT $columns FROM $base WHERE $where ORDER BY $order DESC LIMIT 51 OFFSET $offset", $params);
 

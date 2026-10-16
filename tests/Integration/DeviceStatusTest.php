@@ -86,17 +86,52 @@ final class DeviceStatusTest extends AlarmManagerTestCase {
 			}
 			self::assertSame(4, (int) $db->query('SELECT COUNT(*) FROM plugin_alarmmanager_events')->fetchColumn(), 'Daemon mode still captures recovery');
 			self::assertSame(0, alarmmanager_device_status_check());
-			// Existing active episodes also recover on the first comparison after upgrade.
+			// Repair a stranded UP snapshot whose recovery timestamp predates its open outage.
 			$fail += 20;
 			$host['status_fail_date'] = $fail;
-			$write                    = static fn (): bool => db_execute_prepared('UPDATE host SET status=1,status_fail_date=FROM_UNIXTIME(?) WHERE id=42', [$fail]);
+			$write = static fn (): bool => db_execute_prepared('UPDATE host SET status=1,status_fail_date=FROM_UNIXTIME(?) WHERE id=42', [$fail]);
 			self::assertTrue(alarmmanager_device_core_commit($host, 3, $write));
-			$db->exec('DELETE FROM plugin_alarmmanager_device_status WHERE device_id=42');
+
+			while ($claim = alarmmanager_claim_processing()) {
+				alarmmanager_process_job($claim);
+			}
+			self::assertSame(1, (int) $db->query('SELECT active FROM plugin_alarmmanager_states')->fetchColumn());
+			self::assertSame(0, (int) $db->query('SELECT acknowledged FROM plugin_alarmmanager_states')->fetchColumn());
 			$db->exec("UPDATE host SET status=3,status_rec_date=FROM_UNIXTIME($fail-1) WHERE id=42");
-			self::assertSame(0, alarmmanager_device_status_check(), 'Stale recovery timestamp cannot close a newer outage');
-			$db->exec('UPDATE host SET status_rec_date=UTC_TIMESTAMP() WHERE id=42');
-			self::assertSame(1, alarmmanager_device_status_check(), 'Existing tracked episode recovers without a prior snapshot');
+			$db->exec('REPLACE INTO plugin_alarmmanager_device_status (device_id,poller_id,epoch,status,fail_epoch,rec_epoch,updated_at)
+				SELECT h.id,h.poller_id,g.epoch,h.status,UNIX_TIMESTAMP(h.status_fail_date),UNIX_TIMESTAMP(h.status_rec_date),UTC_TIMESTAMP(6)
+				FROM host h JOIN plugin_alarmmanager_device_owners g ON g.device_id=h.id WHERE h.id=42');
+			$GLOBALS['alarmmanager_fail_commit'] = true;
+			self::assertSame(0, alarmmanager_device_status_check(), 'Failed repair retries even when the comparison snapshot already says UP');
+			unset($GLOBALS['alarmmanager_fail_commit']);
+			self::assertSame(1, alarmmanager_device_status_check(), 'Confirmed UP repairs the tracked episode despite a stale recovery timestamp');
+			self::assertSame(0, alarmmanager_device_status_check(), 'Repair queues recovery only once');
+
+			while ($claim = alarmmanager_claim_processing()) {
+				alarmmanager_process_job($claim);
+			}
+			self::assertSame(0, (int) $db->query('SELECT active FROM plugin_alarmmanager_states')->fetchColumn(), 'Recovery clears the active condition without acknowledgment');
+			self::assertSame(0, (int) $db->query('SELECT acknowledged FROM plugin_alarmmanager_states')->fetchColumn(), 'No acknowledgment is created or required');
+			self::assertSame($fail - 1, (int) $db->query('SELECT UNIX_TIMESTAMP(status_rec_date) FROM host WHERE id=42')->fetchColumn(), 'Repair never changes Cacti host data');
+			// A missing recovery timestamp also uses the confirmed-UP observation.
+			$fail += 20;
+			$host['status_fail_date'] = $fail;
+			self::assertTrue(alarmmanager_device_core_commit($host, 3, static fn (): bool => db_execute_prepared('UPDATE host SET status=1,status_fail_date=FROM_UNIXTIME(?) WHERE id=42', [$fail])));
+			$db->exec('UPDATE host SET status=3,status_fail_date=NULL,status_rec_date=NULL WHERE id=42');
+			self::assertSame(1, alarmmanager_device_status_check());
 			self::assertSame(0, alarmmanager_device_status_check());
+			// Even inconsistent future failure metadata cannot override a confirmed-UP status.
+			$fail += 20;
+			$host['status_fail_date'] = $fail;
+			self::assertTrue(alarmmanager_device_core_commit($host, 3, static fn (): bool => db_execute_prepared('UPDATE host SET status=1,status_fail_date=FROM_UNIXTIME(?) WHERE id=42', [$fail])));
+			$db->exec('UPDATE host SET status=3,status_fail_date=DATE_ADD(UTC_TIMESTAMP(), INTERVAL 1 DAY),status_rec_date=NULL WHERE id=42');
+			self::assertSame(1, alarmmanager_device_status_check(), 'Confirmed-UP host status wins over timestamp ordering');
+			self::assertSame(0, alarmmanager_device_status_check());
+
+			while ($claim = alarmmanager_claim_processing()) {
+				alarmmanager_process_job($claim);
+			}
+			self::assertSame(0, (int) $db->query('SELECT active FROM plugin_alarmmanager_states')->fetchColumn());
 			// Initial down creates an episode, so a later recovery has a matching raise.
 			$db->exec("INSERT INTO host (id,poller_id,status,status_fail_date) VALUES (47,1,1,FROM_UNIXTIME($fail))");
 			self::assertSame(1, alarmmanager_device_status_check());
