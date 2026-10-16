@@ -19,6 +19,8 @@ const assert=require('node:assert/strict');
   check(await addIntegration.count()===1,'Add Integration button sits next to the template dropdown');
   for(const template of ['webhook','restapi','script']) {
    await page.locator('[name=integration_template]').selectOption(template);
+   check(page.url()===admin+'?section=endpoints','Changing the template dropdown does not open the draft form');
+   await addIntegration.click();
    await page.waitForURL('**integration_template='+template,{timeout:5000});
    const draft=page.locator('details.alarmmanagerDashboardCard').last();
    check(!(await draft.locator('[name=enabled]').isChecked()),'Template starts disabled');
@@ -40,6 +42,7 @@ const assert=require('node:assert/strict');
   // before any secret exists; the credential record is attached afterwards.
   const presetName='Preset draft '+Date.now();
   await page.locator('[name=integration_template]').selectOption('slack');
+  await addIntegration.click();
   await page.waitForURL('**integration_template=slack',{timeout:5000});
   const preset=page.locator('details.alarmmanagerDashboardCard').last();
   check((await preset.locator('[name=auth_type]').inputValue())==='bearer','Slack preset preselects bearer authentication');
