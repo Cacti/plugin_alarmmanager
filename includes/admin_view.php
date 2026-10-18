@@ -129,7 +129,7 @@ function alarmmanager_endpoint_editor(array $endpoint, int $revision, bool $new 
 
 	if (!$new) {
 		alarmmanager_form_start('endpoint_delete', $revision, ['id' => $endpoint['id']]);
-		print '<h3>' . __esc('Delete endpoint', 'alarmmanager') . '</h3><p>' . __esc('Deleting stops future delivery and removes the saved settings and credentials. Remove routing-profile references and resolve queued or running deliveries first. Completed and failed delivery history is preserved.', 'alarmmanager') . '</p><label><input type="checkbox" name="confirmed" value="yes" required> ' . __esc('Delete this endpoint, its delivery settings and saved credentials', 'alarmmanager') . '</label><button type="submit">' . __esc('Delete endpoint', 'alarmmanager') . '</button></form>';
+		print '<h3>' . __esc('Delete endpoint', 'alarmmanager') . '</h3><p>' . __esc('Deleting stops future delivery and removes the saved settings and credentials. Remove notification rule references and resolve queued or running deliveries first. Completed and failed delivery history is preserved.', 'alarmmanager') . '</p><label><input type="checkbox" name="confirmed" value="yes" required> ' . __esc('Delete this endpoint, its delivery settings and saved credentials', 'alarmmanager') . '</label><button type="submit">' . __esc('Delete endpoint', 'alarmmanager') . '</button></form>';
 	}
 	print '</details>';
 }
@@ -164,24 +164,18 @@ function alarmmanager_rule_editor(array $item, int $revision, array $configurati
 	$new      = (int) $item['id'] === 0;
 	$policy   = alarmmanager_validate_rule_definition($item['policy'] ?? []);
 	$profiles = array_column($configuration['profiles'], null, 'id');
-	print '<details class="alarmmanagerDashboardCard alarmmanagerRule"' . ($new ? ' id="alarmmanager_new_rule" open' : '') . '><summary>' . html_escape($new ? __('Create a rule', 'alarmmanager') : $item['name']) . ($new ? '' : ' — ' . __esc($item['enabled'] ? 'Enabled' : 'Disabled', 'alarmmanager') . ' · ' . html_escape($profiles[$item['profile_id']]['name'] ?? '') . ' · ' . __esc('Priority', 'alarmmanager') . ' ' . (int) $item['priority']) . '</summary>';
+	print '<details class="alarmmanagerDashboardCard alarmmanagerRule"' . ($new ? ' id="alarmmanager_new_rule" open' : '') . '><summary>' . html_escape($new ? __('Create a rule', 'alarmmanager') : $item['name']) . ($new ? '' : ' — ' . __esc($item['enabled'] ? 'Enabled' : 'Disabled', 'alarmmanager') . ' · ' . __esc('Priority', 'alarmmanager') . ' ' . (int) $item['priority']) . '</summary>';
 	alarmmanager_form_start('rule_save', $revision, $new ? [] : ['id' => $item['id']]);
 	print '<input type="hidden" name="rule_fields" value="yes"><fieldset class="alarmmanagerRuleSection"><legend>' . __esc('Rule and destination', 'alarmmanager') . '</legend>';
 	alarmmanager_input('name', 'Rule name', $item['name'], 'text', 'maxlength="128" required placeholder="Critical network alarms"');
 	alarmmanager_checkbox('enabled', 'Enable this rule', (bool) $item['enabled']);
-	print '<label>' . __esc('Send notifications to', 'alarmmanager') . '<select name="profile_id" aria-label="' . __esc('Send notifications to', 'alarmmanager') . '" required><option value="">' . __esc('Choose a routing profile', 'alarmmanager') . '</option>';
+	$selected = $profiles[$item['profile_id'] ?? 0]['endpoints'] ?? [];
+	print '<label>' . __esc('Send notifications to', 'alarmmanager') . '<select name="endpoints[]" multiple required aria-label="' . __esc('Send notifications to', 'alarmmanager') . '">';
 
-	foreach ($profiles as $profile) {
-		$names = [];
-
-		foreach ($configuration['endpoints'] as $endpoint) {
-			if (in_array($endpoint['id'], $profile['endpoints'], true)) {
-				$names[] = $endpoint['name'] . ($endpoint['enabled'] ? '' : ' (' . __('disabled', 'alarmmanager') . ')');
-			}
-		}
-		print '<option value="' . (int) $profile['id'] . '"' . ((int) $profile['id'] === (int) ($item['profile_id'] ?? 0) ? ' selected' : '') . '>' . html_escape($profile['name'] . ($profile['enabled'] ? '' : ' (' . __('disabled', 'alarmmanager') . ')') . ' — ' . implode(', ', $names)) . '</option>';
+	foreach ($configuration['endpoints'] as $endpoint) {
+		print '<option value="' . (int) $endpoint['id'] . '"' . (in_array($endpoint['id'], $selected, true) ? ' selected' : '') . '>' . html_escape($endpoint['name'] . ($endpoint['enabled'] ? '' : ' (' . __('disabled', 'alarmmanager') . ')')) . '</option>';
 	}
-	print '</select></label><p class="alarmmanagerHint">' . __esc('A routing profile groups your notification destinations. Disabled profiles or destinations do not send notifications.', 'alarmmanager') . ' <a href="alarmmanager_admin.php?section=profiles">' . __esc('Manage routing profiles', 'alarmmanager') . '</a></p></fieldset>';
+	print '</select></label><p class="alarmmanagerHint">' . __esc('Select one or more integrations. Disabled integrations do not send notifications.', 'alarmmanager') . '</p></fieldset>';
 	print '<fieldset class="alarmmanagerRuleSection"><legend>' . __esc('Match alarms', 'alarmmanager') . '</legend><p class="alarmmanagerHint">' . __esc('With no filters enabled, this rule matches all alarms. An alarm must match every enabled filter. Select one or more values per filter; for tags, the device must have all listed tags.', 'alarmmanager') . '</p><div class="alarmmanagerRuleFilterGrid">';
 
 	foreach (['sources' => 'Only these sources', 'severities' => 'Only these severities', 'transitions' => 'Only these alarm changes', 'device_ids' => 'Only these devices', 'collector_ids' => 'Only these collectors', 'tags' => 'Require these device tags'] as $field => $label) {
@@ -222,7 +216,7 @@ function alarmmanager_rule_editor(array $item, int $revision, array $configurati
 	print '</fieldset><fieldset class="alarmmanagerRuleSection"><legend>' . __esc('Rule order', 'alarmmanager') . '</legend>';
 	alarmmanager_input('priority', 'Priority (lower numbers run first)', $item['priority'] ?? 100, 'number', 'min="0" max="10000" required');
 	alarmmanager_checkbox('stop', 'Stop checking later rules when this rule matches', $item['stop'] ?? false);
-	print '<p class="alarmmanagerHint">' . __esc('Rules with equal priority run in ID order. Stopping also applies when this rule suppresses notifications.', 'alarmmanager') . '</p></fieldset><div class="alarmmanagerRuleActions"><button type="submit"' . (!$profiles ? ' disabled' : '') . '>' . __esc($new ? 'Create rule' : 'Save rule', 'alarmmanager') . '</button></div></form></details>';
+	print '<p class="alarmmanagerHint">' . __esc('Rules with equal priority run in ID order. Stopping also applies when this rule suppresses notifications.', 'alarmmanager') . '</p></fieldset><div class="alarmmanagerRuleActions"><button type="submit"' . (!$configuration['endpoints'] ? ' disabled' : '') . '>' . __esc($new ? 'Create rule' : 'Save rule', 'alarmmanager') . '</button></div></form></details>';
 }
 
 function alarmmanager_admin_markup(array $state, string $section): void {
@@ -230,7 +224,7 @@ function alarmmanager_admin_markup(array $state, string $section): void {
 	$revision = $state['revision'];
 	print '<div class="tabs"><nav aria-label="' . __esc('Administration sections', 'alarmmanager') . '"><ul>';
 
-	foreach (['endpoints' => 'Integrations and mappings', 'profiles' => 'Routing profiles', 'collectors' => 'Collectors and history', 'rules' => 'Rules and suppression', 'credentials' => 'Credentials', 'test' => 'Preview and test', 'configuration' => 'Configuration', 'daemon' => 'Daemon', 'queue' => 'Alarm Queue', 'health' => 'Workers and failed processing'] as $key => $label) {
+	foreach (['endpoints' => 'Integrations and mappings', 'collectors' => 'Collectors and history', 'rules' => 'Rules and suppression', 'credentials' => 'Credentials', 'test' => 'Preview and test', 'configuration' => 'Configuration', 'daemon' => 'Daemon', 'queue' => 'Alarm Queue', 'health' => 'Workers and failed processing'] as $key => $label) {
 		print '<li><a class="tab' . ($section === $key ? ' selected' : '') . '" href="alarmmanager_admin.php?section=' . $key . '" ' . ($section === $key ? 'aria-current="page"' : '') . '>' . __esc($label, 'alarmmanager') . '</a></li>';
 	} print '</ul></nav></div><p>' . __esc('Local configuration revision', 'alarmmanager') . ': ' . $revision . '</p>';
 
@@ -271,7 +265,7 @@ function alarmmanager_admin_markup(array $state, string $section): void {
 	} elseif ($section === 'collectors') {
 		alarmmanager_remote_markup();
 	} elseif ($section === 'endpoints') {
-		print '<p>' . __esc('Create an integration, configure its destination and credentials, preview and test a sample alarm, then select it in a routing profile.', 'alarmmanager') . '</p>';
+		print '<p>' . __esc('Create an integration, configure its destination and credentials, preview and test a sample alarm, then select it directly in a rule.', 'alarmmanager') . '</p>';
 		print '<form method="get" action="alarmmanager_admin.php" class="alarmmanagerTemplatePicker"><input type="hidden" name="section" value="endpoints"><input type="hidden" name="add" value="1"><label>' . __esc('Start a new integration from a template', 'alarmmanager') . '<select name="integration_template"><option value="">' . __esc('Blank endpoint', 'alarmmanager') . '</option>';
 		$templates = alarmmanager_integration_templates();
 		$selected  = (string) get_filter_request_var('integration_template', FILTER_CALLBACK, ['options' => static fn ($value) => is_string($value) && isset($templates[$value]) ? $value : false, 'default' => '']);
@@ -295,8 +289,8 @@ function alarmmanager_admin_markup(array $state, string $section): void {
 	} elseif ($section === 'rules') {
 		print '<h2>' . __esc('Rules and suppression', 'alarmmanager') . '</h2><p>' . __esc('Choose which alarms should notify, where to send them and when to pause notifications. Rules run from lowest to highest priority.', 'alarmmanager') . '</p>';
 
-		if (!$config['profiles']) {
-			print '<p class="alarmmanagerRuleNotice">' . __esc('Create a routing profile before saving your first rule.', 'alarmmanager') . ' <a href="alarmmanager_admin.php?section=profiles">' . __esc('Create routing profile', 'alarmmanager') . '</a></p>';
+		if (!$config['endpoints']) {
+			print '<p class="alarmmanagerRuleNotice">' . __esc('Create an integration before saving your first rule.', 'alarmmanager') . ' <a href="alarmmanager_admin.php?section=endpoints">' . __esc('Create integration', 'alarmmanager') . '</a></p>';
 		}
 		$choices = ['severities' => ['critical' => __('Critical', 'alarmmanager'), 'major' => __('Major', 'alarmmanager'), 'minor' => __('Minor', 'alarmmanager'), 'warning' => __('Warning', 'alarmmanager'), 'info' => __('Information', 'alarmmanager'), 'clear' => __('Clear', 'alarmmanager')], 'transitions' => ['raised' => __('Raised', 'alarmmanager'), 'updated' => __('Updated', 'alarmmanager'), 'reminder' => __('Reminder', 'alarmmanager'), 'recovered' => __('Recovered', 'alarmmanager'), 'occurrence' => __('Occurrence', 'alarmmanager')], 'device_ids' => [], 'collector_ids' => []];
 
@@ -317,24 +311,6 @@ function alarmmanager_admin_markup(array $state, string $section): void {
 			alarmmanager_rule_editor($rule, $revision, $config, $choices);
 		}
 		alarmmanager_rule_editor(['id' => 0, 'name' => '', 'enabled' => true, 'policy' => []], $revision, $config, $choices);
-	} elseif ($section === 'profiles') {
-		$items   = $config[$section];
-		$items[] = ['id' => 0, 'name' => '', 'enabled' => false, 'endpoints' => [], 'policy' => [], 'profile_id' => 0];
-
-		foreach ($items as $item) {
-			$new = (int) $item['id'] === 0;
-			print '<details class="alarmmanagerDashboardCard"' . ($new ? ' open' : '') . '><summary>' . html_escape($new ? __('New profile', 'alarmmanager') : $item['name'] . ' (#' . $item['id'] . ')') . '</summary>';
-			alarmmanager_form_start('profile_save', $revision, $new ? [] : ['id' => $item['id']]);
-			alarmmanager_input('name', 'Name', $item['name'], 'text', 'maxlength="128" required');
-			alarmmanager_checkbox('enabled', 'Enabled', (bool) $item['enabled']);
-
-			print '<label>' . __esc('Destinations (select multiple)', 'alarmmanager') . '<select name="endpoints[]" multiple required>';
-
-			foreach ($config['endpoints'] as $ep) {
-				print '<option value="' . $ep['id'] . '" ' . (in_array($ep['id'], $item['endpoints'], true) ? 'selected' : '') . '>' . html_escape($ep['name'] . ' #' . $ep['id']) . '</option>';
-			} print '</select></label>';
-			print '<button type="submit">' . __esc('Save', 'alarmmanager') . '</button></form></details>';
-		}
 	} elseif ($section === 'credentials') {
 		$status = alarmmanager_db_rows('SELECT ep.id, ep.name, CASE WHEN c.endpoint_id IS NULL THEN 0 ELSE 1 END AS configured FROM plugin_alarmmanager_endpoints AS ep LEFT JOIN plugin_alarmmanager_credentials AS c ON c.endpoint_id = ep.id WHERE ep.type IN (?, ?) ORDER BY ep.id LIMIT 200', ['restapi', 'webhook']);
 		print '<p>' . __esc('Credential values are never loaded into this page. Saving replaces the endpoint record; blank values do not preserve an old password. Use the CLI for protected backup/restore and poller provisioning.', 'alarmmanager') . '</p>';

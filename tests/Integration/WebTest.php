@@ -85,11 +85,7 @@ final class WebTest extends AlarmManagerTestCase {
 			$endpoint_id = $created['configuration']['endpoints'][0]['id'];
 			$this->assertGreaterThan(0, $endpoint_id, 'New endpoint receives a database ID');
 			$this->assertSame(1, $created['configuration']['endpoints'][0]['max_concurrency'], 'New endpoint uses the automatic concurrency default');
-			$this->waction(['action' => 'profile_save', 'revision' => $created['revision'], 'name' => 'Automatic profile', 'endpoints' => [$endpoint_id]]);
-			$created    = alarmmanager_admin_configuration();
-			$profile_id = $created['configuration']['profiles'][0]['id'];
-			$this->assertGreaterThan(0, $profile_id, 'New profile receives a database ID');
-			$this->waction(['action' => 'rule_save', 'revision' => $created['revision'], 'name' => 'Automatic rule', 'profile_id' => $profile_id, 'enabled' => 'yes', 'rule_fields' => 'yes', 'filter_severities' => 'yes', 'match_severities' => ['major'], 'suppress_acknowledged' => 'yes', 'cooldown_seconds' => '60']);
+			$this->waction(['action' => 'rule_save', 'revision' => $created['revision'], 'name' => 'Automatic rule', 'endpoints' => [$endpoint_id], 'enabled' => 'yes', 'rule_fields' => 'yes', 'filter_severities' => 'yes', 'match_severities' => ['major'], 'suppress_acknowledged' => 'yes', 'cooldown_seconds' => '60']);
 			$created = alarmmanager_admin_configuration();
 			$this->assertGreaterThan(0, $created['configuration']['rules'][0]['id'], 'New rule receives a database ID');
 			$this->assertSame(['severities' => ['major']], $created['configuration']['rules'][0]['policy']['match']);
@@ -100,6 +96,9 @@ final class WebTest extends AlarmManagerTestCase {
 			$this->assertStringContainsString('Create a rule', $rules_html);
 			$this->assertStringContainsString('Visible (#42)', $rules_html);
 			$this->assertStringNotContainsString('name="policy_json"', $rules_html);
+			$this->assertStringNotContainsString('section=profiles', $rules_html);
+			$this->assertStringContainsString('name="endpoints[]"', $rules_html);
+			$this->assertSame([$endpoint_id], $created['configuration']['profiles'][0]['endpoints']);
 			$create['id']       = $endpoint_id;
 			$create['revision'] = $created['revision'];
 			$create['name']     = 'Edited endpoint';
@@ -113,6 +112,16 @@ final class WebTest extends AlarmManagerTestCase {
 			$routes                         = json_decode(file_get_contents(__DIR__ . '/../../examples/routing.json'), true);
 			$routes['endpoints'][0]['name'] = '<img src=x onerror=window.ALARM_BAD=1>';
 			alarmmanager_apply_configuration($routes);
+			$direct    = alarmmanager_admin_configuration();
+			$edit_rule = ['action' => 'rule_save', 'id' => 1, 'revision' => $direct['revision'], 'name' => 'All events', 'enabled' => 'yes', 'endpoints' => [1, 2], 'stop' => 'yes', 'rule_fields' => 'yes', 'suppress_acknowledged' => 'yes'];
+			$this->waction(array_replace($edit_rule, ['endpoints' => [1]]));
+			$direct = alarmmanager_admin_configuration();
+			$edit_rule['revision'] = $direct['revision'];
+			$this->waction($edit_rule);
+			$direct = alarmmanager_admin_configuration();
+			$this->assertCount(1, $direct['configuration']['profiles'], 'Changing integrations does not retain unused automatic destination groups');
+			$this->assertSame([1, 2], array_column($direct['configuration']['profiles'], null, 'id')[$direct['configuration']['rules'][0]['profile_id']]['endpoints']);
+			$this->wreject(fn () => $this->waction(array_replace($edit_rule, ['revision' => $direct['revision'], 'endpoints' => [2147483647]])), 'Unknown integration cannot be selected');
 			$event                 = json_decode(file_get_contents(__DIR__ . '/../../examples/event.json'), true);
 			$event['collector_id'] = 2;
 
@@ -322,6 +331,11 @@ final class WebTest extends AlarmManagerTestCase {
 			$condition = alarmmanager_db_row('SELECT stream_key FROM plugin_alarmmanager_states WHERE active=1 LIMIT 1');
 			$this->waction(['action'=>'acknowledge', 'stream_key'=>$condition['stream_key'], 'acknowledged'=>'yes']);
 			$this->assertSame(1, (int)db_fetch_cell_prepared('SELECT acknowledged FROM plugin_alarmmanager_states WHERE stream_key=?', [$condition['stream_key']]), 'Acknowledgment saved');
+			ob_start();
+			alarmmanager_report_table('conditions', alarmmanager_report_list('conditions', $scope, $filters), ['admin' => true], $filters);
+			$conditions_html = ob_get_clean();
+			$this->assertStringNotContainsString('name="action"', $conditions_html);
+			$this->assertStringNotContainsString('<th>Action</th>', $conditions_html);
 			$old = alarmmanager_secret_key();
 			$this->waction(['action'=>'key_rotate', 'confirmed'=>'yes']);
 			$this->assertTrue(alarmmanager_secret_key() !== $old && alarmmanager_load_credential(1) === $record, 'Browser local key rotation');
@@ -393,7 +407,7 @@ final class WebTest extends AlarmManagerTestCase {
 			alarmmanager_admin_markup(alarmmanager_admin_configuration(),'collectors');
 			$html = ob_get_clean();
 			$this->assertTrue(str_contains($html,'Collectors and remote history') && str_contains($html,'Latest 50'), 'bounded collector history controls rendered');
-			$this->assertTrue(str_contains($html, '<th>Severity</th>') && str_contains($html, 'Remote battery low') && !str_contains($html, '<pre>'), 'remote event history rendered as readable table rows');
+			$this->assertTrue(str_contains($html, '>Severity</th>') && str_contains($html, 'Remote battery low') && !str_contains($html, '<pre>'), 'remote event history rendered as readable table rows');
 			$endpoint_count   = (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_endpoints');
 			$credential_count = (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_credentials');
 			$templates        = alarmmanager_integration_templates();
