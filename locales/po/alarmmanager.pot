@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Alarm Manager 0.11.0\n"
 "Report-Msgid-Bugs-To: https://github.com/bmfmancini/plugin_alarmmanager/issues\n"
-"POT-Creation-Date: 2026-10-16 17:45-0400\n"
+"POT-Creation-Date: 2026-10-16 18:49-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alarm Manager Developers <https://github.com/bmfmancini/plugin_alarmmanager>\n"
 "Language-Team: Alarm Manager Developers <https://github.com/bmfmancini/plugin_alarmmanager>\n"
@@ -634,175 +634,183 @@ msgstr ""
 msgid "Latest 50 matching remote records; original IDs and delivery ownership are preserved."
 msgstr ""
 
-#: includes/admin_view.php:501
-msgid "Collector"
+#: includes/admin_view.php:506
+msgid "Remote history"
 msgstr ""
 
-#: includes/admin_view.php:506
+#: includes/admin_view.php:513
+msgid "Unknown collector"
+msgstr ""
+
+#: includes/admin_view.php:532
+msgid "No matching remote records."
+msgstr ""
+
+#: includes/admin_view.php:539
 msgid "Authentication"
 msgstr ""
 
-#: includes/admin_view.php:506
+#: includes/admin_view.php:539
 msgid "Authentication type"
 msgstr ""
 
-#: includes/admin_view.php:526
+#: includes/admin_view.php:559
 msgid "Saved credentials are encrypted and never displayed. New values replace the saved credential record."
 msgstr ""
 
-#: includes/web_view.php:87
+#: includes/web_view.php:88
 msgid "Report unavailable or permission denied."
 msgstr ""
 
-#: includes/web_view.php:113
+#: includes/web_view.php:114
 msgid "Statistics could not be rendered."
 msgstr ""
 
-#: includes/web_view.php:120 setup.php:116 setup.php:132 setup.php:133
+#: includes/web_view.php:121 setup.php:133 setup.php:149 setup.php:150
 msgid "Alarm Manager"
 msgstr ""
 
-#: includes/web_view.php:126
+#: includes/web_view.php:127
 msgid "Alarm Manager pages"
 msgstr ""
 
-#: includes/web_view.php:143 includes/web_view.php:146
+#: includes/web_view.php:144 includes/web_view.php:147
 msgid "Alarm statistics"
 msgstr ""
 
-#: includes/web_view.php:143
+#: includes/web_view.php:144
 msgid "Filters"
 msgstr ""
 
-#: includes/web_view.php:146
+#: includes/web_view.php:147
 msgid "Time range"
 msgstr ""
 
-#: includes/web_view.php:152
+#: includes/web_view.php:153
 msgid "Off"
 msgstr ""
 
-#: includes/web_view.php:152
+#: includes/web_view.php:153
 msgid "Refresh"
 msgstr ""
 
-#: includes/web_view.php:154
+#: includes/web_view.php:155
 msgid "Advanced filter JSON"
 msgstr ""
 
-#: includes/web_view.php:154
+#: includes/web_view.php:155
 msgid "Filter document"
 msgstr ""
 
-#: includes/web_view.php:154
+#: includes/web_view.php:155
 msgid "Quick filters"
 msgstr ""
 
-#: includes/web_view.php:154
+#: includes/web_view.php:155
 msgid "Search conditions"
 msgstr ""
 
-#: includes/web_view.php:155
+#: includes/web_view.php:156
 msgid "All"
 msgstr ""
 
-#: includes/web_view.php:155
+#: includes/web_view.php:156
 msgid "Severity"
 msgstr ""
 
-#: includes/web_view.php:155
+#: includes/web_view.php:156
 msgid "Source"
 msgstr ""
 
-#: includes/web_view.php:162
+#: includes/web_view.php:163
 msgid "Device ID"
 msgstr ""
 
-#: includes/web_view.php:166
+#: includes/web_view.php:167
 msgid "event_id"
 msgstr ""
 
-#: includes/web_view.php:172
+#: includes/web_view.php:173
 msgid "Apply"
 msgstr ""
 
-#: includes/web_view.php:172
+#: includes/web_view.php:173
 msgid "Reset"
 msgstr ""
 
-#: includes/web_view.php:174
+#: includes/web_view.php:175
 msgid "Historical window uses UTC. Current conditions and queues ignore the time window."
 msgstr ""
 
-#: includes/web_view.php:186
+#: includes/web_view.php:193
 msgid "Loading statistics…"
 msgstr ""
 
-#: includes/web_view.php:199
+#: includes/web_view.php:206
 msgid "Collapse"
 msgstr ""
 
-#: includes/web_view.php:211
+#: includes/web_view.php:218
 msgid "conditions"
 msgstr ""
 
-#: includes/web_view.php:214
+#: includes/web_view.php:221
 msgid "No matching records."
 msgstr ""
 
-#: includes/web_view.php:224
+#: includes/web_view.php:231
 msgid "attempts"
 msgstr ""
 
-#: includes/web_view.php:228
+#: includes/web_view.php:235
 msgid "Action"
 msgstr ""
 
-#: includes/web_view.php:273
+#: includes/web_view.php:280
 msgid "Showing at most 50 records per page."
 msgstr ""
 
-#: includes/web_view.php:274
+#: includes/web_view.php:281
 msgid "Pages"
 msgstr ""
 
-#: includes/web_view.php:277
+#: includes/web_view.php:284
 msgid "Previous"
 msgstr ""
 
-#: includes/web_view.php:280
+#: includes/web_view.php:287
 #, php-format
 msgid "Page %d"
 msgstr ""
 
-#: includes/web_view.php:283
+#: includes/web_view.php:290
 msgid "Next"
 msgstr ""
 
-#: includes/web_view.php:289
+#: includes/web_view.php:296
 msgid "Selected event details"
 msgstr ""
 
-#: includes/web_view.php:314
+#: includes/web_view.php:321
 msgid "Confirm replay may repeat an external effect"
 msgstr ""
 
-#: setup.php:78
+#: setup.php:95
 msgid "Alarm Manager View"
 msgstr ""
 
-#: setup.php:79
+#: setup.php:96
 msgid "Alarm Manager Administration"
 msgstr ""
 
-#: setup.php:102
+#: setup.php:119
 msgid "Import/Export"
 msgstr ""
 
-#: setup.php:103
+#: setup.php:120
 msgid "Administration"
 msgstr ""
 
-#: setup.php:103 setup.php:108 setup.php:114
+#: setup.php:120 setup.php:125 setup.php:131
 msgid "Alarm Manager Settings"
 msgstr ""

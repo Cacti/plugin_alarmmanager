@@ -213,7 +213,7 @@ function alarmmanager_dashboard_markup(): void {
  * is appended for administrative users on interactive kinds.
  */
 function alarmmanager_report_table(string $kind, array $result, array $scope, array $filters): void {
-	$action_kinds = ['conditions', 'deliveries', 'processing'];
+	$action_kinds = ['deliveries', 'processing'];
 
 	html_start_box(__esc($kind === 'conditions' ? 'Current active conditions' : ucfirst($kind), 'alarmmanager'), '100%', false, 3, 'center', '');
 
@@ -264,9 +264,7 @@ function alarmmanager_report_table(string $kind, array $result, array $scope, ar
 		if ($scope['admin'] && in_array($kind, $action_kinds, true)) {
 			print '<td>';
 
-			if ($kind === 'conditions') {
-				alarmmanager_post_form('acknowledge', ['stream_key' => $row['stream_key'], 'acknowledged' => $row['acknowledged'] ? 'no' : 'yes'], $row['acknowledged'] ? 'Clear acknowledgment' : 'Acknowledge');
-			} elseif ($row['status'] === 'failed') {
+			if ($row['status'] === 'failed') {
 				alarmmanager_post_form('replay', ['queue' => $kind === 'processing' ? 'processing' : 'delivery', 'id' => $row['id']], 'Replay failed job', true);
 			}
 

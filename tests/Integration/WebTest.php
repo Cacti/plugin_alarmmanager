@@ -374,13 +374,26 @@ final class WebTest extends AlarmManagerTestCase {
 			$this->wreject(fn () =>$this->waction($producer + ['migration_confirmed'=>'yes']), 'Retired source-specific policy action is rejected');
 			$this->assertArrayNotHasKey('mode', AlarmManagerProducerBridge::configuration('thold',42), 'Retired action cannot introduce an operating mode');
 			ob_start();
-			alarmmanager_admin_markup(alarmmanager_admin_configuration(),'endpoints');
+			alarmmanager_admin_markup(alarmmanager_admin_configuration(), 'endpoints');
 			$html = ob_get_clean();
 			$this->assertTrue(str_contains($html,'Integrations and mappings') && str_contains($html,'endpoint_save') && str_contains($html,'__csrf_magic'), 'endpoint admin controls and CSRF rendered');
+			$remote_event = [
+				'id'                   => 51,
+				'event_id'             => 'remote:test-51',
+				'source'               => 'remote_test',
+				'source_instance'      => 'remote-node',
+				'mode'                 => 'centralized',
+				'payload'              => json_encode(['event_id' => 'remote:test-51', 'source' => 'remote_test', 'severity' => 'major', 'transition' => 'raised', 'occurred_at' => '2026-10-16 12:00:00', 'summary' => 'Remote battery low'], JSON_THROW_ON_ERROR),
+				'collector_id'         => 2,
+				'processing_poller_id' => 2,
+				'received_at'          => '2026-10-16 12:00:00'
+			];
+			alarmmanager_db_write('INSERT INTO plugin_alarmmanager_remote_history (poller_id, instance_uuid, entity, entity_id, revision, definition, device_id, source, sequence, received_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(6))', [2, str_repeat('a', 32), 'event', 51, 1, json_encode($remote_event, JSON_THROW_ON_ERROR), 42, 'remote_test', 1]);
 			ob_start();
 			alarmmanager_admin_markup(alarmmanager_admin_configuration(),'collectors');
 			$html = ob_get_clean();
 			$this->assertTrue(str_contains($html,'Collectors and remote history') && str_contains($html,'Latest 50'), 'bounded collector history controls rendered');
+			$this->assertTrue(str_contains($html, '<th>Severity</th>') && str_contains($html, 'Remote battery low') && !str_contains($html, '<pre>'), 'remote event history rendered as readable table rows');
 			$endpoint_count   = (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_endpoints');
 			$credential_count = (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_credentials');
 			$templates        = alarmmanager_integration_templates();
