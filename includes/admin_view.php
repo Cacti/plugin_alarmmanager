@@ -120,8 +120,8 @@ function alarmmanager_endpoint_editor(array $endpoint, int $revision, bool $new 
 	print '<p>' . __esc('Certificate and hostname verification remain enabled. Provision the PEM file on every poller. Saved credentials are never displayed.', 'alarmmanager') . '</p>';
 	print '</fieldset><details><summary>' . __esc('Other delivery options', 'alarmmanager') . '</summary>';
 	alarmmanager_textarea('transport_json', 'Delivery options JSON', alarmmanager_json_text($transport));
-	print '</details></details><div class="alarmmanagerEndpointActions alarmmanagerFullWidth"><a href="alarmmanager_admin.php?section=test">' . __esc('Preview or test a saved destination', 'alarmmanager') . '</a><div>' . ($new ? '<a href="alarmmanager_admin.php?section=endpoints">' . __esc('Cancel', 'alarmmanager') . '</a>' : '');
-	print '<button type="submit">' . __esc('Save endpoint', 'alarmmanager') . '</button></div></div></form>';
+	print '</details></details><p class="alarmmanagerFullWidth alarmmanagerHint">' . __esc('Test destination saves the current settings and queues a sample alarm for this destination. Enable the destination before testing.', 'alarmmanager') . '</p><div class="alarmmanagerEndpointActions alarmmanagerFullWidth"><div>' . ($new ? '<a href="alarmmanager_admin.php?section=endpoints">' . __esc('Cancel', 'alarmmanager') . '</a>' : '');
+	print '<button type="submit">' . __esc('Save endpoint', 'alarmmanager') . '</button><button type="submit" name="test_destination" value="yes">' . __esc('Test destination', 'alarmmanager') . '</button></div></div></form>';
 
 	if (!$new) {
 		alarmmanager_form_start('endpoint_delete', $revision, ['id' => $endpoint['id']]);
@@ -288,7 +288,11 @@ function alarmmanager_admin_markup(array $state, string $section): void {
 	} elseif ($section === 'collectors') {
 		alarmmanager_remote_markup();
 	} elseif ($section === 'endpoints') {
-		print '<p>' . __esc('Create an integration, configure its destination and credentials, preview and test a sample alarm, then select it directly in a rule.', 'alarmmanager') . '</p>';
+		if (isset($_SESSION['alarmmanager_test_result'])) {
+			print '<p role="status">' . html_escape($_SESSION['alarmmanager_test_result']) . '</p><p><a href="alarmmanager.php?tab=events&amp;job=delivery">' . __esc('View delivery results', 'alarmmanager') . '</a></p>';
+			unset($_SESSION['alarmmanager_test_result']);
+		}
+		print '<p>' . __esc('Create an integration, configure its destination and credentials, test a sample alarm here, then select it directly in a rule.', 'alarmmanager') . '</p>';
 		print '<form method="get" action="alarmmanager_admin.php" class="alarmmanagerTemplatePicker"><input type="hidden" name="section" value="endpoints"><input type="hidden" name="add" value="1"><label>' . __esc('Start a new integration from a template', 'alarmmanager') . '<select name="integration_template"><option value="">' . __esc('Blank endpoint', 'alarmmanager') . '</option>';
 		$templates = alarmmanager_integration_templates();
 		$selected  = (string) get_filter_request_var('integration_template', FILTER_CALLBACK, ['options' => static fn ($value) => is_string($value) && isset($templates[$value]) ? $value : false, 'default' => '']);
@@ -370,31 +374,6 @@ function alarmmanager_admin_markup(array $state, string $section): void {
 		alarmmanager_form_start('key_rotate', $revision);
 		alarmmanager_checkbox('confirmed', 'Confirm local key rotation; create a protected backup before and after');
 		print '<button type="submit">' . __esc('Rotate local key', 'alarmmanager') . '</button></form>';
-	} elseif ($section === 'test') {
-		if (isset($_SESSION['alarmmanager_test_result'])) {
-			print '<pre class="alarmmanagerFullWidth">' . html_escape($_SESSION['alarmmanager_test_result']) . '</pre>';
-			unset($_SESSION['alarmmanager_test_result']);
-		}
-		print '<p><a href="alarmmanager.php?tab=events&amp;job=delivery">' . __esc('View delivery results', 'alarmmanager') . '</a></p>';
-
-		foreach (['preview' => 'Preview (no traffic)', 'test_send' => 'Queue explicit test send'] as $action => $label) {
-			alarmmanager_form_start($action, $revision);
-			print '<h2>' . __esc($label, 'alarmmanager') . '</h2>';
-
-			if ($action === 'test_send') {
-				print '<p class="alarmmanagerFullWidth">' . __esc('Enable and save the endpoint before sending a test. Preview is also available for disabled endpoints and sends no traffic.', 'alarmmanager') . '</p>';
-			}
-			print '<label>' . __esc('Endpoint', 'alarmmanager') . '<select name="id">';
-
-			foreach ($config['endpoints'] as $ep) {
-				print '<option value="' . $ep['id'] . '">' . html_escape($ep['name'] . ($ep['enabled'] ? '' : __(' (disabled)', 'alarmmanager'))) . '</option>';
-			} print '</select></label>';
-			alarmmanager_textarea('event_json', 'Normalized sample event JSON', file_get_contents(__DIR__ . '/../examples/event.json'), 65536);
-
-			if ($action === 'test_send') {
-				alarmmanager_checkbox('confirmed', 'Confirm this will notify the selected endpoint through workers');
-			} print '<button type="submit">' . __esc($label, 'alarmmanager') . '</button></form>';
-		}
 	} elseif ($section === 'configuration') {
 		$summaries = $config['device_summaries'] ?? ['offline' => 'Device Offline', 'recovering' => 'Device Recovering', 'online' => 'Device Online'];
 		alarmmanager_form_start('settings_save', $revision);

@@ -514,6 +514,22 @@ final class WebTest extends AlarmManagerTestCase {
 					$this->assertSame('queue_cleared', $after['last_error']);
 				}
 			}
+			$state = alarmmanager_admin_configuration();
+			$test = ['action' => 'endpoint_save', 'revision' => $state['revision'], 'name' => 'Inline current destination', 'type' => 'webhook', 'url' => 'https://example.test/current-form', 'transport_json' => '{}', 'mapping_json' => '{"default":[{"to":"text","constant":"CURRENT_FORM_VALUE"}]}', 'test_destination' => 'yes'];
+			$this->wreject(fn () => $this->waction($test), 'Testing a disabled draft must not save it or queue delivery');
+			$this->assertSame($state['revision'], alarmmanager_admin_configuration()['revision']);
+			$before = (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_deliveries');
+			$test['enabled'] = 'yes';
+			$result = $this->waction($test);
+			$this->assertStringContainsString('Destination saved. Test queued for delivery workers; event row ', $result);
+			$this->assertSame($before + 1, (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_deliveries'), 'Inline test queues only the current destination');
+			$endpoint = alarmmanager_db_row('SELECT id, type FROM plugin_alarmmanager_endpoints WHERE name = ?', ['Inline current destination']);
+			$transport = alarmmanager_endpoint_transport($endpoint);
+			$this->assertSame('https://example.test/current-form', $transport['url']);
+			$this->assertSame('CURRENT_FORM_VALUE', $transport['mapping']['default'][0]['constant']);
+			$this->wreject(fn () => $this->waction($test), 'Stale form must not queue a second test');
+			$this->assertSame($before + 1, (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_deliveries'));
+
 		} finally {
 			if ($GLOBALS['alarmmanager_test_db']->inTransaction()) {
 				$GLOBALS['alarmmanager_test_db']->rollBack();

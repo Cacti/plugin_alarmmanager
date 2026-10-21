@@ -22,6 +22,25 @@
  +-------------------------------------------------------------------------+
 */
 final class RuleEditorTest extends AlarmManagerTestCase {
+	public function testEndpointTestingIsInTheEditor(): void {
+		self::alarmmanager_test_load('includes/admin_view.php');
+		if (!function_exists('csrf_get_tokens')) {
+			function csrf_get_tokens() { return 'unit-test'; }
+		}
+		ob_start();
+		try {
+			alarmmanager_endpoint_editor(['id' => 7, 'name' => 'Destination', 'type' => 'webhook', 'enabled' => true, 'transport' => []], 1);
+			$html = ob_get_contents();
+		} finally {
+			ob_end_clean();
+		}
+		$this->assertStringContainsString('name="test_destination" value="yes"', $html);
+		$this->assertStringNotContainsString('section=test', $html);
+		$this->assertStringContainsString('Test destination saves the current settings', $html);
+		$this->assertLessThan(strpos($html, 'name="test_destination"'), strpos($html, '>Save endpoint</button>'), 'Implicit form submission must default to saving, not sending a test.');
+		$this->assertArrayNotHasKey('test', alarmmanager_admin_sections());
+	}
+
 	public function testSharedDaemonSettingsValidation(): void {
 		self::alarmmanager_test_load('includes/admin.php');
 		$settings = alarmmanager_admin_supervisor_settings(['processing_workers' => '3', 'delivery_workers' => '0']);

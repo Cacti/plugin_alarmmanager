@@ -25,7 +25,7 @@ require_once(__DIR__ . '/../../include/auth.php');
 require_once(__DIR__ . '/includes/admin_view.php');
 header('Cache-Control: no-store');
 
-const ALARMMANAGER_SECTIONS = ['endpoints', 'collectors', 'rules', 'credentials', 'test', 'configuration', 'daemon', 'queue', 'health'];
+const ALARMMANAGER_SECTIONS = ['endpoints', 'collectors', 'rules', 'credentials', 'configuration', 'daemon', 'queue', 'health'];
 
 try {
 	if (!alarmmanager_web_admin()) {
@@ -44,7 +44,7 @@ try {
 		try {
 			$result = alarmmanager_admin_action($post);
 
-			if (in_array($post['action'] ?? '', ['preview', 'test_send'], true)) {
+			if (in_array($post['action'] ?? '', ['preview', 'test_send'], true) || (($post['action'] ?? '') === 'endpoint_save' && ($post['test_destination'] ?? '') === 'yes')) {
 				$_SESSION['alarmmanager_test_result'] = $result;
 			}
 			raise_message('alarmmanager_notice', __('The administration action succeeded.', 'alarmmanager'), MESSAGE_LEVEL_INFO);
@@ -54,7 +54,7 @@ try {
 			raise_message('alarmmanager_notice', __($message, 'alarmmanager'), MESSAGE_LEVEL_ERROR);
 		}
 		cacti_redirect(match ($post['action'] ?? '') {
-			'replay' => 'alarmmanager.php?tab=events&event_id=' . max(0, (int) ($post['event_id'] ?? 0)), 'queue_pause', 'queue_resume', 'queue_clear' => 'alarmmanager_admin.php?section=queue', 'preview', 'test_send' => 'alarmmanager_admin.php?section=test', 'daemon_save', 'settings_save', 'device_summaries_save', 'configuration_save' => 'alarmmanager_admin.php?section=configuration', 'rule_save' => 'alarmmanager_admin.php?section=rules', default => 'alarmmanager_admin.php'
+			'replay' => 'alarmmanager.php?tab=events&event_id=' . max(0, (int) ($post['event_id'] ?? 0)), 'queue_pause', 'queue_resume', 'queue_clear' => 'alarmmanager_admin.php?section=queue', 'preview', 'test_send' => 'alarmmanager_admin.php?section=endpoints', 'daemon_save', 'settings_save', 'device_summaries_save', 'configuration_save' => 'alarmmanager_admin.php?section=configuration', 'rule_save' => 'alarmmanager_admin.php?section=rules', default => 'alarmmanager_admin.php'
 		});
 	}
 

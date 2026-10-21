@@ -55,15 +55,13 @@
  function initMappings(app) {
   app.querySelectorAll('.alarmmanagerMapping').forEach(fieldset => {
    const textarea=fieldset.querySelector('[name=mapping_json]'), holder=fieldset.querySelector('.alarmmanagerMappingBuilder'), form=fieldset.closest('form'), endpointType=form.querySelector('[name=type]');
-   const transition=node('select'); ['default','raised','updated','reminder','recovered','occurrence'].forEach((key,index)=>{const option=node('option',['All alarm states','New alarm','Updated alarm','Reminder','Recovery','Occurrence'][index]); option.value=key; transition.append(option);});
-   const states=node('details'), summary=node('summary','Customize messages by alarm state'), add=node('button','Add field'), inherit=node('button','Use standard message'), status=node('p'); add.type=inherit.type='button';
-   states.className='alarmmanagerMappingState';
-   const stateLabel=node('label','Message for ');stateLabel.append(transition);states.append(summary,stateLabel,inherit);const rows=node('div');holder.append(status,rows,add,states);
+   const add=node('button','Add field'), status=node('p'), rows=node('div');add.type='button';holder.append(status,rows,add);
+   const selectedState=()=>fieldset.dataset.mappingState||'default';
    let mapping={};
    const parseValue=text=>{try{return JSON.parse(text);}catch{return text;}};
    const save=()=>{textarea.value=JSON.stringify(mapping,null,2);};
    function render() {
-    rows.replaceChildren(); const selected=transition.value, email=endpointType.value==='email';add.hidden=email; inherit.disabled=selected==='default'; status.textContent=selected!=='default' && !(selected in mapping)?'Using the standard message. Add a field to customize this alarm state.':'';
+    rows.replaceChildren(); const selected=selectedState(), email=endpointType.value==='email';add.hidden=email;status.textContent='';
     const items=mapping[selected] || [], extraEmail=node('details');extraEmail.append(node('summary','Additional message fields'));
     items.forEach((item,index)=>{
      const row=node('div',undefined,'alarmmanagerMappingRow');
@@ -99,11 +97,10 @@
     if(extraEmail.children.length>1)rows.append(extraEmail);
    }
    function read() {try {const value=JSON.parse(textarea.value);if(!value||typeof value!=='object'||Array.isArray(value)||Object.values(value).some(v=>!Array.isArray(v)))throw Error();mapping=value;textarea.setCustomValidity('');render();}catch{status.textContent='Invalid message configuration. Correct the advanced configuration to continue.';fieldset.querySelector('.alarmmanagerRawMapping').open=true;textarea.setCustomValidity('Invalid message configuration.');}}
-   function addField(to,source){const key=transition.value;mapping[key]??=[];if(mapping[key].length>=64){status.textContent='Maximum 64 fields per message.';return;}mapping[key].push({to,source,type:'identity',required:false});save();render();}
-   add.addEventListener('click',()=>addField('field_'+((mapping[transition.value]||[]).length+1),'device.hostname'));
-   inherit.addEventListener('click',()=>{if(transition.value!=='default'){delete mapping[transition.value];save();render();}});
+   function addField(to,source){const key=selectedState();mapping[key]??=[];if(mapping[key].length>=64){status.textContent='Maximum 64 fields per message.';return;}mapping[key].push({to,source,type:'identity',required:false});save();render();}
+   add.addEventListener('click',()=>addField('field_'+((mapping[selectedState()]||[]).length+1),'device.hostname'));
    function changeType(){if(endpointType.value==='email'){mapping.default??=[];for(const item of [{to:'subject',source:'alarm.summary',type:'string',required:true},{to:'body',template:fieldset.dataset.messageTemplate,type:'string',required:false}]){if(!mapping.default.some(existing=>existing.to===item.to||existing.to.startsWith(item.to+'.')))mapping.default.push(item);}save();}render();}
-   jQuery(form).on('change','[name=type]',changeType);transition.addEventListener('change',render); textarea.addEventListener('input',read);read();if(!form.querySelector('[name=id]'))changeType();
+   jQuery(form).on('change','[name=type]',changeType);textarea.addEventListener('input',read);read();if(!form.querySelector('[name=id]'))changeType();
   });
  }
  function initLists(app) {
@@ -165,8 +162,8 @@
  }
  function initServiceNow(app) {
   app.querySelectorAll('[data-servicenow-presets]').forEach(select=>{
-   const form=select.closest('form'), presets=JSON.parse(select.dataset.servicenowPresets), mapping=form.querySelector('[name=mapping_json]'), state=form.querySelector('.alarmmanagerMappingState select');
-   function showFields() {state.value=select.value==='incident'?'raised':'default';state.dispatchEvent(new Event('change',{bubbles:true}));}
+   const form=select.closest('form'), presets=JSON.parse(select.dataset.servicenowPresets), mapping=form.querySelector('[name=mapping_json]'), fieldset=form.querySelector('.alarmmanagerMapping');
+   function showFields() {fieldset.dataset.mappingState=select.value==='incident'?'raised':'default';mapping.dispatchEvent(new Event('input',{bubbles:true}));}
    jQuery(form).on('change','[name=servicenow_table]',()=>{
     const preset=presets[select.value], url=form.querySelector('[name=url]'), raw=form.querySelector('[name=transport_json]');
     let transport;try {transport=JSON.parse(raw.value);}catch{return;}

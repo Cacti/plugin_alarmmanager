@@ -108,7 +108,7 @@ function plugin_alarmmanager_uninstall(): void {
 
 /** Shared labels for Cacti's console menu and the administration page heading. */
 function alarmmanager_admin_sections(): array {
-	return ['endpoints' => 'Alarm Destinations', 'collectors' => 'Collectors and history', 'rules' => 'Alarm Rules', 'credentials' => 'Credentials', 'test' => 'Preview and test', 'configuration' => 'Configuration', 'queue' => 'Alarm Queue', 'health' => 'Workers and failed processing'];
+	return ['endpoints' => 'Alarm Destinations', 'collectors' => 'Collectors and history', 'rules' => 'Alarm Rules', 'credentials' => 'Credentials', 'configuration' => 'Configuration', 'queue' => 'Alarm Queue', 'health' => 'Workers and failed processing'];
 }
 
 function alarmmanager_config_arrays(): void {

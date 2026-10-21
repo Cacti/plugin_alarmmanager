@@ -189,7 +189,7 @@ final class SetupTest extends AlarmManagerTestCase {
 			$GLOBALS['menu_glyphs'] = [];
 			alarmmanager_config_arrays();
 			$items = $GLOBALS['menu']['Alarm Manager Settings'];
-			$this->assertCount(8, $items);
+			$this->assertCount(7, $items);
 			foreach (alarmmanager_admin_sections() as $section => $label) {
 				$this->assertSame($label, $items['plugins/alarmmanager/alarmmanager_admin.php?action=' . $section . '&section=' . $section]);
 			}

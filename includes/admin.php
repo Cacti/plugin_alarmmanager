@@ -326,6 +326,11 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 	if (!in_array($action, ['configuration_save', 'settings_save', 'device_summaries_save', 'endpoint_save', 'endpoint_delete', 'rule_save'], true)) {
 		throw new InvalidArgumentException('invalid_action');
 	}
+	$test_destination = $action === 'endpoint_save' && ($input['test_destination'] ?? '') === 'yes';
+
+	if ($test_destination && !isset($input['enabled'])) {
+		throw new InvalidArgumentException('test_endpoint_unavailable');
+	}
 	$revision = alarmmanager_admin_int($input['revision'] ?? null, 0, PHP_INT_MAX);
 	$state    = alarmmanager_admin_configuration();
 
@@ -467,7 +472,7 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 	}
 
 	try {
-		alarmmanager_transaction(function () use ($settings, $revision, $credential, $create_section, $id, $supervisor, &$supervisor_saved): void {
+		alarmmanager_transaction(function () use ($settings, $revision, $credential, $create_section, &$id, $supervisor, &$supervisor_saved): void {
 			if ($create_section !== null) {
 				$index          = array_key_last($settings[$create_section]);
 				$item           = $settings[$create_section][$index];
@@ -497,6 +502,17 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 		throw $error;
 	}
 	unset($GLOBALS['alarmmanager_route_cache']);
+
+	if ($test_destination) {
+		try {
+			$sample = alarmmanager_admin_json(file_get_contents(__DIR__ . '/../examples/event.json'), 65536);
+			$event_id = alarmmanager_enqueue_test($sample, $id);
+		} catch (Throwable $error) {
+			throw new RuntimeException('test_after_save_failed', 0, $error);
+		}
+
+		return 'Destination saved. Test queued for delivery workers; event row ' . $event_id . '.';
+	}
 
 	return 'Configuration saved.';
 }
@@ -568,7 +584,8 @@ function alarmmanager_admin_error_message(Throwable $error): string {
 		'daemon_config_write_failed'     => 'Daemon settings could not be saved. Check the Cacti cache directory permissions.',
 		'endpoint_in_rule'               => 'Remove this integration from notification rules before deleting.',
 		'endpoint_has_active_deliveries' => 'This endpoint has queued or running deliveries. Resolve them before deleting.',
-		'test_endpoint_unavailable'      => 'The selected endpoint is disabled or no longer exists. Enable and save it before queuing a test send.',
+		'test_endpoint_unavailable'      => 'Enable the destination before testing it.',
+		'test_after_save_failed'         => 'Destination settings were saved, but the test could not be queued. Check the destination mapping and worker availability before trying again.',
 		'invalid_credentials'            => 'Enter the credentials for the selected authentication type, choose Keep saved credentials, or choose None for an incoming webhook.',
 		'confirmation_required'          => 'Select the confirmation checkbox before continuing.',
 		'invalid_configuration_upload'   => 'Choose a readable JSON configuration file no larger than 1 MiB. Check the server upload limit if uploading fails.',

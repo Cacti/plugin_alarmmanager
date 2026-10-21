@@ -237,7 +237,7 @@
 .alarmmanagerEndpointEditor fieldset > label { margin-bottom:12px; }
 .alarmmanagerEndpointEditor fieldset > label input:not([type=checkbox]) { width:100%; }
 .alarmmanagerEndpointEditor fieldset > p { line-height:1.5; }
-.alarmmanagerEndpointActions { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+.alarmmanagerEndpointActions { display:flex; align-items:center; justify-content:flex-end; flex-wrap:wrap; gap:12px; }
 .alarmmanagerEndpointActions > div { display:flex; align-items:center; flex-wrap:wrap; gap:12px; }
 .alarmmanagerDashboardCard .alarmmanagerEndpointDelete { display:flex; flex-direction:column; align-items:flex-start; gap:12px; margin:0 16px 16px; padding:16px 0 0; border-top:1px solid var(--search-border); border-radius:0; }
 .alarmmanagerEndpointDelete h3, .alarmmanagerEndpointDelete p { margin:0; line-height:1.5; }
@@ -293,3 +293,8 @@
 @media(max-width:600px) { #alarmmanager_app .alarmmanagerSummaryEditor > label { grid-template-columns:minmax(0,1fr); gap:6px; } }
 
 #alarmmanager_app .alarmmanagerSummaryEditor > label:has(input[type=checkbox]) { display:flex; gap:8px; }
+
+#alarmmanager_app .alarmmanagerTestDestination { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+
+.alarmmanagerEndpointActions button[name=test_destination] { order:1; }
+.alarmmanagerEndpointActions button:not([name]) { order:2; }

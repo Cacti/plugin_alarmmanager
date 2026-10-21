@@ -50,6 +50,7 @@ const render=endpoint=>execFileSync('php',['-r',`function __($s,...$a){return $s
   for(const template of Object.values(templates)) {
    await load({...template,enabled:false});
    check(!(await page.locator('[name=enabled]').isChecked()),'Template draft is disabled');
+   check(await page.getByText('Customize messages by alarm state',{exact:true}).count()===0,'Alarm state customization controls are removed');
    check(await page.locator('[name=id]').count()===0,'Template draft has no saved identity');
    check((await page.locator('[name=name]').inputValue())===template.name,'Template fills integration name');
    assert.deepEqual(JSON.parse(await page.locator('[name=mapping_json]').inputValue()),template.transport.mapping,'Template retains its provider-specific mapping');checks++;

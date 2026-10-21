@@ -120,8 +120,12 @@ function alarmmanager_dashboard_response(array $scope): void {
 		alarmmanager_view_error($error);
 	}
 }
-function alarmmanager_web_open(array $scope, string $tab): void {
-	print '<main id="alarmmanager_app" data-theme="' . html_escape((string) get_selected_theme()) . '"><h1>' . __esc('Alarm Manager', 'alarmmanager') . '</h1>';
+function alarmmanager_web_open(array $scope, string $tab, bool $show_title = true): void {
+	print '<main id="alarmmanager_app" data-theme="' . html_escape((string) get_selected_theme()) . '">';
+
+	if ($show_title) {
+		print '<h1>' . __esc('Alarm Manager', 'alarmmanager') . '</h1>';
+	}
 
 	if ($tab === 'admin') {
 		return;
