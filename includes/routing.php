@@ -114,8 +114,24 @@ function alarmmanager_rule_device_fields(): array {
 	return $fields;
 }
 
+/** @return array<string, array<string, mixed>> */
+function alarmmanager_rule_alarm_fields(): array {
+	$fields = [];
+
+	foreach (['source' => __('Alarm source', 'alarmmanager'), 'severity' => __('Severity', 'alarmmanager'), 'transition' => __('Alarm change', 'alarmmanager'), 'summary' => __('Alarm summary', 'alarmmanager')] as $key => $label) {
+		$fields[$key] = ['label' => $label, 'column' => 'a.' . $key, 'operators' => $key === 'summary' ? ['contains', '=', '!=', 'begins', 'ends'] : ['=', '!=']];
+	}
+
+	foreach (['device_id' => __('Device', 'alarmmanager'), 'collector_id' => __('Collector', 'alarmmanager')] as $key => $label) {
+		$fields[$key] = ['label' => $label, 'column' => 'CAST(a.' . $key . ' AS UNSIGNED)', 'operators' => ['=', '!='], 'type' => 'integer'];
+	}
+	$fields['tags'] = ['label' => __('Device tag', 'alarmmanager'), 'column' => 'a.tags', 'operators' => ['has']];
+
+	return $fields;
+}
+
 function alarmmanager_validate_rule_definition(array $rule): array {
-	alarmmanager_event_keys($rule, ['match', 'device_query', 'schedule', 'maintenance_schedule', 'suppress_acknowledged', 'cooldown_seconds', 'duplicate_seconds']);
+	alarmmanager_event_keys($rule, ['match', 'device_query', 'alarm_query', 'schedule', 'maintenance_schedule', 'suppress_acknowledged', 'cooldown_seconds', 'duplicate_seconds']);
 	$match = $rule['match'] ?? [];
 
 	if (!is_array($match)) {
@@ -153,7 +169,18 @@ function alarmmanager_validate_rule_definition(array $rule): array {
 		AlarmManager\QueryBuilder::compile($device_query, alarmmanager_rule_device_fields());
 	}
 
+	$alarm_query = $rule['alarm_query'] ?? '';
+
+	if (!is_string($alarm_query)) {
+		throw new InvalidArgumentException('invalid_alarm_filter');
+	}
+
+	if ($alarm_query !== '') {
+		AlarmManager\QueryBuilder::compile($alarm_query, alarmmanager_rule_alarm_fields());
+	}
+
 	return [
+		'alarm_query'           => $alarm_query,
 		'device_query'          => $device_query,
 		'match'                 => $match, 'schedule' => alarmmanager_validate_schedule($rule['schedule'] ?? null),
 		'maintenance_schedule'  => alarmmanager_validate_schedule($rule['maintenance_schedule'] ?? null),
@@ -173,6 +200,15 @@ function alarmmanager_rule_matches(array $rule, array $event): bool {
 
 	if (isset($rule['match']['tags']) && array_diff($rule['match']['tags'], $event['device']['tags'])) {
 		return false;
+	}
+
+	if (($rule['alarm_query'] ?? '') !== '') {
+		$query  = AlarmManager\QueryBuilder::compile($rule['alarm_query'], alarmmanager_rule_alarm_fields());
+		$values = [$event['source'], $event['severity'], $event['transition'], $event['summary'], $event['device']['id'], $event['collector_id'], json_encode($event['device']['tags'], JSON_THROW_ON_ERROR)];
+
+		if (!alarmmanager_db_row('SELECT 1 AS matched FROM (SELECT ? AS source, ? AS severity, ? AS transition, ? AS summary, ? AS device_id, ? AS collector_id, ? AS tags) AS a WHERE ' . $query['sql'], array_merge($values, $query['params']))) {
+			return false;
+		}
 	}
 
 	if (($rule['device_query'] ?? '') !== '') {

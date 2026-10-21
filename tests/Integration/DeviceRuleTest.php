@@ -50,6 +50,24 @@ final class DeviceRuleTest extends AlarmManagerTestCase {
 			$missing                 = $event;
 			$missing['device']['id'] = 99;
 			$this->assertFalse(alarmmanager_rule_matches($make([['field' => 'hostname', 'operator' => '!=', 'value' => 'anything']]), $missing));
+			$alarm                   = $event;
+			$alarm['source']         = 'thold';
+			$alarm['severity']       = 'critical';
+			$alarm['summary']        = 'Disk %_! outage';
+			$alarm['device']['tags'] = ['core', 'branch'];
+			$alarmPolicy             = static fn (array $rows): array => alarmmanager_validate_rule_definition(['alarm_query' => json_encode(['version' => 1, 'conditions' => $rows], JSON_THROW_ON_ERROR)]);
+			$alarmRows               = [['rows' => [['field' => 'source', 'operator' => '=', 'value' => 'syslog'], ['join' => 'OR', 'field' => 'source', 'operator' => '=', 'value' => 'thold']]], ['join' => 'AND', 'field' => 'severity', 'operator' => '=', 'value' => 'critical'], ['join' => 'AND', 'negative' => true, 'field' => 'summary', 'operator' => 'contains', 'value' => 'maintenance']];
+			$this->assertTrue(alarmmanager_rule_matches($alarmPolicy($alarmRows), $alarm), 'Grouped OR with AND and NOT matches');
+			$alarm['severity'] = 'info';
+			$this->assertFalse(alarmmanager_rule_matches($alarmPolicy($alarmRows), $alarm));
+			$alarm['severity'] = 'critical';
+			$alarm['summary']  = 'maintenance outage';
+			$this->assertFalse(alarmmanager_rule_matches($alarmPolicy($alarmRows), $alarm), 'NOT excludes matching summaries');
+			$this->assertTrue(alarmmanager_rule_matches($alarmPolicy([['field' => 'tags', 'operator' => 'has', 'value' => 'core']]), $alarm));
+			$this->assertFalse(alarmmanager_rule_matches($alarmPolicy([['field' => 'tags', 'operator' => 'has', 'value' => 'cor']]), $alarm), 'Tag matching uses complete tags');
+			$this->assertFalse(alarmmanager_rule_matches($alarmPolicy([['field' => 'summary', 'operator' => 'contains', 'value' => "%_!' OR 1=1"]]), $alarm), 'Alarm values are parameterized literals');
+			$this->assertTrue(alarmmanager_rule_matches($alarmPolicy([['field' => 'device_id', 'operator' => '=', 'value' => '42'], ['join' => 'AND', 'field' => 'collector_id', 'operator' => '=', 'value' => '2']]), $alarm));
+			$policy['alarm_query'] = json_encode(['version' => 1, 'conditions' => [['field' => 'source', 'operator' => '=', 'value' => $event['source']]]], JSON_THROW_ON_ERROR);
 			alarmmanager_apply_configuration(['version' => 1, 'endpoints' => [
 				['id' => 1, 'name' => 'Slack', 'type' => 'webhook', 'transport' => ['url' => 'https://slack.example.test']],
 				['id' => 2, 'name' => 'Second integration', 'type' => 'webhook', 'transport' => ['url' => 'https://other.example.test']]

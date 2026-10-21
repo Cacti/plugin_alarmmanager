@@ -149,6 +149,10 @@ class QueryBuilder {
 		$column = $definition['column'];
 
 		switch ($operator) {
+			case 'has':
+				$params[] = $value;
+
+				return "(JSON_CONTAINS($column, JSON_QUOTE(?)) = 1)";
 			case 'contains':
 				$params[] = '%' . self::escapeLike($value) . '%';
 

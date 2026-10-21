@@ -155,6 +155,37 @@ function alarmmanager_rule_schedule_editor(string $field, string $label, ?array 
 	alarmmanager_input($field . '_end', 'End time', $schedule['end'] ?? '17:00', 'time', 'required');
 	print '<p class="alarmmanagerHint">' . __esc('Times use the selected timezone and the alarm event time. An end time before the start runs overnight. Equal times cover the entire selected day.', 'alarmmanager') . '</p></fieldset></section>';
 }
+/** Existing saved selectors are shown as equivalent condition groups.
+ * @param array<string, mixed> $policy
+ */
+function alarmmanager_rule_alarm_query(array $policy): string {
+	if ($policy['alarm_query'] !== '' || !$policy['match']) {
+		return $policy['alarm_query'];
+	}
+	$conditions = [];
+
+	foreach (['sources' => 'source', 'severities' => 'severity', 'transitions' => 'transition', 'device_ids' => 'device_id', 'collector_ids' => 'collector_id', 'tags' => 'tags'] as $key => $field) {
+		if (!array_key_exists($key, $policy['match'])) {
+			continue;
+		}
+		$rows = [];
+
+		foreach ($policy['match'][$key] as $value) {
+			$rows[] = ['join' => $key === 'tags' ? 'AND' : 'OR', 'field' => $field, 'operator' => $key === 'tags' ? 'has' : '=', 'value' => (string) $value];
+		}
+
+		if (!$rows && $key !== 'tags') {
+			$rows = [['field' => 'source', 'operator' => '=', 'value' => 'none'], ['join' => 'AND', 'negative' => true, 'field' => 'source', 'operator' => '=', 'value' => 'none']];
+		}
+
+		if ($rows) {
+			$conditions[] = ['join' => 'AND', 'rows' => $rows];
+		}
+	}
+
+	return $conditions ? json_encode(['version' => 1, 'conditions' => $conditions], JSON_THROW_ON_ERROR) : '';
+}
+
 /**
  * @param array<string, mixed>                     $item
  * @param array<string, mixed>                     $configuration
@@ -176,63 +207,36 @@ function alarmmanager_rule_editor(array $item, int $revision, array $configurati
 	}
 	print '</div><p class="alarmmanagerHint">' . __esc('Select one or more alarm destinations. Disabled destinations do not send alarms.', 'alarmmanager') . '</p></fieldset></fieldset>';
 
+	print '<div class="alarmmanagerRuleSection">';
+	alarmmanager_checkbox('all_devices', 'Applies to all devices', $policy['device_query'] === '');
+	print '</div>';
 	$device_fields = alarmmanager_rule_device_fields();
 
 	foreach (['poller_id' => 'collector_ids', 'site_id' => 'site_ids', 'host_template_id' => 'template_ids'] as $field => $choice) {
 		$device_fields[$field]['choices'] = (object) ([0 => __('None', 'alarmmanager')] + ($choices[$choice] ?? []));
 	}
-	print '<fieldset class="alarmmanagerRuleSection alarmmanagerQueryBuilder" data-query-fields="' . html_escape(json_encode($device_fields, JSON_THROW_ON_ERROR)) . '"><legend>' . __esc('Match devices', 'alarmmanager') . '</legend><p class="alarmmanagerHint">' . __esc('Build device conditions using AND, OR and groups. These conditions use the current Cacti device settings and must also satisfy any alarm filters below. With no device conditions, all devices can match.', 'alarmmanager') . '</p><div class="alarmmanagerQueryRows"></div><textarea name="device_query" maxlength="8192" hidden>' . html_escape($policy['device_query']) . '</textarea></fieldset>';
-	print '<fieldset class="alarmmanagerRuleSection"><legend>' . __esc('Match alarms', 'alarmmanager') . '</legend><p class="alarmmanagerHint">' . __esc('With no filters enabled, this rule matches all alarms. An alarm must match every enabled filter. Select one or more values per filter; for tags, the device must have all listed tags.', 'alarmmanager') . '</p><div class="alarmmanagerRuleFilterGrid">';
+	print '<fieldset class="alarmmanagerRuleSection alarmmanagerQueryBuilder"' . ($policy['device_query'] === '' ? ' hidden disabled' : '') . ' data-query-fields="' . html_escape(json_encode($device_fields, JSON_THROW_ON_ERROR)) . '"><legend>' . __esc('Match devices', 'alarmmanager') . '</legend><p class="alarmmanagerHint">' . __esc('Build device conditions using AND, OR and groups. These conditions use the current Cacti device settings and must also satisfy any alarm filters below. With no device conditions, all devices can match.', 'alarmmanager') . '</p><div class="alarmmanagerQueryRows"></div><textarea name="device_query" maxlength="8192" hidden>' . html_escape($policy['device_query']) . '</textarea></fieldset>';
+	$alarm_query = alarmmanager_rule_alarm_query($policy);
+	print '<div class="alarmmanagerRuleSection">';
+	alarmmanager_checkbox('all_alarm_types', 'Applies to all alarm types', $alarm_query === '');
+	print '</div>';
+	$alarm_fields = alarmmanager_rule_alarm_fields();
 
-	foreach (['sources' => __('Filter by alarm source', 'alarmmanager'), 'severities' => 'Only these severities', 'transitions' => 'Only these alarm changes', 'device_ids' => 'Only these devices', 'collector_ids' => 'Only these collectors', 'tags' => 'Require these device tags'] as $field => $label) {
-		$values = $policy['match'][$field] ?? [];
-		print '<section class="alarmmanagerRuleOption">';
-		alarmmanager_checkbox('filter_' . $field, $label, array_key_exists($field, $policy['match']));
-		print '<fieldset class="alarmmanagerRuleFields" data-rule-fields' . (!array_key_exists($field, $policy['match']) ? ' disabled hidden' : '') . '>';
-
-		if ($field === 'sources') {
-			print '<label>' . __esc('Alarm Source', 'alarmmanager') . '<select name="match_sources[]" multiple aria-label="' . __esc('Alarm Source', 'alarmmanager') . '">';
-			$sources = array_map('strval', array_keys($choices['sources'] ?? []));
-			$sources = array_values(array_unique(array_merge($sources, $values)));
-			sort($sources);
-
-			foreach ($sources as $source) {
-				$label = match ($source) {
-					'cacti_device' => __('Device Status', 'alarmmanager'),
-					'syslog'       => __('Syslog', 'alarmmanager'),
-					'thold'        => __('Thold', 'alarmmanager'),
-					default        => $source
-				};
-				print '<option value="' . html_escape($source) . '"' . (in_array($source, $values, true) ? ' selected' : '') . '>' . html_escape($label) . '</option>';
-			}
-
-			print '</select></label><p class="alarmmanagerHint">' . __esc('Select the plugins or systems whose alarms this rule should match. Turn this filter off to accept alarms from any source.', 'alarmmanager') . '</p>';
-
-			if (!$sources) {
-				print '<p class="alarmmanagerHint">' . __esc('No alarm sources detected yet. Sources appear after their first alarm.', 'alarmmanager') . '</p>';
-			}
-		} elseif (isset($choices[$field])) {
-			print '<label>' . __esc('Choose values', 'alarmmanager') . '<select name="match_' . $field . '[]" multiple>';
-			$options = $choices[$field];
-
-			foreach ($values as $value) {
-				if (!isset($options[$value])) {
-					$options[$value] = $value . ' (' . __('not listed', 'alarmmanager') . ')';
-				}
-			}
-
-			foreach ($options as $value => $name) {
-				print '<option value="' . html_escape((string) $value) . '"' . (in_array($value, $values, true) ? ' selected' : '') . '>' . html_escape($name) . '</option>';
-			}
-			print '</select></label>';
-		} else {
-			print '<div data-list-editor="' . $field . '">';
-			alarmmanager_textarea('match_' . $field, 'Device tags', json_encode($values, JSON_THROW_ON_ERROR), 8192);
-			print '</div>';
-		}
-		print '</fieldset></section>';
+	foreach (['source' => 'sources', 'severity' => 'severities', 'transition' => 'transitions', 'device_id' => 'device_ids', 'collector_id' => 'collector_ids'] as $field => $choice) {
+		$alarm_fields[$field]['choices'] = (object) ($choices[$choice] ?? []);
 	}
-	print '</div></fieldset><fieldset class="alarmmanagerRuleSection"><legend>' . __esc('Notification hours', 'alarmmanager') . '</legend><p class="alarmmanagerHint">' . __esc('By default, matching alarms can notify at any time. Turn on a schedule to limit when this rule matches.', 'alarmmanager') . '</p>';
+
+	foreach (['cacti_device' => __('Device Status', 'alarmmanager'), 'syslog' => __('Syslog', 'alarmmanager'), 'thold' => __('Thold', 'alarmmanager')] as $source => $label) {
+		if (isset($choices['sources'][$source])) {
+			$alarm_fields['source']['choices']->$source = $label;
+		}
+	}
+	print '<fieldset class="alarmmanagerRuleSection alarmmanagerQueryBuilder"' . ($alarm_query === '' ? ' hidden disabled' : '') . ' data-query-fields="' . html_escape(json_encode($alarm_fields, JSON_THROW_ON_ERROR)) . '"><legend>' . __esc('Match alarms', 'alarmmanager') . '</legend><p class="alarmmanagerHint">' . __esc('Build alarm conditions using AND, OR, NOT and groups. Alarms must also match the device conditions above.', 'alarmmanager') . '</p><div class="alarmmanagerQueryRows"></div><textarea name="alarm_query" maxlength="8192" hidden>' . html_escape($alarm_query) . '</textarea></fieldset>';
+
+	if (!$choices['sources']) {
+		print '<p class="alarmmanagerHint">' . __esc('No alarm sources detected yet. Sources appear after their first alarm.', 'alarmmanager') . '</p>';
+	}
+	print '<fieldset class="alarmmanagerRuleSection"><legend>' . __esc('Notification hours', 'alarmmanager') . '</legend><p class="alarmmanagerHint">' . __esc('By default, matching alarms can notify at any time. Turn on a schedule to limit when this rule matches.', 'alarmmanager') . '</p>';
 	alarmmanager_rule_schedule_editor('schedule', 'Only notify during these hours', $policy['schedule']);
 	print '</fieldset><fieldset class="alarmmanagerRuleSection"><legend>' . __esc('Suppress notifications', 'alarmmanager') . '</legend><p class="alarmmanagerHint">' . __esc('Suppressed alarms remain in history. Recovery notifications bypass acknowledgment, cooldown and duplicate suppression, but still follow notification hours and maintenance windows.', 'alarmmanager') . '</p>';
 	alarmmanager_checkbox('suppress_acknowledged', 'Pause notifications for acknowledged alarms', $policy['suppress_acknowledged']);

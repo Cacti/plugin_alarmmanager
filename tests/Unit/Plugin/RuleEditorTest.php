@@ -66,11 +66,28 @@ final class RuleEditorTest extends AlarmManagerTestCase {
 	public function testDisabledFiltersAndSchedulesDoNotRestrictRules(): void {
 		self::alarmmanager_test_load('includes/admin.php');
 		$policy = alarmmanager_admin_rule_policy(['rule_fields' => 'yes', 'match_sources' => 'ignored', 'schedule_days' => ['invalid']]);
+		$this->assertSame('', alarmmanager_admin_rule_policy(['rule_fields' => 'yes', 'all_devices' => 'yes', 'device_query' => 'ignored conditions'])['device_query']);
 		$this->assertSame([], $policy['match']);
 		$this->assertNull($policy['schedule']);
 		$this->assertNull($policy['maintenance_schedule']);
 		$this->assertFalse($policy['suppress_acknowledged']);
 		$this->assertSame(['severities' => []], alarmmanager_admin_rule_policy(['rule_fields' => 'yes', 'filter_severities' => 'yes'])['match'], 'An existing empty selector must keep matching nothing');
+	}
+
+	public function testAlarmQueryAndAllAlarmTypes(): void {
+		self::alarmmanager_test_load('includes/admin_view.php');
+		$query = json_encode(['version' => 1, 'conditions' => [['field' => 'severity', 'operator' => '=', 'value' => 'major'], ['join' => 'AND', 'negative' => true, 'field' => 'summary', 'operator' => 'contains', 'value' => 'maintenance']]], JSON_THROW_ON_ERROR);
+		$this->assertSame($query, alarmmanager_admin_rule_policy(['rule_fields' => 'yes', 'alarm_query' => $query])['alarm_query']);
+		$all = alarmmanager_admin_rule_policy(['rule_fields' => 'yes', 'all_alarm_types' => 'yes', 'alarm_query' => 'ignored', 'filter_sources' => 'yes', 'match_sources' => ['syslog']]);
+		$this->assertSame('', $all['alarm_query']);
+		$this->assertSame([], $all['match']);
+		$converted = alarmmanager_rule_alarm_query(alarmmanager_validate_rule_definition(['match' => ['sources' => ['syslog', 'thold'], 'tags' => ['core', 'network']]]));
+		$compiled  = AlarmManager\QueryBuilder::compile($converted, alarmmanager_rule_alarm_fields());
+		$this->assertSame(['syslog', 'thold', 'core', 'network'], $compiled['params']);
+		$this->assertStringContainsString(' OR ', $compiled['sql']);
+		$this->assertStringContainsString('JSON_CONTAINS', $compiled['sql']);
+		$this->expectException(InvalidArgumentException::class);
+		alarmmanager_validate_rule_definition(['alarm_query' => json_encode(['version' => 1, 'conditions' => [['field' => 'unknown', 'operator' => '=', 'value' => 'bad']]])]);
 	}
 
 	public function testDeviceQueryIsValidatedAndPreserved(): void {

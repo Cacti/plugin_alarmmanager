@@ -261,7 +261,6 @@
 #alarmmanager_app .alarmmanagerRuleSection > label { display:flex; flex-direction:column; align-items:flex-start; margin:0 0 14px; width:100%; min-width:0; }
 #alarmmanager_app .alarmmanagerRuleSection label:has(> input[type=checkbox]) { display:grid; grid-template-columns:18px minmax(0,1fr); align-items:start; }
 #alarmmanager_app .alarmmanagerRuleSection input:not([type=checkbox]), #alarmmanager_app .alarmmanagerRuleSection select { width:100%; max-width:600px; }
-#alarmmanager_app .alarmmanagerRuleFilterGrid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
 #alarmmanager_app .alarmmanagerRuleOption { min-width:0; margin-bottom:12px; }
 #alarmmanager_app .alarmmanagerRuleOption > label { min-width:0; }
 #alarmmanager_app .alarmmanagerRuleFields { display:grid; gap:12px; min-width:0; padding:12px 0 0; margin:0; border:0; }
@@ -273,7 +272,7 @@
 #alarmmanager_app .alarmmanagerRuleActions { display:flex; justify-content:flex-end; }
 #alarmmanager_app .alarmmanagerRuleActions button { font-weight:bold; padding:10px 20px; }
 #alarmmanager_app .alarmmanagerRuleNotice { padding:12px; border-left:4px solid var(--search-accent); background:var(--search-tint); }
-@media(max-width:600px) { #alarmmanager_app .alarmmanagerRuleFilterGrid { grid-template-columns:1fr; } #alarmmanager_app .alarmmanagerRuleSection { padding:10px; } }
+@media(max-width:600px) { #alarmmanager_app .alarmmanagerRuleSection { padding:10px; } }
 
 #alarmmanager_app .alarmmanagerDestinations { margin:0; padding:12px; border:1px solid var(--search-border); min-width:0; }
 #alarmmanager_app .alarmmanagerDestinations > legend { font-weight:bold; padding:0 6px; }

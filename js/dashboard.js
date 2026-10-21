@@ -194,7 +194,7 @@
   let rows=raw.value?JSON.parse(raw.value).conditions:[blank()];
   const status=node('p');status.setAttribute('role','status');builder.append(status);
   function empty() {return rows.length===1&&!rows[0].rows&&rows[0].field===defaultField&&rows[0].operator===defaultOperator&&!rows[0].negative&&rows[0].value==='';}
-  function sync() {raw.value=empty()?'':JSON.stringify({version:1,conditions:rows});status.textContent=new TextEncoder().encode(raw.value).length>8192?'The search exceeds 8192 bytes. Remove a condition or shorten a value.':'';return !status.textContent;}
+  function sync() {if(builder.disabled)return true;raw.value=empty()?'':JSON.stringify({version:1,conditions:rows});status.textContent=new TextEncoder().encode(raw.value).length>8192?'The search exceeds 8192 bytes. Remove a condition or shorten a value.':'';return !status.textContent;}
   function select(options,value,label,change) {
    const control=node('select');control.setAttribute('aria-label',label);
    options.forEach(([key,text])=>{const option=node('option',text);option.value=key;control.append(option);});control.value=value;
@@ -212,9 +212,9 @@
     if(condition.rows) {
      const group=node('div',undefined,'alarmmanagerQueryGroup');line.classList.add('alarmmanagerQueryGroupRow');render(group,condition.rows,depth+1);line.append(group);
     } else {
-     line.append(select(Object.entries(fields).map(([key,field])=>[key,field.label]),condition.field,'Search field',value=>{condition.field=value;condition.operator=fields[value].operators[0];condition.value='';render(container,conditions,depth);}));
+     line.append(select(Object.entries(fields).map(([key,field])=>[key,field.label]),condition.field,'Search field',value=>{condition.field=value;condition.operator=fields[value].operators[0];condition.value='';queueMicrotask(()=>render(container,conditions,depth));}));
      const definition=fields[condition.field];
-     line.append(select(definition.operators.map(op=>[op,{'contains':'contains','begins':'begins with','ends':'ends with','=':'equals','!=':'does not equal'}[op]||op]),condition.operator,'Search operator',value=>{condition.operator=value;}));
+     line.append(select(definition.operators.map(op=>[op,{'contains':'contains','begins':'begins with','ends':'ends with','=':'equals','!=':'does not equal','has':'has tag'}[op]||op]),condition.operator,'Search operator',value=>{condition.operator=value;}));
      let input;
      if(definition.choices&&!Array.isArray(definition.choices)) {
       const choices={...definition.choices};
@@ -246,6 +246,14 @@
  }
 
  function initRuleEditors(app) {
+  app.querySelectorAll('.alarmmanagerRule form').forEach(form=>{
+   [['all_devices','device_query'],['all_alarm_types','alarm_query']].forEach(([name,query])=>{
+    const toggle=form.querySelector(`[name=${name}]`),builder=form.querySelector(`[name=${query}]`)?.closest('.alarmmanagerQueryBuilder');
+    if(!toggle||!builder)return;
+    const update=()=>{builder.hidden=toggle.checked;builder.disabled=toggle.checked;};
+    toggle.addEventListener('change',update);update();
+   });
+  });
   app.querySelectorAll('.alarmmanagerDestinations').forEach(group=>{
    const boxes=Array.from(group.querySelectorAll('[data-alarm-destination]'));
    if(!boxes.length)return;
