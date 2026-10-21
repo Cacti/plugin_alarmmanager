@@ -200,7 +200,9 @@ function alarmmanager_web_filters(array $filters, string $tab, bool $dashboard =
 		print '</select></label>';
 
 		if (($filters['collector_id'] ?? 0) > 1) {
-			print '<p class="alarmmanagerHint" role="note">' . __esc('Mirrored rows have no Record ID and open no detail view.', 'alarmmanager') . '</p>';
+			print '<p class="alarmmanagerHint" role="note">' . __esc('Mirrored events carry no Record ID and no detail view.', 'alarmmanager') . '</p>';
+		} else {
+			print '<p class="alarmmanagerHint" role="note">' . __esc('Mirrored collector events are always included here unless you narrow by a specific remote Collector ID.', 'alarmmanager') . '</p>';
 		}
 	}
 

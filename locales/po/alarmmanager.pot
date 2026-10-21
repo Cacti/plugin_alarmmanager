@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Alarm Manager 0.11.0\n"
 "Report-Msgid-Bugs-To: https://github.com/bmfmancini/plugin_alarmmanager/issues\n"
-"POT-Creation-Date: 2026-10-20 23:03-0400\n"
+"POT-Creation-Date: 2026-10-20 23:19-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alarm Manager Developers <https://github.com/bmfmancini/plugin_alarmmanager>\n"
 "Language-Team: Alarm Manager Developers <https://github.com/bmfmancini/plugin_alarmmanager>\n"
@@ -610,43 +610,43 @@ msgstr ""
 msgid "Saved credentials are encrypted and never displayed. New values replace the saved credential record."
 msgstr ""
 
-#: includes/reports.php:310
+#: includes/reports.php:324
 msgid "Remote history"
 msgstr ""
 
-#: includes/reports.php:320
+#: includes/reports.php:334
 msgid "Delivered"
 msgstr ""
 
-#: includes/reports.php:320
+#: includes/reports.php:334
 msgid "Failed"
 msgstr ""
 
-#: includes/reports.php:320
+#: includes/reports.php:334
 msgid "Pending"
 msgstr ""
 
-#: includes/reports.php:320
+#: includes/reports.php:334
 msgid "Sending"
 msgstr ""
 
-#: includes/reports.php:330
+#: includes/reports.php:344
 msgid "Processing failed"
 msgstr ""
 
-#: includes/reports.php:331
+#: includes/reports.php:345
 msgid "Pending processing"
 msgstr ""
 
-#: includes/reports.php:332 includes/web_view.php:261
+#: includes/reports.php:346 includes/web_view.php:263
 msgid "Processing"
 msgstr ""
 
-#: includes/reports.php:333
+#: includes/reports.php:347
 msgid "No matching integration"
 msgstr ""
 
-#: includes/reports.php:333
+#: includes/reports.php:347
 msgid "Suppressed"
 msgstr ""
 
@@ -787,95 +787,99 @@ msgid "mirrored"
 msgstr ""
 
 #: includes/web_view.php:203
-msgid "Mirrored rows have no Record ID and open no detail view."
+msgid "Mirrored events carry no Record ID and no detail view."
 msgstr ""
 
-#: includes/web_view.php:209
-msgid "Apply"
-msgstr ""
-
-#: includes/web_view.php:209
-msgid "Reset"
+#: includes/web_view.php:205
+msgid "Mirrored collector events are always included here unless you narrow by a specific remote Collector ID."
 msgstr ""
 
 #: includes/web_view.php:211
+msgid "Apply"
+msgstr ""
+
+#: includes/web_view.php:211
+msgid "Reset"
+msgstr ""
+
+#: includes/web_view.php:213
 msgid "Historical window uses UTC. Current conditions and queues ignore the time window."
 msgstr ""
 
-#: includes/web_view.php:232
+#: includes/web_view.php:234
 msgid "Loading statistics…"
 msgstr ""
 
-#: includes/web_view.php:245
+#: includes/web_view.php:247
 msgid "Collapse"
 msgstr ""
 
-#: includes/web_view.php:258
+#: includes/web_view.php:260
 msgid "Integration results"
 msgstr ""
 
-#: includes/web_view.php:259
+#: includes/web_view.php:261
 msgid "Delivery attempts"
 msgstr ""
 
-#: includes/web_view.php:260
+#: includes/web_view.php:262
 msgid "Routing decisions"
 msgstr ""
 
-#: includes/web_view.php:262
+#: includes/web_view.php:264
 msgid "conditions"
 msgstr ""
 
-#: includes/web_view.php:267
+#: includes/web_view.php:269
 msgid "No matching records."
 msgstr ""
 
-#: includes/web_view.php:278
+#: includes/web_view.php:280
 msgid "Integration status"
 msgstr ""
 
-#: includes/web_view.php:278
+#: includes/web_view.php:280
 msgid "attempts"
 msgstr ""
 
-#: includes/web_view.php:282
+#: includes/web_view.php:284
 msgid "Action"
 msgstr ""
 
-#: includes/web_view.php:331
+#: includes/web_view.php:333
 msgid "Latest 100 records for this event."
 msgstr ""
 
-#: includes/web_view.php:336
+#: includes/web_view.php:338
 msgid "Showing at most 50 records per page."
 msgstr ""
 
-#: includes/web_view.php:337
+#: includes/web_view.php:339
 msgid "Pages"
 msgstr ""
 
-#: includes/web_view.php:340
+#: includes/web_view.php:342
 msgid "Previous"
 msgstr ""
 
-#: includes/web_view.php:343
+#: includes/web_view.php:345
 #, php-format
 msgid "Page %d"
 msgstr ""
 
-#: includes/web_view.php:346
+#: includes/web_view.php:348
 msgid "Next"
 msgstr ""
 
-#: includes/web_view.php:353
+#: includes/web_view.php:355
 msgid "Selected event details"
 msgstr ""
 
-#: includes/web_view.php:360
+#: includes/web_view.php:362
 msgid "Show metadata"
 msgstr ""
 
-#: includes/web_view.php:382
+#: includes/web_view.php:384
 msgid "Confirm replay may repeat an external effect"
 msgstr ""
 
