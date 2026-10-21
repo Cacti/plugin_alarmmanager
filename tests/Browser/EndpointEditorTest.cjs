@@ -9,7 +9,7 @@ const render=endpoint=>execFileSync('php',['-r',`function __($s,...$a){return $s
 (async()=>{
  const browser=await chromium.launch({headless:true,executablePath:process.env.ALARMMANAGER_BROWSER_BINARY});const page=await browser.newPage();let checks=0;const errors=[];page.on('pageerror',e=>errors.push(e.message));
  const check=(ok,label)=>{if(!ok)throw Error(label);checks++;};
- async function load(endpoint){await page.setContent('<div id="alarmmanager_app">'+render(endpoint)+'</div>');await page.addStyleTag({content:':root{--search-border:#bbb;--search-card:#fff;--search-tint:#eee}body{font:14px sans-serif;margin:20px}label{display:flex;gap:8px}button,input,select{padding:8px}[hidden]{display:none!important}'});await page.addStyleTag({path:path.join(root,'css/dashboard.css')});await page.addStyleTag({path:path.join(cacti,'include/themes/modern/select2.css')});await page.addScriptTag({path:path.join(cacti,'include/js/jquery.js')});await page.addScriptTag({path:path.join(cacti,'include/js/select2.js')});await page.addScriptTag({path:path.join(root,'js/dashboard.js')});}
+ async function load(endpoint){await page.setContent('<div id="alarmmanager_app">'+render(endpoint)+'</div>');await page.addStyleTag({content:':root{--search-border:#bbb;--search-card:#fff;--search-tint:#eee}body{font:14px sans-serif;margin:20px}label{display:flex;gap:8px}button,input,select{padding:8px}[hidden]{display:none!important}'});await page.addStyleTag({path:path.join(root,'css/dashboard.css')});await page.addScriptTag({path:path.join(cacti,'include/js/jquery.js')});await page.addScriptTag({path:path.join(root,'js/dashboard.js')});}
  try{
   await load({name:'Operations',type:'restapi'});const form=page.locator('form:has([name=action][value=endpoint_save])');
   check(await form.locator('[name=type] option').count()===3,'Only supported delivery choices');
@@ -18,21 +18,21 @@ const render=endpoint=>execFileSync('php',['-r',`function __($s,...$a){return $s
   check(!(await form.locator('[name=max_attempts]').isVisible()),'Retry controls collapsed');
   check(await form.locator('.alarmmanagerMappingRow').count()===14,'Useful new API message defaults');
   check(!(await form.locator('.alarmmanagerMappingRow').first().getByLabel('Custom value',{exact:true}).isVisible()),'Unused custom value hidden');
-  await form.locator('.alarmmanagerMappingRow').first().locator('select').first().selectOption('constant',{force:true});
+  await form.locator('.alarmmanagerMappingRow').first().locator('select').first().selectOption('constant');
   const custom=form.locator('.alarmmanagerMappingRow').first().locator('input').nth(1);await custom.fill('123');
   check(JSON.parse(await form.locator('[name=mapping_json]').inputValue()).default[0].constant==='123','Custom text retains its string type');
-  await form.locator('[name=auth_type]').selectOption('headers',{force:true});await form.getByRole('button',{name:'Add header',exact:true}).click();
+  await form.locator('[name=auth_type]').selectOption('headers');await form.getByRole('button',{name:'Add header',exact:true}).click();
   const header=form.locator('[data-auth-type=headers] .alarmmanagerMappingRow');await header.getByLabel('Header name').fill('X-Api-Key');await header.getByLabel('Secret value').fill('fixture-secret');
   check(JSON.parse(await form.locator('[name=headers]').inputValue())['X-Api-Key']==='fixture-secret','Header rows serialize to existing credential contract');
   check(await header.getByLabel('Secret value').getAttribute('type')==='password','Header secrets masked');
-  await form.locator('[name=type]').selectOption('email',{force:true});check(!(await form.locator('[name=auth_type]').isEnabled()),'Email disables HTTP credentials');
+  await form.locator('[name=type]').selectOption('email');check(!(await form.locator('[name=auth_type]').isEnabled()),'Email disables HTTP credentials');
   check((await form.innerText()).includes('Subject')&&(await form.innerText()).includes('Message'),'Dedicated email subject and message');
   await form.getByRole('button',{name:'Add recipient',exact:true}).click();await form.getByLabel('Email address',{exact:true}).fill('ops@example.test');
   check(await form.locator('[name=email_to]').inputValue()==='ops@example.test','Recipient rows serialize');
-  await form.locator('[name=type]').selectOption('script',{force:true});check(await form.locator('[name=script_compatibility]').count()===0,'No legacy script mode selector');await form.getByRole('button',{name:'Add argument',exact:true}).click();await form.getByLabel('Argument',{exact:true}).fill('two words');
+  await form.locator('[name=type]').selectOption('script');check(await form.locator('[name=script_compatibility]').count()===0,'No legacy script mode selector');await form.getByRole('button',{name:'Add argument',exact:true}).click();await form.getByLabel('Argument',{exact:true}).fill('two words');
   check(JSON.parse(await form.locator('[name=script_arguments]').inputValue())[0]==='two words','Argument rows preserve spaces');
   await page.setViewportSize({width:390,height:844});check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Mobile editor fits viewport');
-  await form.locator('[name=type]').selectOption('email',{force:true});
+  await form.locator('[name=type]').selectOption('email');
   if(process.env.ALARMMANAGER_EDITOR_SCREENSHOT)await page.screenshot({path:process.env.ALARMMANAGER_EDITOR_SCREENSHOT,fullPage:true});
   const mapping={recovered:[{to:'subject',constant:'Recovered',type:'string',required:true},{to:'body',constant:'Done',type:'string'}]};
   await load({id:9,name:'Existing email',type:'email',transport:{to:{'ops@example.test':'Operations'},mapping}});await page.locator('.alarmmanagerDashboardCard > summary').click();
@@ -74,7 +74,7 @@ const render=endpoint=>execFileSync('php',['-r',`function __($s,...$a){return $s
   assert.deepEqual(eventMapping,templates.servicenow_events.transport.mapping);checks++;
   check(!JSON.parse(await serviceForm.locator('[name=transport_json]').inputValue()).transition_overrides,'Event choice removes incident PATCH targets');
   check(await serviceForm.locator('[name=reference_id_path]').inputValue()==='','Event choice clears incident response reference');
-  await table.selectOption('incident',{force:true});
+  await table.selectOption('incident');
   check(await serviceForm.locator('[name=url]').inputValue()==='https://custom.example.test/api/now/table/incident','Incident choice retains the instance');
   check(await serviceForm.getByLabel('Destination Field Name',{exact:true}).first().inputValue()==='short_description','Incident fields render after switching back');
   assert.deepEqual(JSON.parse(await serviceForm.locator('[name=mapping_json]').inputValue()),templates.servicenow.transport.mapping);checks++;
@@ -85,8 +85,8 @@ const render=endpoint=>execFileSync('php',['-r',`function __($s,...$a){return $s
   await load({name:'Combined API',type:'restapi'});
   const combinedRow=page.locator('.alarmmanagerMappingRow').first();
   await combinedRow.getByLabel('Destination Field Name',{exact:true}).fill('summary');
-  await combinedRow.getByLabel('Cacti Value',{exact:true}).selectOption('template',{force:true});
-  const combined=combinedRow.locator('.alarmmanagerMessageEditor[aria-label="Combined text"]');
+  await combinedRow.getByLabel('Cacti Value',{exact:true}).selectOption('template');
+  const combined=combinedRow.getByLabel('Combined text',{exact:true});
   check(await combined.isVisible(),'Combined text editor is available');
   await combined.fill('Device ');
   await combined.press('End');
@@ -123,7 +123,7 @@ const render=endpoint=>execFileSync('php',['-r',`function __($s,...$a){return $s
   await page.locator('.alarmmanagerDashboardCard > summary').click();
   await page.locator('.alarmmanagerMappingRow').first().screenshot({path:'/tmp/alarmmanager-message-chips.png'});
   await load({name:'Combined email',type:'email'});
-  const emailSubject=page.locator('.alarmmanagerMappingRow').first();await emailSubject.getByLabel('Cacti Value',{exact:true}).selectOption('template',{force:true});await emailSubject.locator('.alarmmanagerMessageEditor[aria-label="Combined text"]').fill(sentence);
+  const emailSubject=page.locator('.alarmmanagerMappingRow').first();await emailSubject.getByLabel('Cacti Value',{exact:true}).selectOption('template');await emailSubject.getByLabel('Combined text',{exact:true}).fill(sentence);
   check(JSON.parse(await page.locator('[name=mapping_json]').inputValue()).default.find(field=>field.to==='subject').template===sentence,'Email subject accepts combined text');
   await page.setViewportSize({width:390,height:844});check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Combined editor fits mobile');
   await emailSubject.getByRole('button',{name:'Use device message',exact:true}).click();

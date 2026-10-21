@@ -18,7 +18,7 @@ const assert=require('node:assert/strict');
   const addIntegration=page.getByRole('button',{name:'Add Integration',exact:true});
   check(await addIntegration.count()===1,'Add Integration button sits next to the template dropdown');
   for(const template of ['webhook','restapi','script']) {
-   await page.locator('[name=integration_template]').selectOption(template,{force:true});
+   await page.locator('[name=integration_template]').selectOption(template);
    check(page.url()===admin+'?section=endpoints','Changing the template dropdown does not open the draft form');
    await addIntegration.click();
    await page.waitForURL('**integration_template='+template,{timeout:5000});
@@ -41,7 +41,7 @@ const assert=require('node:assert/strict');
   // A provider preset that preselects credential authentication saves the draft
   // before any secret exists; the credential record is attached afterwards.
   const presetName='Preset draft '+Date.now();
-  await page.locator('[name=integration_template]').selectOption('slack',{force:true});
+  await page.locator('[name=integration_template]').selectOption('slack');
   await addIntegration.click();
   await page.waitForURL('**integration_template=slack',{timeout:5000});
   const preset=page.locator('details.alarmmanagerDashboardCard').last();
@@ -54,7 +54,7 @@ const assert=require('node:assert/strict');
   check(!(await presetSaved.locator('[name=enabled]').isChecked()),'Preset draft stays disabled');
   // Choosing a template and then Cancel removes the unsaved draft entirely.
   const beforeCancel=await page.locator('details.alarmmanagerDashboardCard').count();
-  await page.locator('[name=integration_template]').selectOption('telegram',{force:true});
+  await page.locator('[name=integration_template]').selectOption('telegram');
   await addIntegration.click();
   await page.waitForURL('**integration_template=telegram',{timeout:5000});
   check(await page.locator('details.alarmmanagerDashboardCard').count()===beforeCancel+1,'Cancelled-template draft appears exactly once');

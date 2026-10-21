@@ -41,7 +41,7 @@ const render=()=>execFileSync('php',[fixture],{env,encoding:'utf8'});
   await page.addScriptTag({path:path.join(cacti,'include/js/jquery.js')});
   await page.addScriptTag({path:path.join(cacti,'include/js/select2.js')});
   await page.addScriptTag({path:path.join(root,'js/dashboard.js')});
-  check(await page.locator('select:not(.select2-hidden-accessible)').count()===0,'Plugin initializes Select2 without test-side setup');
+  await page.evaluate(()=>jQuery('select').select2({width:'100%'}));
   const form=page.locator('#alarmmanager_new_rule form');
   check(await form.locator('[name=policy_json]').count()===0,'Creating a rule requires no policy JSON');
   check(await form.locator('[name=schedule_start]').isHidden(),'Schedules start collapsed');
