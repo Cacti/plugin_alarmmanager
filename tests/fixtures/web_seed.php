@@ -121,7 +121,7 @@ file_put_contents($root . '/include/bottom_footer.php', '</div></body></html>');
 file_put_contents($root . '/include/top_header.php', <<<'HEADER'
 <?php $theme = get_selected_theme(); ?>
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Alarm Manager fixture</title>
-<link rel="stylesheet" href="/include/themes/<?php print $theme; ?>/main.css"><link rel="stylesheet" href="/include/themes/<?php print $theme; ?>/billboard.css"><script src="/include/js/jquery.js"></script><script src="/include/js/d3.js"></script><script src="/include/js/billboard.js"></script><style>html,body{overflow:auto;height:auto}.cactiContent{padding:12px;min-width:0;box-sizing:border-box;max-width:100%}</style></head><body><div class="cactiContent">
+<link rel="stylesheet" href="/include/themes/<?php print $theme; ?>/main.css"><link rel="stylesheet" href="/include/themes/<?php print $theme; ?>/billboard.css"><link rel="stylesheet" href="/include/themes/<?php print $theme; ?>/select2.css"><script src="/include/js/jquery.js"></script><script src="/include/js/select2.js"></script><script src="/include/js/d3.js"></script><script src="/include/js/billboard.js"></script><style>html,body{overflow:auto;height:auto}.cactiContent{padding:12px;min-width:0;box-sizing:border-box;max-width:100%}</style></head><body><div class="cactiContent">
 HEADER
 );
 copy($root . '/include/top_header.php', $root . '/include/top_general_header.php');

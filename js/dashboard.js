@@ -18,6 +18,16 @@
 (() => {
  'use strict';
  const sourceFields = ['event.id','event.source','event.source_instance','event.collector_id','event.occurred_at','alarm.resource_id','alarm.key','alarm.episode_id','alarm.sequence','alarm.transition','alarm.severity','alarm.summary','alarm.details','device.id','device.hostname','device.description','device.location','device.contact','device.sysname','device.tags','context.rule_name','context.rule_type','context.metric','context.metric_value','context.threshold','context.suppression_reason','context.source_suppressed','context.source_notification_channels','context.ownership_epoch','integration.id','integration.url','device.cacti_location','device.collector_name','device.external_id','device.snmp_sysUpTimeInstance','device.uptime','device.status_fail_date','device.status_rec_date','device.status_last_error'];
+ function initDropdowns(container) {
+  if(!window.jQuery||!jQuery.fn.select2)return;
+  jQuery(container).find('select').each(function(){
+   if(jQuery(this).data('select2'))return;
+   jQuery(this).select2({width:'100%',minimumResultsForSearch:window.select2SearchRows??10,closeOnSelect:!this.multiple});
+  });
+ }
+ function destroyDropdowns(container) {
+  jQuery(container).find('select').each(function(){if(jQuery(this).data('select2'))jQuery(this).select2('destroy');});
+ }
  function node(tag, text, className) { const el=document.createElement(tag); if(text!==undefined) el.textContent=text; if(className) el.className=className; return el; }
  const palette=['#2278ad','#e67e22','#329c60','#d43f3a','#8e63aa','#19a2a5','#ad795b','#7b8994','#c4a132','#5d88b3'];
  const colorMaps={transitions:{raised:'#d43f3a',recovered:'#329c60',occurrence:'#2278ad',updated:'#8e63aa',reminder:'#e67e22'},severity:{critical:'#d43f3a',major:'#e67e22',minor:'#b89822',warning:'#c39b13',info:'#2278ad',clear:'#329c60'},deliveries:{completed:'#329c60',failed:'#d43f3a',pending:'#7b8994',leased:'#2278ad'},attempts:{success:'#329c60',failure:'#d43f3a',retry:'#e67e22',abandoned:'#7b8994',in_progress:'#2278ad'}};
@@ -63,7 +73,7 @@
    const parseValue=text=>{try{return JSON.parse(text);}catch{return text;}};
    const save=()=>{textarea.value=JSON.stringify(mapping,null,2);};
    function render() {
-    rows.replaceChildren(); const selected=transition.value, email=endpointType.value==='email';add.hidden=email; inherit.disabled=selected==='default'; status.textContent=selected!=='default' && !(selected in mapping)?'Using the standard message. Add a field to customize this alarm state.':'';
+    destroyDropdowns(rows);rows.replaceChildren(); const selected=transition.value, email=endpointType.value==='email';add.hidden=email; inherit.disabled=selected==='default'; status.textContent=selected!=='default' && !(selected in mapping)?'Using the standard message. Add a field to customize this alarm state.':'';
     const items=mapping[selected] || [], extraEmail=node('details');extraEmail.append(node('summary','Additional message fields'));
     items.forEach((item,index)=>{
      const row=node('div',undefined,'alarmmanagerMappingRow');
@@ -97,13 +107,14 @@
      remove.addEventListener('click',()=>{mapping[selected].splice(index,1);save();render();});if(email&&!['subject','body'].includes(item.to)){extraEmail.append(row);}else rows.append(row);
     });
     if(extraEmail.children.length>1)rows.append(extraEmail);
+    initDropdowns(rows);
    }
    function read() {try {const value=JSON.parse(textarea.value);if(!value||typeof value!=='object'||Array.isArray(value)||Object.values(value).some(v=>!Array.isArray(v)))throw Error();mapping=value;textarea.setCustomValidity('');render();}catch{status.textContent='Invalid message configuration. Correct the advanced configuration to continue.';fieldset.querySelector('.alarmmanagerRawMapping').open=true;textarea.setCustomValidity('Invalid message configuration.');}}
    function addField(to,source){const key=transition.value;mapping[key]??=[];if(mapping[key].length>=64){status.textContent='Maximum 64 fields per message.';return;}mapping[key].push({to,source,type:'identity',required:false});save();render();}
    add.addEventListener('click',()=>addField('field_'+((mapping[transition.value]||[]).length+1),'device.hostname'));
    inherit.addEventListener('click',()=>{if(transition.value!=='default'){delete mapping[transition.value];save();render();}});
    function changeType(){if(endpointType.value==='email'){mapping.default??=[];for(const item of [{to:'subject',source:'alarm.summary',type:'string',required:true},{to:'body',template:fieldset.dataset.messageTemplate,type:'string',required:false}]){if(!mapping.default.some(existing=>existing.to===item.to||existing.to.startsWith(item.to+'.')))mapping.default.push(item);}save();}render();}
-   jQuery(form).on('change','[name=type]',changeType);transition.addEventListener('change',render); textarea.addEventListener('input',read);read();if(!form.querySelector('[name=id]'))changeType();
+   jQuery(form).on('change','[name=type]',changeType);jQuery(transition).on('change',render); textarea.addEventListener('input',read);read();if(!form.querySelector('[name=id]'))changeType();
   });
  }
  function initLists(app) {
@@ -202,7 +213,7 @@
   }
   function render(container,conditions,depth=0) {
    // Remove Cacti's body-appended dropdown menus before replacing their controls.
-   jQuery(container).find('select').each(function(){if(jQuery(this).data('select2'))jQuery(this).select2('destroy');});
+   destroyDropdowns(container);
    container.replaceChildren();
    conditions.forEach((condition,index)=>{
     const line=node('div',undefined,'alarmmanagerQueryRow'), connector=node('div',undefined,'alarmmanagerQueryConnector');
@@ -212,7 +223,7 @@
     if(condition.rows) {
      const group=node('div',undefined,'alarmmanagerQueryGroup');line.classList.add('alarmmanagerQueryGroupRow');render(group,condition.rows,depth+1);line.append(group);
     } else {
-     line.append(select(Object.entries(fields).map(([key,field])=>[key,field.label]),condition.field,'Search field',value=>{condition.field=value;condition.operator=fields[value].operators[0];condition.value='';render(container,conditions,depth);}));
+     line.append(select(Object.entries(fields).map(([key,field])=>[key,field.label]),condition.field,'Search field',value=>{condition.field=value;condition.operator=fields[value].operators[0];condition.value='';queueMicrotask(()=>render(container,conditions,depth));}));
      const definition=fields[condition.field];
      line.append(select(definition.operators.map(op=>[op,{'contains':'contains','begins':'begins with','ends':'ends with','=':'equals','!=':'does not equal'}[op]||op]),condition.operator,'Search operator',value=>{condition.operator=value;}));
      let input;
@@ -235,7 +246,7 @@
    ['AND','OR','NOT','Group'].forEach(action=>{
     const button=node('button',action);button.type='button';button.setAttribute('aria-label','Add '+action);button.disabled=depth>=15&&action==='Group';
     button.addEventListener('click',()=>{conditions.push(action==='Group'?{join:'AND',negative:false,rows:[blank()]}:{...blank(),join:action==='OR'?'OR':'AND',negative:action==='NOT'});render(container,conditions,depth);sync();container.querySelectorAll('[aria-label="Search value"]')[container.querySelectorAll('[aria-label="Search value"]').length-1]?.focus();});actions.append(button);
-   });container.append(actions);
+   });container.append(actions);initDropdowns(container);
   }
   const clear=node('button','Clear conditions');clear.type='button';clear.addEventListener('click',()=>{rows=[blank()];render(holder,rows);sync();});builder.append(clear);
   raw.hidden=true;const rawGroup=builder.querySelector('.alarmmanagerQueryRaw');if(rawGroup)rawGroup.hidden=true;
@@ -260,7 +271,7 @@
   });
  }
  function init() {
-  const app=document.getElementById('alarmmanager_app'); if(!app||app.dataset.initialized)return;app.dataset.initialized='yes';initRuleEditors(app);initReportQuery(app);initMappings(app);initLists(app);initDeliveryIntervals(app);initAuthentication(app);initEndpointTypes(app);initServiceNow(app);
+  const app=document.getElementById('alarmmanager_app'); if(!app||app.dataset.initialized)return;app.dataset.initialized='yes';initRuleEditors(app);initReportQuery(app);initMappings(app);initLists(app);initDeliveryIntervals(app);initAuthentication(app);initEndpointTypes(app);initServiceNow(app);initDropdowns(app);
   const dashboard=app.querySelector('#alarmmanager_dashboard');if(!dashboard)return;
   const form=app.querySelector('#alarmmanager_filters'), status=app.querySelector('#alarmmanager_dashboard_status'), refresh=app.querySelector('#alarmmanager_refresh');
   const charts={}; let inFlight=false, timer=null;
@@ -297,7 +308,7 @@
    status.textContent=`Updated ${new Date().toLocaleTimeString()} · historical UTC window ${f.from} to ${f.to} · ${f.mode} mode`+(typeof window.bb==='undefined'?' · chart library unavailable; linked counts remain available.':'');
   }
   async function load() {if(inFlight||!app.isConnected)return;inFlight=true;status.textContent='Loading statistics…';const params=new URLSearchParams(new FormData(form));params.set('action','dashboard_data');try{const response=await fetch('alarmmanager.php?'+params,{credentials:'same-origin',cache:'no-store'});const result=await response.json();if(!response.ok||result.error)throw Error();if(app.isConnected)render(result);}catch{status.textContent='Statistics unavailable. Check permissions and refresh.';}finally{inFlight=false;}}
-  form.addEventListener('submit',event=>{event.preventDefault();load();});refresh.addEventListener('change',()=>{if(timer)clearInterval(timer);const seconds=Number(refresh.value);if(seconds)timer=setInterval(()=>{if(!app.isConnected){clearInterval(timer);return;}load();},seconds*1000);});
+  form.addEventListener('submit',event=>{event.preventDefault();load();});jQuery(refresh).on('change',()=>{if(timer)clearInterval(timer);const seconds=Number(refresh.value);if(seconds)timer=setInterval(()=>{if(!app.isConnected){clearInterval(timer);return;}load();},seconds*1000);});
   app.querySelectorAll('.alarmmanagerCardToggle').forEach(button=>button.addEventListener('click',()=>{const body=button.closest('article').querySelector('.alarmmanagerCardBody');body.hidden=!body.hidden;button.setAttribute('aria-expanded',String(!body.hidden));button.textContent=body.hidden?'Expand':'Collapse';if(!body.hidden)window.dispatchEvent(new Event('resize'));}));load();
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();

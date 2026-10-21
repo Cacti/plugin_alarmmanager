@@ -32,7 +32,7 @@ const fs=require('node:fs'), path=require('node:path');
   const pollerSelect=page.getByLabel('Poller',{exact:true});
   check(await pollerSelect.locator('option[value="0"]').innerText()==='All pollers','All pollers choice');
   check(await pollerSelect.locator('option[value="2"]').innerText()==='2 - Remote collector','Poller ID and name choice');
-  await pollerSelect.selectOption('2');await page.getByRole('button',{name:'Filter',exact:true}).click();
+  await pollerSelect.selectOption('2',{force:true});await page.getByRole('button',{name:'Filter',exact:true}).click();
   check(await page.getByLabel('Poller',{exact:true}).inputValue()==='2'&&new URL(page.url()).searchParams.get('collector')==='2','Selected poller persists after filtering');
   await page.goto(base+'/plugins/alarmmanager/alarmmanager_admin.php?section=credentials');
   check(await page.getByRole('link',{name:'View alarms',exact:true}).count()===0,'View alarms cross-link removed');
@@ -55,13 +55,13 @@ const fs=require('node:fs'), path=require('node:path');
   await auth.selectOption(originalAuth,{force:true});
   const endpointType=detail.locator('[name=type]'), originalType=await endpointType.inputValue();
   for(const type of ['email','script',originalType]) {
-   await endpointType.selectOption(type);
+   await endpointType.selectOption(type,{force:true});
    for(const group of ['restapi webhook','email','script']) {
     check(await detail.locator(`[data-endpoint-types="${group}"]`).first().isVisible()===group.split(' ').includes(type),`${type}: relevant endpoint fields only`);
    }
    check(await auth.isEnabled()===['restapi','webhook'].includes(type),`${type}: HTTP authentication disabled for other transports`);
   }
-  await endpointType.selectOption(originalType);
+  await endpointType.selectOption(originalType,{force:true});
   const row=detail.locator('.alarmmanagerMappingRow').first();await row.locator('input').first().fill('host');
   check(JSON.parse(await detail.locator('[name=mapping_json]').inputValue()).default[0].to==='host','No-code field mapping editor');
 

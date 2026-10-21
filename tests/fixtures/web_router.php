@@ -52,7 +52,7 @@ if (in_array($path, ['/plugins/alarmmanager/css/dashboard.css', '/plugins/alarmm
 	return false;
 }
 
-if (is_string($path) && preg_match('~\A/include/(?:js/(?:jquery|d3|billboard)\.js|themes/(?:modern|dark|classic)/(?:[A-Za-z0-9._/-]+))\z~D', $path) && !str_contains($path, '..')) {
+if (is_string($path) && preg_match('~\A/include/(?:js/(?:jquery|select2|d3|billboard)\.js|themes/(?:modern|dark|classic)/(?:[A-Za-z0-9._/-]+))\z~D', $path) && !str_contains($path, '..')) {
 	$file = getenv('ALARMMANAGER_CACTI_ROOT') . $path;
 
 	if (!is_file($file) || str_ends_with($file, '.php')) {

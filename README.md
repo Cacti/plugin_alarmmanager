@@ -98,6 +98,8 @@ Composer in this repository, containers, Node.js or a live database. The
 DB-backed integration lane (web pages, deliveries, remote synchronization) is
 DSN-gated and skips without a dedicated loopback-only test database.
 
+Dropdowns throughout the plugin use Cacti's bundled Select2, including dynamically added rule and mapping controls.
+
 Dependencies/assets must be local and licensed; no CDN or runtime package download is permitted. REST API and webhook destinations have independent transports, mappings, credentials, jobs and retries, with self-signed certificate/private-CA support through endpoint ca_bundle files, preview and explicit worker-owned test sends.
 
 Measured benchmark fixtures (PHP 8.3.6/MariaDB 10.11.14) are kept as data under `docs/benchmarks/`; they are not production performance guarantees. External non-idempotent effects still need receiver idempotency; local ownership and signed ACK do not establish end-to-end exactly-once delivery.

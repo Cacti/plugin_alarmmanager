@@ -1,5 +1,7 @@
 ## ChangeLog
 
+* Use Cacti's bundled Select2 throughout the plugin, including dynamic rule and mapping dropdowns. Handle Select2 change events and remove stale widgets when rebuilding controls. VERIFIED with plugin-wide and editor browser fixtures; live deployment remains UNVERIFIED.
+
 * Alarm Rules: add a menu-driven device-condition builder for Cacti location, poller, site, device template, hostname, description and SNMP system location. Support grouped AND/OR conditions, named ID choices and multiple integration destinations. Match current Cacti host data through the parameterized filter engine; device conditions remain part of replicated rule policy. Live deployment remains UNVERIFIED.
 
 * Consolidate delivery jobs, processing and attempt screens into Events. Add per-event integration outcome summaries and scoped workflow details with failed-job replay. Schema v12 removes routing profiles; rules store integration IDs directly, including configuration replication and private exports. VERIFIED locally with focused MariaDB, native Cacti web fixtures, browser checks and PHPStan; live deployment remains UNVERIFIED.
