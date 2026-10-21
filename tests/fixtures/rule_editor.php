@@ -42,8 +42,8 @@ if (($argv[1] ?? '') === '--empty') {
 	exit;
 }
 $configuration = ['endpoints' => [['id' => 3, 'name' => 'Operations webhook', 'enabled' => true], ['id' => 4, 'name' => 'Slack', 'enabled' => true]]];
-$choices       = ['site_ids' => [1 => 'Head office (#1)'], 'template_ids' => [1 => 'Linux (#1)', 2 => 'Network (#2)'], 'severities' => ['critical' => 'Critical', 'major' => 'Major'], 'transitions' => ['raised' => 'Raised', 'recovered' => 'Recovered'], 'device_ids' => [42 => 'Core router (#42)'], 'collector_ids' => [2 => 'Remote collector (#2)']];
+$choices       = ['sources' => ['syslog' => 'syslog', 'thold' => 'thold'], 'site_ids' => [1 => 'Head office (#1)'], 'template_ids' => [1 => 'Linux (#1)', 2 => 'Network (#2)'], 'severities' => ['critical' => 'Critical', 'major' => 'Major'], 'transitions' => ['raised' => 'Raised', 'recovered' => 'Recovered'], 'device_ids' => [42 => 'Core router (#42)'], 'collector_ids' => [2 => 'Remote collector (#2)']];
 print '<!doctype html><html lang="en"><head><meta name="viewport" content="width=device-width, initial-scale=1"><title>Alarm Manager rule editor fixture</title></head><body><main id="alarmmanager_app" data-theme="modern">';
 alarmmanager_rule_editor(['id' => 0, 'name' => '', 'enabled' => true, 'policy' => []], 5, $configuration, $choices);
-alarmmanager_rule_editor(['id' => 9, 'name' => '<img src=x onerror=alert(1)>', 'enabled' => false, 'endpoints' => [3], 'priority' => 10, 'policy' => ['match' => ['device_ids' => [999], 'severities' => []]]], 5, $configuration, $choices);
+alarmmanager_rule_editor(['id' => 9, 'name' => '<img src=x onerror=alert(1)>', 'enabled' => false, 'endpoints' => [3], 'priority' => 10, 'policy' => ['match' => ['sources' => ['retired_source'], 'device_ids' => [999], 'severities' => []]]], 5, $configuration, $choices);
 print '</main></body></html>';

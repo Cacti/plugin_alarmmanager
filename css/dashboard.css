@@ -277,9 +277,9 @@
 
 #alarmmanager_app .alarmmanagerDestinations { margin:0; padding:12px; border:1px solid var(--search-border); min-width:0; }
 #alarmmanager_app .alarmmanagerDestinations > legend { font-weight:bold; padding:0 6px; }
-#alarmmanager_app .alarmmanagerDestinationList { display:grid; gap:4px; max-height:240px; overflow:auto; }
-#alarmmanager_app .alarmmanagerDestinationList > label { display:grid; grid-template-columns:18px minmax(0,1fr); align-items:start; gap:8px; padding:8px; cursor:pointer; overflow-wrap:anywhere; }
-#alarmmanager_app .alarmmanagerDestinationList > label:has(input:checked) { background:var(--search-tint); }
-#alarmmanager_app .alarmmanagerDestinationList > label > span { min-width:0; white-space:normal; overflow-wrap:anywhere; }
+#alarmmanager_app .alarmmanagerChoiceList { display:grid; gap:4px; max-height:240px; overflow:auto; }
+#alarmmanager_app .alarmmanagerChoiceList > label { display:grid; grid-template-columns:18px minmax(0,1fr); align-items:start; gap:8px; padding:8px; cursor:pointer; overflow-wrap:anywhere; }
+#alarmmanager_app .alarmmanagerChoiceList > label:has(input:checked) { background:var(--search-tint); }
+#alarmmanager_app .alarmmanagerChoiceList > label > span { min-width:0; white-space:normal; overflow-wrap:anywhere; }
 
 .alarmmanagerQueryNot { display:block; margin-top:4px; }

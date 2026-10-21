@@ -169,7 +169,7 @@ function alarmmanager_rule_editor(array $item, int $revision, array $configurati
 	alarmmanager_input('name', 'Rule name', $item['name'], 'text', 'maxlength="128" required placeholder="Critical network alarms"');
 	alarmmanager_checkbox('enabled', 'Enable this rule', (bool) $item['enabled']);
 	$selected = $item['endpoints'] ?? [];
-	print '<fieldset class="alarmmanagerDestinations"><legend>' . __esc('Alarm Destination', 'alarmmanager') . '</legend><div class="alarmmanagerDestinationList">';
+	print '<fieldset class="alarmmanagerDestinations"><legend>' . __esc('Alarm Destination', 'alarmmanager') . '</legend><div class="alarmmanagerChoiceList">';
 
 	foreach ($configuration['endpoints'] as $endpoint) {
 		print '<label><input type="checkbox" name="endpoints[]" data-alarm-destination value="' . (int) $endpoint['id'] . '"' . (in_array($endpoint['id'], $selected, true) ? ' checked' : '') . '> <span>' . html_escape($endpoint['name']) . ($endpoint['enabled'] ? '' : ' <span class="alarmmanagerHint">(' . __esc('disabled', 'alarmmanager') . ')</span>') . '</span></label>';
@@ -191,10 +191,26 @@ function alarmmanager_rule_editor(array $item, int $revision, array $configurati
 		print '<fieldset class="alarmmanagerRuleFields" data-rule-fields' . (!array_key_exists($field, $policy['match']) ? ' disabled hidden' : '') . '>';
 
 		if ($field === 'sources') {
-			print '<p class="alarmmanagerHint">' . __esc('Match alarms from a particular plugin or system. Use the source name shown in Events, such as syslog or thold. Turn this filter off to accept alarms from any source.', 'alarmmanager') . '</p>';
-		}
+			print '<legend>' . __esc('Alarm Source', 'alarmmanager') . '</legend><p class="alarmmanagerHint">' . __esc('Select the plugins or systems whose alarms this rule should match. Turn this filter off to accept alarms from any source.', 'alarmmanager') . '</p><div class="alarmmanagerChoiceList">';
+			$sources = array_map('strval', array_keys($choices['sources'] ?? []));
+			$sources = array_values(array_unique(array_merge($sources, $values)));
+			sort($sources);
 
-		if (isset($choices[$field])) {
+			foreach ($sources as $source) {
+				$label = match ($source) {
+					'cacti_device' => __('Device Status', 'alarmmanager'),
+					'syslog'       => __('Syslog', 'alarmmanager'),
+					'thold'        => __('Thold', 'alarmmanager'),
+					default        => $source
+				};
+				print '<label><input type="checkbox" name="match_sources[]" value="' . html_escape($source) . '"' . (in_array($source, $values, true) ? ' checked' : '') . '> <span>' . html_escape($label) . '</span></label>';
+			}
+
+			if (!$sources) {
+				print '<p class="alarmmanagerHint">' . __esc('No alarm sources detected yet. Sources appear after their first alarm.', 'alarmmanager') . '</p>';
+			}
+			print '</div>';
+		} elseif (isset($choices[$field])) {
 			print '<label>' . __esc('Choose values', 'alarmmanager') . '<select name="match_' . $field . '[]" multiple>';
 			$options = $choices[$field];
 
@@ -210,7 +226,7 @@ function alarmmanager_rule_editor(array $item, int $revision, array $configurati
 			print '</select></label>';
 		} else {
 			print '<div data-list-editor="' . $field . '">';
-			alarmmanager_textarea('match_' . $field, $field === 'sources' ? 'Alarm sources' : 'Device tags', json_encode($values, JSON_THROW_ON_ERROR), 8192);
+			alarmmanager_textarea('match_' . $field, 'Device tags', json_encode($values, JSON_THROW_ON_ERROR), 8192);
 			print '</div>';
 		}
 		print '</fieldset></section>';
@@ -303,6 +319,14 @@ function alarmmanager_admin_markup(array $state, string $section): void {
 			print '<p class="alarmmanagerRuleNotice">' . __esc('Create an integration before saving your first rule.', 'alarmmanager') . ' <a href="alarmmanager_admin.php?section=endpoints">' . __esc('Create integration', 'alarmmanager') . '</a></p>';
 		}
 		$choices = ['severities' => ['critical' => __('Critical', 'alarmmanager'), 'major' => __('Major', 'alarmmanager'), 'minor' => __('Minor', 'alarmmanager'), 'warning' => __('Warning', 'alarmmanager'), 'info' => __('Information', 'alarmmanager'), 'clear' => __('Clear', 'alarmmanager')], 'transitions' => ['raised' => __('Raised', 'alarmmanager'), 'updated' => __('Updated', 'alarmmanager'), 'reminder' => __('Reminder', 'alarmmanager'), 'recovered' => __('Recovered', 'alarmmanager'), 'occurrence' => __('Occurrence', 'alarmmanager')], 'device_ids' => [], 'collector_ids' => []];
+
+		$choices['sources'] = [];
+
+		foreach (alarmmanager_report_rows("SELECT DISTINCT source FROM plugin_alarmmanager_events UNION SELECT DISTINCT source FROM plugin_alarmmanager_remote_history WHERE source IS NOT NULL AND source <> '' ORDER BY source LIMIT 256") as $row) {
+			if ($row['source'] !== '') {
+				$choices['sources'][$row['source']] = $row['source'];
+			}
+		}
 
 		foreach (alarmmanager_db_rows('SELECT id, description, hostname FROM host ORDER BY description, id LIMIT 1000') as $device) {
 			$choices['device_ids'][(int) $device['id']] = ($device['description'] ?: $device['hostname']) . ' (#' . $device['id'] . ')';

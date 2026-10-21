@@ -25,7 +25,7 @@ final class RuleEditorTest extends AlarmManagerTestCase {
 	public function testGuidedFieldsProduceTheExistingRulePolicy(): void {
 		self::alarmmanager_test_load('includes/admin.php');
 		$policy = alarmmanager_admin_rule_policy([
-			'rule_fields'                  => 'yes', 'filter_sources' => 'yes', 'match_sources' => '["syslog","thold"]',
+			'rule_fields'                  => 'yes', 'filter_sources' => 'yes', 'match_sources' => ['syslog', 'thold'],
 			'filter_severities'            => 'yes', 'match_severities' => ['critical', 'major'],
 			'filter_transitions'           => 'yes', 'match_transitions' => ['raised', 'recovered'],
 			'filter_device_ids'            => 'yes', 'match_device_ids' => ['42'],
@@ -85,7 +85,7 @@ final class RuleEditorTest extends AlarmManagerTestCase {
 	public function testRejectsInvalidGuidedPolicyFields(): void {
 		self::alarmmanager_test_load('includes/admin.php');
 		$cases = [
-			['filter_sources' => 'yes', 'match_sources' => ['syslog']],
+			['filter_sources' => 'yes', 'match_sources' => 'syslog'],
 			['filter_tags' => 'yes', 'match_tags' => str_repeat('x', 8193)],
 			['filter_device_ids' => 'yes', 'match_device_ids' => ['42 OR 1=1']],
 			['filter_severities' => 'yes', 'match_severities' => ['invalid']],

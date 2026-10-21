@@ -143,7 +143,7 @@ function alarmmanager_admin_rule_policy(array $input): array {
 		}
 		$values = $input['match_' . $field] ?? [];
 
-		if (in_array($field, ['sources', 'tags'], true)) {
+		if ($field === 'tags') {
 			if (!is_string($values) || strlen($values) > 8192) {
 				throw new InvalidArgumentException('invalid_rule_filters');
 			}

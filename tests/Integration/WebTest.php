@@ -115,7 +115,7 @@ final class WebTest extends AlarmManagerTestCase {
 			$direct    = alarmmanager_admin_configuration();
 			$edit_rule = ['action' => 'rule_save', 'id' => 1, 'revision' => $direct['revision'], 'name' => 'All events', 'enabled' => 'yes', 'endpoints' => [1, 2], 'stop' => 'yes', 'rule_fields' => 'yes', 'suppress_acknowledged' => 'yes'];
 			$this->waction(array_replace($edit_rule, ['endpoints' => [1]]));
-			$direct = alarmmanager_admin_configuration();
+			$direct                = alarmmanager_admin_configuration();
 			$edit_rule['revision'] = $direct['revision'];
 			$this->waction($edit_rule);
 			$direct = alarmmanager_admin_configuration();
@@ -407,6 +407,12 @@ final class WebTest extends AlarmManagerTestCase {
 			$html = ob_get_clean();
 			$this->assertTrue(str_contains($html,'Collectors and remote history') && str_contains($html,'Latest 50'), 'bounded collector history controls rendered');
 			$this->assertTrue(str_contains($html, '>Severity</th>') && str_contains($html, 'Remote battery low') && !str_contains($html, '<pre>'), 'remote event history rendered as readable table rows');
+			ob_start();
+			alarmmanager_admin_markup(alarmmanager_admin_configuration(), 'rules');
+			$source_html = ob_get_clean();
+			$this->assertStringContainsString('type="checkbox" name="match_sources[]" value="fixture"', $source_html);
+			$this->assertStringContainsString('type="checkbox" name="match_sources[]" value="remote_test"', $source_html);
+			$this->assertStringNotContainsString('data-list-editor="sources"', $source_html);
 			$endpoint_count   = (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_endpoints');
 			$credential_count = (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_credentials');
 			$templates        = alarmmanager_integration_templates();
