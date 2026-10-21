@@ -25,7 +25,7 @@ require_once(__DIR__ . '/../../include/auth.php');
 require_once(__DIR__ . '/includes/admin_view.php');
 header('Cache-Control: no-store');
 
-const ALARMMANAGER_SECTIONS = ['endpoints', 'collectors', 'rules', 'credentials', 'configuration', 'daemon', 'queue', 'health'];
+const ALARMMANAGER_SECTIONS = ['endpoints', 'rules', 'credentials', 'configuration', 'daemon', 'queue', 'health'];
 
 try {
 	if (!alarmmanager_web_admin()) {
@@ -72,6 +72,11 @@ try {
 	}
 
 	$section = (string) get_filter_request_var('section', FILTER_CALLBACK, ['options' => static fn ($value) => in_array($value, ALARMMANAGER_SECTIONS, true) ? $value : false, 'default' => 'endpoints']);
+
+	// Legacy collector URLs fold into the events report with provenance.
+	if (get_nfilter_request_var('section') === 'collectors') {
+		cacti_redirect('alarmmanager.php?tab=events');
+	}
 
 	if ($section === 'daemon') {
 		$section = 'configuration';

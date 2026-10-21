@@ -158,6 +158,19 @@ final class WebTest extends AlarmManagerTestCase {
 			$this->wuser(2);
 			$scope = alarmmanager_web_scope();
 			$this->assertFalse($scope['admin'], 'Read-only scope');
+			// Mirrored remote event — must stay out until collector_id is set; no Record ID when shown.
+			$remote_event = [
+				'id'                   => 999,
+				'event_id'             => 'remote:mirror-999',
+				'source'               => 'remote_fixture',
+				'source_instance'      => 'remote-node',
+				'mode'                 => 'centralized',
+				'payload'              => json_encode(['event_id' => 'remote:mirror-999', 'source' => 'remote_fixture', 'severity' => 'warning', 'transition' => 'raised', 'occurred_at' => '2026-10-20 12:00:00', 'summary' => 'Remote mirrored summary', 'device' => ['id' => 42, 'description' => 'Remote router', 'hostname' => 'remote.example']], JSON_THROW_ON_ERROR),
+				'collector_id'         => 7,
+				'processing_poller_id' => 7,
+				'received_at'          => '2026-10-20 12:00:00'
+			];
+			alarmmanager_db_write('INSERT INTO plugin_alarmmanager_remote_history (poller_id, instance_uuid, entity, entity_id, revision, definition, device_id, source, sequence, received_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(6))', [7, str_repeat('c', 32), 'event', 999, 1, json_encode($remote_event, JSON_THROW_ON_ERROR), 42, 'remote_fixture', 1]);
 			$started     = microtime(true);
 			$queries     = $GLOBALS['alarmmanager_test_queries'];
 			$dashboard   = alarmmanager_dashboard_data($scope,$filters);
@@ -179,6 +192,30 @@ final class WebTest extends AlarmManagerTestCase {
 			$event_html = ob_get_clean();
 			$this->assertStringContainsString('Device name', $event_html);
 			$this->assertStringContainsString('Sample router', $event_html);
+			$this->assertStringNotContainsString('remote:mirror-999', $event_html, 'Default collector scope hides mirrored history');
+			$remote_filters                 = $filters;
+			$remote_filters['collector_id'] = 7;
+			$mirrored                       = alarmmanager_report_list('events', $scope, $remote_filters);
+			$this->assertGreaterThan(0, count($mirrored['rows']), 'Remote collector yields mirrored events');
+			$mirror_row = null;
+
+			foreach ($mirrored['rows'] as $candidate) {
+				if ($candidate['id'] === null && $candidate['event_id'] === 'remote:mirror-999') {
+					$mirror_row = $candidate;
+
+					break;
+				}
+			}
+			$this->assertNotNull($mirror_row, 'Mirrored event found without a Record ID');
+			$this->assertSame('Remote mirrored summary', (string) $mirror_row['summary'], 'Mirrored payload decoded');
+			$this->assertStringContainsString('Poller #7', (string) $mirror_row['collector_name']);
+			$this->assertStringContainsString('Remote history', (string) $mirror_row['integration_status'], 'Mirrored rows do not expose local job states');
+			ob_start();
+			alarmmanager_report_table('events', $mirrored, $scope, $remote_filters);
+			$mirror_html = ob_get_clean();
+			$this->assertStringNotContainsString('event_id=999', $mirror_html, 'Mirrored row cannot deep-link by Record ID');
+			$this->assertStringContainsString('>—</td>', $mirror_html, 'Mirrored row renders a placeholder for the missing Record ID');
+			$this->assertStringContainsString('remote:mirror-999', $mirror_html, 'Mirrored event id rendered');
 			$device_event_id = (int) $events['rows'][0]['id'];
 			$device_payload  = alarmmanager_db_row('SELECT payload FROM plugin_alarmmanager_events WHERE id = ?', [$device_event_id])['payload'];
 
@@ -390,23 +427,6 @@ final class WebTest extends AlarmManagerTestCase {
 			alarmmanager_admin_markup(alarmmanager_admin_configuration(), 'endpoints');
 			$html = ob_get_clean();
 			$this->assertTrue(str_contains($html,'Integrations and mappings') && str_contains($html,'endpoint_save') && str_contains($html,'__csrf_magic'), 'endpoint admin controls and CSRF rendered');
-			$remote_event = [
-				'id'                   => 51,
-				'event_id'             => 'remote:test-51',
-				'source'               => 'remote_test',
-				'source_instance'      => 'remote-node',
-				'mode'                 => 'centralized',
-				'payload'              => json_encode(['event_id' => 'remote:test-51', 'source' => 'remote_test', 'severity' => 'major', 'transition' => 'raised', 'occurred_at' => '2026-10-16 12:00:00', 'summary' => 'Remote battery low'], JSON_THROW_ON_ERROR),
-				'collector_id'         => 2,
-				'processing_poller_id' => 2,
-				'received_at'          => '2026-10-16 12:00:00'
-			];
-			alarmmanager_db_write('INSERT INTO plugin_alarmmanager_remote_history (poller_id, instance_uuid, entity, entity_id, revision, definition, device_id, source, sequence, received_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(6))', [2, str_repeat('a', 32), 'event', 51, 1, json_encode($remote_event, JSON_THROW_ON_ERROR), 42, 'remote_test', 1]);
-			ob_start();
-			alarmmanager_admin_markup(alarmmanager_admin_configuration(),'collectors');
-			$html = ob_get_clean();
-			$this->assertTrue(str_contains($html,'Collectors and remote history') && str_contains($html,'Latest 50'), 'bounded collector history controls rendered');
-			$this->assertTrue(str_contains($html, '>Severity</th>') && str_contains($html, 'Remote battery low') && !str_contains($html, '<pre>'), 'remote event history rendered as readable table rows');
 			ob_start();
 			alarmmanager_admin_markup(alarmmanager_admin_configuration(), 'rules');
 			$source_html = ob_get_clean();
@@ -515,21 +535,20 @@ final class WebTest extends AlarmManagerTestCase {
 				}
 			}
 			$state = alarmmanager_admin_configuration();
-			$test = ['action' => 'endpoint_save', 'revision' => $state['revision'], 'name' => 'Inline current destination', 'type' => 'webhook', 'url' => 'https://example.test/current-form', 'transport_json' => '{}', 'mapping_json' => '{"default":[{"to":"text","constant":"CURRENT_FORM_VALUE"}]}', 'test_destination' => 'yes'];
+			$test  = ['action' => 'endpoint_save', 'revision' => $state['revision'], 'name' => 'Inline current destination', 'type' => 'webhook', 'url' => 'https://example.test/current-form', 'transport_json' => '{}', 'mapping_json' => '{"default":[{"to":"text","constant":"CURRENT_FORM_VALUE"}]}', 'test_destination' => 'yes'];
 			$this->wreject(fn () => $this->waction($test), 'Testing a disabled draft must not save it or queue delivery');
 			$this->assertSame($state['revision'], alarmmanager_admin_configuration()['revision']);
-			$before = (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_deliveries');
+			$before          = (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_deliveries');
 			$test['enabled'] = 'yes';
-			$result = $this->waction($test);
+			$result          = $this->waction($test);
 			$this->assertStringContainsString('Destination saved. Test queued for delivery workers; event row ', $result);
 			$this->assertSame($before + 1, (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_deliveries'), 'Inline test queues only the current destination');
-			$endpoint = alarmmanager_db_row('SELECT id, type FROM plugin_alarmmanager_endpoints WHERE name = ?', ['Inline current destination']);
+			$endpoint  = alarmmanager_db_row('SELECT id, type FROM plugin_alarmmanager_endpoints WHERE name = ?', ['Inline current destination']);
 			$transport = alarmmanager_endpoint_transport($endpoint);
 			$this->assertSame('https://example.test/current-form', $transport['url']);
 			$this->assertSame('CURRENT_FORM_VALUE', $transport['mapping']['default'][0]['constant']);
 			$this->wreject(fn () => $this->waction($test), 'Stale form must not queue a second test');
 			$this->assertSame($before + 1, (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_deliveries'));
-
 		} finally {
 			if ($GLOBALS['alarmmanager_test_db']->inTransaction()) {
 				$GLOBALS['alarmmanager_test_db']->rollBack();

@@ -255,11 +255,6 @@ function alarmmanager_sync_receive(string $body, int $poller, ?PDO $connection =
 		if ($packet['heartbeat'] ?? false) {
 			return;
 		}
-		$prior = alarmmanager_db_row('SELECT digest FROM plugin_alarmmanager_sync_batches WHERE poller_id = ? AND instance_uuid = ? AND through_id = ? FOR UPDATE', [$poller, $packet['instance_uuid'], $packet['through']], $connection);
-
-		if ($prior && !hash_equals($prior['digest'], $digest)) {
-			throw new RuntimeException('sync_batch_conflict');
-		}
 
 		foreach ($packet['records'] as $record) {
 			$definition = json_encode($record['data'], JSON_THROW_ON_ERROR);
@@ -274,7 +269,6 @@ function alarmmanager_sync_receive(string $body, int $poller, ?PDO $connection =
 			}
 			alarmmanager_db_write('INSERT INTO plugin_alarmmanager_remote_history (poller_id, instance_uuid, entity, entity_id, revision, definition, device_id, source, sequence, received_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(6)) ON DUPLICATE KEY UPDATE definition = IF(VALUES(revision) > revision, VALUES(definition), definition), received_at = IF(VALUES(revision) > revision, VALUES(received_at), received_at), revision = GREATEST(revision, VALUES(revision))', [$poller, $packet['instance_uuid'], $record['entity'], $record['id'], $record['revision'], $definition, $event['device']['id'] ?? null, $event['source'] ?? null, $event['sequence'] ?? null], $connection);
 		}
-		alarmmanager_db_write('INSERT IGNORE INTO plugin_alarmmanager_sync_batches (poller_id, instance_uuid, through_id, digest, created_at) VALUES (?, ?, ?, ?, UTC_TIMESTAMP(6))', [$poller, $packet['instance_uuid'], $packet['through'], $digest], $connection);
 	}, $connection);
 
 	return json_encode(['version' => 1, 'poller_id' => $poller, 'instance_uuid' => $packet['instance_uuid'], 'receiver_uuid' => alarmmanager_node_uuid($connection), 'through' => $packet['through'], 'digest' => $digest], JSON_THROW_ON_ERROR);

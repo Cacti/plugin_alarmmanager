@@ -182,21 +182,23 @@ final class SetupTest extends AlarmManagerTestCase {
 
 	public function testAdministrationSectionsUseTheNativeConsoleMenu(): void {
 		self::alarmmanager_test_load('setup.php');
-		$previous_menu = $GLOBALS['menu'] ?? [];
+		$previous_menu   = $GLOBALS['menu'] ?? [];
 		$previous_glyphs = $GLOBALS['menu_glyphs'] ?? [];
+
 		try {
-			$GLOBALS['menu'] = ['Management' => ['host.php' => 'Devices'], 'Import/Export' => []];
+			$GLOBALS['menu']        = ['Management' => ['host.php' => 'Devices'], 'Import/Export' => []];
 			$GLOBALS['menu_glyphs'] = [];
 			alarmmanager_config_arrays();
 			$items = $GLOBALS['menu']['Alarm Manager Settings'];
-			$this->assertCount(7, $items);
+			$this->assertCount(6, $items);
+
 			foreach (alarmmanager_admin_sections() as $section => $label) {
 				$this->assertSame($label, $items['plugins/alarmmanager/alarmmanager_admin.php?action=' . $section . '&section=' . $section]);
 			}
 			$this->assertArrayNotHasKey('plugins/alarmmanager/alarmmanager_admin.php', $items);
 			$this->assertSame(['host.php' => 'Devices'], $GLOBALS['menu']['Management']);
 		} finally {
-			$GLOBALS['menu'] = $previous_menu;
+			$GLOBALS['menu']        = $previous_menu;
 			$GLOBALS['menu_glyphs'] = $previous_glyphs;
 		}
 	}

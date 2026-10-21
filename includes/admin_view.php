@@ -285,8 +285,6 @@ function alarmmanager_admin_markup(array $state, string $section): void {
 			print '<tr><td colspan="6">' . __esc('No waiting messages.', 'alarmmanager') . '</td></tr>';
 		}
 		html_end_box();
-	} elseif ($section === 'collectors') {
-		alarmmanager_remote_markup();
 	} elseif ($section === 'endpoints') {
 		if (isset($_SESSION['alarmmanager_test_result'])) {
 			print '<p role="status">' . html_escape($_SESSION['alarmmanager_test_result']) . '</p><p><a href="alarmmanager.php?tab=events&amp;job=delivery">' . __esc('View delivery results', 'alarmmanager') . '</a></p>';
@@ -454,118 +452,6 @@ function alarmmanager_admin_markup(array $state, string $section): void {
 		}
 		print '<p><a href="alarmmanager.php?tab=events&amp;job=processing&amp;status=failed">' . __esc('Failed processing jobs and replay', 'alarmmanager') . '</a></p><p><a href="alarmmanager.php?tab=events&amp;job=delivery&amp;status=failed">' . __esc('Failed deliveries and replay', 'alarmmanager') . '</a></p>';
 	}
-}
-
-function alarmmanager_remote_markup(): void {
-	print '<h2>' . __esc('Collectors and remote history', 'alarmmanager') . '</h2><p>' . __esc('Each collector owns its local delivery. Imported history records the original events and outcomes. Collector history does not create central delivery jobs.', 'alarmmanager') . '</p>';
-	print '<p>' . __esc("Configuration uses Cacti replication. Collectors automatically return history through Cacti's existing main database connection; no separate synchronization setup is required.", 'alarmmanager') . '</p>';
-	$peers = alarmmanager_db_rows('SELECT q.id AS poller_id, q.name, p.last_seen,
-		TIMESTAMPDIFF(SECOND, p.last_seen, UTC_TIMESTAMP(6)) AS age_seconds
-		FROM poller AS q LEFT JOIN plugin_alarmmanager_sync_peers AS p ON p.poller_id = q.id
-		WHERE q.id > 1 ORDER BY q.name, q.id LIMIT 256');
-
-	html_start_box(__esc('Collectors', 'alarmmanager'), '100%', false, 3, 'center', '');
-	html_header([__esc('Poller_id', 'alarmmanager'), __esc('Poller name', 'alarmmanager'), __esc('Status', 'alarmmanager'), __esc('Last history sync (UTC)', 'alarmmanager')], 1);
-
-	foreach ($peers as $peer) {
-		$status = $peer['last_seen'] === null ? 'Not yet seen' : ((int) $peer['age_seconds'] <= 2 * (int) (read_config_option('poller_interval') ?: 300) + 30 ? 'Online' : 'Offline');
-		form_alternate_row();
-		form_selectable_cell((string) (int) $peer['poller_id'], 0, '', 'left');
-		form_selectable_cell(html_escape((string) $peer['name']), 0, '', 'left');
-		form_selectable_cell(__esc($status, 'alarmmanager'), 0, '', 'left');
-		form_selectable_cell(html_escape($peer['last_seen'] ?? '—'), 0, '', 'left');
-		form_end_row();
-	}
-
-	if (!$peers) {
-		print '<tr class="odd"><td colspan="4">' . __esc('No remote collectors configured.', 'alarmmanager') . '</td></tr>';
-	}
-	html_end_box(true);
-
-	$poller = get_filter_request_var('collector', FILTER_VALIDATE_INT, ['options' => ['min_range' => 0, 'max_range' => 2147483647], 'default' => 0]);
-	$entity = get_filter_request_var('entity', FILTER_CALLBACK, ['options' => static fn ($value) => is_string($value) && isset(alarmmanager_sync_entities()[$value]) ? $value : false, 'default' => 'event']);
-
-	if (!is_string($entity) || !isset(alarmmanager_sync_entities()[$entity])) {
-		throw new InvalidArgumentException('history_entity_invalid');
-	}
-
-	$peer_ids = array_map('intval', array_column($peers, 'poller_id'));
-
-	if (!in_array($poller, $peer_ids, true)) {
-		$poller = 0;
-	}
-	print '<form method="get"><input type="hidden" name="section" value="collectors"><label for="alarmmanager_history_poller">' . __esc('Poller', 'alarmmanager') . '</label> <select id="alarmmanager_history_poller" name="collector"><option value="0">' . __esc('All pollers', 'alarmmanager') . '</option>';
-
-	foreach ($peers as $peer) {
-		print '<option value="' . (int) $peer['poller_id'] . '"' . ($poller === (int) $peer['poller_id'] ? ' selected' : '') . '>' . html_escape($peer['poller_id'] . ' - ' . $peer['name']) . '</option>';
-	}
-	print '</select> <label>' . __esc('History record type', 'alarmmanager') . ' <select name="entity">';
-
-	foreach (array_keys(alarmmanager_sync_entities()) as $type) {
-		print '<option ' . ($type === $entity ? 'selected' : '') . '>' . $type . '</option>';
-	}
-	print '</select></label><button>' . __esc('Filter', 'alarmmanager') . '</button></form>';
-	$rows = alarmmanager_db_rows('SELECT poller_id, instance_uuid, entity_id, revision, definition, received_at FROM plugin_alarmmanager_remote_history WHERE entity = ?' . ($poller ? ' AND poller_id = ?' : '') . ' ORDER BY received_at DESC, entity_id DESC LIMIT 50', $poller ? [$entity, $poller] : [$entity]);
-	print '<p>' . __esc('Latest 50 matching remote records; original IDs and delivery ownership are preserved.', 'alarmmanager') . '</p>';
-	$history_layout = [
-		'event' => [
-			'headers' => ['Collector', 'Record ID', 'Event ID', 'Source', 'Severity', 'Transition', 'Occurred at (UTC)', 'Summary', 'Received at (UTC)'],
-			'fields'  => ['collector', 'entity_id', 'event_id', 'source', 'severity', 'transition', 'occurred_at', 'summary', 'received_at']
-		],
-		'processing' => [
-			'headers' => ['Collector', 'Record ID', 'Event row ID', 'Status', 'Attempts', 'Last error', 'Created at (UTC)', 'Updated at (UTC)', 'Received at (UTC)'],
-			'fields'  => ['collector', 'entity_id', 'event_row_id', 'status', 'attempts', 'last_error', 'created_at', 'updated_at', 'received_at']
-		],
-		'decision' => [
-			'headers' => ['Collector', 'Record ID', 'Event row ID', 'Rule ID', 'Endpoint ID', 'Reason', 'Config revision', 'Created at (UTC)', 'Received at (UTC)'],
-			'fields'  => ['collector', 'entity_id', 'event_row_id', 'rule_id', 'endpoint_id', 'reason', 'config_revision', 'created_at', 'received_at']
-		],
-		'delivery' => [
-			'headers' => ['Collector', 'Record ID', 'Event row ID', 'Endpoint ID', 'Status', 'Attempts', 'Last error', 'Created at (UTC)', 'Updated at (UTC)', 'Received at (UTC)'],
-			'fields'  => ['collector', 'entity_id', 'event_row_id', 'endpoint_id', 'status', 'attempts', 'last_error', 'created_at', 'updated_at', 'received_at']
-		],
-		'attempt' => [
-			'headers' => ['Collector', 'Record ID', 'Delivery ID', 'Attempt number', 'Outcome', 'Code', 'Duration (ms)', 'Started at (UTC)', 'Ended at (UTC)', 'Received at (UTC)'],
-			'fields'  => ['collector', 'entity_id', 'delivery_id', 'attempt_number', 'outcome', 'code', 'duration_ms', 'started_at', 'ended_at', 'received_at']
-		]
-	];
-	$layout  = $history_layout[$entity] ?? throw new InvalidArgumentException('history_entity_invalid');
-	$headers = $layout['headers'];
-	html_start_box(__esc('Remote history', 'alarmmanager'), '100%', false, 3, 'center', '');
-	html_header(array_map(static fn ($header) => __esc($header, 'alarmmanager'), $headers), 1);
-
-	$poller_names = array_column($peers, 'name', 'poller_id');
-
-	foreach ($rows as $row) {
-		$definition             = json_decode($row['definition'], true, 32, JSON_THROW_ON_ERROR);
-		$display                = $definition;
-		$display['collector']   = $row['poller_id'] . ' - ' . ($poller_names[$row['poller_id']] ?? __('Unknown collector', 'alarmmanager'));
-		$display['entity_id']   = $row['entity_id'];
-		$display['received_at'] = $row['received_at'];
-
-		if ($entity === 'event') {
-			$event = json_decode($definition['payload'], true, 32, JSON_THROW_ON_ERROR);
-
-			foreach (['severity', 'transition', 'occurred_at', 'summary'] as $field) {
-				$display[$field] = $event[$field] ?? '—';
-			}
-		}
-
-		$values = array_map(static fn ($field) => $display[$field] ?? '—', $layout['fields']);
-		form_alternate_row();
-
-		foreach ($values as $value) {
-			form_selectable_cell(html_escape((string) $value), 0, '', 'left');
-		}
-
-		form_end_row();
-	}
-
-	if (!$rows) {
-		print '<tr class="odd"><td colspan="' . count($headers) . '">' . __esc('No matching remote records.', 'alarmmanager') . '</td></tr>';
-	}
-
-	html_end_box(true);
 }
 
 function alarmmanager_auth_editor(string $selected, bool $replacement = false, bool $optional = false): void {

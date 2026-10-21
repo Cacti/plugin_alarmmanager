@@ -47,8 +47,7 @@ preg_match('/^const ALARMMANAGER_SECTIONS = .*;$/m', $admin, $constant);
 eval($constant[0]);
 $cases = [
 	[$admin, 'section', ALARMMANAGER_SECTIONS, 'endpoints'],
-	[file_get_contents($argv[2] . '/includes/web_view.php'), 'tab', ALARMMANAGER_TABS, 'dashboard'],
-	[file_get_contents($argv[2] . '/includes/admin_view.php'), 'entity', array_keys(alarmmanager_sync_entities()), 'event']
+	[file_get_contents($argv[2] . '/includes/web_view.php'), 'tab', ALARMMANAGER_TABS, 'dashboard']
 ];
 foreach ($cases as [$source, $name, $values, $default]) {
 	// Evaluate only the selector expression so no authenticated page or database is bootstrapped.

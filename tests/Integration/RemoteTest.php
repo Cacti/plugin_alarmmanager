@@ -253,7 +253,7 @@ final class RemoteTest extends AlarmManagerTestCase {
 			$badMode = alarmmanager_submit(['contract_version'=>1, 'mode'=>'observe', 'event'=>$twoEvent]);
 			$this->assertTrue($badMode['status'] === 'failed', 'public device submission respects configured mode');
 			$untrusted                                  = $twoEvent;
-			$untrusted['context']['ownership_epoch'] = 999;
+			$untrusted['context']['ownership_epoch']    = 999;
 			$this->assertFalse(alarmmanager_device_event_authorized($untrusted), 'device ownership epoch cannot be overridden');
 			// AUTO_INCREMENT allocation order is not commit order. Prefix locking must not skip a late commit.
 			$this->ruse(2);
@@ -322,6 +322,7 @@ final class RemoteTest extends AlarmManagerTestCase {
 			}
 		} finally {
 			unset($GLOBALS['remote_db_cnn_id']);
+
 			foreach ($databases as $database) {
 				$server->exec("DROP DATABASE IF EXISTS `$database`");
 			}
@@ -382,7 +383,7 @@ final class RemoteTest extends AlarmManagerTestCase {
 			$this->connections[1]->exec("UPDATE plugin_config SET status = 1 WHERE directory = 'alarmmanager'");
 
 			// Failure after a history write rolls back main and leaves the collector cursor intact.
-			$this->connections[1]->exec("CREATE TRIGGER reject_batch BEFORE INSERT ON plugin_alarmmanager_sync_batches FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'fixture rollback'");
+			$this->connections[1]->exec("CREATE TRIGGER reject_batch BEFORE INSERT ON plugin_alarmmanager_remote_history FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'fixture rollback'");
 			$this->rreject(fn () => alarmmanager_sync_send(), 'Main transaction failure preserves pending history.');
 			$this->assertSame(0, (int) $this->connections[1]->query('SELECT COUNT(*) FROM plugin_alarmmanager_remote_history')->fetchColumn());
 			$this->assertSame($body, alarmmanager_sync_export(100));
@@ -396,14 +397,15 @@ final class RemoteTest extends AlarmManagerTestCase {
 			$this->assertSame(1, (int) $this->connections[1]->query('SELECT COUNT(*) FROM plugin_alarmmanager_remote_history')->fetchColumn());
 			$this->assertSame(0, (int) $this->connections[1]->query('SELECT COUNT(*) FROM plugin_alarmmanager_deliveries')->fetchColumn(), 'Mirroring creates no delivery jobs.');
 			$this->rreject(fn () => alarmmanager_sync_acknowledge($ack), 'Stale acknowledgment cannot advance another batch.');
-			$unknown = json_decode($body, true);
+			$unknown              = json_decode($body, true);
 			$unknown['poller_id'] = 9;
 			$this->rreject(fn () => alarmmanager_sync_receive(json_encode($unknown), 9, $this->connections[1]), 'Unknown Cacti poller refused.');
-			$wrong = json_decode($body, true);
+			$wrong                  = json_decode($body, true);
 			$wrong['receiver_uuid'] = $nodes[2];
 			$this->rreject(fn () => alarmmanager_sync_receive(json_encode($wrong), 2, $this->connections[1]), 'Wrong receiver refused.');
 		} finally {
 			unset($GLOBALS['remote_db_cnn_id']);
+
 			foreach ($databases as $database) {
 				$server->exec("DROP DATABASE IF EXISTS `$database`");
 			}
@@ -431,7 +433,7 @@ final class RemoteTest extends AlarmManagerTestCase {
 	private function ruse(int $poller): void {
 		$GLOBALS['config']               = ['poller_id' => $poller];
 		$GLOBALS['alarmmanager_test_db'] = $this->connections[$poller];
-		$GLOBALS['remote_db_cnn_id'] = $this->connections[1] ?? null;
+		$GLOBALS['remote_db_cnn_id']     = $this->connections[1] ?? null;
 		unset($GLOBALS['alarmmanager_route_cache']);
 	}
 

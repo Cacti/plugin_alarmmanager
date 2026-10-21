@@ -48,6 +48,7 @@ function alarmmanager_view_filters(): array {
 		'source'       => ['filter' => FILTER_VALIDATE_REGEXP, 'pageset' => true, 'default' => '', 'options' => ['options' => ['regexp' => '/\A[A-Za-z0-9_.:@\/-]*\z/D']]],
 		'reason'       => ['filter' => FILTER_VALIDATE_REGEXP, 'pageset' => true, 'default' => '', 'options' => ['options' => ['regexp' => '/\A[A-Za-z0-9_.:@\/-]*\z/D']]],
 		'device_id'    => ['filter' => FILTER_VALIDATE_INT, 'pageset' => true, 'default' => 0, 'options' => ['options' => ['min_range' => 0, 'max_range' => 2147483647]]],
+		'collector_id' => ['filter' => FILTER_VALIDATE_INT, 'pageset' => true, 'default' => 0, 'options' => ['options' => ['min_range' => 0, 'max_range' => 2147483647]]],
 		'endpoint_id'  => ['filter' => FILTER_VALIDATE_INT, 'pageset' => true, 'default' => 0, 'options' => ['options' => ['min_range' => 0, 'max_range' => 2147483647]]],
 		'current'      => ['filter' => FILTER_CALLBACK, 'pageset' => true, 'default' => '0', 'options' => ['options' => static fn ($value) => in_array($value, ['0', '1'], true) ? $value : false]],
 		'acknowledged' => ['filter' => FILTER_CALLBACK, 'pageset' => true, 'default' => '', 'options' => ['options' => static fn ($value) => in_array($value, ['', '0', '1'], true) ? $value : false]],
@@ -190,14 +191,30 @@ function alarmmanager_web_filters(array $filters, string $tab, bool $dashboard =
 		}
 	}
 
+	if ($tab === 'events') {
+		print '<label>' . __esc('Collector ID', 'alarmmanager') . ' <select name="collector_id"><option value="0">' . __esc('Local and mirrored collectors', 'alarmmanager') . '</option>';
+
+		foreach (alarmmanager_view_collectors() as $collector) {
+			print '<option value="' . (int) $collector['poller_id'] . '"' . (($filters['collector_id'] ?? 0) === (int) $collector['poller_id'] ? ' selected' : '') . '>' . html_escape((string) $collector['poller_id'] . ' - ' . $collector['name'] . ($collector['name'] === '' ? '' : ' (' . __('mirrored', 'alarmmanager') . ')')) . '</option>';
+		}
+		print '</select></label>';
+
+		if (($filters['collector_id'] ?? 0) > 1) {
+			print '<p class="alarmmanagerHint" role="note">' . __esc('Mirrored rows have no Record ID and open no detail view.', 'alarmmanager') . '</p>';
+		}
+	}
+
 	print '</div></details><div class="alarmmanagerDashboardBarRow">';
 	print '<input type="hidden" name="current" value="' . ($filters['current'] ? '1' : '0') . '">';
 	print '<button type="submit">' . __esc('Apply', 'alarmmanager') . '</button><a href="' . html_escape('alarmmanager.php?tab=' . $tab . '&clear=1') . '">' . __esc('Reset', 'alarmmanager') . '</a></div></form></td></tr>';
 	html_end_box(false);
 	print '<p class="alarmmanagerHint">' . __esc('Historical window uses UTC. Current conditions and queues ignore the time window.', 'alarmmanager') . '</p>';
 }
+function alarmmanager_view_collectors(): array {
+	return alarmmanager_db_rows('SELECT p.id AS poller_id, p.name FROM poller AS p WHERE p.id > 1 AND EXISTS (SELECT 1 FROM plugin_alarmmanager_remote_history AS h WHERE h.poller_id = p.id) ORDER BY p.name, p.id LIMIT 20');
+}
 function alarmmanager_report_url(array $filters, string $tab, array $extra = []): string {
-	$values = array_intersect_key($filters, array_flip(['job', 'range', 'until', 'source', 'severity', 'transition', 'status', 'reason', 'device_id', 'endpoint_id', 'event_id', 'current', 'acknowledged', 'query']));
+	$values = array_intersect_key($filters, array_flip(['job', 'range', 'until', 'source', 'severity', 'transition', 'status', 'reason', 'device_id', 'endpoint_id', 'event_id', 'current', 'acknowledged', 'query', 'collector_id']));
 
 	if ($tab === 'events' && isset($extra['event_id'])) {
 		unset($values['query'], $values['status'], $values['endpoint_id']);
@@ -273,7 +290,9 @@ function alarmmanager_report_table(string $kind, array $result, array $scope, ar
 		foreach ($headers as $key) {
 			$value = html_escape((string) ($row[$key] ?? '—'));
 
-			if ($key === 'event_row_id' || ($key === 'id' && in_array($kind, ['events', 'conditions'], true))) {
+			$is_mirror = $row['id'] === null;
+
+			if (($key === 'event_row_id' || ($key === 'id' && in_array($kind, ['events', 'conditions'], true))) && !$is_mirror) {
 				$link = '<a class="linkOverDark" href="' . html_escape(alarmmanager_report_url($filters, 'events', ['event_id' => $row[$key]])) . '">' . html_escape((string) $row[$key]) . '</a>';
 			} elseif ($key === 'external_url' && !empty($row['external_id']) && !empty($row[$key])) {
 				require_once(__DIR__ . '/integrations.php');

@@ -46,7 +46,7 @@ function plugin_alarmmanager_install(): bool {
 }
 
 function plugin_alarmmanager_check_config(): bool {
-	$ready = PHP_VERSION_ID >= 80200 && extension_loaded('openssl') && alarmmanager_key_ready() && plugin_alarmmanager_upgrade();
+	$ready            = PHP_VERSION_ID >= 80200 && extension_loaded('openssl') && alarmmanager_key_ready() && plugin_alarmmanager_upgrade();
 	static $scheduled = false;
 
 	if ($ready && !$scheduled && alarmmanager_local_poller() === 1) {
@@ -108,7 +108,7 @@ function plugin_alarmmanager_uninstall(): void {
 
 /** Shared labels for Cacti's console menu and the administration page heading. */
 function alarmmanager_admin_sections(): array {
-	return ['endpoints' => 'Alarm Destinations', 'collectors' => 'Collectors and history', 'rules' => 'Alarm Rules', 'credentials' => 'Credentials', 'configuration' => 'Configuration', 'queue' => 'Alarm Queue', 'health' => 'Workers and failed processing'];
+	return ['endpoints' => 'Alarm Destinations', 'rules' => 'Alarm Rules', 'credentials' => 'Credentials', 'configuration' => 'Configuration', 'queue' => 'Alarm Queue', 'health' => 'Workers and failed processing'];
 }
 
 function alarmmanager_config_arrays(): void {

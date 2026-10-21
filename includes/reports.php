@@ -117,7 +117,7 @@ function alarmmanager_report_filters(array $input): array {
 		}
 	}
 
-	foreach (['device_id', 'endpoint_id', 'event_id', 'page'] as $key) {
+	foreach (['device_id', 'endpoint_id', 'event_id', 'collector_id', 'page'] as $key) {
 		$value        = $input[$key] ?? ($key === 'page' ? 1 : 0);
 		$result[$key] = filter_var($value, FILTER_VALIDATE_INT, ['options' => ['min_range' => $key === 'page' ? 1 : 0, 'max_range' => $key === 'page' ? 200 : ($key === 'event_id' ? PHP_INT_MAX : 2147483647)]]);
 
@@ -148,7 +148,7 @@ function alarmmanager_report_where(array $scope, array $filters, ?string $time_c
 		$params[] = $filters['to'];
 	}
 
-	foreach (['source' => 'e.source', 'severity' => $severity_column, 'transition' => 'e.transition', 'device_id' => 'e.device_id', 'event_id' => 'e.id'] as $key => $column) {
+	foreach (['source' => 'e.source', 'severity' => $severity_column, 'transition' => 'e.transition', 'device_id' => 'e.device_id', 'event_id' => 'e.id', 'collector_id' => 'e.collector_id'] as $key => $column) {
 		if (($key !== 'event_id' || $kind === 'events') && $filters[$key] !== '' && $filters[$key] !== 0) {
 			$where[]  = "$column = ?";
 			$params[] = $filters[$key];
@@ -223,6 +223,8 @@ function alarmmanager_report_list(string $kind, array $scope, array $filters): a
 			'attempt'    => 'plugin_alarmmanager_attempts AS job INNER JOIN plugin_alarmmanager_deliveries AS delivery ON delivery.id = job.delivery_id WHERE delivery.event_row_id = e.id',
 			default      => 'plugin_alarmmanager_deliveries AS job WHERE job.event_row_id = e.id'
 		};
+		// Mirrored collector history folds into the events table only when a remote poller is selected.
+		$remote = ($filters['collector_id'] ?? 0) > 1 && $filters['collector_id'] !== alarmmanager_local_poller();
 		$checks = [];
 
 		if ($filters['status'] !== '') {
@@ -266,13 +268,35 @@ function alarmmanager_report_list(string $kind, array $scope, array $filters): a
 	$base .= ' LEFT JOIN poller AS collector ON collector.id = e.collector_id';
 	$columns .= ", e.collector_id, COALESCE(NULLIF(collector.name, ''), CONCAT('Poller #', e.collector_id)) AS collector_name";
 	$offset = ($filters['page'] - 1) * 50;
-	$rows   = alarmmanager_report_rows("SELECT $columns FROM $base WHERE $where ORDER BY $order DESC LIMIT 51 OFFSET $offset", $params);
+
+	if (($remote ?? false) === true) {
+		// Derived table keeps every e.* predicate resolvable; mirrored rows get NULL id so no Record ID is ever rendered.
+		$payload        = "JSON_UNQUOTE(JSON_EXTRACT(h.definition, '$.payload'))";
+		$remote_columns = "$payload AS payload, NULL AS id, h.received_at, h.source, "
+			. "COALESCE(JSON_UNQUOTE(JSON_EXTRACT($payload, '$.transition')), 'event') AS `transition`, "
+			. "COALESCE(JSON_UNQUOTE(JSON_EXTRACT($payload, '$.severity')), 'info') AS severity, "
+			. 'h.device_id, '
+			. "COALESCE(NULLIF(JSON_UNQUOTE(JSON_EXTRACT($payload, '$.device.description')), ''), JSON_UNQUOTE(JSON_EXTRACT($payload, '$.device.hostname'))) AS device_name, "
+			. "JSON_UNQUOTE(JSON_EXTRACT(h.definition, '$.event_id')) AS event_id, "
+			. "JSON_UNQUOTE(JSON_EXTRACT($payload, '$.summary')) AS `summary`, "
+			. "h.poller_id AS collector_id, COALESCE(NULLIF(remote_poller.name, ''), CONCAT('Poller #', h.poller_id)) AS collector_name";
+		$sql = "SELECT * FROM ((SELECT $columns FROM $base WHERE $where)"
+			. " UNION ALL (SELECT $remote_columns FROM plugin_alarmmanager_remote_history AS h LEFT JOIN poller AS remote_poller ON remote_poller.id = h.poller_id WHERE h.entity = 'event' AND h.poller_id = ? AND h.received_at >= ? AND h.received_at < ?)) AS report"
+			. ' ORDER BY report.received_at DESC, report.collector_id DESC, report.id DESC LIMIT 51 OFFSET ' . $offset;
+		$params[] = $filters['collector_id'];
+		$params[] = $filters['from'];
+		$params[] = $filters['to'];
+	} else {
+		$sql = "SELECT $columns FROM $base WHERE $where";
+		$sql .= " ORDER BY $order DESC LIMIT 51 OFFSET $offset";
+	}
+	$rows = alarmmanager_report_rows($sql, $params);
 
 	$more = count($rows) > 50;
 	$rows = array_slice($rows, 0, 50);
 
 	if ($kind === 'events' && $rows) {
-		$ids          = array_column($rows, 'id');
+		$ids          = array_values(array_filter(array_column($rows, 'id'), 'is_int'));
 		$placeholders = implode(',', array_fill(0, count($ids), '?'));
 		$counts       = [];
 
@@ -282,7 +306,9 @@ function alarmmanager_report_list(string $kind, array $scope, array $filters): a
 		$processing = array_column(alarmmanager_report_rows("SELECT e.id, j.status, EXISTS(SELECT 1 FROM plugin_alarmmanager_decisions AS r WHERE r.event_row_id = e.id AND r.reason NOT IN ('queued', 'no_route')) AS suppressed FROM plugin_alarmmanager_events AS e LEFT JOIN plugin_alarmmanager_jobs AS j ON j.event_row_id = e.id WHERE e.id IN ($placeholders)", $ids), null, 'id');
 
 		foreach ($rows as &$row) {
-			$row['integration_status'] = alarmmanager_integration_status($counts[$row['id']] ?? [], $processing[$row['id']]['status'] ?? '', (bool) ($processing[$row['id']]['suppressed'] ?? false));
+			$row['integration_status'] = $row['id'] === null
+				? __('Remote history', 'alarmmanager')
+				: alarmmanager_integration_status($counts[$row['id']] ?? [], $processing[$row['id']]['status'] ?? '', (bool) ($processing[$row['id']]['suppressed'] ?? false));
 		}
 		unset($row);
 	}
@@ -308,7 +334,7 @@ function alarmmanager_integration_status(array $counts, string $processing, bool
 	};
 }
 function alarmmanager_event_detail(array $scope, array $filters): ?array {
-	if ($filters['event_id'] < 1) {
+	if ($filters['event_id'] < 1 || (($filters['collector_id'] ?? 0) > 0 && $filters['collector_id'] !== alarmmanager_local_poller())) {
 		return null;
 	}
 	[$where, $params] = alarmmanager_report_where($scope, $filters, null, 'e.severity', 'events');
