@@ -22,13 +22,14 @@
  +-------------------------------------------------------------------------+
 */
 require_once(__DIR__ . '/web_view.php');
+require_once(__DIR__ . '/../setup.php');
 require_once(__DIR__ . '/admin.php');
 require_once(__DIR__ . '/remote.php');
 require_once(__DIR__ . '/workers.php');
 require_once(__DIR__ . '/integrations.php');
 
 function alarmmanager_form_start(string $action, int $revision, array $hidden = []): void {
-	print '<form method="post" action="alarmmanager_admin.php" class="alarmmanagerEditor' . ($action === 'endpoint_save' ? ' alarmmanagerEndpointEditor' : ($action === 'endpoint_delete' ? ' alarmmanagerEndpointDelete' : '')) . ($action === 'device_summaries_save' ? ' alarmmanagerSummaryEditor' : '') . '">';
+	print '<form method="post" action="alarmmanager_admin.php"' . ($action === 'configuration_save' ? ' enctype="multipart/form-data"' : '') . ' class="alarmmanagerEditor' . ($action === 'endpoint_save' ? ' alarmmanagerEndpointEditor' : ($action === 'endpoint_delete' ? ' alarmmanagerEndpointDelete' : '')) . ($action === 'settings_save' ? ' alarmmanagerSummaryEditor' : '') . '">';
 	alarmmanager_csrf_field();
 	print '<input type="hidden" name="action" value="' . html_escape($action) . '"><input type="hidden" name="revision" value="' . $revision . '">';
 
@@ -253,11 +254,7 @@ function alarmmanager_rule_editor(array $item, int $revision, array $configurati
 function alarmmanager_admin_markup(array $state, string $section): void {
 	$config   = $state['configuration'];
 	$revision = $state['revision'];
-	print '<div class="tabs"><nav aria-label="' . __esc('Administration sections', 'alarmmanager') . '"><ul>';
-
-	foreach (['endpoints' => 'Integrations and mappings', 'collectors' => 'Collectors and history', 'rules' => 'Alarm Rules', 'credentials' => 'Credentials', 'test' => 'Preview and test', 'configuration' => 'Configuration', 'daemon' => 'Daemon', 'queue' => 'Alarm Queue', 'health' => 'Workers and failed processing'] as $key => $label) {
-		print '<li><a class="tab' . ($section === $key ? ' selected' : '') . '" href="alarmmanager_admin.php?section=' . $key . '" ' . ($section === $key ? 'aria-current="page"' : '') . '>' . __esc($label, 'alarmmanager') . '</a></li>';
-	} print '</ul></nav></div><p>' . __esc('Local configuration revision', 'alarmmanager') . ': ' . $revision . '</p>';
+	print '<h2>' . __esc(alarmmanager_admin_sections()[$section] ?? 'Configuration', 'alarmmanager') . '</h2><p>' . __esc('Local configuration revision', 'alarmmanager') . ': ' . $revision . '</p>';
 
 	if ($section === 'queue') {
 		$paused = alarmmanager_notifications_paused();
@@ -405,16 +402,12 @@ function alarmmanager_admin_markup(array $state, string $section): void {
 		}
 	} elseif ($section === 'configuration') {
 		$summaries = $config['device_summaries'] ?? ['offline' => 'Device Offline', 'recovering' => 'Device Recovering', 'online' => 'Device Online'];
-		alarmmanager_form_start('device_summaries_save', $revision);
+		alarmmanager_form_start('settings_save', $revision);
 		print '<h2>' . __esc('Device alarm summaries', 'alarmmanager') . '</h2>';
 		alarmmanager_input('offline_summary', 'Offline summary', $summaries['offline'], 'text', 'maxlength="512" required');
 		alarmmanager_input('recovering_summary', 'Recovering summary', $summaries['recovering'] ?? 'Device Recovering', 'text', 'maxlength="512" required');
 		alarmmanager_input('online_summary', 'Online summary', $summaries['online'], 'text', 'maxlength="512" required');
-		print '<p>' . __esc('Applies to new device alarms and recoveries. Existing history retains its original summary. These settings synchronize to collectors.', 'alarmmanager') . '</p><div class="alarmmanagerSummaryActions"><button type="submit">' . __esc('Save device summaries', 'alarmmanager') . '</button></div></form>';
-		alarmmanager_form_start('configuration_save', $revision);
-		alarmmanager_textarea('configuration_json', 'Complete local routing configuration (no secrets)', alarmmanager_json_text($config), 1048576);
-		print '<button type="submit">' . __esc('Apply configuration', 'alarmmanager') . '</button></form><p>' . __esc('Removed IDs are disabled, preserving history. Concurrent edits reject stale revisions. Main-poller settings replicate through Cacti synchronization.', 'alarmmanager') . '</p>';
-	} elseif ($section === 'daemon') {
+		print '<p>' . __esc('Applies to new device alarms and recoveries. Existing history retains its original summary. These settings synchronize to collectors.', 'alarmmanager') . '</p>';
 		$settings = alarmmanager_supervisor_options();
 		$status   = alarmmanager_daemon_status();
 		print '<h2>' . __esc('Daemon', 'alarmmanager') . '</h2><p>' . __esc('Supervisor', 'alarmmanager') . ': ' . __esc($status ? 'Running' : 'Not running', 'alarmmanager') . '</p>';
@@ -424,11 +417,16 @@ function alarmmanager_admin_markup(array $state, string $section): void {
 		} else {
 			print '<p>' . __esc('Install and start the Alarm Manager service on this collector before enabling daemon workers.', 'alarmmanager') . '</p>';
 		}
-		alarmmanager_form_start('daemon_save', $revision);
 		alarmmanager_checkbox('daemon_enabled', 'Enable daemon', $settings['enabled']);
 		alarmmanager_input('processing_workers', 'Processing workers', $settings['processing_workers'], 'number', 'min="1" max="64" required');
 		alarmmanager_input('delivery_workers', 'Delivery workers', $settings['delivery_workers'], 'number', 'min="0" max="64" required');
-		print '<p class="alarmmanagerHint alarmmanagerFullWidth">' . __esc('Changes apply automatically within a few seconds. Disabling the daemon lets current jobs finish and returns processing to the Cacti poller.', 'alarmmanager') . '</p><button type="submit">' . __esc('Save daemon settings', 'alarmmanager') . '</button></form>';
+		print '<p class="alarmmanagerHint alarmmanagerFullWidth">' . __esc('Changes apply automatically within a few seconds. Disabling the daemon lets current jobs finish and returns processing to the Cacti poller.', 'alarmmanager') . '</p><button type="submit">' . __esc('Save settings', 'alarmmanager') . '</button></form>';
+		print '<h2>' . __esc('Export / import configuration', 'alarmmanager') . '</h2><p>' . __esc('Export endpoints, message mappings, alarm rules and device summaries as JSON. Stored credentials and daemon settings are excluded. Endpoint URLs may contain secrets; keep exported files private.', 'alarmmanager') . '</p>';
+		print '<p><a class="button" href="alarmmanager_admin.php?section=configuration&amp;download=configuration">' . __esc('Export configuration', 'alarmmanager') . '</a></p>';
+		alarmmanager_form_start('configuration_save', $revision);
+		print '<input type="hidden" name="MAX_FILE_SIZE" value="1048576">';
+		alarmmanager_input('configuration_file', 'Configuration JSON file (maximum 1 MiB)', '', 'file', 'accept=".json,application/json" required');
+		print '<p>' . __esc('Import replaces the routing configuration using the IDs in the file. Missing endpoints and rules are disabled, preserving history. Stored credentials are unchanged. Concurrent edits reject stale revisions. Main-poller settings replicate through Cacti synchronization.', 'alarmmanager') . '</p><button type="submit">' . __esc('Import configuration', 'alarmmanager') . '</button></form>';
 	} elseif ($section === 'health') {
 		// Same shared metrics used by cli/status.php; rendered as Cacti tables.
 		$metrics = alarmmanager_metrics();

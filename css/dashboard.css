@@ -287,7 +287,9 @@
 #alarmmanager_app .alarmmanagerSummaryEditor { display:block; max-width:900px; box-sizing:border-box; }
 .alarmmanagerSummaryEditor h2 { margin:0 0 20px; }
 #alarmmanager_app .alarmmanagerSummaryEditor > label { display:grid; grid-template-columns:240px minmax(0,1fr); align-items:center; gap:12px; margin:0 0 14px; min-width:0; }
-#alarmmanager_app .alarmmanagerSummaryEditor input:not([type=hidden]) { width:100%; min-width:0; box-sizing:border-box; }
+#alarmmanager_app .alarmmanagerSummaryEditor input:not([type=hidden]):not([type=checkbox]) { width:100%; min-width:0; box-sizing:border-box; }
 .alarmmanagerSummaryEditor > p { max-width:70ch; margin:20px 0; line-height:1.5; }
 .alarmmanagerSummaryActions { padding-top:14px; border-top:1px solid var(--search-border); }
 @media(max-width:600px) { #alarmmanager_app .alarmmanagerSummaryEditor > label { grid-template-columns:minmax(0,1fr); gap:6px; } }
+
+#alarmmanager_app .alarmmanagerSummaryEditor > label:has(input[type=checkbox]) { display:flex; gap:8px; }

@@ -110,6 +110,19 @@ function alarmmanager_admin_json($value, int $limit = 131072): array {
 
 	return $result;
 }
+/** Read only a PHP-verified upload; never accept a client-supplied filesystem path. */
+function alarmmanager_admin_configuration_upload(array $file): array {
+	if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK || !is_string($file['tmp_name'] ?? null) || !is_uploaded_file($file['tmp_name'])) {
+		throw new InvalidArgumentException('invalid_configuration_upload');
+	}
+	$json = file_get_contents($file['tmp_name'], false, null, 0, 1048577);
+
+	if ($json === false || $json === '' || strlen($json) > 1048576) {
+		throw new InvalidArgumentException('invalid_configuration_upload');
+	}
+
+	return alarmmanager_admin_json($json, 1048576);
+}
 function alarmmanager_admin_replay(string $queue, int $id): void {
 	$table = match ($queue) {
 		'processing' => 'plugin_alarmmanager_jobs', 'delivery' => 'plugin_alarmmanager_deliveries', default => throw new InvalidArgumentException('invalid_queue')
@@ -181,6 +194,20 @@ function alarmmanager_admin_rule_policy(array $input): array {
 	return alarmmanager_validate_rule_definition($policy);
 }
 
+/** Validate all daemon fields before any settings are written. */
+function alarmmanager_admin_supervisor_settings(array $input): array {
+	$settings                       = alarmmanager_supervisor_options();
+	$settings['enabled']            = isset($input['daemon_enabled']);
+	$settings['processing_workers'] = alarmmanager_admin_int($input['processing_workers'] ?? null, 1, 64);
+	$settings['delivery_workers']   = alarmmanager_admin_int($input['delivery_workers'] ?? null, 0, 64);
+
+	if ($settings['enabled'] && !alarmmanager_daemon_status()) {
+		throw new RuntimeException('daemon_not_running');
+	}
+
+	return $settings;
+}
+
 /** This is the sole browser mutation dispatcher; secrets are never returned. */
 function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string {
 	alarmmanager_web_mutation_guard();
@@ -214,14 +241,7 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 	}
 
 	if ($action === 'daemon_save') {
-		$settings                       = alarmmanager_supervisor_options();
-		$settings['enabled']            = isset($input['daemon_enabled']);
-		$settings['processing_workers'] = alarmmanager_admin_int($input['processing_workers'] ?? null, 1, 64);
-		$settings['delivery_workers']   = alarmmanager_admin_int($input['delivery_workers'] ?? null, 0, 64);
-
-		if ($settings['enabled'] && !alarmmanager_daemon_status()) {
-			throw new RuntimeException('daemon_not_running');
-		}
+		$settings = alarmmanager_admin_supervisor_settings($input);
 		alarmmanager_save_supervisor_options($settings);
 		alarmmanager_request_configuration_replication();
 
@@ -303,7 +323,7 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 		return 'Test queued for delivery workers; event row ' . $id . '.';
 	}
 
-	if (!in_array($action, ['configuration_save', 'device_summaries_save', 'endpoint_save', 'endpoint_delete', 'rule_save'], true)) {
+	if (!in_array($action, ['configuration_save', 'settings_save', 'device_summaries_save', 'endpoint_save', 'endpoint_delete', 'rule_save'], true)) {
 		throw new InvalidArgumentException('invalid_action');
 	}
 	$revision = alarmmanager_admin_int($input['revision'] ?? null, 0, PHP_INT_MAX);
@@ -352,14 +372,19 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 
 		return 'Endpoint deleted.';
 	}
-	$settings       = $state['configuration'];
-	$credential     = null;
-	$create_section = null;
-	$id             = 0;
+	$supervisor          = null;
+	$previous_supervisor = null;
+	$supervisor_saved    = false;
+	$settings            = $state['configuration'];
+	$credential          = null;
+	$create_section      = null;
+	$id                  = 0;
 
 	if ($action === 'configuration_save') {
-		$settings = alarmmanager_admin_json($input['configuration_json'] ?? '', 1048576);
-	} elseif ($action === 'device_summaries_save') {
+		$settings = isset($_FILES['configuration_file'])
+			? alarmmanager_admin_configuration_upload($_FILES['configuration_file'])
+			: alarmmanager_admin_json($input['configuration_json'] ?? '', 1048576);
+	} elseif (in_array($action, ['settings_save', 'device_summaries_save'], true)) {
 		$settings['device_summaries'] = ['offline' => $input['offline_summary'] ?? '', 'recovering' => $input['recovering_summary'] ?? '', 'online' => $input['online_summary'] ?? ''];
 	} else {
 		$id   = alarmmanager_admin_int($input['id'] ?? 0, 0);
@@ -436,25 +461,41 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 		}
 	}
 
-	alarmmanager_transaction(function () use ($settings, $revision, $credential, $create_section, $id): void {
-		if ($create_section !== null) {
-			$index          = array_key_last($settings[$create_section]);
-			$item           = $settings[$create_section][$index];
-			[$sql, $params] = match ($create_section) {
-				'endpoints' => ['INSERT INTO plugin_alarmmanager_endpoints (name, type) VALUES (?, ?)', [$item['name'], $item['type']]],
-				'rules'     => ['INSERT INTO plugin_alarmmanager_rules (name, priority, endpoints_json, definition) VALUES (?, ?, ?, ?)', [$item['name'], $item['priority'], json_encode($item['endpoints'], JSON_THROW_ON_ERROR), json_encode($item['policy'], JSON_THROW_ON_ERROR)]]
-			};
-			alarmmanager_db_write($sql, $params);
-			$id                                      = alarmmanager_config_int(db_fetch_cell_prepared('SELECT LAST_INSERT_ID()', [], '', false), 1, 2147483647);
-			$settings[$create_section][$index]['id'] = $id;
-		}
-		$settings = alarmmanager_configuration($settings);
-		alarmmanager_write_configuration($settings, $revision);
+	if ($action === 'settings_save') {
+		$previous_supervisor = alarmmanager_supervisor_options();
+		$supervisor = alarmmanager_admin_supervisor_settings($input);
+	}
 
-		if ($credential !== null) {
-			alarmmanager_write_credential($id, $credential);
+	try {
+		alarmmanager_transaction(function () use ($settings, $revision, $credential, $create_section, $id, $supervisor, &$supervisor_saved): void {
+			if ($create_section !== null) {
+				$index          = array_key_last($settings[$create_section]);
+				$item           = $settings[$create_section][$index];
+				[$sql, $params] = match ($create_section) {
+					'endpoints' => ['INSERT INTO plugin_alarmmanager_endpoints (name, type) VALUES (?, ?)', [$item['name'], $item['type']]],
+					'rules'     => ['INSERT INTO plugin_alarmmanager_rules (name, priority, endpoints_json, definition) VALUES (?, ?, ?, ?)', [$item['name'], $item['priority'], json_encode($item['endpoints'], JSON_THROW_ON_ERROR), json_encode($item['policy'], JSON_THROW_ON_ERROR)]]
+				};
+				alarmmanager_db_write($sql, $params);
+				$id                                      = alarmmanager_config_int(db_fetch_cell_prepared('SELECT LAST_INSERT_ID()', [], '', false), 1, 2147483647);
+				$settings[$create_section][$index]['id'] = $id;
+			}
+			$settings = alarmmanager_configuration($settings);
+			alarmmanager_write_configuration($settings, $revision);
+
+			if ($credential !== null) {
+				alarmmanager_write_credential($id, $credential);
+			}
+			if ($supervisor !== null) {
+				alarmmanager_save_supervisor_options($supervisor);
+				$supervisor_saved = true;
+			}
+		});
+	} catch (Throwable $error) {
+		if ($supervisor_saved) {
+			alarmmanager_save_supervisor_options($previous_supervisor);
 		}
-	});
+		throw $error;
+	}
 	unset($GLOBALS['alarmmanager_route_cache']);
 
 	return 'Configuration saved.';
@@ -530,6 +571,7 @@ function alarmmanager_admin_error_message(Throwable $error): string {
 		'test_endpoint_unavailable'      => 'The selected endpoint is disabled or no longer exists. Enable and save it before queuing a test send.',
 		'invalid_credentials'            => 'Enter the credentials for the selected authentication type, choose Keep saved credentials, or choose None for an incoming webhook.',
 		'confirmation_required'          => 'Select the confirmation checkbox before continuing.',
+		'invalid_configuration_upload'   => 'Choose a readable JSON configuration file no larger than 1 MiB. Check the server upload limit if uploading fails.',
 		'configuration_changed'          => 'Configuration changed. Reload before applying your edits.',
 		'permission_denied'              => 'Action failed. Administrator access, POST and a valid CSRF token are required.',
 		'invalid_transport'              => 'Action failed. Transport settings do not match the endpoint type.',

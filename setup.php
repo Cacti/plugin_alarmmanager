@@ -106,6 +106,11 @@ function plugin_alarmmanager_uninstall(): void {
 	// Cacti removes framework hook/realm registrations itself.
 }
 
+/** Shared labels for Cacti's console menu and the administration page heading. */
+function alarmmanager_admin_sections(): array {
+	return ['endpoints' => 'Integrations and mappings', 'collectors' => 'Collectors and history', 'rules' => 'Alarm Rules', 'credentials' => 'Credentials', 'test' => 'Preview and test', 'configuration' => 'Configuration', 'queue' => 'Alarm Queue', 'health' => 'Workers and failed processing'];
+}
+
 function alarmmanager_config_arrays(): void {
 	global $menu, $menu_glyphs;
 
@@ -117,7 +122,9 @@ function alarmmanager_config_arrays(): void {
 		$extended[$header] = $items;
 
 		if ($header === __('Import/Export')) {
-			$extended[__('Alarm Manager Settings', 'alarmmanager')]['plugins/alarmmanager/alarmmanager_admin.php'] = __('Administration', 'alarmmanager');
+			foreach (alarmmanager_admin_sections() as $section => $label) {
+				$extended[__('Alarm Manager Settings', 'alarmmanager')]['plugins/alarmmanager/alarmmanager_admin.php?action=' . $section . '&section=' . $section] = __($label, 'alarmmanager');
+			}
 		}
 	}
 

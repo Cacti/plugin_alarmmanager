@@ -22,6 +22,56 @@
  +-------------------------------------------------------------------------+
 */
 final class RuleEditorTest extends AlarmManagerTestCase {
+	public function testSharedDaemonSettingsValidation(): void {
+		self::alarmmanager_test_load('includes/admin.php');
+		$settings = alarmmanager_admin_supervisor_settings(['processing_workers' => '3', 'delivery_workers' => '0']);
+		$this->assertFalse($settings['enabled']);
+		$this->assertSame(3, $settings['processing_workers']);
+		$this->assertSame(0, $settings['delivery_workers']);
+		$this->expectException(InvalidArgumentException::class);
+		alarmmanager_admin_supervisor_settings(['processing_workers' => '65', 'delivery_workers' => '4']);
+	}
+
+	public function testConfigurationHasOneSettingsFormAndFileImport(): void {
+		self::alarmmanager_test_load('includes/admin_view.php');
+		if (!function_exists('csrf_get_tokens')) {
+			function csrf_get_tokens() { return 'unit-test'; }
+		}
+		ob_start();
+		try {
+			alarmmanager_admin_markup(['revision' => 1, 'configuration' => ['version' => 1, 'endpoints' => [], 'rules' => []]], 'configuration');
+			$html = ob_get_contents();
+		} finally {
+			ob_end_clean();
+		}
+		$document = new DOMDocument();
+		@$document->loadHTML($html);
+		$xpath = new DOMXPath($document);
+		$this->assertSame(1, $xpath->query('//form[input[@name="action" and @value="settings_save"]]')->length);
+		$this->assertSame(1, $xpath->query('//form[input[@value="settings_save"]]//button[@type="submit"]')->length);
+		foreach (['offline_summary', 'recovering_summary', 'online_summary', 'daemon_enabled', 'processing_workers', 'delivery_workers'] as $field) {
+			$this->assertSame(1, $xpath->query('//form[input[@value="settings_save"]]//input[@name="' . $field . '"]')->length);
+		}
+		$this->assertStringNotContainsString('section=daemon', $html);
+		$this->assertStringNotContainsString('Administration sections', $html);
+		$this->assertStringNotContainsString('class="tabs"', $html);
+		$this->assertStringNotContainsString('name="configuration_json"', $html);
+		$this->assertSame(1, $xpath->query('//form[@enctype="multipart/form-data"]//input[@type="file" and @name="configuration_file"]')->length);
+		$this->assertStringContainsString('download=configuration', $html);
+	}
+
+	public function testConfigurationUploadRejectsMissingFailedAndLocalFiles(): void {
+		self::alarmmanager_test_load('includes/admin.php');
+		foreach ([[], ['error' => UPLOAD_ERR_INI_SIZE], ['error' => UPLOAD_ERR_OK, 'tmp_name' => __FILE__], ['error' => UPLOAD_ERR_OK, 'tmp_name' => []]] as $file) {
+			try {
+				alarmmanager_admin_configuration_upload($file);
+				$this->fail('Invalid upload accepted');
+			} catch (InvalidArgumentException $error) {
+				$this->assertSame('invalid_configuration_upload', $error->getMessage());
+			}
+		}
+	}
+
 	public function testDeviceSummaryConfiguration(): void {
 		self::alarmmanager_test_load('includes/routing.php');
 		$this->assertSame(['offline' => 'Device Offline', 'recovering' => 'Device Recovering', 'online' => 'Device Online'], alarmmanager_configuration(['version' => 1])['device_summaries']);
