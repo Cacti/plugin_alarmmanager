@@ -24,6 +24,7 @@
 require_once(__DIR__ . '/events.php');
 require_once(__DIR__ . '/runtime.php');
 require_once(__DIR__ . '/transport_config.php');
+require_once(dirname(__DIR__) . '/lib/QueryBuilder.php');
 
 function alarmmanager_config_int($value, int $minimum, int $maximum): int {
 	if (!is_int($value) || $value < $minimum || $value > $maximum) {
@@ -95,8 +96,26 @@ function alarmmanager_schedule_matches(?array $schedule, string $occurred_at): b
 	return ($clock >= $start && in_array($day, $schedule['days'], true))
 		|| ($clock < $end && in_array($day === 1 ? 7 : $day - 1, $schedule['days'], true));
 }
+/** Trusted Cacti host fields shared by the rule editor and parameterized matcher.
+ * @return array<string, array<string, mixed>>
+ */
+function alarmmanager_rule_device_fields(): array {
+	$text   = ['contains', '=', '!=', 'begins', 'ends'];
+	$fields = [];
+
+	foreach (['hostname' => __('Hostname', 'alarmmanager'), 'description' => __('Device description', 'alarmmanager'), 'location' => __('Location', 'alarmmanager'), 'snmp_sysLocation' => __('SNMP system location', 'alarmmanager')] as $column => $label) {
+		$fields[$column] = ['label' => $label, 'column' => "COALESCE(h.$column, '')", 'operators' => $text];
+	}
+
+	foreach (['poller_id' => __('Collector', 'alarmmanager'), 'site_id' => __('Device Site Association', 'alarmmanager'), 'host_template_id' => __('Device Template', 'alarmmanager')] as $column => $label) {
+		$fields[$column] = ['label' => $label, 'column' => 'h.' . $column, 'operators' => ['=', '!='], 'type' => 'integer'];
+	}
+
+	return $fields;
+}
+
 function alarmmanager_validate_rule_definition(array $rule): array {
-	alarmmanager_event_keys($rule, ['match', 'schedule', 'maintenance_schedule', 'suppress_acknowledged', 'cooldown_seconds', 'duplicate_seconds']);
+	alarmmanager_event_keys($rule, ['match', 'device_query', 'schedule', 'maintenance_schedule', 'suppress_acknowledged', 'cooldown_seconds', 'duplicate_seconds']);
 	$match = $rule['match'] ?? [];
 
 	if (!is_array($match)) {
@@ -124,7 +143,18 @@ function alarmmanager_validate_rule_definition(array $rule): array {
 		}
 	}
 
+	$device_query = $rule['device_query'] ?? '';
+
+	if (!is_string($device_query)) {
+		throw new InvalidArgumentException('invalid_device_filter');
+	}
+
+	if ($device_query !== '') {
+		AlarmManager\QueryBuilder::compile($device_query, alarmmanager_rule_device_fields());
+	}
+
 	return [
+		'device_query'          => $device_query,
 		'match'                 => $match, 'schedule' => alarmmanager_validate_schedule($rule['schedule'] ?? null),
 		'maintenance_schedule'  => alarmmanager_validate_schedule($rule['maintenance_schedule'] ?? null),
 		'suppress_acknowledged' => alarmmanager_config_bool($rule['suppress_acknowledged'] ?? true),
@@ -143,6 +173,15 @@ function alarmmanager_rule_matches(array $rule, array $event): bool {
 
 	if (isset($rule['match']['tags']) && array_diff($rule['match']['tags'], $event['device']['tags'])) {
 		return false;
+	}
+
+	if (($rule['device_query'] ?? '') !== '') {
+		$query = AlarmManager\QueryBuilder::compile($rule['device_query'], alarmmanager_rule_device_fields());
+
+		// The host table is authoritative; absent devices cannot match even a negative filter.
+		if (!$event['device']['id'] || !alarmmanager_db_row('SELECT h.id FROM host AS h WHERE h.id = ? AND (' . $query['sql'] . ') LIMIT 1', array_merge([$event['device']['id']], $query['params']))) {
+			return false;
+		}
 	}
 
 	return alarmmanager_schedule_matches($rule['schedule'], $event['occurred_at']);

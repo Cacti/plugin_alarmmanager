@@ -58,6 +58,30 @@ final class RuleEditorTest extends AlarmManagerTestCase {
 		$this->assertSame(['severities' => []], alarmmanager_admin_rule_policy(['rule_fields' => 'yes', 'filter_severities' => 'yes'])['match'], 'An existing empty selector must keep matching nothing');
 	}
 
+	public function testDeviceQueryIsValidatedAndPreserved(): void {
+		self::alarmmanager_test_load('includes/admin.php');
+		$query = json_encode(['version' => 1, 'conditions' => [
+			['field' => 'location', 'operator' => '=', 'value' => 'hello'],
+			['join' => 'AND', 'field' => 'poller_id', 'operator' => '=', 'value' => '1'],
+			['join' => 'OR', 'rows' => [['field' => 'description', 'operator' => 'contains', 'value' => 'test']]]
+		]], JSON_THROW_ON_ERROR);
+		$policy = alarmmanager_admin_rule_policy(['rule_fields' => 'yes', 'device_query' => $query]);
+		$this->assertSame($query, $policy['device_query']);
+		$compiled = AlarmManager\QueryBuilder::compile($query, alarmmanager_rule_device_fields());
+		$this->assertSame(['hello', '1', '%test%'], $compiled['params']);
+		$this->assertStringContainsString('h.poller_id = ?', $compiled['sql']);
+		$this->assertStringContainsString('OR (', $compiled['sql']);
+
+		foreach ([['device_query' => []], ['device_query' => '{'], ['device_query' => str_repeat('x', 8193)], ['device_query' => str_replace('location', 'snmp_password', $query)]] as $input) {
+			try {
+				alarmmanager_admin_rule_policy(['rule_fields' => 'yes'] + $input);
+				$this->fail('Invalid device condition accepted');
+			} catch (InvalidArgumentException $error) {
+				$this->assertNotSame('', $error->getMessage());
+			}
+		}
+	}
+
 	public function testRejectsInvalidGuidedPolicyFields(): void {
 		self::alarmmanager_test_load('includes/admin.php');
 		$cases = [

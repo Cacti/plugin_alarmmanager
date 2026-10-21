@@ -38,12 +38,14 @@ function alarmmanager_test_web_schema(PDO $db): void {
 	$db->exec('CREATE TABLE user_auth_group_realm (group_id INT, realm_id INT, PRIMARY KEY(group_id,realm_id)) ENGINE=InnoDB');
 	$db->exec('CREATE TABLE user_auth_perms (user_id INT, type INT, item_id INT, PRIMARY KEY(user_id,type,item_id)) ENGINE=InnoDB');
 	$db->exec('CREATE TABLE user_auth_group_perms (group_id INT, type INT, item_id INT, PRIMARY KEY(group_id,type,item_id)) ENGINE=InnoDB');
-	$db->exec("CREATE TABLE host (id INT PRIMARY KEY, hostname VARCHAR(128), description VARCHAR(128), disabled VARCHAR(4) DEFAULT '', deleted VARCHAR(4) DEFAULT '', host_template_id INT DEFAULT 1) ENGINE=InnoDB");
+	$db->exec("CREATE TABLE host (id INT PRIMARY KEY, hostname VARCHAR(128), description VARCHAR(128), disabled VARCHAR(4) DEFAULT '', deleted VARCHAR(4) DEFAULT '', host_template_id INT DEFAULT 1, poller_id INT DEFAULT 1, site_id INT DEFAULT 1, location VARCHAR(128), snmp_sysLocation VARCHAR(128)) ENGINE=InnoDB");
 	$db->exec("INSERT INTO host (id,hostname,description) VALUES (42, 'visible.example', 'Visible'), (43, 'hidden.example', 'Hidden')");
 	$db->exec('CREATE TABLE poller (id INT PRIMARY KEY, name VARCHAR(128), requires_sync VARCHAR(3) DEFAULT \'\', disabled VARCHAR(2) DEFAULT \'\') ENGINE=InnoDB');
 	$db->exec("INSERT INTO poller (id, name) VALUES (1, 'Main collector'), (2, 'Remote collector')");
-	$db->exec('CREATE TABLE host_template (id INT PRIMARY KEY) ENGINE=InnoDB');
-	$db->exec('INSERT INTO host_template VALUES (1)');
+	$db->exec('CREATE TABLE sites (id INT PRIMARY KEY, name VARCHAR(128))');
+	$db->exec("INSERT INTO sites VALUES (1, 'Test site')");
+	$db->exec("CREATE TABLE host_template (id INT PRIMARY KEY, name VARCHAR(128) DEFAULT '') ENGINE=InnoDB");
+	$db->exec("INSERT INTO host_template (id, name) VALUES (1, 'Test template')");
 	$db->exec('CREATE TABLE graph_local (id INT PRIMARY KEY, host_id INT, graph_template_id INT) ENGINE=InnoDB');
 	$db->exec('CREATE TABLE graph_templates (id INT PRIMARY KEY) ENGINE=InnoDB');
 	$db->exec('INSERT INTO user_auth_perms VALUES (2,3,42)');

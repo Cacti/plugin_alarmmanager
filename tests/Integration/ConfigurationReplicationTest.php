@@ -105,7 +105,7 @@ final class ConfigurationReplicationTest extends AlarmManagerTestCase {
 			// A collector without a running resident service keeps processing through its poller.
 			$GLOBALS['config']               = ['poller_id' => 2, 'base_path' => $root . '/2'];
 			$GLOBALS['alarmmanager_test_db'] = $connections[2];
-			$GLOBALS['remote_db_cnn_id'] = $connections[1];
+			$GLOBALS['remote_db_cnn_id']     = $connections[1];
 			mkdir($root . '/2/cache/alarmmanager', 0700, true);
 			file_put_contents($root . '/2/cache/alarmmanager/status.json', '{}');
 			alarmmanager_poller_bottom();
@@ -125,8 +125,10 @@ final class ConfigurationReplicationTest extends AlarmManagerTestCase {
 			} catch (RuntimeException $error) {
 				$this->assertSame('configuration_replication_target_invalid', $error->getMessage());
 			}
-			$routes['rules']                   = [['id' => 1, 'name' => 'All alarms', 'endpoints' => [1, 2], 'policy' => []]];
-			$routes['endpoints'][0]['enabled'] = false;
+			$routes['rules']                              = [['id' => 1, 'name' => 'All alarms', 'endpoints' => [1, 2], 'policy' => []]];
+			$device_query                                 = json_encode(['version' => 1, 'conditions' => [['field' => 'host_template_id', 'operator' => '=', 'value' => '1']]], JSON_THROW_ON_ERROR);
+			$routes['rules'][0]['policy']['device_query'] = $device_query;
+			$routes['endpoints'][0]['enabled']            = false;
 			alarmmanager_apply_configuration($routes);
 			alarmmanager_save_credential(2, ['basic' => ['username' => 'service', 'password' => 'changed-password']]);
 			alarmmanager_db_write("UPDATE settings SET value='0' WHERE name='alarmmanager_notifications_paused'");
@@ -147,6 +149,7 @@ final class ConfigurationReplicationTest extends AlarmManagerTestCase {
 			$connections[2]->exec('DROP TRIGGER fail_credentials');
 			alarmmanager_replicate_out($data);
 			$this->assertSame('[1,2]', $connections[2]->query('SELECT endpoints_json FROM plugin_alarmmanager_rules')->fetchColumn());
+			$this->assertSame($device_query, json_decode($connections[2]->query('SELECT definition FROM plugin_alarmmanager_rules')->fetchColumn(), true)['device_query']);
 			$this->assertSame('All alarms', $connections[2]->query('SELECT name FROM plugin_alarmmanager_rules')->fetchColumn());
 			$this->assertSame(0, (int) $connections[2]->query('SELECT enabled FROM plugin_alarmmanager_endpoints WHERE id=1')->fetchColumn());
 			$GLOBALS['config']               = ['poller_id' => 2, 'base_path' => $root . '/2'];
@@ -180,5 +183,4 @@ final class ConfigurationReplicationTest extends AlarmManagerTestCase {
 			rmdir($root);
 		}
 	}
-
 }

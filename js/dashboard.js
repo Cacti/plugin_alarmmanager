@@ -187,12 +187,13 @@
  }
  // The Syslog version-1 document keeps grouped AND/OR/NOT conditions parameterized on the server.
  function initReportQuery(app) {
-  const builder=app.querySelector('.alarmmanagerQueryBuilder');if(!builder)return;
-  const form=builder.closest('form'), raw=builder.querySelector('[name=query]'), holder=builder.querySelector('.alarmmanagerQueryRows'), fields=JSON.parse(builder.dataset.queryFields);
-  const blank=()=>({join:'AND',field:'summary',operator:'contains',value:'',negative:false});
+  app.querySelectorAll('.alarmmanagerQueryBuilder').forEach(builder=>{
+  const form=builder.closest('form'), raw=builder.querySelector('textarea'), holder=builder.querySelector('.alarmmanagerQueryRows'), fields=JSON.parse(builder.dataset.queryFields);
+  const defaultField=Object.keys(fields)[0],defaultOperator=fields[defaultField].operators[0];
+  const blank=()=>({join:'AND',field:defaultField,operator:defaultOperator,value:'',negative:false});
   let rows=raw.value?JSON.parse(raw.value).conditions:[blank()];
   const status=node('p');status.setAttribute('role','status');builder.append(status);
-  function empty() {return rows.length===1&&!rows[0].rows&&rows[0].field==='summary'&&rows[0].operator==='contains'&&!rows[0].negative&&rows[0].value==='';}
+  function empty() {return rows.length===1&&!rows[0].rows&&rows[0].field===defaultField&&rows[0].operator===defaultOperator&&!rows[0].negative&&rows[0].value==='';}
   function sync() {raw.value=empty()?'':JSON.stringify({version:1,conditions:rows});status.textContent=new TextEncoder().encode(raw.value).length>8192?'The search exceeds 8192 bytes. Remove a condition or shorten a value.':'';return !status.textContent;}
   function select(options,value,label,change) {
    const control=node('select');control.setAttribute('aria-label',label);
@@ -214,11 +215,18 @@
      line.append(select(Object.entries(fields).map(([key,field])=>[key,field.label]),condition.field,'Search field',value=>{condition.field=value;condition.operator=fields[value].operators[0];condition.value='';render(container,conditions,depth);}));
      const definition=fields[condition.field];
      line.append(select(definition.operators.map(op=>[op,{'contains':'contains','begins':'begins with','ends':'ends with','=':'equals','!=':'does not equal'}[op]||op]),condition.operator,'Search operator',value=>{condition.operator=value;}));
-     const input=node('input');input.type='text';input.value=condition.value;input.maxLength=2048;input.setAttribute('aria-label','Search value');input.placeholder=definition.type==='integer'?'Enter a nonnegative integer':'Enter a value';
-     input.required=!(depth===0&&empty());
-     if(definition.type==='integer'){input.pattern='[0-9]+';input.inputMode='numeric';}
-     input.addEventListener('input',()=>{condition.value=input.value;sync();});
-     if(definition.choices){const list=node('datalist');list.id='am-query-values-'+Math.random().toString(36).slice(2);definition.choices.forEach(value=>{const option=node('option');option.value=value;list.append(option);});input.setAttribute('list',list.id);line.append(list);}
+     let input;
+     if(definition.choices&&!Array.isArray(definition.choices)) {
+      const choices={...definition.choices};
+      if(condition.value!==''&&!(condition.value in choices))choices[condition.value]=`#${condition.value} (not listed)`;
+      input=select([['','Choose a value'],...Object.entries(choices)],String(condition.value),'Search value',value=>condition.value=value);input.required=true;
+     } else {
+      input=node('input');input.type='text';input.value=condition.value;input.maxLength=2048;input.setAttribute('aria-label','Search value');input.placeholder=definition.type==='integer'?'Enter a nonnegative integer':'Enter a value';
+      input.required=!(depth===0&&empty());
+      if(definition.type==='integer'){input.pattern='[0-9]+';input.inputMode='numeric';}
+      input.addEventListener('input',()=>{condition.value=input.value;sync();});
+      if(definition.choices){const list=node('datalist');list.id='am-query-values-'+Math.random().toString(36).slice(2);definition.choices.forEach(value=>{const option=node('option');option.value=value;list.append(option);});input.setAttribute('list',list.id);line.append(list);}
+     }
      line.append(input);
     }
     const remove=node('button','Remove');remove.type='button';remove.setAttribute('aria-label','Remove condition');remove.addEventListener('click',()=>{conditions.splice(index,1);if(!conditions.length)conditions.push(blank());render(container,conditions,depth);sync();});line.append(remove);container.append(line);
@@ -230,10 +238,11 @@
    });container.append(actions);
   }
   const clear=node('button','Clear conditions');clear.type='button';clear.addEventListener('click',()=>{rows=[blank()];render(holder,rows);sync();});builder.append(clear);
-  raw.hidden=true;builder.querySelector('.alarmmanagerQueryRaw').hidden=true;
+  raw.hidden=true;const rawGroup=builder.querySelector('.alarmmanagerQueryRaw');if(rawGroup)rawGroup.hidden=true;
   form.addEventListener('submit',event=>{if(!sync()){event.preventDefault();event.stopImmediatePropagation();}});
   render(holder,rows);sync();
   const quick=app.querySelector('.alarmmanagerQuickFilters');if(quick&&Array.from(quick.querySelectorAll('input,select')).some(input=>input.value!==''&&input.value!=='0'))quick.open=true;
+  });
  }
 
  function initRuleEditors(app) {

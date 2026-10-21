@@ -175,6 +175,12 @@ function alarmmanager_rule_editor(array $item, int $revision, array $configurati
 		print '<option value="' . (int) $endpoint['id'] . '"' . (in_array($endpoint['id'], $selected, true) ? ' selected' : '') . '>' . html_escape($endpoint['name'] . ($endpoint['enabled'] ? '' : ' (' . __('disabled', 'alarmmanager') . ')')) . '</option>';
 	}
 	print '</select></label><p class="alarmmanagerHint">' . __esc('Select one or more integrations. Disabled integrations do not send notifications.', 'alarmmanager') . '</p></fieldset>';
+	$device_fields = alarmmanager_rule_device_fields();
+
+	foreach (['poller_id' => 'collector_ids', 'site_id' => 'site_ids', 'host_template_id' => 'template_ids'] as $field => $choice) {
+		$device_fields[$field]['choices'] = (object) ([0 => __('None', 'alarmmanager')] + ($choices[$choice] ?? []));
+	}
+	print '<fieldset class="alarmmanagerRuleSection alarmmanagerQueryBuilder" data-query-fields="' . html_escape(json_encode($device_fields, JSON_THROW_ON_ERROR)) . '"><legend>' . __esc('Match devices', 'alarmmanager') . '</legend><p class="alarmmanagerHint">' . __esc('Build device conditions using AND, OR and groups. These conditions use the current Cacti device settings and must also satisfy any alarm filters below. With no device conditions, all devices can match.', 'alarmmanager') . '</p><div class="alarmmanagerQueryRows"></div><textarea name="device_query" maxlength="8192" hidden>' . html_escape($policy['device_query']) . '</textarea></fieldset>';
 	print '<fieldset class="alarmmanagerRuleSection"><legend>' . __esc('Match alarms', 'alarmmanager') . '</legend><p class="alarmmanagerHint">' . __esc('With no filters enabled, this rule matches all alarms. An alarm must match every enabled filter. Select one or more values per filter; for tags, the device must have all listed tags.', 'alarmmanager') . '</p><div class="alarmmanagerRuleFilterGrid">';
 
 	foreach (['sources' => 'Only these sources', 'severities' => 'Only these severities', 'transitions' => 'Only these alarm changes', 'device_ids' => 'Only these devices', 'collector_ids' => 'Only these collectors', 'tags' => 'Require these device tags'] as $field => $label) {
@@ -299,6 +305,14 @@ function alarmmanager_admin_markup(array $state, string $section): void {
 
 		foreach (alarmmanager_db_rows('SELECT id, name FROM poller ORDER BY name, id LIMIT 256') as $poller) {
 			$choices['collector_ids'][(int) $poller['id']] = $poller['name'] . ' (#' . $poller['id'] . ')';
+		}
+
+		foreach (['site_ids' => 'sites', 'template_ids' => 'host_template'] as $field => $table) {
+			$choices[$field] = [];
+
+			foreach (alarmmanager_db_rows("SELECT id, name FROM $table ORDER BY name, id LIMIT 1000") as $row) {
+				$choices[$field][(int) $row['id']] = $row['name'] . ' (#' . $row['id'] . ')';
+			}
 		}
 		print '<p><a href="#alarmmanager_new_rule">' . __esc('Create a rule', 'alarmmanager') . '</a></p>';
 

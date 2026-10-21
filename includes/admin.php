@@ -135,7 +135,7 @@ function alarmmanager_admin_rule_policy(array $input): array {
 	if (!isset($input['rule_fields'])) {
 		return alarmmanager_validate_rule_definition(alarmmanager_admin_json($input['policy_json'] ?? '{}'));
 	}
-	$policy = ['match' => [], 'suppress_acknowledged' => isset($input['suppress_acknowledged'])];
+	$policy = ['match' => [], 'device_query' => $input['device_query'] ?? '', 'suppress_acknowledged' => isset($input['suppress_acknowledged'])];
 
 	foreach (['sources', 'severities', 'transitions', 'device_ids', 'collector_ids', 'tags'] as $field) {
 		if (!isset($input['filter_' . $field])) {
