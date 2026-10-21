@@ -108,14 +108,14 @@
  }
  function initLists(app) {
   app.querySelectorAll('[data-list-editor]').forEach(target=>{
-   const kind=target.dataset.listEditor, jsonList=['arguments','sources','tags'].includes(kind), input=target.matches('input')?target:target.querySelector('textarea'), container=node('div',undefined,'alarmmanagerListEditor'), rows=node('div'), add=node('button',kind==='headers'?'Add header':kind==='recipients'?'Add recipient':kind==='sources'?'Add source':kind==='tags'?'Add tag':'Add argument');add.type='button';
+   const kind=target.dataset.listEditor, jsonList=['arguments','sources','tags'].includes(kind), input=target.matches('input')?target:target.querySelector('textarea'), container=node('div',undefined,'alarmmanagerListEditor'), rows=node('div'), add=node('button',kind==='headers'?'Add header':kind==='recipients'?'Add recipient':kind==='sources'?'Add alarm source':kind==='tags'?'Add tag':'Add argument');add.type='button';
    let entries;
    try{if(kind==='headers')entries=Object.entries(JSON.parse(input.value));else if(jsonList)entries=JSON.parse(input.value);else{entries=input.value.trim().startsWith('[')||input.value.trim().startsWith('{')?JSON.parse(input.value):input.value.split(',').map(v=>v.trim()).filter(Boolean);}
     if(!Array.isArray(entries)||entries.some(v=>kind==='headers'?(!Array.isArray(v)||typeof v[1]!=='string'):typeof v!=='string'))return;
    }catch{return;}
-   const originalLabel=input.closest('label'), raw=node('details'), rawSummary=node('summary','Advanced configuration');originalLabel.before(container);container.append(node('strong',kind==='headers'?'Authentication headers':kind==='recipients'?'Recipients':kind==='sources'?'Sources':kind==='tags'?'Device tags':'Arguments'),rows,add,raw);raw.append(rawSummary,input);originalLabel.remove();input.hidden=true;
+   const originalLabel=input.closest('label'), raw=node('details'), rawSummary=node('summary','Advanced configuration');originalLabel.before(container);container.append(node('strong',kind==='headers'?'Authentication headers':kind==='recipients'?'Recipients':kind==='sources'?'Alarm sources':kind==='tags'?'Device tags':'Arguments'),rows,add,raw);raw.append(rawSummary,input);originalLabel.remove();input.hidden=true;
    function save(){input.value=kind==='headers'?JSON.stringify(Object.fromEntries(entries)):jsonList?JSON.stringify(entries):entries.join(', ');input.dispatchEvent(new Event('input',{bubbles:true}));}
-   function render(){rows.replaceChildren();entries.forEach((entry,index)=>{const row=node('div',undefined,'alarmmanagerMappingRow');const name=node('input'), value=node('input');value.type=kind==='headers'?'password':kind==='recipients'?'email':'text';value.value=kind==='headers'?entry[1]:entry;const label=node('label',kind==='headers'?'Secret value':kind==='recipients'?'Email address':kind==='sources'?'Source name':kind==='tags'?'Tag':'Argument');label.append(value);
+   function render(){rows.replaceChildren();entries.forEach((entry,index)=>{const row=node('div',undefined,'alarmmanagerMappingRow');const name=node('input'), value=node('input');value.type=kind==='headers'?'password':kind==='recipients'?'email':'text';value.value=kind==='headers'?entry[1]:entry;if(kind==='sources')value.placeholder='syslog or thold';const label=node('label',kind==='headers'?'Secret value':kind==='recipients'?'Email address':kind==='sources'?'Alarm source name':kind==='tags'?'Tag':'Argument');label.append(value);
     if(kind==='headers'){name.value=entry[0];name.setCustomValidity(entries.filter(v=>v[0].toLowerCase()===entry[0].toLowerCase()).length>1?'Header names must be unique.':'');const keyLabel=node('label','Header name');keyLabel.append(name);row.append(keyLabel);}
     row.append(label);const remove=node('button','Remove');remove.type='button';row.append(remove);rows.append(row);
     function update(){if(kind==='headers'){entries[index]=[name.value,value.value];const keys=entries.map(v=>v[0].toLowerCase());name.setCustomValidity(keys.filter(v=>v===name.value.toLowerCase()).length>1?'Header names must be unique.':'');}else entries[index]=value.value;save();}
@@ -208,7 +208,7 @@
     const line=node('div',undefined,'alarmmanagerQueryRow'), connector=node('div',undefined,'alarmmanagerQueryConnector');
     if(index)connector.append(select([['AND','AND'],['OR','OR']],condition.join,'AND / OR',value=>condition.join=value));else connector.textContent=depth?'Group':'Where';
     line.append(connector);
-    line.append(select([['0','Match'],['1','Exclude']],condition.negative?'1':'0','Match / Exclude',value=>{condition.negative=value==='1';render(container,conditions,depth);}));
+    if(condition.negative)connector.append(node('strong','NOT','alarmmanagerQueryNot'));
     if(condition.rows) {
      const group=node('div',undefined,'alarmmanagerQueryGroup');line.classList.add('alarmmanagerQueryGroupRow');render(group,condition.rows,depth+1);line.append(group);
     } else {
@@ -246,6 +246,12 @@
  }
 
  function initRuleEditors(app) {
+  app.querySelectorAll('.alarmmanagerDestinations').forEach(group=>{
+   const boxes=Array.from(group.querySelectorAll('[data-alarm-destination]'));
+   if(!boxes.length)return;
+   const update=()=>boxes[0].setCustomValidity(boxes.some(box=>box.checked)?'':'Select at least one alarm destination.');
+   boxes.forEach(box=>box.addEventListener('change',update));update();
+  });
   app.querySelectorAll('.alarmmanagerRuleOption').forEach(option=>{
    const toggle=option.querySelector('input[type=checkbox]'),fields=option.querySelector('[data-rule-fields]');
    if(!toggle||!fields)return;
