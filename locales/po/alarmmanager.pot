@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Alarm Manager 0.11.0\n"
 "Report-Msgid-Bugs-To: https://github.com/bmfmancini/plugin_alarmmanager/issues\n"
-"POT-Creation-Date: 2026-10-20 20:56-0400\n"
+"POT-Creation-Date: 2026-10-20 20:59-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alarm Manager Developers <https://github.com/bmfmancini/plugin_alarmmanager>\n"
 "Language-Team: Alarm Manager Developers <https://github.com/bmfmancini/plugin_alarmmanager>\n"
@@ -209,10 +209,6 @@ msgstr ""
 msgid "Alarm Source"
 msgstr ""
 
-#: includes/admin_view.php:194
-msgid "Select the plugins or systems whose alarms this rule should match. Turn this filter off to accept alarms from any source."
-msgstr ""
-
 #: includes/admin_view.php:201
 msgid "Device Status"
 msgstr ""
@@ -225,7 +221,11 @@ msgstr ""
 msgid "Thold"
 msgstr ""
 
-#: includes/admin_view.php:210
+#: includes/admin_view.php:209
+msgid "Select the plugins or systems whose alarms this rule should match. Turn this filter off to accept alarms from any source."
+msgstr ""
+
+#: includes/admin_view.php:211
 msgid "No alarm sources detected yet. Sources appear after their first alarm."
 msgstr ""
 

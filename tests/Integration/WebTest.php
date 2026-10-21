@@ -410,8 +410,8 @@ final class WebTest extends AlarmManagerTestCase {
 			ob_start();
 			alarmmanager_admin_markup(alarmmanager_admin_configuration(), 'rules');
 			$source_html = ob_get_clean();
-			$this->assertStringContainsString('type="checkbox" name="match_sources[]" value="fixture"', $source_html);
-			$this->assertStringContainsString('type="checkbox" name="match_sources[]" value="remote_test"', $source_html);
+			$this->assertStringContainsString('<option value="fixture"', $source_html);
+			$this->assertStringContainsString('<option value="remote_test"', $source_html);
 			$this->assertStringNotContainsString('data-list-editor="sources"', $source_html);
 			$endpoint_count   = (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_endpoints');
 			$credential_count = (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_credentials');

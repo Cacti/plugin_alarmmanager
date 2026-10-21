@@ -191,7 +191,7 @@ function alarmmanager_rule_editor(array $item, int $revision, array $configurati
 		print '<fieldset class="alarmmanagerRuleFields" data-rule-fields' . (!array_key_exists($field, $policy['match']) ? ' disabled hidden' : '') . '>';
 
 		if ($field === 'sources') {
-			print '<legend>' . __esc('Alarm Source', 'alarmmanager') . '</legend><p class="alarmmanagerHint">' . __esc('Select the plugins or systems whose alarms this rule should match. Turn this filter off to accept alarms from any source.', 'alarmmanager') . '</p><div class="alarmmanagerChoiceList">';
+			print '<label>' . __esc('Alarm Source', 'alarmmanager') . '<select name="match_sources[]" multiple aria-label="' . __esc('Alarm Source', 'alarmmanager') . '">';
 			$sources = array_map('strval', array_keys($choices['sources'] ?? []));
 			$sources = array_values(array_unique(array_merge($sources, $values)));
 			sort($sources);
@@ -203,13 +203,13 @@ function alarmmanager_rule_editor(array $item, int $revision, array $configurati
 					'thold'        => __('Thold', 'alarmmanager'),
 					default        => $source
 				};
-				print '<label><input type="checkbox" name="match_sources[]" value="' . html_escape($source) . '"' . (in_array($source, $values, true) ? ' checked' : '') . '> <span>' . html_escape($label) . '</span></label>';
+				print '<option value="' . html_escape($source) . '"' . (in_array($source, $values, true) ? ' selected' : '') . '>' . html_escape($label) . '</option>';
 			}
 
+			print '</select></label><p class="alarmmanagerHint">' . __esc('Select the plugins or systems whose alarms this rule should match. Turn this filter off to accept alarms from any source.', 'alarmmanager') . '</p>';
 			if (!$sources) {
 				print '<p class="alarmmanagerHint">' . __esc('No alarm sources detected yet. Sources appear after their first alarm.', 'alarmmanager') . '</p>';
 			}
-			print '</div>';
 		} elseif (isset($choices[$field])) {
 			print '<label>' . __esc('Choose values', 'alarmmanager') . '<select name="match_' . $field . '[]" multiple>';
 			$options = $choices[$field];
