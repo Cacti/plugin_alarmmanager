@@ -273,11 +273,24 @@ function alarmmanager_report_table(string $kind, array $result, array $scope, ar
 		return;
 	}
 
-	$headers          = array_keys($result['rows'][0]);
-	$display_text     = [];
+	$headers      = array_keys($result['rows'][0]);
+	$display_text = [];
+
+	if ($kind === 'events') {
+		$headers = array_values(array_filter(
+			$headers,
+			static fn (string $key): bool => !in_array($key, ['id', 'collector_id', 'collector_name'], true)
+		));
+		array_unshift($headers, 'collector_name');
+	}
 
 	foreach ($headers as $key) {
-		$display_text[$key] = $key === 'integration_status' ? __esc('Integration status', 'alarmmanager') : __esc($key === 'attempts' ? 'Attempts in current retry cycle' : ucfirst(str_replace('_', ' ', $key)), 'alarmmanager');
+		$display_text[$key] = match ($key) {
+			'integration_status'  => __esc('Integration status', 'alarmmanager'),
+			'collector_name'      => __esc('Collector Name', 'alarmmanager'),
+			'attempts'            => __esc('Attempts in current retry cycle', 'alarmmanager'),
+			default               => __esc(ucfirst(str_replace('_', ' ', $key)), 'alarmmanager')
+		};
 	}
 
 	if ($scope['admin'] && in_array($kind, $action_kinds, true)) {

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Alarm Manager 0.11.0\n"
 "Report-Msgid-Bugs-To: https://github.com/bmfmancini/plugin_alarmmanager/issues\n"
-"POT-Creation-Date: 2026-10-20 23:19-0400\n"
+"POT-Creation-Date: 2026-10-20 23:32-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alarm Manager Developers <https://github.com/bmfmancini/plugin_alarmmanager>\n"
 "Language-Team: Alarm Manager Developers <https://github.com/bmfmancini/plugin_alarmmanager>\n"
@@ -610,43 +610,43 @@ msgstr ""
 msgid "Saved credentials are encrypted and never displayed. New values replace the saved credential record."
 msgstr ""
 
-#: includes/reports.php:324
+#: includes/reports.php:323
 msgid "Remote history"
 msgstr ""
 
-#: includes/reports.php:334
+#: includes/reports.php:349
 msgid "Delivered"
 msgstr ""
 
-#: includes/reports.php:334
+#: includes/reports.php:349
 msgid "Failed"
 msgstr ""
 
-#: includes/reports.php:334
+#: includes/reports.php:349
 msgid "Pending"
 msgstr ""
 
-#: includes/reports.php:334
+#: includes/reports.php:349
 msgid "Sending"
 msgstr ""
 
-#: includes/reports.php:344
+#: includes/reports.php:359
 msgid "Processing failed"
 msgstr ""
 
-#: includes/reports.php:345
+#: includes/reports.php:360
 msgid "Pending processing"
 msgstr ""
 
-#: includes/reports.php:346 includes/web_view.php:263
+#: includes/reports.php:361 includes/web_view.php:263
 msgid "Processing"
 msgstr ""
 
-#: includes/reports.php:347
+#: includes/reports.php:362
 msgid "No matching integration"
 msgstr ""
 
-#: includes/reports.php:347
+#: includes/reports.php:362
 msgid "Suppressed"
 msgstr ""
 
@@ -834,52 +834,56 @@ msgstr ""
 msgid "No matching records."
 msgstr ""
 
-#: includes/web_view.php:280
+#: includes/web_view.php:289
 msgid "Integration status"
 msgstr ""
 
-#: includes/web_view.php:280
-msgid "attempts"
+#: includes/web_view.php:290
+msgid "Collector Name"
 msgstr ""
 
-#: includes/web_view.php:284
+#: includes/web_view.php:291
+msgid "Attempts in current retry cycle"
+msgstr ""
+
+#: includes/web_view.php:297
 msgid "Action"
 msgstr ""
 
-#: includes/web_view.php:333
+#: includes/web_view.php:346
 msgid "Latest 100 records for this event."
 msgstr ""
 
-#: includes/web_view.php:338
+#: includes/web_view.php:351
 msgid "Showing at most 50 records per page."
 msgstr ""
 
-#: includes/web_view.php:339
+#: includes/web_view.php:352
 msgid "Pages"
 msgstr ""
 
-#: includes/web_view.php:342
+#: includes/web_view.php:355
 msgid "Previous"
 msgstr ""
 
-#: includes/web_view.php:345
+#: includes/web_view.php:358
 #, php-format
 msgid "Page %d"
 msgstr ""
 
-#: includes/web_view.php:348
+#: includes/web_view.php:361
 msgid "Next"
 msgstr ""
 
-#: includes/web_view.php:355
+#: includes/web_view.php:368
 msgid "Selected event details"
 msgstr ""
 
-#: includes/web_view.php:362
+#: includes/web_view.php:375
 msgid "Show metadata"
 msgstr ""
 
-#: includes/web_view.php:384
+#: includes/web_view.php:397
 msgid "Confirm replay may repeat an external effect"
 msgstr ""
 

@@ -192,6 +192,9 @@ final class WebTest extends AlarmManagerTestCase {
 			$event_html = ob_get_clean();
 			$this->assertStringContainsString('Device name', $event_html);
 			$this->assertStringContainsString('Sample router', $event_html);
+			$this->assertStringContainsString('<th>Collector Name</th>', $event_html);
+			$this->assertStringNotContainsString('<th>ID</th>', $event_html);
+			$this->assertStringNotContainsString('<th>Collector ID</th>', $event_html);
 			$this->assertStringNotContainsString('remote:mirror-999', $event_html, 'Default collector scope hides mirrored history');
 			$remote_filters                 = $filters;
 			$remote_filters['collector_id'] = 7;
@@ -214,7 +217,9 @@ final class WebTest extends AlarmManagerTestCase {
 			alarmmanager_report_table('events', $mirrored, $scope, $remote_filters);
 			$mirror_html = ob_get_clean();
 			$this->assertStringNotContainsString('event_id=999', $mirror_html, 'Mirrored row cannot deep-link by Record ID');
-			$this->assertStringContainsString('>—</td>', $mirror_html, 'Mirrored row renders a placeholder for the missing Record ID');
+			$this->assertStringNotContainsString('<th>ID</th>', $mirror_html);
+			$this->assertStringNotContainsString('<th>Collector ID</th>', $mirror_html);
+			$this->assertStringContainsString('<th>Collector Name</th>', $mirror_html);
 			$this->assertStringContainsString('remote:mirror-999', $mirror_html, 'Mirrored event id rendered');
 			$device_event_id = (int) $events['rows'][0]['id'];
 			$device_payload  = alarmmanager_db_row('SELECT payload FROM plugin_alarmmanager_events WHERE id = ?', [$device_event_id])['payload'];
