@@ -71,7 +71,7 @@ Schema v12 stores integration IDs directly on rules and removes the routing-prof
 
 ## Notification rules
 
-Open **Administration → Rules and suppression → Create a rule**. Enter a name, select one or more integrations directly, and enable the filters you need. Leave filters off to match all alarms. Device and collector pickers show names alongside IDs; sources use the names submitted by the calling plugins, such as `syslog` or `thold`.
+Open **Administration → Alarm Rules → Create a rule**. Enter a name, select one or more integrations directly, and enable the filters you need. Leave filters off to match all alarms. Device and collector pickers show names alongside IDs; sources use the names submitted by the calling plugins, such as `syslog` or `thold`.
 
 Optional notification hours limit when a rule matches. Maintenance windows pause notifications, while acknowledgment, cooldown and duplicate controls reduce repeated notifications. Recovery bypasses acknowledgment/cooldown/duplicate suppression but still follows notification hours and maintenance windows. Lower priorities run first; **Stop checking later rules** ends rule evaluation even when the matched rule suppresses delivery. Save with **Create rule** or **Save rule**; no policy JSON is required.
 

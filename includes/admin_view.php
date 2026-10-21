@@ -223,7 +223,7 @@ function alarmmanager_admin_markup(array $state, string $section): void {
 	$revision = $state['revision'];
 	print '<div class="tabs"><nav aria-label="' . __esc('Administration sections', 'alarmmanager') . '"><ul>';
 
-	foreach (['endpoints' => 'Integrations and mappings', 'collectors' => 'Collectors and history', 'rules' => 'Rules and suppression', 'credentials' => 'Credentials', 'test' => 'Preview and test', 'configuration' => 'Configuration', 'daemon' => 'Daemon', 'queue' => 'Alarm Queue', 'health' => 'Workers and failed processing'] as $key => $label) {
+	foreach (['endpoints' => 'Integrations and mappings', 'collectors' => 'Collectors and history', 'rules' => 'Alarm Rules', 'credentials' => 'Credentials', 'test' => 'Preview and test', 'configuration' => 'Configuration', 'daemon' => 'Daemon', 'queue' => 'Alarm Queue', 'health' => 'Workers and failed processing'] as $key => $label) {
 		print '<li><a class="tab' . ($section === $key ? ' selected' : '') . '" href="alarmmanager_admin.php?section=' . $key . '" ' . ($section === $key ? 'aria-current="page"' : '') . '>' . __esc($label, 'alarmmanager') . '</a></li>';
 	} print '</ul></nav></div><p>' . __esc('Local configuration revision', 'alarmmanager') . ': ' . $revision . '</p>';
 
@@ -286,7 +286,7 @@ function alarmmanager_admin_markup(array $state, string $section): void {
 			alarmmanager_endpoint_editor(['id' => 0, 'enabled' => false] + ($templates[$selected] ?? ['name' => '', 'type' => 'restapi']), $revision, true);
 		}
 	} elseif ($section === 'rules') {
-		print '<h2>' . __esc('Rules and suppression', 'alarmmanager') . '</h2><p>' . __esc('Choose which alarms should notify, where to send them and when to pause notifications. Rules run from lowest to highest priority.', 'alarmmanager') . '</p>';
+		print '<h2>' . __esc('Alarm Rules', 'alarmmanager') . '</h2><p>' . __esc('Choose which alarms should notify, where to send them and when to pause notifications. Rules run from lowest to highest priority.', 'alarmmanager') . '</p>';
 
 		if (!$config['endpoints']) {
 			print '<p class="alarmmanagerRuleNotice">' . __esc('Create an integration before saving your first rule.', 'alarmmanager') . ' <a href="alarmmanager_admin.php?section=endpoints">' . __esc('Create integration', 'alarmmanager') . '</a></p>';
