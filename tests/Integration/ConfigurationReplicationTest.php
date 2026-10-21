@@ -143,12 +143,7 @@ final class ConfigurationReplicationTest extends AlarmManagerTestCase {
 			$beforeRevision = $connections[2]->query('SELECT config_revision FROM plugin_alarmmanager_schema')->fetchColumn();
 			$connections[2]->exec("CREATE TRIGGER fail_credentials BEFORE INSERT ON plugin_alarmmanager_credentials FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='fixture_failure'");
 
-			try {
-				alarmmanager_replicate_out($data);
-				$this->fail('Failed remote write must not mark replication successful.');
-			} catch (RuntimeException $error) {
-				$this->assertSame('configuration_replication_failed', $error->getMessage());
-			}
+			$this->assertSame($data, alarmmanager_replicate_out($data), 'A failed remote write must not escape the Cacti hook and disable the plugin.');
 			$this->assertSame($beforeRevision, $connections[2]->query('SELECT config_revision FROM plugin_alarmmanager_schema')->fetchColumn(), 'Remote update rolled back.');
 			$this->assertSame('1', $connections[2]->query("SELECT value FROM settings WHERE name='alarmmanager_notifications_paused'")->fetchColumn(), 'Failed update keeps the old queue setting.');
 			$connections[2]->exec('DROP TRIGGER fail_credentials');

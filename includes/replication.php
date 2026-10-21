@@ -40,11 +40,11 @@ function alarmmanager_replicate_out(mixed $data): mixed {
 	}
 	$connection = $data['rcnn_id'] ?? null;
 
-	if (!$poller || !$connection instanceof PDO) {
-		throw new RuntimeException('configuration_replication_target_invalid');
-	}
-
 	try {
+		if (!$poller || !$connection instanceof PDO) {
+			throw new RuntimeException('configuration_replication_target_invalid');
+		}
+
 		$installed = db_fetch_cell_prepared("SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'plugin_alarmmanager_schema'", [], '', false, $connection);
 
 		if ($installed === false) {
@@ -56,10 +56,19 @@ function alarmmanager_replicate_out(mixed $data): mixed {
 		}
 		alarmmanager_replicate_configuration($connection, $poller);
 	} catch (Throwable $error) {
-		alarmmanager_log('configuration replication failed for collector ' . $poller . '; previous configuration retained');
+		alarmmanager_log('ERROR: configuration replication failed for collector ' . ($poller ?: 'unknown') . '; previous configuration retained [' . get_class($error) . ' at ' . basename($error->getFile()) . ':' . $error->getLine() . ']');
 
-		// Do not let Cacti mark a failed synchronization complete, or expose SQL/credentials.
-		throw new RuntimeException('configuration_replication_failed');
+		if ($poller > 1) {
+			// Cacti clears requires_sync after this hook; requeue after its caller finishes.
+			register_shutdown_function(static function () use ($poller): void {
+				try {
+					alarmmanager_db_write("UPDATE poller SET requires_sync = 'on' WHERE id = ? AND disabled = ''", [$poller]);
+				} catch (Throwable $retry_error) {
+					alarmmanager_log('ERROR: configuration replication retry could not be queued for collector ' . $poller . '; retry Cacti synchronization from main');
+				}
+			});
+		}
+
 	}
 
 	return $data;
