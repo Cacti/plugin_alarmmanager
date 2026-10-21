@@ -70,7 +70,7 @@ final class ConfigurationReplicationTest extends AlarmManagerTestCase {
 			$GLOBALS['alarmmanager_test_db'] = $connections[1];
 			$localHook                       = ['class' => 'all', 'remote_poller_id' => 1, 'rcnn_id' => false];
 			$this->assertSame($localHook, alarmmanager_replicate_out($localHook), 'Native device replication for main-poller devices is a no-op.');
-			$routes                          = ['version' => 1, 'endpoints' => [
+			$routes                          = ['version' => 1, 'device_summaries' => ['offline' => 'Device is Offline', 'recovering' => 'Device is Recovering', 'online' => 'Device is Online'], 'endpoints' => [
 				['id' => 1, 'name' => 'Slack webhook', 'type' => 'webhook', 'transport' => ['url' => 'https://hooks.slack.com/services/fixture-token', 'mapping' => ['default' => [['to' => 'text', 'source' => 'alarm.summary']]]]],
 				['id' => 2, 'name' => 'Generic REST', 'type' => 'restapi', 'transport' => ['url' => 'https://api.example.test/alarms', 'credential' => true]],
 				['id' => 3, 'name' => 'Script', 'type' => 'script', 'transport' => ['executable' => PHP_BINARY]],
@@ -98,6 +98,8 @@ final class ConfigurationReplicationTest extends AlarmManagerTestCase {
 				$this->assertNotSame($sourceCipher, $cipher, 'Remote credentials are re-encrypted, not copied ciphertext.');
 				$this->assertSame('Bearer generic-fixture', alarmmanager_decrypt_credential($cipher, 2, $keys[$poller])['headers']['Authorization']);
 				$this->assertSame('1', $db->query("SELECT value FROM settings WHERE name='alarmmanager_notifications_paused'")->fetchColumn());
+				$definition = json_decode($db->query('SELECT definition FROM plugin_alarmmanager_configuration_history ORDER BY revision DESC LIMIT 1')->fetchColumn(), true, 24, JSON_THROW_ON_ERROR);
+				$this->assertSame($routes['device_summaries'], $definition['device_summaries'], 'Device summary settings synchronize to each collector.');
 				$revision = $db->query('SELECT config_revision FROM plugin_alarmmanager_schema')->fetchColumn();
 				alarmmanager_replicate_out($data);
 				$this->assertSame($revision, $db->query('SELECT config_revision FROM plugin_alarmmanager_schema')->fetchColumn(), 'Unchanged sync does not grow history.');

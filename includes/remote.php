@@ -522,13 +522,13 @@ function alarmmanager_device_seed_local(array $grant): void {
 		throw new RuntimeException('device_handoff_host_invalid');
 	}
 	alarmmanager_db_write('UPDATE plugin_alarmmanager_device_owners SET last_episode = ?, last_transition = ? WHERE device_id = ?', [$seed['episode_id'], $seed['transition'], $grant['device_id']]);
-	$fail = (int) strtotime($seed['transition'] === 'raised' ? $seed['occurred_at'] : '1970-01-01');
+	$fail = (int) strtotime($seed['transition'] === 'updated' ? (($seed['device']['status_fail_date'] ?? '') ?: $seed['occurred_at']) : $seed['occurred_at']);
 
 	if ($seed['transition'] === 'recovered') { // A closed episode needs no synthesized active alarm.
 		alarmmanager_db_write('UPDATE host SET status = 3, status_rec_date = FROM_UNIXTIME(?), status_event_count = 0 WHERE id = ?', [(int) strtotime($seed['occurred_at']), $grant['device_id']]);
 
 		return;
 	}
-	alarmmanager_db_write('UPDATE host SET status = 1, status_fail_date = FROM_UNIXTIME(?), status_event_count = 0 WHERE id = ?', [$fail, $grant['device_id']]);
+	alarmmanager_db_write('UPDATE host SET status = ?, status_fail_date = FROM_UNIXTIME(?), status_event_count = 0 WHERE id = ?', [$seed['transition'] === 'updated' ? 2 : 1, $fail, $grant['device_id']]);
 	alarmmanager_db_write('INSERT INTO plugin_alarmmanager_states (stream_key, episode_id, last_sequence, active, severity, summary, updated_at) VALUES (?, ?, ?, 1, ?, ?, UTC_TIMESTAMP(6)) ON DUPLICATE KEY UPDATE episode_id = VALUES(episode_id), last_sequence = VALUES(last_sequence), active = 1, severity = VALUES(severity), summary = VALUES(summary), updated_at = VALUES(updated_at)', [$stream, $seed['episode_id'], $seed['sequence'], $seed['severity'], $seed['summary']]);
 }

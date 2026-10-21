@@ -22,6 +22,21 @@
  +-------------------------------------------------------------------------+
 */
 final class RuleEditorTest extends AlarmManagerTestCase {
+	public function testDeviceSummaryConfiguration(): void {
+		self::alarmmanager_test_load('includes/routing.php');
+		$this->assertSame(['offline' => 'Device Offline', 'recovering' => 'Device Recovering', 'online' => 'Device Online'], alarmmanager_configuration(['version' => 1])['device_summaries']);
+		$this->assertSame(['offline' => 'Device is Offline', 'recovering' => 'Device is Recovering', 'online' => 'Device is Online'], alarmmanager_configuration(['version' => 1, 'device_summaries' => ['offline' => ' Device is Offline ', 'recovering' => 'Device is Recovering', 'online' => 'Device is Online']])['device_summaries']);
+
+		foreach (['', '  ', str_repeat('x', 513), "line\nbreak", ['invalid']] as $invalid) {
+			try {
+				alarmmanager_configuration(['version' => 1, 'device_summaries' => ['offline' => 'Device Offline', 'recovering' => $invalid, 'online' => 'Device Online']]);
+				$this->fail('Invalid summary accepted');
+			} catch (InvalidArgumentException $error) {
+				$this->assertSame('invalid_device_summaries', $error->getMessage());
+			}
+		}
+	}
+
 	public function testGuidedFieldsProduceTheExistingRulePolicy(): void {
 		self::alarmmanager_test_load('includes/admin.php');
 		$policy = alarmmanager_admin_rule_policy([

@@ -1,5 +1,7 @@
 ## ChangeLog
 
+* Add configurable Offline summary, Recovering summary and Online summary fields under Configuration, synchronized to collectors. Use "Device Offline" and "Device Online" as the summaries for newly captured Cacti device down and recovery alarms. Status 2 emits a recovering update in the same outage, keeping the condition active until status 3.
+
 * Alarm Rules: add a menu-driven device-condition builder for Cacti location, poller, site, device template, hostname, description and SNMP system location. Support grouped AND/OR conditions, named ID choices and multiple integration destinations. Match current Cacti host data through the parameterized filter engine; device conditions remain part of replicated rule policy. Live deployment remains UNVERIFIED.
 
 * Consolidate delivery jobs, processing and attempt screens into Events. Add per-event integration outcome summaries and scoped workflow details with failed-job replay. Schema v12 removes routing profiles; rules store integration IDs directly, including configuration replication and private exports. VERIFIED locally with focused MariaDB, native Cacti web fixtures, browser checks and PHPStan; live deployment remains UNVERIFIED.

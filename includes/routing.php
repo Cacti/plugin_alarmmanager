@@ -186,13 +186,36 @@ function alarmmanager_rule_matches(array $rule, array $event): bool {
 
 	return alarmmanager_schedule_matches($rule['schedule'], $event['occurred_at']);
 }
+/** @return array{offline: string, recovering: string, online: string} */
+function alarmmanager_device_summaries(): array {
+	$row           = alarmmanager_db_row('SELECT h.definition FROM plugin_alarmmanager_configuration_history AS h JOIN plugin_alarmmanager_schema AS s ON s.config_revision = h.revision WHERE s.id = 1');
+	$configuration = $row ? json_decode($row['definition'], true, 24, JSON_THROW_ON_ERROR) : [];
+
+	return ($configuration['device_summaries'] ?? []) + ['offline' => 'Device Offline', 'recovering' => 'Device Recovering', 'online' => 'Device Online'];
+}
+
 function alarmmanager_configuration(array $configuration): array {
-	alarmmanager_event_keys($configuration, ['version', 'endpoints', 'rules']);
+	alarmmanager_event_keys($configuration, ['version', 'endpoints', 'rules', 'device_summaries']);
 
 	if (($configuration['version'] ?? null) !== 1) {
 		throw new InvalidArgumentException('invalid_configuration');
 	}
-	$result = ['version' => 1, 'endpoints' => [], 'rules' => []];
+	$result    = ['version' => 1, 'endpoints' => [], 'rules' => []];
+	$summaries = $configuration['device_summaries'] ?? ['offline' => 'Device Offline', 'recovering' => 'Device Recovering', 'online' => 'Device Online'];
+
+	if (!is_array($summaries)) {
+		throw new InvalidArgumentException('invalid_device_summaries');
+	}
+	alarmmanager_event_keys($summaries, ['offline', 'recovering', 'online']);
+
+	foreach (['offline', 'recovering', 'online'] as $state) {
+		$text = $summaries[$state] ?? ($state === 'recovering' ? 'Device Recovering' : null);
+
+		if (!is_string($text) || trim($text) === '' || strlen($text) > 512 || preg_match('/[\x00-\x1f\x7f]/', $text)) {
+			throw new InvalidArgumentException('invalid_device_summaries');
+		}
+		$result['device_summaries'][$state] = trim($text);
+	}
 
 	foreach (['endpoints', 'rules'] as $section) {
 		$items = alarmmanager_config_list($configuration[$section] ?? [], 200);

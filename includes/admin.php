@@ -303,7 +303,7 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 		return 'Test queued for delivery workers; event row ' . $id . '.';
 	}
 
-	if (!in_array($action, ['configuration_save', 'endpoint_save', 'endpoint_delete', 'rule_save'], true)) {
+	if (!in_array($action, ['configuration_save', 'device_summaries_save', 'endpoint_save', 'endpoint_delete', 'rule_save'], true)) {
 		throw new InvalidArgumentException('invalid_action');
 	}
 	$revision = alarmmanager_admin_int($input['revision'] ?? null, 0, PHP_INT_MAX);
@@ -359,6 +359,8 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 
 	if ($action === 'configuration_save') {
 		$settings = alarmmanager_admin_json($input['configuration_json'] ?? '', 1048576);
+	} elseif ($action === 'device_summaries_save') {
+		$settings['device_summaries'] = ['offline' => $input['offline_summary'] ?? '', 'recovering' => $input['recovering_summary'] ?? '', 'online' => $input['online_summary'] ?? ''];
 	} else {
 		$id   = alarmmanager_admin_int($input['id'] ?? 0, 0);
 		$name = $input['name'] ?? '';
@@ -549,6 +551,7 @@ function alarmmanager_admin_error_message(Throwable $error): string {
 		'invalid_rule_filters'           => 'Choose up to 32 values for each enabled alarm filter.',
 		'invalid_rule_schedule'          => 'Choose at least one day for each enabled schedule.',
 		'invalid_schedule'               => 'Choose a valid timezone and start and end times for each schedule.',
+		'invalid_device_summaries'       => 'Enter all device summaries using 1–512 bytes of text without line breaks.',
 		'invalid_configuration'          => 'Action failed. Configuration fields are invalid.',
 		default                          => 'The action could not be completed. Check the Cacti log for an internal error. Submitted credential values were cleared.'
 	};

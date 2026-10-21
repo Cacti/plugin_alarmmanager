@@ -47,27 +47,40 @@ final class DeviceStatusTest extends AlarmManagerTestCase {
 			self::assertSame(1, alarmmanager_device_status_check(), 'Retry captures direct Spine-style SQL down');
 			self::assertSame(0, alarmmanager_device_status_check(), 'Repeated poll does not duplicate');
 			$db->exec('UPDATE host SET status=2,status_rec_date=UTC_TIMESTAMP() WHERE id=42');
-			self::assertSame(0, alarmmanager_device_status_check(), 'Recovering is not confirmed up');
-			self::assertSame(1, (int) $db->query('SELECT status FROM plugin_alarmmanager_device_status WHERE device_id=42')->fetchColumn());
+			self::assertSame(1, alarmmanager_device_status_check(), 'Recovering emits an update, not a recovery');
+			self::assertSame(0, alarmmanager_device_status_check(), 'Repeated recovering samples do not duplicate updates');
+
+			while ($claim = alarmmanager_claim_processing()) {
+				alarmmanager_process_job($claim);
+			}
+			self::assertSame(1, (int) $db->query('SELECT active FROM plugin_alarmmanager_states')->fetchColumn(), 'Recovering leaves the outage active');
+			self::assertSame('Device Recovering', $db->query('SELECT summary FROM plugin_alarmmanager_states')->fetchColumn());
+			self::assertSame(2, (int) $db->query('SELECT status FROM plugin_alarmmanager_device_status WHERE device_id=42')->fetchColumn());
 			$db->exec('UPDATE host SET status=3 WHERE id=42');
 			self::assertSame(1, alarmmanager_device_status_check(), 'Confirmed recovery captured');
 			self::assertSame(0, alarmmanager_device_status_check());
-			$events = $db->query('SELECT transition,episode_id,sequence FROM plugin_alarmmanager_events ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
-			self::assertSame(['raised', 'recovered'], array_column($events, 'transition'));
+			$events = $db->query('SELECT transition,episode_id,sequence,payload FROM plugin_alarmmanager_events ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+			self::assertSame(['raised', 'updated', 'recovered'], array_column($events, 'transition'));
+			self::assertSame(['Device Offline', 'Device Recovering', 'Device Online'], array_map(static fn (array $event): string => json_decode($event['payload'], true, 512, JSON_THROW_ON_ERROR)['summary'], $events));
 			self::assertSame($events[0]['episode_id'], $events[1]['episode_id']);
+			self::assertSame($events[0]['episode_id'], $events[2]['episode_id']);
 			self::assertGreaterThan((int) $events[0]['sequence'], (int) $events[1]['sequence']);
 
 			while ($claim = alarmmanager_claim_processing()) {
 				alarmmanager_process_job($claim);
 			}
-			self::assertSame(2, (int) $db->query('SELECT COUNT(*) FROM plugin_alarmmanager_deliveries')->fetchColumn(), 'Both transitions route');
+			self::assertSame(3, (int) $db->query('SELECT COUNT(*) FROM plugin_alarmmanager_deliveries')->fetchColumn(), 'All three transitions route');
+			// Saved wording applies to subsequent events without rewriting history.
+			alarmmanager_apply_configuration(['version' => 1, 'device_summaries' => ['offline' => 'Device is Offline', 'recovering' => 'Device is Recovering', 'online' => 'Device is Online'], 'endpoints' => [['id' => 1, 'name' => 'Fixture', 'type' => 'webhook', 'transport' => ['url' => 'https://example.test']]], 'rules' => []]);
 			// Existing PHP integration remains synchronous and comparison reuses its receipt.
 			$fail += 20;
 			$host  = ['id' => 42, 'hostname' => 'fixture.test', 'description' => 'Fixture', 'status' => 1, 'status_fail_date' => $fail, 'status_rec_date' => time()];
 			$write = static fn (): bool => db_execute_prepared('UPDATE host SET status=1,status_fail_date=FROM_UNIXTIME(?) WHERE id=42', [$fail]);
 			self::assertTrue(alarmmanager_device_core_commit($host, 3, $write));
 			self::assertSame(0, alarmmanager_device_status_check(), 'No duplicate PHP raise');
-			self::assertSame(3, (int) $db->query('SELECT COUNT(*) FROM plugin_alarmmanager_events')->fetchColumn());
+			self::assertSame(4, (int) $db->query('SELECT COUNT(*) FROM plugin_alarmmanager_events')->fetchColumn());
+			$db->exec('UPDATE host SET status=2 WHERE id=42');
+			self::assertSame(1, alarmmanager_device_status_check(), 'Custom recovering text is captured');
 			$db->exec('UPDATE host SET status=3,status_rec_date=UTC_TIMESTAMP() WHERE id=42');
 			// Device comparison also runs before daemon mode returns from poller hook.
 			$root = sys_get_temp_dir() . '/alarmmanager_status_' . bin2hex(random_bytes(5));
@@ -84,12 +97,14 @@ final class DeviceStatusTest extends AlarmManagerTestCase {
 				rmdir($root);
 				unset($GLOBALS['config']['base_path']);
 			}
-			self::assertSame(4, (int) $db->query('SELECT COUNT(*) FROM plugin_alarmmanager_events')->fetchColumn(), 'Daemon mode still captures recovery');
+			self::assertSame(6, (int) $db->query('SELECT COUNT(*) FROM plugin_alarmmanager_events')->fetchColumn(), 'Daemon mode still captures recovery');
+			$payloads = $db->query('SELECT payload FROM plugin_alarmmanager_events ORDER BY id')->fetchAll(PDO::FETCH_COLUMN);
+			self::assertSame(['Device Offline', 'Device Recovering', 'Device Online', 'Device is Offline', 'Device is Recovering', 'Device is Online'], array_map(static fn (string $payload): string => json_decode($payload, true, 512, JSON_THROW_ON_ERROR)['summary'], $payloads));
 			self::assertSame(0, alarmmanager_device_status_check());
 			// Repair a stranded UP snapshot whose recovery timestamp predates its open outage.
 			$fail += 20;
 			$host['status_fail_date'] = $fail;
-			$write = static fn (): bool => db_execute_prepared('UPDATE host SET status=1,status_fail_date=FROM_UNIXTIME(?) WHERE id=42', [$fail]);
+			$write                    = static fn (): bool => db_execute_prepared('UPDATE host SET status=1,status_fail_date=FROM_UNIXTIME(?) WHERE id=42', [$fail]);
 			self::assertTrue(alarmmanager_device_core_commit($host, 3, $write));
 
 			while ($claim = alarmmanager_claim_processing()) {
@@ -167,6 +182,17 @@ final class DeviceStatusTest extends AlarmManagerTestCase {
 			$db->prepare("UPDATE plugin_alarmmanager_device_owners SET owner='core',epoch=2,seed_event=? WHERE device_id=47")->execute([$seed]);
 			$db->exec('UPDATE host SET status=1 WHERE id=47');
 			self::assertSame(0, alarmmanager_device_status_check(), 'Ownership handoff seed is not resent as a new outage');
+			// Failed recovery returns to offline within the same episode.
+			$db->exec('UPDATE host SET poller_id=1,status=1,status_fail_date=UTC_TIMESTAMP() WHERE id=42');
+			self::assertSame(1, alarmmanager_device_status_check());
+			$episode = $db->query('SELECT episode_id FROM plugin_alarmmanager_events ORDER BY id DESC LIMIT 1')->fetchColumn();
+
+			foreach ([2, 1, 2, 3] as $status) {
+				$db->exec("UPDATE host SET status=$status WHERE id=42");
+				self::assertSame(1, alarmmanager_device_status_check());
+				self::assertSame(0, alarmmanager_device_status_check());
+				self::assertSame($episode, $db->query('SELECT episode_id FROM plugin_alarmmanager_events ORDER BY id DESC LIMIT 1')->fetchColumn(), 'Recovering, relapse and online retain the original outage');
+			}
 		} finally {
 			unset($GLOBALS['alarmmanager_fail_commit']);
 			$db->exec("DROP DATABASE `$database`");
