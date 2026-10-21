@@ -87,6 +87,12 @@ for ($i = 0; $i < 12; $i++) {
 	} alarmmanager_finish_delivery($claim, ['outcome' => $i % 4 === 0 ? 'failure' : 'success', 'code' => $i % 4 === 0 ? 'fixture_failure' : 'fixture_ok', 'duration_ms' => 20 + $i]);
 }
 
+// One deterministic mixed result exercises the consolidated event drilldown and replay.
+$mixed_event = (int) db_fetch_cell_prepared("SELECT id FROM plugin_alarmmanager_events WHERE event_id = 'browser:60'");
+alarmmanager_db_write("UPDATE plugin_alarmmanager_deliveries SET status = CASE WHEN endpoint_id = 1 THEN 'failed' ELSE 'completed' END, last_error = CASE WHEN endpoint_id = 1 THEN 'fixture_failure' ELSE '' END WHERE event_row_id = ?", [$mixed_event]);
+$mixed_delivery = (int) db_fetch_cell_prepared('SELECT id FROM plugin_alarmmanager_deliveries WHERE event_row_id = ? AND endpoint_id = 1', [$mixed_event]);
+alarmmanager_db_write("INSERT INTO plugin_alarmmanager_attempts (delivery_id, attempt_number, lease_token, outcome, code, started_at) VALUES (?, 1, ?, 'failure', 'fixture_failure', UTC_TIMESTAMP(6))", [$mixed_delivery, str_repeat('b', 32)]);
+
 foreach (['events' => 'received_at', 'deliveries' => 'created_at', 'attempts' => 'started_at', 'decisions' => 'created_at'] as $table => $column) {
 	alarmmanager_db_write("UPDATE plugin_alarmmanager_$table SET $column = DATE_SUB(UTC_TIMESTAMP(6), INTERVAL 5 SECOND)");
 }

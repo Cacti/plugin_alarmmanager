@@ -127,7 +127,7 @@ function alarmmanager_sync_export(int $limit = 100): ?string {
 				throw new RuntimeException('sync_main_connection_unavailable');
 			}
 			$receiver = alarmmanager_node_uuid($connection);
-			$rows = alarmmanager_db_rows('SELECT id, entity, entity_id FROM plugin_alarmmanager_sync_outbox WHERE id > ? ORDER BY id LIMIT ' . $limit . ' FOR UPDATE WAIT 2', [(int) $sender['acked']]);
+			$rows     = alarmmanager_db_rows('SELECT id, entity, entity_id FROM plugin_alarmmanager_sync_outbox WHERE id > ? ORDER BY id LIMIT ' . $limit . ' FOR UPDATE WAIT 2', [(int) $sender['acked']]);
 
 			if (!$rows) {
 				return null;
@@ -193,6 +193,7 @@ function alarmmanager_sync_receive(string $body, int $poller, ?PDO $connection =
 	if (($packet['version'] ?? null) !== 1 || ($packet['poller_id'] ?? null) !== $poller || $poller < 2 || ($packet['receiver_uuid'] ?? '') !== alarmmanager_node_uuid($connection) || !is_int($packet['through'] ?? null) || $packet['through'] < 0 || !is_array($packet['records'] ?? null) || !array_is_list($packet['records']) || count($packet['records']) > 500) {
 		throw new InvalidArgumentException('sync_packet_invalid');
 	}
+
 	if (!is_string($packet['instance_uuid'] ?? null) || !preg_match('/\A[a-f0-9]{32}\z/D', $packet['instance_uuid']) || !alarmmanager_db_row('SELECT id FROM poller WHERE id = ?', [$poller], $connection)) {
 		throw new RuntimeException('sync_peer_invalid');
 	}
@@ -281,7 +282,7 @@ function alarmmanager_sync_receive(string $body, int $poller, ?PDO $connection =
 function alarmmanager_sync_acknowledge(string $ack): void {
 	$data = json_decode($ack, true, 8, JSON_THROW_ON_ERROR);
 	alarmmanager_transaction(function () use ($data): void {
-		$sender = alarmmanager_db_row('SELECT * FROM plugin_alarmmanager_sync_sender WHERE id = 1 FOR UPDATE');
+		$sender  = alarmmanager_db_row('SELECT * FROM plugin_alarmmanager_sync_sender WHERE id = 1 FOR UPDATE');
 		$pending = json_decode($sender['pending_body'] ?? 'null', true, 32, JSON_THROW_ON_ERROR);
 
 		if (!is_array($pending) || ($data['version'] ?? null) !== 1 || ($data['poller_id'] ?? null) !== alarmmanager_local_poller() || ($data['instance_uuid'] ?? '') !== alarmmanager_node_uuid() || ($data['receiver_uuid'] ?? '') !== $pending['receiver_uuid'] || ($data['through'] ?? null) !== (int) $sender['pending_end'] || !is_string($data['digest'] ?? null) || !hash_equals($sender['pending_hash'], $data['digest'])) {
@@ -297,10 +298,11 @@ function alarmmanager_sync_send(int $limit = 100): bool {
 	if (alarmmanager_local_poller() < 2 || !$connection instanceof PDO) {
 		throw new RuntimeException('sync_main_connection_unavailable');
 	}
+
 	if (alarmmanager_node_uuid($connection) === alarmmanager_node_uuid()) {
 		throw new RuntimeException('sync_receiver_invalid');
 	}
-	$body = alarmmanager_sync_export($limit);
+	$body      = alarmmanager_sync_export($limit);
 	$heartbeat = $body === null;
 
 	if ($heartbeat) {
@@ -423,22 +425,24 @@ function alarmmanager_install_device_grant(array $grant): void {
 			throw new RuntimeException('device_reassignment_overlap');
 		}
 	}
-	alarmmanager_db_write("INSERT INTO plugin_alarmmanager_device_owners (device_id, deployment_uuid, poller_id, epoch, owner, mode, profile_id, channels, valid_from, valid_until, seed_event) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE last_sequence = IF(VALUES(epoch) > epoch, 0, last_sequence), last_episode = IF(VALUES(epoch) > epoch, '', last_episode), last_transition = IF(VALUES(epoch) > epoch, '', last_transition), seed_event = VALUES(seed_event), deployment_uuid = VALUES(deployment_uuid), poller_id = VALUES(poller_id), epoch = VALUES(epoch), owner = VALUES(owner), mode = VALUES(mode), profile_id = VALUES(profile_id), channels = VALUES(channels), valid_from = VALUES(valid_from), valid_until = VALUES(valid_until)", [$grant['device_id'], $grant['deployment_uuid'], $grant['poller_id'], $grant['epoch'], $grant['owner'], $grant['mode'], $grant['profile_id'], json_encode($grant['channels']), $grant['valid_from'], $grant['valid_until'], $grant['seed_event'] !== null ? json_encode($grant['seed_event'], JSON_THROW_ON_ERROR) : null]);
+	alarmmanager_db_write("INSERT INTO plugin_alarmmanager_device_owners (device_id, deployment_uuid, poller_id, epoch, owner, mode, channels, valid_from, valid_until, seed_event) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE last_sequence = IF(VALUES(epoch) > epoch, 0, last_sequence), last_episode = IF(VALUES(epoch) > epoch, '', last_episode), last_transition = IF(VALUES(epoch) > epoch, '', last_transition), seed_event = VALUES(seed_event), deployment_uuid = VALUES(deployment_uuid), poller_id = VALUES(poller_id), epoch = VALUES(epoch), owner = VALUES(owner), mode = VALUES(mode), channels = VALUES(channels), valid_from = VALUES(valid_from), valid_until = VALUES(valid_until)", [$grant['device_id'], $grant['deployment_uuid'], $grant['poller_id'], $grant['epoch'], $grant['owner'], $grant['mode'], json_encode($grant['channels']), $grant['valid_from'], $grant['valid_until'], $grant['seed_event'] !== null ? json_encode($grant['seed_event'], JSON_THROW_ON_ERROR) : null]);
 }
 
-/** Explicit main-poller export to a private file; selected profiles determine credential scope. */
-function alarmmanager_remote_export_configuration(int $poller, array $profiles): array {
-	if (alarmmanager_local_poller() !== 1 || $poller < 2 || !$profiles || count($profiles) > 256) {
+/** Explicit main-poller export to a private file; selected integrations determine credential scope.
+ * @param list<int> $endpoints
+ */
+function alarmmanager_remote_export_configuration(int $poller, array $endpoints): array {
+	if (alarmmanager_local_poller() !== 1 || $poller < 2 || !$endpoints || count($endpoints) > 256) {
 		throw new InvalidArgumentException('provision_export_invalid');
 	}
 
-	foreach ($profiles as $id) {
+	foreach ($endpoints as $id) {
 		if (!is_int($id) || $id < 1) {
 			throw new InvalidArgumentException('provision_export_invalid');
 		}
 	}
 
-	return alarmmanager_transaction(function () use ($poller, $profiles): array {
+	return alarmmanager_transaction(function () use ($poller, $endpoints): array {
 		$key     = alarmmanager_secret_key(true);
 		$row     = alarmmanager_db_row('SELECT config_revision FROM plugin_alarmmanager_schema WHERE id = 1 FOR UPDATE');
 		$history = alarmmanager_db_row('SELECT definition FROM plugin_alarmmanager_configuration_history WHERE revision = ?', [$row['config_revision']]);
@@ -446,19 +450,18 @@ function alarmmanager_remote_export_configuration(int $poller, array $profiles):
 		if (!$history) {
 			throw new RuntimeException('provision_routing_missing');
 		}
-		$configuration             = json_decode($history['definition'], true, 24, JSON_THROW_ON_ERROR);
-		$configuration['profiles'] = array_values(array_filter($configuration['profiles'], static fn ($row) => in_array((int) $row['id'], $profiles, true)));
-
-		if (count($configuration['profiles']) !== count(array_unique($profiles))) {
-			throw new RuntimeException('provision_profile_missing');
-		}
-		$endpoints = [];
-
-		foreach ($configuration['profiles'] as $profile) {
-			$endpoints = [...$endpoints, ...$profile['endpoints']];
-		} $endpoints                = array_unique($endpoints);
+		$configuration              = json_decode($history['definition'], true, 24, JSON_THROW_ON_ERROR);
 		$configuration['endpoints'] = array_values(array_filter($configuration['endpoints'], static fn ($row) => in_array((int) $row['id'], $endpoints, true)));
-		$configuration['rules']     = array_values(array_filter($configuration['rules'], static fn ($row) => in_array((int) $row['profile_id'], $profiles, true)));
+
+		if (count($configuration['endpoints']) !== count(array_unique($endpoints))) {
+			throw new RuntimeException('provision_endpoint_missing');
+		}
+
+		foreach ($configuration['rules'] as &$rule) {
+			$rule['endpoints'] = array_values(array_intersect($rule['endpoints'], $endpoints));
+		}
+		unset($rule);
+		$configuration['rules']     = array_values(array_filter($configuration['rules'], static fn ($row) => (bool) $row['endpoints']));
 		$producers                  = [];
 
 		foreach (alarmmanager_db_rows('SELECT source, scope, resource_id, definition FROM plugin_alarmmanager_producer_config ORDER BY source, scope, resource_id LIMIT 257') as $row) {
@@ -468,22 +471,18 @@ function alarmmanager_remote_export_configuration(int $poller, array $profiles):
 				throw new RuntimeException('provision_producer_limit');
 			}
 
-			if (!empty($definition['profile_id']) && !in_array($definition['profile_id'], $profiles, true)) {
-				continue;
-			}
 			$row['resource_id'] = (int) $row['resource_id'];
 			$row['definition']  = $definition;
 			$producers[]        = $row;
 		}
-		$grants = alarmmanager_db_rows('SELECT device_id, deployment_uuid, poller_id, epoch, owner, mode, profile_id, channels, valid_from, valid_until, seed_event FROM plugin_alarmmanager_device_owners WHERE poller_id = ? ORDER BY device_id LIMIT 4097', [$poller]);
+		$grants = alarmmanager_db_rows('SELECT device_id, deployment_uuid, poller_id, epoch, owner, mode, channels, valid_from, valid_until, seed_event FROM plugin_alarmmanager_device_owners WHERE poller_id = ? ORDER BY device_id LIMIT 4097', [$poller]);
 
 		if (count($grants) > 4096) {
 			throw new RuntimeException('provision_grant_limit');
 		}
-		$grants = array_values(array_filter($grants, static fn ($g) => in_array((int) $g['profile_id'], $profiles, true)));
 
 		foreach ($grants as &$grant) {
-			foreach (['device_id', 'poller_id', 'epoch', 'profile_id'] as $field) {
+			foreach (['device_id', 'poller_id', 'epoch'] as $field) {
 				$grant[$field] = (int) $grant[$field];
 			} $grant['channels'] = json_decode($grant['channels'], true);
 			$grant['seed_event'] = $grant['seed_event'] !== null ? json_decode($grant['seed_event'], true) : null;

@@ -4,8 +4,10 @@
   "poller_id": 2,
   "epoch": 1,
   "owner": "core",
-  "profile_id": 1,
-  "channels": ["email", "script"],
+  "channels": [
+    "email",
+    "script"
+  ],
   "valid_from": "2026-10-13T00:00:00Z",
   "valid_until": "2026-10-14T00:00:00Z"
 }

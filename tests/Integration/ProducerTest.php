@@ -97,7 +97,7 @@ final class ProducerTest extends AlarmManagerTestCase {
 			$this->assertSame(str_repeat('é', 255), AlarmManagerProducerBridge::text(str_repeat('é', 300), 511), 'UTF-8 truncation retains complete characters');
 			$this->assertTrue(plugin_alarmmanager_install(), 'install');
 			$this->assertTrue(plugin_alarmmanager_install(), 'repeat install');
-			$this->assertSame(11, (int) db_fetch_cell_prepared('SELECT version FROM plugin_alarmmanager_schema'), 'schema v11');
+			$this->assertSame(12, (int) db_fetch_cell_prepared('SELECT version FROM plugin_alarmmanager_schema'), 'schema v12');
 			$this->assertTrue($this->producer_publish('local-default')['owned'], 'Local delivery is the default without a mode policy.');
 			$this->assertSame(1, (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_events'));
 			$this->producer_policy('thold', 'default', 0, 'observe');
@@ -229,7 +229,7 @@ final class ProducerTest extends AlarmManagerTestCase {
 	 * Persist one producer policy row through the validated bridge definition.
 	 */
 	private function producer_policy(string $source, string $scope, int $id, string $mode, array $channels = ['email', 'script'], bool $history = false): void {
-		$definition = AlarmManagerProducerBridge::validate(['mode' => $mode, 'profile_id' => 1, 'channels' => $channels, 'complete_history' => $history]);
+		$definition = AlarmManagerProducerBridge::validate(['mode' => $mode, 'channels' => $channels, 'complete_history' => $history]);
 		alarmmanager_db_write('INSERT INTO plugin_alarmmanager_producer_config (source, scope, resource_id, definition) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE definition = VALUES(definition)', [$source, $scope, $id, json_encode($definition)]);
 	}
 

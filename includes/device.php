@@ -25,11 +25,11 @@ require_once(__DIR__ . '/runtime.php');
 require_once(__DIR__ . '/events.php');
 require_once(__DIR__ . '/../integrations/producer_bridge.php');
 function alarmmanager_device_grant_validate(array $grant): array {
-	$keys = ['device_id', 'deployment_uuid', 'poller_id', 'epoch', 'owner', 'mode', 'profile_id', 'channels', 'valid_from', 'valid_until', 'last_sequence', 'seed_event', 'last_episode', 'last_transition'];
+	$keys = ['device_id', 'deployment_uuid', 'poller_id', 'epoch', 'owner', 'mode', 'channels', 'valid_from', 'valid_until', 'last_sequence', 'seed_event', 'last_episode', 'last_transition'];
 	alarmmanager_event_keys($grant, $keys);
 
-	foreach (['device_id', 'poller_id', 'epoch', 'profile_id'] as $field) {
-		$grant[$field] = filter_var($grant[$field] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => $field === 'profile_id' ? 0 : 1, 'max_range' => $field === 'epoch' ? 1000000 : 2147483647]]);
+	foreach (['device_id', 'poller_id', 'epoch'] as $field) {
+		$grant[$field] = filter_var($grant[$field] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => $field === 'epoch' ? 1000000 : 2147483647]]);
 
 		if ($grant[$field] === false) {
 			throw new InvalidArgumentException('invalid_device_grant');
@@ -99,7 +99,6 @@ function alarmmanager_device_event_authorized(array $event, int $seconds = 0): b
 
 	return $grant && (int) ($event['context']['ownership_epoch'] ?? 0) === (int) $grant['epoch']
 		&& $event['collector_id']                                         === alarmmanager_local_poller() && $event['resource_id'] === (string) $grant['device_id'] && $event['alarm_key'] === 'device:' . $grant['device_id']
-		&& (int) ($event['context']['routing_profile_id'] ?? 0)           === (int) $grant['profile_id']
 		&& $event['sequence'] > (int) $grant['epoch'] * 1000000000 && $event['sequence'] < ((int) $grant['epoch'] + 1) * 1000000000
 		&& $event['source_instance'] === $grant['deployment_uuid'] && ($event['context']['rule_type'] ?? '') === $grant['owner'] . '-device'
 		&& alarmmanager_device_live($grant, $seconds);
@@ -147,7 +146,7 @@ function alarmmanager_device_persist(array $grant, array $host, string $kind, bo
 		'episode_id'                                    => $episode, 'sequence' => (int) $grant['epoch'] * 1000000000 + $sequence,
 		'transition'                                    => $kind, 'severity' => $kind === 'raised' ? 'major' : 'clear', 'occurred_at' => gmdate('Y-m-d\TH:i:s\Z', $times[$kind === 'raised' ? 'status_fail_date' : 'status_rec_date']),
 		'collector_id'                                  => alarmmanager_local_poller(), 'device' => array_replace(['id' => (int) $host['id'], 'hostname' => (string) $host['hostname'], 'description' => (string) $host['description'], 'location' => (string) ($host['snmp_sysLocation'] ?? ''), 'contact' => (string) ($host['snmp_sysContact'] ?? ''), 'sysname' => (string) ($host['snmp_sysName'] ?? ''), 'tags' => []], AlarmManagerProducerBridge::deviceDetails($host, alarmmanager_local_poller())),
-		'summary'                                       => $kind === 'raised' ? 'Device confirmed down' : 'Device confirmed recovered', 'context' => ['rule_type' => $grant['owner'] . '-device', 'ownership_epoch' => (int) $grant['epoch']] + ((int) $grant['profile_id'] > 0 ? ['routing_profile_id' => (int) $grant['profile_id']] : []) + ['source_notification_channels' => ['email', 'script']]]);
+		'summary'                                       => $kind === 'raised' ? 'Device confirmed down' : 'Device confirmed recovered', 'context' => ['rule_type' => $grant['owner'] . '-device', 'ownership_epoch' => (int) $grant['epoch']] + ['source_notification_channels' => ['email', 'script']]]);
 	$result = alarmmanager_persist_event($event, $grant['mode'], alarmmanager_local_poller());
 	alarmmanager_db_write('UPDATE plugin_alarmmanager_device_owners SET last_sequence = ?, last_episode = ?, last_transition = ? WHERE device_id = ? AND epoch = ?', [$sequence, $episode, $kind, $host['id'], $grant['epoch']]);
 	alarmmanager_db_write('INSERT INTO plugin_alarmmanager_device_receipts (event_id, device_id, transition, epoch, sequence, fail_epoch, rec_epoch, event_row_id, mode, channels, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(6))', [$id, $host['id'], $kind, $grant['epoch'], $sequence, $times['status_fail_date'], $kind === 'recovered' ? $times['status_rec_date'] : 0, $result['event_row_id'], $grant['mode'], $grant['channels']]);
@@ -252,7 +251,7 @@ function alarmmanager_device_thold_decision(array $host, string $kind): array {
 	}
 }
 
-/** Caller holds the device owner lock; profile 0 uses global routing.
+/** Caller holds the device owner lock; device events use rule-based routing.
  * @return array<string, mixed>
  */
 function alarmmanager_device_auto_grant(int $device): array {
@@ -261,7 +260,7 @@ function alarmmanager_device_auto_grant(int $device): array {
 	if (!is_string($instance) || !preg_match('/\A[a-f0-9]{32}\z/D', $instance)) {
 		throw new RuntimeException('node_identity_unavailable');
 	}
-	alarmmanager_db_write("INSERT INTO plugin_alarmmanager_device_owners (device_id, deployment_uuid, poller_id, epoch, owner, mode, profile_id, channels, valid_from, valid_until) VALUES (?, ?, ?, 1, 'core', 'centralized', 0, ?, UTC_TIMESTAMP(6), '9999-12-31 23:59:59')", [$device, $instance, alarmmanager_local_poller(), json_encode(['email', 'script'])]);
+	alarmmanager_db_write("INSERT INTO plugin_alarmmanager_device_owners (device_id, deployment_uuid, poller_id, epoch, owner, mode, channels, valid_from, valid_until) VALUES (?, ?, ?, 1, 'core', 'centralized', ?, UTC_TIMESTAMP(6), '9999-12-31 23:59:59')", [$device, $instance, alarmmanager_local_poller(), json_encode(['email', 'script'])]);
 
 	return alarmmanager_device_grant($device, true);
 }
@@ -288,7 +287,7 @@ function alarmmanager_device_status_check(): int {
 				$grant = alarmmanager_device_grant((int) $device['id'], true);
 				// A reassigned device may still have an outage raised locally; only confirmed UP can close it.
 				$local_outage = ($grant['owner'] ?? '') === 'core' && (int) ($grant['poller_id'] ?? 0) === $poller && ($grant['last_transition'] ?? '') === 'raised';
-				$host  = alarmmanager_db_row("SELECT *, UNIX_TIMESTAMP() AS alarmmanager_observed_epoch FROM host WHERE id = ? AND (poller_id = ? OR (status = 3 AND ? = 1)) AND deleted = '' AND disabled = '' AND availability_method > 0 AND status IN (1, 3) FOR UPDATE", [$device['id'], $poller, (int) $local_outage]);
+				$host         = alarmmanager_db_row("SELECT *, UNIX_TIMESTAMP() AS alarmmanager_observed_epoch FROM host WHERE id = ? AND (poller_id = ? OR (status = 3 AND ? = 1)) AND deleted = '' AND disabled = '' AND availability_method > 0 AND status IN (1, 3) FOR UPDATE", [$device['id'], $poller, (int) $local_outage]);
 
 				if (!$host) {
 					return 0;

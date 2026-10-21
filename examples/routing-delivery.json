@@ -124,29 +124,22 @@
       }
     }
   ],
-  "profiles": [
-    {
-      "id": 1,
-      "name": "Both destinations",
-      "endpoints": [
-        1,
-        2
-      ]
-    }
-  ],
   "rules": [
     {
       "id": 1,
       "name": "All events",
       "priority": 100,
-      "profile_id": 1,
       "stop": true,
       "policy": {
         "match": {},
         "suppress_acknowledged": true,
         "cooldown_seconds": 0,
         "duplicate_seconds": 0
-      }
+      },
+      "endpoints": [
+        1,
+        2
+      ]
     }
   ]
 }

@@ -75,7 +75,7 @@ final class ConfigurationReplicationTest extends AlarmManagerTestCase {
 				['id' => 2, 'name' => 'Generic REST', 'type' => 'restapi', 'transport' => ['url' => 'https://api.example.test/alarms', 'credential' => true]],
 				['id' => 3, 'name' => 'Script', 'type' => 'script', 'transport' => ['executable' => PHP_BINARY]],
 				['id' => 4, 'name' => 'Email', 'type' => 'email', 'transport' => ['to' => ['ops@example.test'], 'mapping' => ['default' => [['to' => 'subject', 'constant' => 'Alarm'], ['to' => 'message', 'source' => 'alarm.summary']]]]]
-			], 'profiles' => [], 'rules' => []];
+			], 'rules' => []];
 			alarmmanager_apply_configuration($routes);
 			$this->assertSame('on', $connections[1]->query('SELECT requires_sync FROM poller WHERE id=2')->fetchColumn(), 'Main saves schedule native Cacti replication.');
 			alarmmanager_save_credential(2, ['headers' => ['Authorization' => 'Bearer generic-fixture']]);
@@ -125,8 +125,7 @@ final class ConfigurationReplicationTest extends AlarmManagerTestCase {
 			} catch (RuntimeException $error) {
 				$this->assertSame('configuration_replication_target_invalid', $error->getMessage());
 			}
-			$routes['profiles']                = [['id' => 1, 'name' => 'Operations', 'endpoints' => [1, 2]]];
-			$routes['rules']                   = [['id' => 1, 'name' => 'All alarms', 'profile_id' => 1, 'policy' => []]];
+			$routes['rules']                   = [['id' => 1, 'name' => 'All alarms', 'endpoints' => [1, 2], 'policy' => []]];
 			$routes['endpoints'][0]['enabled'] = false;
 			alarmmanager_apply_configuration($routes);
 			alarmmanager_save_credential(2, ['basic' => ['username' => 'service', 'password' => 'changed-password']]);
@@ -147,7 +146,7 @@ final class ConfigurationReplicationTest extends AlarmManagerTestCase {
 			$this->assertSame('1', $connections[2]->query("SELECT value FROM settings WHERE name='alarmmanager_notifications_paused'")->fetchColumn(), 'Failed update keeps the old queue setting.');
 			$connections[2]->exec('DROP TRIGGER fail_credentials');
 			alarmmanager_replicate_out($data);
-			$this->assertSame('Operations', $connections[2]->query('SELECT name FROM plugin_alarmmanager_profiles')->fetchColumn());
+			$this->assertSame('[1,2]', $connections[2]->query('SELECT endpoints_json FROM plugin_alarmmanager_rules')->fetchColumn());
 			$this->assertSame('All alarms', $connections[2]->query('SELECT name FROM plugin_alarmmanager_rules')->fetchColumn());
 			$this->assertSame(0, (int) $connections[2]->query('SELECT enabled FROM plugin_alarmmanager_endpoints WHERE id=1')->fetchColumn());
 			$GLOBALS['config']               = ['poller_id' => 2, 'base_path' => $root . '/2'];
@@ -161,7 +160,6 @@ final class ConfigurationReplicationTest extends AlarmManagerTestCase {
 			$GLOBALS['alarmmanager_test_db'] = $connections[1];
 			alarmmanager_db_write('DELETE FROM plugin_alarmmanager_credentials');
 			$routes['endpoints'] = [];
-			$routes['profiles']  = [];
 			$routes['rules']     = [];
 			alarmmanager_apply_configuration($routes);
 			alarmmanager_replicate_out($data);

@@ -98,7 +98,7 @@ final class WebTest extends AlarmManagerTestCase {
 			$this->assertStringNotContainsString('name="policy_json"', $rules_html);
 			$this->assertStringNotContainsString('section=profiles', $rules_html);
 			$this->assertStringContainsString('name="endpoints[]"', $rules_html);
-			$this->assertSame([$endpoint_id], $created['configuration']['profiles'][0]['endpoints']);
+			$this->assertSame([$endpoint_id], $created['configuration']['rules'][0]['endpoints']);
 			$create['id']       = $endpoint_id;
 			$create['revision'] = $created['revision'];
 			$create['name']     = 'Edited endpoint';
@@ -119,8 +119,7 @@ final class WebTest extends AlarmManagerTestCase {
 			$edit_rule['revision'] = $direct['revision'];
 			$this->waction($edit_rule);
 			$direct = alarmmanager_admin_configuration();
-			$this->assertCount(1, $direct['configuration']['profiles'], 'Changing integrations does not retain unused automatic destination groups');
-			$this->assertSame([1, 2], array_column($direct['configuration']['profiles'], null, 'id')[$direct['configuration']['rules'][0]['profile_id']]['endpoints']);
+			$this->assertSame([1, 2], $direct['configuration']['rules'][0]['endpoints']);
 			$this->wreject(fn () => $this->waction(array_replace($edit_rule, ['revision' => $direct['revision'], 'endpoints' => [2147483647]])), 'Unknown integration cannot be selected');
 			$event                 = json_decode(file_get_contents(__DIR__ . '/../../examples/event.json'), true);
 			$event['collector_id'] = 2;
@@ -384,7 +383,7 @@ final class WebTest extends AlarmManagerTestCase {
 			$_SERVER['REQUEST_METHOD'] = 'POST';
 			$_POST                     = ['__csrf_magic'=>'invalid'];
 			$this->wreject(fn () =>alarmmanager_admin_action(['action'=>'credential_save', 'id'=>1]), 'credential invalid CSRF denied');
-			$producer = ['action'=>'producer_save', 'source'=>'thold', 'scope'=>'default', 'resource_id'=>0, 'producer_revision'=>0, 'mode'=>'centralized', 'profile_id'=>1, 'channels'=>['email']];
+			$producer = ['action'=>'producer_save', 'source'=>'thold', 'scope'=>'default', 'resource_id'=>0, 'producer_revision'=>0, 'mode'=>'centralized', 'endpoints'=>[1, 2], 'channels'=>['email']];
 			$this->wreject(fn () =>$this->waction($producer + ['migration_confirmed'=>'yes']), 'Retired source-specific policy action is rejected');
 			$this->assertArrayNotHasKey('mode', AlarmManagerProducerBridge::configuration('thold',42), 'Retired action cannot introduce an operating mode');
 			ob_start();
@@ -449,7 +448,7 @@ final class WebTest extends AlarmManagerTestCase {
 				$this->waction(['action' => 'endpoint_delete', 'id' => 1, 'revision' => alarmmanager_admin_configuration()['revision'], 'confirmed' => 'yes']);
 				$this->fail('Referenced endpoint was deleted');
 			} catch (InvalidArgumentException $error) {
-				$this->assertSame('endpoint_in_profile', $error->getMessage());
+				$this->assertSame('endpoint_in_rule', $error->getMessage());
 			}
 			$history_id = (int) db_fetch_cell_prepared('SELECT id FROM plugin_alarmmanager_endpoints WHERE name = ?', ['PagerDuty Events v2']);
 			alarmmanager_db_write("INSERT INTO plugin_alarmmanager_deliveries (event_row_id, endpoint_id, stream_key, sequence, priority, status, available_at, created_at, updated_at, idempotency_key) SELECT event_row_id, ?, stream_key, sequence, priority, 'completed', available_at, created_at, updated_at, idempotency_key FROM plugin_alarmmanager_deliveries LIMIT 1", [$history_id]);

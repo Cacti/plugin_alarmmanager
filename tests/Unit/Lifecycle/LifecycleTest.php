@@ -151,13 +151,17 @@ final class LifecycleTest extends AlarmManagerTestCase {
 
 		$config    = $this->routingConfiguration();
 		$validated = alarmmanager_configuration($config);
-		$this->assertTrue($validated['profiles'][1]['endpoints'] === [1, 2], 'Lifecycle assertion failed.');
+		$this->assertTrue($validated['rules'][1]['endpoints'] === [1, 2], 'Lifecycle assertion failed.');
 
-		foreach (['missing_endpoint', 'duplicate_id', 'invalid_type', 'invalid_bool', 'ambiguous_fields'] as $kind) {
+		foreach (['missing_endpoint', 'duplicate_id', 'invalid_type', 'invalid_bool', 'retired_profiles', 'empty_destinations', 'ambiguous_fields'] as $kind) {
 			$bad = $config;
 
 			if ($kind === 'missing_endpoint') {
-				$bad['profiles'][0]['endpoints'][] = 99;
+				$bad['rules'][0]['endpoints'][] = 99;
+			} elseif ($kind === 'retired_profiles') {
+				$bad['profiles'] = [];
+			} elseif ($kind === 'empty_destinations') {
+				$bad['rules'][0]['endpoints'] = [];
 			} elseif ($kind === 'duplicate_id') {
 				$bad['endpoints'][] = $bad['endpoints'][0];
 			} elseif ($kind === 'invalid_type') {

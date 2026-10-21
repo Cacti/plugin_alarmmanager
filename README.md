@@ -63,6 +63,12 @@ Daemon settings are staged in each collector's database and written to its local
 
 Existing history, stream identities and delivery keys are preserved. Old observation records remain historical and are not sent retroactively. Old callers specifying `mode=centralized` remain compatible; observation submissions and the CLI `--mode` option are rejected to prevent old dry-run commands from unexpectedly sending notifications. Saved producer policies and device grants now use local delivery for new events, regardless of their former mode.
 
+## Event history
+
+Events shows one row per alarm event with an integration status summary. Open an event to see processing errors, integration results, external references, delivery attempts, and routing decisions. Administrators can replay failed jobs from those details. Quick filters select integration, processing, or attempt status; dashboard and queue links open the matching Events view. Active conditions remains separate.
+
+Schema v12 stores integration IDs directly on rules and removes the routing-profile table and profile references. This greenfield configuration format requires rules with an `endpoints` list; old profile-based configurations and retired report URLs are not supported. Processing, delivery, and attempt tables remain necessary for workers, retries, and history. Remote file exports select `--endpoints`, while normal collectors use Cacti replication.
+
 ## Notification rules
 
 Open **Administration → Rules and suppression → Create a rule**. Enter a name, select one or more integrations directly, and enable the filters you need. Leave filters off to match all alarms. Device and collector pickers show names alongside IDs; sources use the names submitted by the calling plugins, such as `syslog` or `thold`.

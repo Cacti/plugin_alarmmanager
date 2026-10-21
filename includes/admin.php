@@ -37,7 +37,7 @@ function alarmmanager_admin_configuration(): array {
 	return alarmmanager_transaction(function (): array {
 		$row        = alarmmanager_db_row('SELECT config_revision FROM plugin_alarmmanager_schema WHERE id = 1');
 		$history    = alarmmanager_db_row('SELECT definition FROM plugin_alarmmanager_configuration_history WHERE revision = ?', [$row['config_revision']]);
-		$definition = $history ? json_decode($history['definition'], true, 24, JSON_THROW_ON_ERROR) : ['version' => 1, 'endpoints' => [], 'profiles' => [], 'rules' => []];
+		$definition = $history ? json_decode($history['definition'], true, 24, JSON_THROW_ON_ERROR) : ['version' => 1, 'endpoints' => [], 'rules' => []];
 
 		return ['revision' => (int) $row['config_revision'], 'configuration' => $definition];
 	});
@@ -303,7 +303,7 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 		return 'Test queued for delivery workers; event row ' . $id . '.';
 	}
 
-	if (!in_array($action, ['configuration_save', 'endpoint_save', 'endpoint_delete', 'profile_save', 'rule_save'], true)) {
+	if (!in_array($action, ['configuration_save', 'endpoint_save', 'endpoint_delete', 'rule_save'], true)) {
 		throw new InvalidArgumentException('invalid_action');
 	}
 	$revision = alarmmanager_admin_int($input['revision'] ?? null, 0, PHP_INT_MAX);
@@ -332,9 +332,9 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 			}
 			$settings = $state['configuration'];
 
-			foreach ($settings['profiles'] as $profile) {
-				if (in_array($id, $profile['endpoints'], true)) {
-					throw new InvalidArgumentException('endpoint_in_profile');
+			foreach ($settings['rules'] as $rule) {
+				if (in_array($id, $rule['endpoints'], true)) {
+					throw new InvalidArgumentException('endpoint_in_rule');
 				}
 			}
 
@@ -354,7 +354,6 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 	}
 	$settings       = $state['configuration'];
 	$credential     = null;
-	$rule_endpoints = null;
 	$create_section = null;
 	$id             = 0;
 
@@ -369,7 +368,7 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 		}
 		$item    = ['id' => $id, 'name' => $name, 'enabled' => isset($input['enabled'])];
 		$section = match ($action) {
-			'endpoint_save' => 'endpoints', 'profile_save' => 'profiles', 'rule_save' => 'rules'
+			'endpoint_save' => 'endpoints', 'rule_save' => 'rules'
 		};
 
 		if ($section === 'endpoints') {
@@ -407,27 +406,13 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 			}
 			$transport['mapping'] = alarmmanager_admin_json($input['mapping_json'] ?? '{}');
 			$item['transport']    = $transport;
-		} elseif ($section === 'profiles') {
+		} else {
 			$list = $input['endpoints'] ?? [];
 
-			if (!is_array($list) || !array_is_list($list) || count($list) > 32) {
+			if (!is_array($list) || !array_is_list($list) || !$list || count($list) > 32) {
 				throw new InvalidArgumentException('invalid_action');
 			}
-			$item['endpoints'] = array_map(static fn ($value) => alarmmanager_admin_int($value), $list);
-		} else {
-			if (array_key_exists('endpoints', $input)) {
-				$list = $input['endpoints'];
-
-				if (!is_array($list) || !array_is_list($list) || !$list || count($list) > 32) {
-					throw new InvalidArgumentException('invalid_action');
-				}
-				$rule_endpoints = array_values(array_unique(array_map(static fn ($value) => alarmmanager_admin_int($value), $list)));
-
-				if (array_diff($rule_endpoints, array_column($settings['endpoints'], 'id'))) {
-					throw new InvalidArgumentException('invalid_endpoint');
-				}
-			}
-			$item += ['priority' => alarmmanager_admin_int($input['priority'] ?? 100, 0, 10000), 'profile_id' => $rule_endpoints === null ? alarmmanager_admin_int($input['profile_id'] ?? null) : 0, 'stop' => isset($input['stop']), 'policy' => alarmmanager_admin_rule_policy($input)];
+			$item += ['endpoints' => array_values(array_unique(array_map(static fn ($value) => alarmmanager_admin_int($value), $list))), 'priority' => alarmmanager_admin_int($input['priority'] ?? 100, 0, 10000), 'stop' => isset($input['stop']), 'policy' => alarmmanager_admin_rule_policy($input)];
 		}
 		$found = false;
 
@@ -449,46 +434,13 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 		}
 	}
 
-	alarmmanager_transaction(function () use ($settings, $revision, $credential, $create_section, $id, $rule_endpoints): void {
-		if ($rule_endpoints !== null) {
-			// Keep the replicated configuration format compatible with existing collectors.
-			$profile_id = 0;
-
-			foreach ($settings['profiles'] as $profile) {
-				if ($profile['enabled'] && $profile['endpoints'] === $rule_endpoints) {
-					$profile_id = $profile['id'];
-
-					break;
-				}
-			}
-
-			if (!$profile_id) {
-				alarmmanager_db_write('INSERT INTO plugin_alarmmanager_profiles (name, endpoints_json) VALUES (?, ?)', ['Rule destinations', json_encode($rule_endpoints, JSON_THROW_ON_ERROR)]);
-				$profile_id             = alarmmanager_admin_int(db_fetch_cell_prepared('SELECT LAST_INSERT_ID()', [], '', false));
-				$settings['profiles'][] = ['id' => $profile_id, 'name' => 'Rule destinations #' . $profile_id, 'enabled' => true, 'endpoints' => $rule_endpoints];
-			}
-
-			foreach ($settings['rules'] as &$rule) {
-				if ((int) $rule['id'] === $id) {
-					$rule['profile_id'] = $profile_id;
-				}
-			}
-			unset($rule);
-			$used_profiles        = array_column($settings['rules'], 'profile_id');
-			$settings['profiles'] = array_values(array_filter($settings['profiles'], static function (array $profile) use ($used_profiles): bool {
-				return $profile['name'] !== 'Rule destinations #' . $profile['id']
-					|| in_array($profile['id'], $used_profiles, true)
-					|| (bool) alarmmanager_db_row('SELECT device_id FROM plugin_alarmmanager_device_owners WHERE profile_id = ? LIMIT 1', [$profile['id']]);
-			}));
-		}
-
+	alarmmanager_transaction(function () use ($settings, $revision, $credential, $create_section, $id): void {
 		if ($create_section !== null) {
 			$index          = array_key_last($settings[$create_section]);
 			$item           = $settings[$create_section][$index];
 			[$sql, $params] = match ($create_section) {
 				'endpoints' => ['INSERT INTO plugin_alarmmanager_endpoints (name, type) VALUES (?, ?)', [$item['name'], $item['type']]],
-				'profiles'  => ['INSERT INTO plugin_alarmmanager_profiles (name, endpoints_json) VALUES (?, ?)', [$item['name'], json_encode($item['endpoints'], JSON_THROW_ON_ERROR)]],
-				'rules'     => ['INSERT INTO plugin_alarmmanager_rules (name, priority, profile_id, definition) VALUES (?, ?, ?, ?)', [$item['name'], $item['priority'], $item['profile_id'], json_encode($item['policy'], JSON_THROW_ON_ERROR)]]
+				'rules'     => ['INSERT INTO plugin_alarmmanager_rules (name, priority, endpoints_json, definition) VALUES (?, ?, ?, ?)', [$item['name'], $item['priority'], json_encode($item['endpoints'], JSON_THROW_ON_ERROR), json_encode($item['policy'], JSON_THROW_ON_ERROR)]]
 			};
 			alarmmanager_db_write($sql, $params);
 			$id                                      = alarmmanager_config_int(db_fetch_cell_prepared('SELECT LAST_INSERT_ID()', [], '', false), 1, 2147483647);
@@ -571,7 +523,7 @@ function alarmmanager_admin_error_message(Throwable $error): string {
 	return match ($error->getMessage()) {
 		'daemon_not_running'             => 'Start the Alarm Manager service on this collector before enabling daemon workers.',
 		'daemon_config_write_failed'     => 'Daemon settings could not be saved. Check the Cacti cache directory permissions.',
-		'endpoint_in_profile'            => 'Remove this integration from notification rules before deleting.',
+		'endpoint_in_rule'               => 'Remove this integration from notification rules before deleting.',
 		'endpoint_has_active_deliveries' => 'This endpoint has queued or running deliveries. Resolve them before deleting.',
 		'test_endpoint_unavailable'      => 'The selected endpoint is disabled or no longer exists. Enable and save it before queuing a test send.',
 		'invalid_credentials'            => 'Enter the credentials for the selected authentication type, choose Keep saved credentials, or choose None for an incoming webhook.',

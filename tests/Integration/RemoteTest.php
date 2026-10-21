@@ -86,7 +86,7 @@ final class RemoteTest extends AlarmManagerTestCase {
 			alarmmanager_save_credential(2, ['headers' => ['X-API-Key' => 'remote-fixture']]);
 			$grant = alarmmanager_device_grant_validate($this->rgrant(2));
 			alarmmanager_transaction(static function () use ($grant): void {alarmmanager_install_device_grant($grant); });
-			$bundle = alarmmanager_remote_export_configuration(2, [1]);
+			$bundle = alarmmanager_remote_export_configuration(2, [1, 2]);
 			$this->assertSame(2, count($bundle['credentials']), 'selected credentials exported');
 			$this->ruse(2);
 			alarmmanager_remote_provision($bundle);
@@ -223,7 +223,7 @@ final class RemoteTest extends AlarmManagerTestCase {
 			$future['seed_event'] = $seed;
 			$future               = alarmmanager_device_grant_validate($future);
 			alarmmanager_transaction(fn () => alarmmanager_install_device_grant($future));
-			$next = alarmmanager_remote_export_configuration(3, [1]);
+			$next = alarmmanager_remote_export_configuration(3, [1, 2]);
 			$this->ruse(3);
 			alarmmanager_remote_provision($next);
 			$this->assertSame(1, (int)db_fetch_cell_prepared('SELECT status FROM host WHERE id=42'), 'handoff restores current down state');
@@ -253,8 +253,8 @@ final class RemoteTest extends AlarmManagerTestCase {
 			$badMode = alarmmanager_submit(['contract_version'=>1, 'mode'=>'observe', 'event'=>$twoEvent]);
 			$this->assertTrue($badMode['status'] === 'failed', 'public device submission respects configured mode');
 			$untrusted                                  = $twoEvent;
-			$untrusted['context']['routing_profile_id'] = 2;
-			$this->assertFalse(alarmmanager_device_event_authorized($untrusted), 'device profile cannot be overridden');
+			$untrusted['context']['ownership_epoch'] = 999;
+			$this->assertFalse(alarmmanager_device_event_authorized($untrusted), 'device ownership epoch cannot be overridden');
 			// AUTO_INCREMENT allocation order is not commit order. Prefix locking must not skip a late commit.
 			$this->ruse(2);
 			$concurrentDir = sys_get_temp_dir() . '/alarmmanager_commit_' . bin2hex(random_bytes(6));
@@ -439,7 +439,7 @@ final class RemoteTest extends AlarmManagerTestCase {
 	 * Fixture device ownership grant.
 	 */
 	private function rgrant(int $poller, string $owner = 'core', int $epoch = 1): array {
-		return ['device_id' => 42, 'deployment_uuid' => str_repeat('d', 32), 'poller_id' => $poller, 'epoch' => $epoch, 'owner' => $owner, 'mode' => 'centralized', 'profile_id' => 1, 'channels' => ['email', 'script'], 'valid_from' => gmdate('Y-m-d\TH:i:s\Z', time() - 60), 'valid_until' => gmdate('Y-m-d\TH:i:s\Z', time() + 7200)];
+		return ['device_id' => 42, 'deployment_uuid' => str_repeat('d', 32), 'poller_id' => $poller, 'epoch' => $epoch, 'owner' => $owner, 'mode' => 'centralized', 'channels' => ['email', 'script'], 'valid_from' => gmdate('Y-m-d\TH:i:s\Z', time() - 60), 'valid_until' => gmdate('Y-m-d\TH:i:s\Z', time() + 7200)];
 	}
 
 	/**

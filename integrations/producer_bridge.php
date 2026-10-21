@@ -26,19 +26,18 @@
 if (!class_exists('AlarmManagerProducerBridge', false)) {
 	final class AlarmManagerProducerBridge {
 		public static function validate(array $definition): array {
-			if (array_diff(array_keys($definition), ['mode', 'profile_id', 'channels', 'complete_history'])) {
+			if (array_diff(array_keys($definition), ['mode', 'channels', 'complete_history'])) {
 				throw new InvalidArgumentException('invalid_producer_configuration');
 			}
 			// Accept saved mode keys during upgrades; they no longer select delivery behavior.
 			$mode     = $definition['mode'] ?? 'centralized';
-			$profile  = $definition['profile_id'] ?? 0;
 			$channels = $definition['channels'] ?? [];
 
-			if (!in_array($mode, ['legacy', 'observe', 'centralized'], true) || !is_int($profile) || $profile < 0 || $profile > 2147483647 || !is_array($channels) || !array_is_list($channels) || array_diff($channels, ['email', 'script', 'ticket']) || !is_bool($definition['complete_history'] ?? false)) {
+			if (!in_array($mode, ['legacy', 'observe', 'centralized'], true) || !is_array($channels) || !array_is_list($channels) || array_diff($channels, ['email', 'script', 'ticket']) || !is_bool($definition['complete_history'] ?? false)) {
 				throw new InvalidArgumentException('invalid_producer_configuration');
 			}
 
-			return ['profile_id' => $profile, 'channels' => array_values(array_unique($channels)), 'complete_history' => $definition['complete_history'] ?? false];
+			return ['channels' => array_values(array_unique($channels)), 'complete_history' => $definition['complete_history'] ?? false];
 		}
 		public static function configuration(string $source, int $resource, int $template = 0): array {
 			if (!preg_match('/\A[A-Za-z][A-Za-z0-9_.-]{0,31}\z/D', $source)) {
@@ -242,9 +241,6 @@ if (!class_exists('AlarmManagerProducerBridge', false)) {
 						$event['context']['metric_value'] = (string) $input['metric_value'];
 					}
 
-					if ($settings['profile_id'] > 0) {
-						$event['context']['routing_profile_id'] = $settings['profile_id'];
-					}
 					$envelope = ['contract_version' => 1, 'status' => 'unhandled', 'event' => $event, 'producer_receipt' => $receipt];
 
 					self::write('UPDATE plugin_alarmmanager_producer_streams SET sequence = ? WHERE stream_key = ?', [$sequence, $stream]);

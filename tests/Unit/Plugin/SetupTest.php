@@ -46,7 +46,7 @@ final class SetupTest extends AlarmManagerTestCase {
 		$GLOBALS['alarmmanager_test_version'] = plugin_alarmmanager_version()['version'];
 		$GLOBALS['alarmmanager_test_schema']  = 6;
 		$this->assertTrue(plugin_alarmmanager_upgrade());
-		$this->assertSame(10, $GLOBALS['alarmmanager_test_schema']);
+		$this->assertSame(12, $GLOBALS['alarmmanager_test_schema']);
 		$this->assertSame($key, $GLOBALS['alarmmanager_test_store']['1:alarmmanager_key']);
 	}
 
@@ -171,7 +171,7 @@ final class SetupTest extends AlarmManagerTestCase {
 			alarmmanager_web_open(['admin' => $admin], 'dashboard');
 			$html = ob_get_clean();
 			$this->assertStringNotContainsString('href="alarmmanager_admin.php"', $html);
-			$this->assertSame(7, substr_count($html, 'href="alarmmanager.php?tab='));
+			$this->assertSame(4, substr_count($html, 'href="alarmmanager.php?tab='));
 		}
 		ob_start();
 		alarmmanager_web_open(['admin' => true], 'admin');

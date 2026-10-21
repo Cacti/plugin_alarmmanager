@@ -24,13 +24,13 @@
 
 require_once(__DIR__ . '/reports.php');
 
-const ALARMMANAGER_TABS = ['dashboard', 'conditions', 'events', 'deliveries', 'attempts', 'decisions', 'processing'];
+const ALARMMANAGER_TABS = ['dashboard', 'conditions', 'events', 'decisions'];
 
 function alarmmanager_web_assets(): void {
 	global $config;
 
 	print '<link rel="stylesheet" href="' . html_escape($config['url_path'] . 'plugins/alarmmanager/css/dashboard.css' . '?v=0.11.0-cacti-tabs') . '">';
-	print '<script src="' . html_escape($config['url_path'] . 'plugins/alarmmanager/js/dashboard.js' . '?v=0.10.4-notification-queue') . '" defer></script>';
+	print '<script src="' . html_escape($config['url_path'] . 'plugins/alarmmanager/js/dashboard.js' . '?v=0.11.1-consolidated-events') . '" defer></script>';
 }
 /**
  * Filters validated both by the Cacti request-var machinery (persistence in
@@ -43,6 +43,7 @@ function alarmmanager_view_filters(): array {
 		'range'        => ['filter' => FILTER_VALIDATE_INT, 'pageset' => true, 'default' => 86400, 'options' => ['options' => ['min_range' => 0, 'max_range' => PHP_INT_MAX]]],
 		'severity'     => ['filter' => FILTER_CALLBACK, 'pageset' => true, 'default' => '', 'options' => ['options' => static fn ($value) => in_array($value, ['critical', 'major', 'minor', 'warning', 'info', 'clear'], true) ? $value : false]],
 		'transition'   => ['filter' => FILTER_CALLBACK, 'pageset' => true, 'default' => '', 'options' => ['options' => static fn ($value) => in_array($value, ['raised', 'updated', 'reminder', 'recovered', 'occurrence'], true) ? $value : false]],
+		'job'          => ['filter' => FILTER_CALLBACK, 'pageset' => true, 'default' => 'delivery', 'options' => ['options' => static fn ($value) => in_array($value, ['delivery', 'processing', 'attempt'], true) ? $value : false]],
 		'status'       => ['filter' => FILTER_CALLBACK, 'pageset' => true, 'default' => '', 'options' => ['options' => static fn ($value) => in_array($value, ['pending', 'leased', 'completed', 'failed', 'success', 'retry', 'failure', 'abandoned', 'in_progress'], true) ? $value : false]],
 		'source'       => ['filter' => FILTER_VALIDATE_REGEXP, 'pageset' => true, 'default' => '', 'options' => ['options' => ['regexp' => '/\A[A-Za-z0-9_.:@\/-]*\z/D']]],
 		'reason'       => ['filter' => FILTER_VALIDATE_REGEXP, 'pageset' => true, 'default' => '', 'options' => ['options' => ['regexp' => '/\A[A-Za-z0-9_.:@\/-]*\z/D']]],
@@ -60,10 +61,10 @@ function alarmmanager_view_filters(): array {
 		$values[$key] = get_request_var($key, $spec[$key]['default']);
 	}
 
-	$values['until'] = get_filter_request_var('until', FILTER_VALIDATE_INT, ['options' => ['min_range' => 946684800, 'max_range' => time() + 60], 'default' => time()]);
-	$values['page']  = get_filter_request_var('page', FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 200], 'default' => 1]);
-	$values['query'] = get_nfilter_request_var('query') ?? '';
-	$values['tab']   = alarmmanager_view_tab();
+	$values['until']    = get_filter_request_var('until', FILTER_VALIDATE_INT, ['options' => ['min_range' => 946684800, 'max_range' => time() + 60], 'default' => time()]);
+	$values['page']     = get_filter_request_var('page', FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 200], 'default' => 1]);
+	$values['query']    = get_nfilter_request_var('query') ?? '';
+	$values['tab']      = alarmmanager_view_tab();
 	$values['event_id'] = $values['tab'] === 'events'
 		? get_filter_request_var('event_id', FILTER_VALIDATE_INT, ['options' => ['min_range' => 0, 'max_range' => PHP_INT_MAX], 'default' => 0]) : 0;
 
@@ -73,7 +74,9 @@ function alarmmanager_view_filters(): array {
  * The report tab, validated as an enum by Cacti's own filter machinery.
  */
 function alarmmanager_view_tab(): string {
-	return (string) get_filter_request_var('tab', FILTER_CALLBACK, ['options' => static fn ($value) => in_array($value, ALARMMANAGER_TABS, true) ? $value : false, 'default' => 'dashboard']);
+	$tab = (string) get_filter_request_var('tab', FILTER_CALLBACK, ['options' => static fn ($value) => in_array($value, ALARMMANAGER_TABS, true) ? $value : false, 'default' => 'dashboard']);
+
+	return $tab;
 }
 /**
  * Handle an uncaught page error: JSON payload for the dashboard endpoint, a
@@ -130,10 +133,7 @@ function alarmmanager_web_open(array $scope, string $tab): void {
 		'dashboard'  => 'Dashboard',
 		'conditions' => 'Active conditions',
 		'events'     => 'Events',
-		'deliveries' => 'Delivery jobs',
-		'attempts'   => 'Attempts',
-		'decisions'  => 'Routing decisions',
-		'processing' => 'Processing'
+		'decisions'  => 'Routing decisions'
 	] as $key => $label) {
 		print '<li><a class="tab' . ($tab === $key ? ' selected' : '') . '" ' . ($tab === $key ? 'aria-current="page" ' : '') . 'href="' . html_escape('alarmmanager.php?tab=' . $key) . '">' . __esc($label, 'alarmmanager') . '</a></li>';
 	}
@@ -162,8 +162,26 @@ function alarmmanager_web_filters(array $filters, string $tab, bool $dashboard =
 	print '</select></label>';
 	print '<label>' . __esc('Device ID', 'alarmmanager') . ' <input name="device_id" type="number" min="0" max="2147483647" value="' . html_escape((string) $filters['device_id']) . '"></label>';
 
+	if ($tab === 'events') {
+		print '<label>' . __esc('Status type', 'alarmmanager') . ' <select name="job">';
+
+		foreach (['delivery' => 'Integration', 'processing' => 'Processing', 'attempt' => 'Attempt'] as $value => $label) {
+			print '<option value="' . $value . '"' . (($filters['job'] ?? 'delivery') === $value ? ' selected' : '') . '>' . __esc($label, 'alarmmanager') . '</option>';
+		}
+		print '</select></label>';
+	}
+
 	if (!$dashboard) {
-		foreach (array_merge(['transition', 'status', 'reason', 'endpoint_id', 'acknowledged'], $tab === 'events' ? ['event_id'] : []) as $key) {
+		if ($tab === 'events') {
+			print '<label>' . __esc('Status', 'alarmmanager') . ' <select name="status"><option value="">' . __esc('All', 'alarmmanager') . '</option>';
+
+			foreach (['pending' => 'Pending', 'leased' => 'Sending / processing', 'completed' => 'Delivered / processed', 'failed' => 'Failed', 'success' => 'Successful attempt', 'retry' => 'Retry attempt', 'failure' => 'Failed attempt', 'abandoned' => 'Abandoned attempt', 'in_progress' => 'Attempt in progress'] as $value => $label) {
+				print '<option value="' . $value . '"' . ($filters['status'] === $value ? ' selected' : '') . '>' . __esc($label, 'alarmmanager') . '</option>';
+			}
+			print '</select></label>';
+		}
+
+		foreach (array_merge($tab === 'events' ? ['transition', 'endpoint_id', 'event_id'] : ['transition', 'status', 'reason', 'endpoint_id', 'acknowledged']) as $key) {
 			print '<label>' . __esc($key === 'event_id' ? 'Event row ID' : str_replace('_', ' ', ucfirst($key)), 'alarmmanager') . ' <input name="' . html_escape($key) . '" maxlength="32" value="' . html_escape((string) $filters[$key]) . '"></label>';
 		}
 	}
@@ -175,10 +193,10 @@ function alarmmanager_web_filters(array $filters, string $tab, bool $dashboard =
 	print '<p class="alarmmanagerHint">' . __esc('Historical window uses UTC. Current conditions and queues ignore the time window.', 'alarmmanager') . '</p>';
 }
 function alarmmanager_report_url(array $filters, string $tab, array $extra = []): string {
-	$values = array_intersect_key($filters, array_flip(['range', 'until', 'source', 'severity', 'transition', 'status', 'reason', 'device_id', 'endpoint_id', 'event_id', 'current', 'acknowledged', 'query']));
+	$values = array_intersect_key($filters, array_flip(['job', 'range', 'until', 'source', 'severity', 'transition', 'status', 'reason', 'device_id', 'endpoint_id', 'event_id', 'current', 'acknowledged', 'query']));
 
 	if ($tab === 'events' && isset($extra['event_id'])) {
-		unset($values['query']);
+		unset($values['query'], $values['status'], $values['endpoint_id']);
 	}
 
 	$values = array_merge($values, ['tab' => $tab], $extra);
@@ -212,14 +230,22 @@ function alarmmanager_dashboard_markup(): void {
  * Report headers are derived from the row column aliases; the action column
  * is appended for administrative users on interactive kinds.
  */
-function alarmmanager_report_table(string $kind, array $result, array $scope, array $filters): void {
+function alarmmanager_report_table(string $kind, array $result, array $scope, array $filters, bool $detail = false): void {
 	$action_kinds = ['deliveries', 'processing'];
 
-	html_start_box(__esc($kind === 'conditions' ? 'Current active conditions' : ucfirst($kind), 'alarmmanager'), '100%', false, 3, 'center', '');
+	$title = $detail ? match ($kind) {
+		'deliveries' => __('Integration results', 'alarmmanager'),
+		'attempts'   => __('Delivery attempts', 'alarmmanager'),
+		'decisions'  => __('Routing decisions', 'alarmmanager'),
+		default      => __('Processing', 'alarmmanager')
+	} : __($kind === 'conditions' ? 'Current active conditions' : ucfirst($kind), 'alarmmanager');
+	print '<div class="alarmmanagerTableScroll" tabindex="0" role="region" aria-label="' . html_escape($title) . '">';
+	html_start_box(html_escape($title), '100%', false, 3, 'center', '');
 
 	if (!$result['rows']) {
 		print "<tr class='odd'><td>" . __esc('No matching records.', 'alarmmanager') . '</td></tr>';
 		html_end_box(true);
+		print '</div>';
 
 		return;
 	}
@@ -228,7 +254,7 @@ function alarmmanager_report_table(string $kind, array $result, array $scope, ar
 	$display_text     = [];
 
 	foreach ($headers as $key) {
-		$display_text[$key] = __esc($key === 'attempts' ? 'Attempts in current retry cycle' : ucfirst(str_replace('_', ' ', $key)), 'alarmmanager');
+		$display_text[$key] = $key === 'integration_status' ? __esc('Integration status', 'alarmmanager') : __esc($key === 'attempts' ? 'Attempts in current retry cycle' : ucfirst(str_replace('_', ' ', $key)), 'alarmmanager');
 	}
 
 	if ($scope['admin'] && in_array($kind, $action_kinds, true)) {
@@ -265,7 +291,7 @@ function alarmmanager_report_table(string $kind, array $result, array $scope, ar
 			print '<td>';
 
 			if ($row['status'] === 'failed') {
-				alarmmanager_post_form('replay', ['queue' => $kind === 'processing' ? 'processing' : 'delivery', 'id' => $row['id']], 'Replay failed job', true);
+				alarmmanager_post_form('replay', ['queue' => $kind === 'processing' ? 'processing' : 'delivery', 'id' => $row['id']] + ($detail ? ['event_id' => $filters['event_id']] : []), 'Replay failed job', true);
 			}
 
 			print '</td>';
@@ -275,6 +301,15 @@ function alarmmanager_report_table(string $kind, array $result, array $scope, ar
 	}
 
 	html_end_box(true);
+	print '</div>';
+
+	if ($detail) {
+		if (count($result['rows']) === 100) {
+			print '<p class="alarmmanagerHint">' . __esc('Latest 100 records for this event.', 'alarmmanager') . '</p>';
+		}
+
+		return;
+	}
 	print '<p class="alarmmanagerHint">' . __esc('Showing at most 50 records per page.', 'alarmmanager') . '</p>';
 	print '<nav class="alarmmanagerPagination" aria-label="' . __esc('Pages', 'alarmmanager') . '">';
 
@@ -290,7 +325,8 @@ function alarmmanager_report_table(string $kind, array $result, array $scope, ar
 
 	print '</nav>';
 }
-function alarmmanager_event_detail_markup(array $event): void {
+/** @param array<string, mixed> $scope */
+function alarmmanager_event_detail_markup(array $event, array $scope = []): void {
 	print '<details open class="alarmmanagerDashboardCard"><summary>' . __esc('Selected event details', 'alarmmanager') . '</summary><dl class="alarmmanagerEventDetail">';
 
 	foreach (['event_id' => 'Source event ID', 'source' => 'Source', 'source_instance' => 'Source instance', 'resource_id' => 'Resource', 'alarm_key' => 'Alarm key', 'episode_id' => 'Episode', 'sequence' => 'Sequence', 'transition' => 'Transition', 'severity' => 'Severity', 'occurred_at' => 'Occurred at (UTC)', 'summary' => 'Summary', 'details' => 'Details'] as $key => $label) {
@@ -298,10 +334,14 @@ function alarmmanager_event_detail_markup(array $event): void {
 	}
 
 	foreach (['device' => 'Device metadata', 'context' => 'Source context'] as $key => $label) {
-		print '<dt>' . __esc($label, 'alarmmanager') . '</dt><dd><pre>' . html_escape(json_encode($event[$key], JSON_PRETTY_PRINT)) . '</pre></dd>';
+		print '<dt>' . __esc($label, 'alarmmanager') . '</dt><dd><details><summary>' . __esc('Show metadata', 'alarmmanager') . '</summary><pre>' . html_escape(json_encode($event[$key], JSON_PRETTY_PRINT)) . '</pre></details></dd>';
 	}
 
 	print '</dl></details>';
+
+	foreach ($event['_workflow'] ?? [] as $kind => $rows) {
+		alarmmanager_report_table($kind, ['rows' => $rows], ['admin' => $scope['admin'] ?? false], ['event_id' => $event['_row_id']], true);
+	}
 }
 function alarmmanager_csrf_field(): void {
 	print '<input type="hidden" name="__csrf_magic" value="' . html_escape(csrf_get_tokens()) . '">';

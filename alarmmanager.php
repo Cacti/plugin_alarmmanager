@@ -56,7 +56,7 @@ if ($tab === 'dashboard') {
 	alarmmanager_dashboard_markup();
 } else {
 	if ($detail !== null) {
-		alarmmanager_event_detail_markup($detail);
+		alarmmanager_event_detail_markup($detail, $scope);
 	}
 
 	alarmmanager_report_table($tab, $data, $scope, $filters);

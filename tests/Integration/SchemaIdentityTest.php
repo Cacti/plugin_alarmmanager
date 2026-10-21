@@ -42,31 +42,33 @@ final class SchemaIdentityTest extends AlarmManagerTestCase {
 
 		try {
 			$this->assertTrue(alarmmanager_schema_install());
+			$db->exec('CREATE TABLE poller (id INT PRIMARY KEY, requires_sync VARCHAR(3), disabled CHAR(2))');
 			alarmmanager_apply_configuration(['version' => 1,
 				'endpoints'                                => [['id' => 37, 'name' => 'Preserved endpoint', 'type' => 'restapi']],
-				'profiles'                                 => [['id' => 41, 'name' => 'Preserved profile', 'endpoints' => [37]]],
-				'rules'                                    => [['id' => 53, 'name' => 'Preserved rule', 'profile_id' => 41]]
+				'rules'                                    => [['id' => 53, 'name' => 'Preserved rule', 'endpoints' => [37]]]
 			]);
 
-			foreach (['endpoints', 'profiles', 'rules'] as $section) {
+			foreach (['endpoints', 'rules'] as $section) {
 				$db->exec("ALTER TABLE plugin_alarmmanager_$section MODIFY id INT UNSIGNED NOT NULL");
 			}
+			$db->exec('CREATE TABLE plugin_alarmmanager_profiles (id INT PRIMARY KEY)');
+			$db->exec('ALTER TABLE plugin_alarmmanager_rules ADD COLUMN profile_id INT');
+			$db->exec('ALTER TABLE plugin_alarmmanager_device_owners ADD COLUMN profile_id INT');
 			$db->exec('UPDATE plugin_alarmmanager_schema SET version = 6 WHERE id = 1');
 			$this->assertTrue(alarmmanager_schema_install(), 'Upgrade from schema v6');
 			$this->assertTrue(alarmmanager_schema_install(), 'Repeated upgrade');
 			$this->assertTrue(alarmmanager_schema_ready());
+			$this->assertSame(0, (int) db_fetch_cell_prepared("SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'plugin_alarmmanager_profiles'"));
+			$this->assertSame(0, (int) db_fetch_cell_prepared("SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME IN ('plugin_alarmmanager_rules', 'plugin_alarmmanager_device_owners') AND COLUMN_NAME = 'profile_id'"));
+			$this->assertSame('[37]', db_fetch_cell_prepared('SELECT endpoints_json FROM plugin_alarmmanager_rules WHERE id = 53'));
 
-			foreach (['endpoints' => 37, 'profiles' => 41, 'rules' => 53] as $section => $id) {
+			foreach (['endpoints' => 37, 'rules' => 53] as $section => $id) {
 				$this->assertSame($id, (int) db_fetch_cell_prepared("SELECT id FROM plugin_alarmmanager_$section"));
 				$this->assertSame('auto_increment', db_fetch_cell_prepared("SELECT EXTRA FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = 'id'", ['plugin_alarmmanager_' . $section]));
 			}
-			$this->assertSame('[37]', db_fetch_cell_prepared('SELECT endpoints_json FROM plugin_alarmmanager_profiles WHERE id = 41'));
-			$this->assertSame(41, (int) db_fetch_cell_prepared('SELECT profile_id FROM plugin_alarmmanager_rules WHERE id = 53'));
 			$db->exec("INSERT INTO plugin_alarmmanager_endpoints (name, type) VALUES ('Automatic endpoint', 'restapi')");
 			$this->assertGreaterThan(37, (int) $db->lastInsertId());
-			$db->exec("INSERT INTO plugin_alarmmanager_profiles (name, endpoints_json) VALUES ('Automatic profile', '[37]')");
-			$this->assertGreaterThan(41, (int) $db->lastInsertId());
-			$db->exec("INSERT INTO plugin_alarmmanager_rules (name, priority, profile_id, definition) VALUES ('Automatic rule', 100, 41, '{}')");
+			$db->exec("INSERT INTO plugin_alarmmanager_rules (name, priority, endpoints_json, definition) VALUES ('Automatic rule', 100, '[37]', '{}')");
 			$this->assertGreaterThan(53, (int) $db->lastInsertId());
 		} finally {
 			$db->exec("DROP DATABASE `$name`");

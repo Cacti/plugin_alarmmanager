@@ -66,7 +66,7 @@ function alarmmanager_replicate_out(mixed $data): mixed {
 }
 
 /**
- * A coherent source snapshot includes authentication even when no routing profiles exist.
+ * A coherent source snapshot includes authentication even when no custom rules exist.
  * @return array<string, mixed>
  */
 function alarmmanager_replication_configuration(): array {

@@ -469,7 +469,7 @@ final class RuntimeTest extends AlarmManagerTestCase {
 		} unset($endpoint);
 
 		if ($overlap) {
-			$routes['rules'][] = ['id' => 2, 'name' => 'Overlap', 'profile_id' => 1, 'priority' => 200, 'policy' => $policy];
+			$routes['rules'][] = ['id' => 2, 'name' => 'Overlap', 'endpoints' => [1, 2], 'priority' => 200, 'policy' => $policy];
 		}
 		alarmmanager_apply_configuration($routes);
 	}

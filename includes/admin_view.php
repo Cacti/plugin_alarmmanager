@@ -163,13 +163,12 @@ function alarmmanager_rule_schedule_editor(string $field, string $label, ?array 
 function alarmmanager_rule_editor(array $item, int $revision, array $configuration, array $choices): void {
 	$new      = (int) $item['id'] === 0;
 	$policy   = alarmmanager_validate_rule_definition($item['policy'] ?? []);
-	$profiles = array_column($configuration['profiles'], null, 'id');
 	print '<details class="alarmmanagerDashboardCard alarmmanagerRule"' . ($new ? ' id="alarmmanager_new_rule" open' : '') . '><summary>' . html_escape($new ? __('Create a rule', 'alarmmanager') : $item['name']) . ($new ? '' : ' — ' . __esc($item['enabled'] ? 'Enabled' : 'Disabled', 'alarmmanager') . ' · ' . __esc('Priority', 'alarmmanager') . ' ' . (int) $item['priority']) . '</summary>';
 	alarmmanager_form_start('rule_save', $revision, $new ? [] : ['id' => $item['id']]);
 	print '<input type="hidden" name="rule_fields" value="yes"><fieldset class="alarmmanagerRuleSection"><legend>' . __esc('Rule and destination', 'alarmmanager') . '</legend>';
 	alarmmanager_input('name', 'Rule name', $item['name'], 'text', 'maxlength="128" required placeholder="Critical network alarms"');
 	alarmmanager_checkbox('enabled', 'Enable this rule', (bool) $item['enabled']);
-	$selected = $profiles[$item['profile_id'] ?? 0]['endpoints'] ?? [];
+	$selected = $item['endpoints'] ?? [];
 	print '<label>' . __esc('Send notifications to', 'alarmmanager') . '<select name="endpoints[]" multiple required aria-label="' . __esc('Send notifications to', 'alarmmanager') . '">';
 
 	foreach ($configuration['endpoints'] as $endpoint) {
@@ -238,7 +237,7 @@ function alarmmanager_admin_markup(array $state, string $section): void {
 		print '<p>' . __esc('Controls apply to this poller. Alarms continue to be received and processed while delivery is paused. Messages already being sent may finish. Resume sends the waiting notifications.', 'alarmmanager') . '</p>';
 		alarmmanager_form_start($paused ? 'queue_resume' : 'queue_pause', $revision);
 		print '<button type="submit">' . ($paused ? __esc('Resume delivery', 'alarmmanager') : __esc('Pause delivery', 'alarmmanager')) . '</button></form>';
-		print '<p><a href="alarmmanager.php?tab=deliveries&amp;status=pending&amp;current=1">' . __esc('View waiting messages', 'alarmmanager') . '</a> | <a href="alarmmanager.php?tab=deliveries&amp;status=leased&amp;current=1">' . __esc('View messages being sent', 'alarmmanager') . '</a></p>';
+		print '<p><a href="alarmmanager.php?tab=events&amp;job=delivery&amp;status=pending&amp;current=1">' . __esc('View waiting messages', 'alarmmanager') . '</a> | <a href="alarmmanager.php?tab=events&amp;job=delivery&amp;status=leased&amp;current=1">' . __esc('View messages being sent', 'alarmmanager') . '</a></p>';
 		alarmmanager_form_start('queue_clear', $revision);
 		print '<p>' . __esc('Clear discards all waiting notifications on this poller, including retries. They remain in delivery history as failed with reason queue_cleared. Running messages and alarm state are preserved. Pause delivery before clearing during maintenance.', 'alarmmanager') . '</p><label><input type="checkbox" name="confirmed" value="yes" required> ' . __esc('Discard all waiting notifications', 'alarmmanager') . '</label><button type="submit">' . __esc('Clear queue', 'alarmmanager') . '</button></form>';
 		html_end_box();
@@ -335,7 +334,7 @@ function alarmmanager_admin_markup(array $state, string $section): void {
 			print '<pre class="alarmmanagerFullWidth">' . html_escape($_SESSION['alarmmanager_test_result']) . '</pre>';
 			unset($_SESSION['alarmmanager_test_result']);
 		}
-		print '<p><a href="alarmmanager.php?tab=deliveries">' . __esc('View delivery results', 'alarmmanager') . '</a></p>';
+		print '<p><a href="alarmmanager.php?tab=events&amp;job=delivery">' . __esc('View delivery results', 'alarmmanager') . '</a></p>';
 
 		foreach (['preview' => 'Preview (no traffic)', 'test_send' => 'Queue explicit test send'] as $action => $label) {
 			alarmmanager_form_start($action, $revision);
@@ -425,7 +424,7 @@ function alarmmanager_admin_markup(array $state, string $section): void {
 			}
 			print '</p>';
 		}
-		print '<p><a href="alarmmanager.php?tab=processing&status=failed">' . __esc('Failed processing jobs and replay', 'alarmmanager') . '</a></p><p><a href="alarmmanager.php?tab=deliveries&status=failed">' . __esc('Failed deliveries and replay', 'alarmmanager') . '</a></p>';
+		print '<p><a href="alarmmanager.php?tab=events&amp;job=processing&amp;status=failed">' . __esc('Failed processing jobs and replay', 'alarmmanager') . '</a></p><p><a href="alarmmanager.php?tab=events&amp;job=delivery&amp;status=failed">' . __esc('Failed deliveries and replay', 'alarmmanager') . '</a></p>';
 	}
 }
 

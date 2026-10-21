@@ -35,7 +35,7 @@ final class AutomaticDeviceTest extends AlarmManagerTestCase {
 				['id' => 1, 'name' => 'First endpoint', 'type' => 'restapi', 'transport' => ['url' => 'https://first.example.test']],
 				['id' => 2, 'name' => 'Second endpoint', 'type' => 'webhook', 'transport' => ['url' => 'https://second.example.test']],
 				['id' => 3, 'name' => 'Disabled endpoint', 'type' => 'webhook', 'enabled' => false, 'transport' => ['url' => 'https://disabled.example.test']]
-			], 'profiles' => [], 'rules' => []];
+			], 'rules' => []];
 			alarmmanager_apply_configuration($routes);
 			$fail  = time() - 10;
 			$host  = ['id' => 42, 'status' => 1, 'hostname' => 'fixture.example', 'description' => 'Fixture', 'status_fail_date' => $fail, 'status_rec_date' => 0];
@@ -70,8 +70,7 @@ final class AutomaticDeviceTest extends AlarmManagerTestCase {
 			$this->assertSame($episodes[0]['episode_id'], $episodes[1]['episode_id']);
 			$this->assertGreaterThan((int) $episodes[0]['sequence'], (int) $episodes[1]['sequence']);
 			// Existing explicit rules, including disabled rules, retain control of delivery.
-			$routes['profiles'] = [['id' => 1, 'name' => 'Explicit', 'endpoints' => [1]]];
-			$routes['rules']    = [['id' => 1, 'name' => 'Disabled rule', 'enabled' => false, 'profile_id' => 1, 'policy' => []]];
+			$routes['rules']    = [['id' => 1, 'name' => 'Disabled rule', 'enabled' => false, 'endpoints' => [1], 'policy' => []]];
 			alarmmanager_apply_configuration($routes);
 			$this->assertFalse(alarmmanager_routing_snapshot()['default_route']);
 			$host['status']           = 1;
@@ -84,7 +83,6 @@ final class AutomaticDeviceTest extends AlarmManagerTestCase {
 			}
 			$this->assertSame(4, (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_deliveries'), 'Disabled custom rules do not turn on the global fallback');
 			$routes['rules']    = [];
-			$routes['profiles'] = [];
 
 			foreach ($routes['endpoints'] as &$endpoint) {
 				$endpoint['enabled'] = false;

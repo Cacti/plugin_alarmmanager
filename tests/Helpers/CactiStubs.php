@@ -126,7 +126,7 @@ if (!function_exists('db_execute_prepared')) {
 			return true;
 		}
 
-		if (str_starts_with($sql, 'CREATE TABLE') || str_starts_with($sql, 'CREATE TRIGGER')) {
+		if (str_starts_with($sql, 'CREATE TABLE') || str_starts_with($sql, 'CREATE TRIGGER') || str_starts_with($sql, 'DROP TABLE') || str_starts_with($sql, 'ALTER TABLE')) {
 			return true;
 		}
 
@@ -144,8 +144,8 @@ if (!function_exists('db_execute_prepared')) {
 			return true;
 		}
 
-		if (str_starts_with($sql, 'UPDATE plugin_alarmmanager_schema')) {
-			$GLOBALS['alarmmanager_test_schema'] = str_contains($sql, 'version = 10') ? 10 : (str_contains($sql, 'GREATEST(version, 9)') ? max(9, $GLOBALS['alarmmanager_test_schema']) : (str_contains($sql, 'version = 8') ? 8 : (str_contains($sql, 'version = 7') ? 7 : (str_contains($sql, 'GREATEST(version, 5)') ? max(5, $GLOBALS['alarmmanager_test_schema']) : (str_contains($sql, 'version = 4') ? 4 : (str_contains($sql, 'GREATEST(version, 3)') ? 3 : max(2, $GLOBALS['alarmmanager_test_schema'])))))));
+		if (str_starts_with($sql, 'UPDATE plugin_alarmmanager_schema') && preg_match('/version = (?:GREATEST\(version, )?(\d+)/', $sql, $match)) {
+			$GLOBALS['alarmmanager_test_schema'] = max((int) $match[1], (int) $GLOBALS['alarmmanager_test_schema']);
 
 			return true;
 		}

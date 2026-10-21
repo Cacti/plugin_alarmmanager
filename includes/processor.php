@@ -50,8 +50,7 @@ function alarmmanager_route_event(array $record, array $event, array $state, str
 		$endpoints = array_keys(array_filter($snapshot['endpoints'], static fn (array $endpoint): bool => (bool) $endpoint['enabled']));
 
 		if ($endpoints) {
-			$snapshot['profiles'][0] = ['enabled' => true, 'endpoints' => $endpoints];
-			$snapshot['rules'][0]    = ['id' => 0, 'profile_id' => 0, 'enabled' => true, 'stop_processing' => false, 'policy' => alarmmanager_validate_rule_definition([])];
+			$snapshot['rules'][0]    = ['id' => 0, 'endpoints' => $endpoints, 'enabled' => true, 'stop_processing' => false, 'policy' => alarmmanager_validate_rule_definition([])];
 		}
 	}
 
@@ -66,82 +65,73 @@ function alarmmanager_route_event(array $record, array $event, array $state, str
 	$fingerprint = hash('sha256', json_encode([$event['transition'], $event['summary'], $event['details'], $event['device']['id'], $event['device']['hostname']], JSON_THROW_ON_ERROR));
 
 	foreach ($snapshot['rules'] as $rule) {
-		if (isset($event['context']['routing_profile_id']) && (int) $rule['profile_id'] !== $event['context']['routing_profile_id']) {
-			continue;
-		}
-
 		if (!(bool) $rule['enabled'] || !alarmmanager_rule_matches($rule['policy'], $event)) {
 			continue;
 		}
 		$matched = true;
 		$rule_id = (int) $rule['id'];
-		$profile = $snapshot['profiles'][(int) $rule['profile_id']] ?? null;
 
-		if (!$profile || !(bool) $profile['enabled']) {
-			alarmmanager_decision($event_id, $rule_id, 0, 'profile_disabled', $snapshot['revision']);
-		} else {
-			foreach ($profile['endpoints'] as $endpoint_id) {
-				$endpoint_id = (int) $endpoint_id;
+		foreach ($rule['endpoints'] as $endpoint_id) {
+			$endpoint_id = (int) $endpoint_id;
 
-				if (isset($seen[$endpoint_id])) {
-					alarmmanager_decision($event_id, $rule_id, $endpoint_id, 'duplicate_route', $snapshot['revision']);
+			if (isset($seen[$endpoint_id])) {
+				alarmmanager_decision($event_id, $rule_id, $endpoint_id, 'duplicate_route', $snapshot['revision']);
 
-					continue;
-				}
-				$seen[$endpoint_id] = true;
-				$endpoint           = $snapshot['endpoints'][$endpoint_id] ?? null;
-				$reason             = 'queued';
-				$policy             = $rule['policy'];
+				continue;
+			}
+			$seen[$endpoint_id] = true;
+			$endpoint           = $snapshot['endpoints'][$endpoint_id] ?? null;
+			$reason             = 'queued';
+			$policy             = $rule['policy'];
 
-				if (!$endpoint || !(bool) $endpoint['enabled']) {
+			if (!$endpoint || !(bool) $endpoint['enabled']) {
+				$reason = 'endpoint_disabled';
+			} elseif ($event['context']['source_suppressed'] ?? false) {
+				$reason = 'source_suppressed';
+			} elseif ($policy['maintenance_schedule'] !== null && alarmmanager_schedule_matches($policy['maintenance_schedule'], $event['occurred_at'])) {
+				$reason = 'maintenance';
+			} elseif ($policy['suppress_acknowledged'] && (bool) $state['acknowledged'] && $event['transition'] !== 'recovered' && $event['transition'] !== 'occurrence') {
+				$reason = 'acknowledged';
+			}
+
+			if ($reason === 'queued') {
+				$live_endpoint = alarmmanager_db_row('SELECT enabled FROM plugin_alarmmanager_endpoints WHERE id = ? FOR UPDATE', [$endpoint_id]);
+
+				if (!$live_endpoint || !$live_endpoint['enabled']) {
 					$reason = 'endpoint_disabled';
-				} elseif ($event['context']['source_suppressed'] ?? false) {
-					$reason = 'source_suppressed';
-				} elseif ($policy['maintenance_schedule'] !== null && alarmmanager_schedule_matches($policy['maintenance_schedule'], $event['occurred_at'])) {
-					$reason = 'maintenance';
-				} elseif ($policy['suppress_acknowledged'] && (bool) $state['acknowledged'] && $event['transition'] !== 'recovered' && $event['transition'] !== 'occurrence') {
-					$reason = 'acknowledged';
 				}
+			}
+			$previous = [];
+			$age      = PHP_INT_MAX;
 
-				if ($reason === 'queued') {
-					$live_endpoint = alarmmanager_db_row('SELECT enabled FROM plugin_alarmmanager_endpoints WHERE id = ? FOR UPDATE', [$endpoint_id]);
+			if ($reason === 'queued') {
+				// Materialize before locking: locking an absent unique key creates avoidable gap-lock deadlocks.
+				alarmmanager_db_write("INSERT INTO plugin_alarmmanager_notification_state (stream_key, endpoint_id, episode_id, fingerprint, queued_at) VALUES (?, ?, '', ?, '1970-01-01') ON DUPLICATE KEY UPDATE stream_key = stream_key", [$record['stream_key'], $endpoint_id, str_repeat('0', 64)]);
+				$previous = alarmmanager_db_row('SELECT episode_id, fingerprint, queued_at FROM plugin_alarmmanager_notification_state WHERE stream_key = ? AND endpoint_id = ? FOR UPDATE', [$record['stream_key'], $endpoint_id]);
+				$age      = $now_epoch - (new DateTimeImmutable($previous['queued_at'], new DateTimeZone('UTC')))->getTimestamp();
+			}
 
-					if (!$live_endpoint || !$live_endpoint['enabled']) {
-						$reason = 'endpoint_disabled';
-					}
+			if ($reason === 'queued' && $previous && $event['transition'] !== 'recovered') {
+				if ($previous['episode_id'] === $event['episode_id'] && $age < $policy['cooldown_seconds']) {
+					$reason = 'cooldown';
+				} elseif ($previous['fingerprint'] === $fingerprint && $age < $policy['duplicate_seconds']) {
+					$reason = 'duplicate';
 				}
-				$previous = [];
-				$age      = PHP_INT_MAX;
+			}
 
-				if ($reason === 'queued') {
-					// Materialize before locking: locking an absent unique key creates avoidable gap-lock deadlocks.
-					alarmmanager_db_write("INSERT INTO plugin_alarmmanager_notification_state (stream_key, endpoint_id, episode_id, fingerprint, queued_at) VALUES (?, ?, '', ?, '1970-01-01') ON DUPLICATE KEY UPDATE stream_key = stream_key", [$record['stream_key'], $endpoint_id, str_repeat('0', 64)]);
-					$previous = alarmmanager_db_row('SELECT episode_id, fingerprint, queued_at FROM plugin_alarmmanager_notification_state WHERE stream_key = ? AND endpoint_id = ? FOR UPDATE', [$record['stream_key'], $endpoint_id]);
-					$age      = $now_epoch - (new DateTimeImmutable($previous['queued_at'], new DateTimeZone('UTC')))->getTimestamp();
-				}
-
-				if ($reason === 'queued' && $previous && $event['transition'] !== 'recovered') {
-					if ($previous['episode_id'] === $event['episode_id'] && $age < $policy['cooldown_seconds']) {
-						$reason = 'cooldown';
-					} elseif ($previous['fingerprint'] === $fingerprint && $age < $policy['duplicate_seconds']) {
-						$reason = 'duplicate';
-					}
-				}
-
-				if ($reason === 'queued') {
-					alarmmanager_db_write('INSERT INTO plugin_alarmmanager_notification_state (stream_key, endpoint_id, episode_id, fingerprint, queued_at)
+			if ($reason === 'queued') {
+				alarmmanager_db_write('INSERT INTO plugin_alarmmanager_notification_state (stream_key, endpoint_id, episode_id, fingerprint, queued_at)
 						VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE episode_id = VALUES(episode_id), fingerprint = VALUES(fingerprint), queued_at = VALUES(queued_at)',
-						[$record['stream_key'], $endpoint_id, $event['episode_id'], $fingerprint, $now]);
+					[$record['stream_key'], $endpoint_id, $event['episode_id'], $fingerprint, $now]);
 
-					$key = hash('sha256', implode('|', [$event['source'], $event['source_instance'], $event['event_id'], 'centralized', (string) $endpoint_id]));
-					alarmmanager_db_write('INSERT INTO plugin_alarmmanager_deliveries
+				$key = hash('sha256', implode('|', [$event['source'], $event['source_instance'], $event['event_id'], 'centralized', (string) $endpoint_id]));
+				alarmmanager_db_write('INSERT INTO plugin_alarmmanager_deliveries
 						(event_row_id, endpoint_id, stream_key, sequence, priority, available_at, created_at, updated_at, idempotency_key)
 						VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6), UTC_TIMESTAMP(6), ?)
 						ON DUPLICATE KEY UPDATE event_row_id = event_row_id',
-						[$event_id, $endpoint_id, $record['stream_key'], $event['sequence'], alarmmanager_priority($event['severity']), $key]);
-				}
-				alarmmanager_decision($event_id, $rule_id, $endpoint_id, $reason, $snapshot['revision']);
+					[$event_id, $endpoint_id, $record['stream_key'], $event['sequence'], alarmmanager_priority($event['severity']), $key]);
 			}
+			alarmmanager_decision($event_id, $rule_id, $endpoint_id, $reason, $snapshot['revision']);
 		}
 
 		if ((bool) $rule['stop_processing']) {

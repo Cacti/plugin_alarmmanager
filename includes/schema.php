@@ -113,11 +113,11 @@ function alarmmanager_schema_install(): bool {
 		return false;
 	}
 
-	return alarmmanager_schema_remote() && alarmmanager_schema_record_ids() && alarmmanager_schema_integrations() && alarmmanager_schema_device_status() && alarmmanager_schema_sync();
+	return alarmmanager_schema_remote() && alarmmanager_schema_record_ids() && alarmmanager_schema_integrations() && alarmmanager_schema_device_status() && alarmmanager_schema_sync() && alarmmanager_schema_direct_routes();
 }
 
 function alarmmanager_schema_ready(): bool {
-	return (int) db_fetch_cell_prepared('SELECT version FROM plugin_alarmmanager_schema WHERE id = 1', [], '', false) === 11;
+	return (int) db_fetch_cell_prepared('SELECT version FROM plugin_alarmmanager_schema WHERE id = 1', [], '', false) === 12;
 }
 
 /** Self-healing gate for runtime lanes. Full replication carries settings and
@@ -185,7 +185,7 @@ function alarmmanager_schema_runtime(): bool {
 	try {
 		$version = db_fetch_cell_prepared('SELECT version FROM plugin_alarmmanager_schema WHERE id = 1', [], '', false);
 
-		if ($version === false || (int) $version > 11) {
+		if ($version === false || (int) $version > 12) {
 			return false;
 		}
 		alarmmanager_schema_column('plugin_alarmmanager_schema', 'config_revision', 'BIGINT UNSIGNED NOT NULL DEFAULT 0');
@@ -224,12 +224,9 @@ function alarmmanager_schema_runtime(): bool {
 				max_attempts INT NOT NULL DEFAULT 5, next_start_at DATETIME(6) NOT NULL DEFAULT '1970-01-01 00:00:00',
 				last_claim_at DATETIME(6) NOT NULL DEFAULT '1970-01-01 00:00:00', KEY fair_endpoints (enabled, last_claim_at, id)
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
-			'CREATE TABLE IF NOT EXISTS plugin_alarmmanager_profiles (
-				id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, name VARCHAR(128) NOT NULL, enabled TINYINT NOT NULL DEFAULT 1, endpoints_json TEXT NOT NULL
-			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
 			'CREATE TABLE IF NOT EXISTS plugin_alarmmanager_rules (
 				id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, name VARCHAR(128) NOT NULL, priority INT NOT NULL, enabled TINYINT NOT NULL DEFAULT 1,
-				profile_id INT UNSIGNED NOT NULL, stop_processing TINYINT NOT NULL DEFAULT 0, definition TEXT NOT NULL,
+				endpoints_json TEXT NOT NULL, stop_processing TINYINT NOT NULL DEFAULT 0, definition TEXT NOT NULL,
 				KEY rule_order (enabled, priority, id)
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
 			'CREATE TABLE IF NOT EXISTS plugin_alarmmanager_decisions (
@@ -357,7 +354,7 @@ function alarmmanager_schema_remote(): bool {
 	$version = (int) db_fetch_cell_prepared('SELECT version FROM plugin_alarmmanager_schema WHERE id = 1', [], '', false);
 	$queries = [
 		'CREATE TABLE IF NOT EXISTS plugin_alarmmanager_node (id TINYINT PRIMARY KEY, instance_uuid CHAR(32) CHARACTER SET ascii NOT NULL) ENGINE=InnoDB',
-		"CREATE TABLE IF NOT EXISTS plugin_alarmmanager_device_owners (device_id INT UNSIGNED PRIMARY KEY, deployment_uuid CHAR(32) CHARACTER SET ascii NOT NULL, poller_id INT UNSIGNED NOT NULL, epoch INT UNSIGNED NOT NULL, owner VARCHAR(8) NOT NULL, mode VARCHAR(16) NOT NULL, profile_id INT UNSIGNED NOT NULL, channels TEXT NOT NULL, valid_from DATETIME(6) NOT NULL, valid_until DATETIME(6) NOT NULL, last_sequence BIGINT UNSIGNED NOT NULL DEFAULT 0, last_episode VARCHAR(128) NOT NULL DEFAULT '', last_transition VARCHAR(16) NOT NULL DEFAULT '', seed_event MEDIUMTEXT NULL, KEY collector_mode (poller_id, mode, device_id)) ENGINE=InnoDB",
+		"CREATE TABLE IF NOT EXISTS plugin_alarmmanager_device_owners (device_id INT UNSIGNED PRIMARY KEY, deployment_uuid CHAR(32) CHARACTER SET ascii NOT NULL, poller_id INT UNSIGNED NOT NULL, epoch INT UNSIGNED NOT NULL, owner VARCHAR(8) NOT NULL, mode VARCHAR(16) NOT NULL, channels TEXT NOT NULL, valid_from DATETIME(6) NOT NULL, valid_until DATETIME(6) NOT NULL, last_sequence BIGINT UNSIGNED NOT NULL DEFAULT 0, last_episode VARCHAR(128) NOT NULL DEFAULT '', last_transition VARCHAR(16) NOT NULL DEFAULT '', seed_event MEDIUMTEXT NULL, KEY collector_mode (poller_id, mode, device_id)) ENGINE=InnoDB",
 		'CREATE TABLE IF NOT EXISTS plugin_alarmmanager_device_receipts (event_id CHAR(64) CHARACTER SET ascii PRIMARY KEY, device_id INT UNSIGNED NOT NULL, transition VARCHAR(16) NOT NULL, epoch INT UNSIGNED NOT NULL, sequence BIGINT UNSIGNED NOT NULL, fail_epoch BIGINT UNSIGNED NOT NULL, rec_epoch BIGINT UNSIGNED NOT NULL, event_row_id BIGINT UNSIGNED NOT NULL, mode VARCHAR(16) NOT NULL, channels TEXT NOT NULL, created_at DATETIME(6) NOT NULL, KEY device_transition (device_id, epoch, transition, fail_epoch, rec_epoch, sequence)) ENGINE=InnoDB',
 		'CREATE TABLE IF NOT EXISTS plugin_alarmmanager_sync_outbox (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, entity VARCHAR(16) CHARACTER SET ascii NOT NULL, entity_id BIGINT UNSIGNED NOT NULL, seed TINYINT NULL, created_at DATETIME(6) NOT NULL, UNIQUE KEY initial_seed (entity, entity_id, seed), KEY entity_version (entity, entity_id, id)) ENGINE=InnoDB',
 		"CREATE TABLE IF NOT EXISTS plugin_alarmmanager_sync_sender (id TINYINT PRIMARY KEY, acked BIGINT UNSIGNED NOT NULL DEFAULT 0, pending_end BIGINT UNSIGNED NOT NULL DEFAULT 0, pending_hash CHAR(64) CHARACTER SET ascii NOT NULL DEFAULT '', pending_body MEDIUMTEXT NULL) ENGINE=InnoDB",
@@ -401,7 +398,7 @@ function alarmmanager_schema_remote(): bool {
 /** v7: database-assigned identities for administrator-created configuration records. */
 function alarmmanager_schema_record_ids(): bool {
 	try {
-		foreach (['endpoints', 'profiles', 'rules'] as $section) {
+		foreach (['endpoints', 'rules'] as $section) {
 			$table     = 'plugin_alarmmanager_' . $section;
 			$automatic = db_fetch_cell_prepared("SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = 'id' AND EXTRA LIKE '%auto_increment%'", [$table], '', false);
 
@@ -457,6 +454,20 @@ function alarmmanager_schema_sync(): bool {
 		alarmmanager_schema_column('plugin_alarmmanager_sync_peers', 'allow_http', 'TINYINT NOT NULL DEFAULT 0');
 		alarmmanager_schema_column('plugin_alarmmanager_sync_peers', 'ca_pem', 'MEDIUMTEXT NULL');
 		alarmmanager_db_write('UPDATE plugin_alarmmanager_schema SET version = GREATEST(version, 11) WHERE id = 1');
+
+		return true;
+	} catch (Throwable $error) {
+		return false;
+	}
+}
+
+/** Greenfield schema: rules own destinations; routing profiles are retired. */
+function alarmmanager_schema_direct_routes(): bool {
+	try {
+		alarmmanager_db_write("ALTER TABLE plugin_alarmmanager_rules ADD COLUMN IF NOT EXISTS endpoints_json TEXT NOT NULL DEFAULT '[]', DROP COLUMN IF EXISTS profile_id");
+		alarmmanager_db_write('ALTER TABLE plugin_alarmmanager_device_owners DROP COLUMN IF EXISTS profile_id');
+		alarmmanager_db_write('DROP TABLE IF EXISTS plugin_alarmmanager_profiles');
+		alarmmanager_db_write('UPDATE plugin_alarmmanager_schema SET version = 12 WHERE id = 1');
 
 		return true;
 	} catch (Throwable $error) {

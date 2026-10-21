@@ -1,5 +1,7 @@
 ## ChangeLog
 
+* Consolidate delivery jobs, processing and attempt screens into Events. Add per-event integration outcome summaries and scoped workflow details with failed-job replay. Schema v12 removes routing profiles; rules store integration IDs directly, including configuration replication and private exports. VERIFIED locally with focused MariaDB, native Cacti web fixtures, browser checks and PHPStan; live deployment remains UNVERIFIED.
+
 --- main (development) ---
 
 * Reconcile locally raised device outages after reassignment to another collector: a confirmed-UP host closes the old local episode without changing current poller ownership or capturing new remote-owned outages.

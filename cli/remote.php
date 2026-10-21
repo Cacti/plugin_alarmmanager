@@ -25,10 +25,10 @@ if (PHP_SAPI !== 'cli') {
 	http_response_code(403);
 	exit;
 }
-$options = getopt('', ['identity', 'provision:', 'configure:', 'grant-file:', 'send', 'limit:', 'seed:', 'after:', 'export-for:', 'profiles:', 'output:', 'help']);
+$options = getopt('', ['identity', 'provision:', 'configure:', 'grant-file:', 'send', 'limit:', 'seed:', 'after:', 'export-for:', 'endpoints:', 'output:', 'help']);
 
 if (isset($options['help'])) {
-	print "Usage:\n  php cli/remote.php --identity\n  php cli/remote.php --export-for=2 --profiles=1,2 --output=/secure/poller-config.json\n  php cli/remote.php --provision=/secure/poller-config.json\n  php cli/remote.php --configure=/secure/routing.json\n  php cli/remote.php --grant-file=/secure/device-grant.json\n  php cli/remote.php --send [--limit=100]\n  php cli/remote.php --seed=event|processing|decision|delivery|attempt [--after=0 --limit=100]\nHistory uses Cacti's existing main database connection; no peer provisioning is required. Secrets are read/written only through owner-private files. Seed is bounded migration of prior local history.\n";
+	print "Usage:\n  php cli/remote.php --identity\n  php cli/remote.php --export-for=2 --endpoints=1,2 --output=/secure/poller-config.json\n  php cli/remote.php --provision=/secure/poller-config.json\n  php cli/remote.php --configure=/secure/routing.json\n  php cli/remote.php --grant-file=/secure/device-grant.json\n  php cli/remote.php --send [--limit=100]\n  php cli/remote.php --seed=event|processing|decision|delivery|attempt [--after=0 --limit=100]\nHistory uses Cacti's existing main database connection; no peer provisioning is required. Secrets are read/written only through owner-private files. Seed is bounded migration of prior local history.\n";
 	exit;
 }
 $conn_mode = isset($options['send']) ? 'online' : 'offline';
@@ -62,11 +62,11 @@ try {
 		alarmmanager_apply_configuration($settings);
 		print "Routing configuration applied.\n";
 	} elseif ($action === 'export-for') {
-		$poller   = filter_var($options['export-for'], FILTER_VALIDATE_INT, ['options' => ['min_range' => 2]]);
-		$profiles = explode(',', $options['profiles'] ?? '');
-		$ids      = [];
+		$poller    = filter_var($options['export-for'], FILTER_VALIDATE_INT, ['options' => ['min_range' => 2]]);
+		$endpoints = explode(',', $options['endpoints'] ?? '');
+		$ids       = [];
 
-		foreach ($profiles as $value) {
+		foreach ($endpoints as $value) {
 			$id = filter_var($value, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
 
 			if (!$id) {

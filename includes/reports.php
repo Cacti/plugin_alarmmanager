@@ -89,6 +89,12 @@ function alarmmanager_report_filters(array $input): array {
 		throw new InvalidArgumentException('invalid_filter');
 	}
 
+	$result['job'] = (string) ($input['job'] ?? 'delivery');
+
+	if (!in_array($result['job'], ['delivery', 'processing', 'attempt'], true)) {
+		throw new InvalidArgumentException('invalid_filter');
+	}
+
 	$result['acknowledged'] = (string) ($input['acknowledged'] ?? '');
 
 	if (!in_array($result['acknowledged'], ['', '0', '1'], true)) {
@@ -205,10 +211,34 @@ function alarmmanager_report_list(string $kind, array $scope, array $filters): a
 		$time = null;
 	}
 
-	if ($kind === 'events' && $filters['event_id'] > 0) {
+	if ($kind === 'events' && ($filters['event_id'] > 0 || $filters['current'])) {
 		$time = null;
 	}
 	[$where, $params] = alarmmanager_report_where($scope, $filters, $time, $severity, $kind);
+
+	if ($kind === 'events') {
+		$job      = $filters['job'] ?? 'delivery';
+		$relation = match ($job) {
+			'processing' => 'plugin_alarmmanager_jobs AS job WHERE job.event_row_id = e.id',
+			'attempt'    => 'plugin_alarmmanager_attempts AS job INNER JOIN plugin_alarmmanager_deliveries AS delivery ON delivery.id = job.delivery_id WHERE delivery.event_row_id = e.id',
+			default      => 'plugin_alarmmanager_deliveries AS job WHERE job.event_row_id = e.id'
+		};
+		$checks = [];
+
+		if ($filters['status'] !== '') {
+			$checks[] = ($job === 'attempt' ? 'job.outcome' : 'job.status') . ' = ?';
+			$params[] = $filters['status'];
+		}
+
+		if ($filters['endpoint_id'] && $job !== 'processing') {
+			$checks[] = ($job === 'attempt' ? 'delivery.endpoint_id' : 'job.endpoint_id') . ' = ?';
+			$params[] = $filters['endpoint_id'];
+		}
+
+		if ($checks) {
+			$where .= ' AND EXISTS (SELECT 1 FROM ' . $relation . ' AND ' . implode(' AND ', $checks) . ')';
+		}
+	}
 
 	if ($kind === 'conditions') {
 		$where .= ' AND s.active = 1';
@@ -238,7 +268,44 @@ function alarmmanager_report_list(string $kind, array $scope, array $filters): a
 	$offset = ($filters['page'] - 1) * 50;
 	$rows   = alarmmanager_report_rows("SELECT $columns FROM $base WHERE $where ORDER BY $order DESC LIMIT 51 OFFSET $offset", $params);
 
-	return ['rows' => array_slice($rows, 0, 50), 'more' => count($rows) > 50, 'page' => $filters['page']];
+	$more = count($rows) > 50;
+	$rows = array_slice($rows, 0, 50);
+
+	if ($kind === 'events' && $rows) {
+		$ids          = array_column($rows, 'id');
+		$placeholders = implode(',', array_fill(0, count($ids), '?'));
+		$counts       = [];
+
+		foreach (alarmmanager_report_rows("SELECT event_row_id, status, COUNT(*) AS total FROM plugin_alarmmanager_deliveries WHERE event_row_id IN ($placeholders) GROUP BY event_row_id, status", $ids) as $delivery) {
+			$counts[$delivery['event_row_id']][$delivery['status']] = (int) $delivery['total'];
+		}
+		$processing = array_column(alarmmanager_report_rows("SELECT e.id, j.status, EXISTS(SELECT 1 FROM plugin_alarmmanager_decisions AS r WHERE r.event_row_id = e.id AND r.reason NOT IN ('queued', 'no_route')) AS suppressed FROM plugin_alarmmanager_events AS e LEFT JOIN plugin_alarmmanager_jobs AS j ON j.event_row_id = e.id WHERE e.id IN ($placeholders)", $ids), null, 'id');
+
+		foreach ($rows as &$row) {
+			$row['integration_status'] = alarmmanager_integration_status($counts[$row['id']] ?? [], $processing[$row['id']]['status'] ?? '', (bool) ($processing[$row['id']]['suppressed'] ?? false));
+		}
+		unset($row);
+	}
+
+	return ['rows' => $rows, 'more' => $more, 'page' => $filters['page']];
+}
+/** @param array<string, int> $counts */
+function alarmmanager_integration_status(array $counts, string $processing, bool $suppressed): string {
+	$labels = ['completed' => __('Delivered', 'alarmmanager'), 'failed' => __('Failed', 'alarmmanager'), 'leased' => __('Sending', 'alarmmanager'), 'pending' => __('Pending', 'alarmmanager')];
+	$parts  = [];
+
+	foreach ($labels as $status => $label) {
+		if (!empty($counts[$status])) {
+			$parts[] = $counts[$status] . ' ' . $label;
+		}
+	}
+
+	return $parts ? implode(' · ', $parts) : match ($processing) {
+		'failed'  => __('Processing failed', 'alarmmanager'),
+		'pending' => __('Pending processing', 'alarmmanager'),
+		'leased'  => __('Processing', 'alarmmanager'),
+		default   => $suppressed ? __('Suppressed', 'alarmmanager') : __('No matching integration', 'alarmmanager')
+	};
 }
 function alarmmanager_event_detail(array $scope, array $filters): ?array {
 	if ($filters['event_id'] < 1) {
@@ -255,7 +322,17 @@ function alarmmanager_event_detail(array $scope, array $filters): ?array {
 		throw new RuntimeException('event_detail_unavailable');
 	}
 
-	return alarmmanager_validate_event(json_decode($row['payload'], true, 32, JSON_THROW_ON_ERROR));
+	$event              = alarmmanager_validate_event(json_decode($row['payload'], true, 32, JSON_THROW_ON_ERROR));
+	$id                 = $filters['event_id'];
+	$event['_row_id']   = $id;
+	$event['_workflow'] = [
+		'processing' => alarmmanager_report_rows('SELECT id, status, attempts, last_error, created_at, available_at FROM plugin_alarmmanager_jobs WHERE event_row_id = ? LIMIT 1', [$id]),
+		'deliveries' => alarmmanager_report_rows("SELECT d.id, COALESCE(ep.name, CONCAT('Deleted endpoint #', d.endpoint_id)) AS integration, d.status, d.attempts, d.last_error, JSON_UNQUOTE(JSON_EXTRACT(d.external_reference, '$.id')) AS external_id, JSON_UNQUOTE(JSON_EXTRACT(d.external_reference, '$.url')) AS external_url, d.updated_at FROM plugin_alarmmanager_deliveries AS d LEFT JOIN plugin_alarmmanager_endpoints AS ep ON ep.id = d.endpoint_id WHERE d.event_row_id = ? ORDER BY d.id DESC LIMIT 100", [$id]),
+		'attempts'   => alarmmanager_report_rows("SELECT a.id, a.delivery_id, COALESCE(ep.name, CONCAT('Deleted endpoint #', d.endpoint_id)) AS integration, a.attempt_number, a.outcome, a.code, a.duration_ms, a.started_at FROM plugin_alarmmanager_attempts AS a INNER JOIN plugin_alarmmanager_deliveries AS d ON d.id = a.delivery_id LEFT JOIN plugin_alarmmanager_endpoints AS ep ON ep.id = d.endpoint_id WHERE d.event_row_id = ? ORDER BY a.id DESC LIMIT 100", [$id]),
+		'decisions'  => alarmmanager_report_rows('SELECT rule_id, endpoint_id, reason, created_at FROM plugin_alarmmanager_decisions WHERE event_row_id = ? ORDER BY id DESC LIMIT 100', [$id])
+	];
+
+	return $event;
 }
 function alarmmanager_dashboard_data(array $scope, array $filters): array {
 	require_once(__DIR__ . '/queue.php');

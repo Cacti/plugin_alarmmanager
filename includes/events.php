@@ -126,7 +126,7 @@ function alarmmanager_validate_event(array $event): array {
 		$value               = alarmmanager_event_text($device[$field], $field === 'status_last_error' ? 2048 : 512);
 		$safe_device[$field] = in_array($field, ['status_fail_date', 'status_rec_date'], true) && $value !== '' ? alarmmanager_event_time($value) : $value;
 	}
-	alarmmanager_event_keys($context, ['rule_name', 'rule_type', 'metric', 'metric_value', 'threshold', 'source_suppressed', 'suppression_reason', 'source_notification_channels', 'routing_profile_id', 'ownership_epoch']);
+	alarmmanager_event_keys($context, ['rule_name', 'rule_type', 'metric', 'metric_value', 'threshold', 'source_suppressed', 'suppression_reason', 'source_notification_channels', 'ownership_epoch']);
 	$safe_context = [];
 
 	foreach (['rule_name', 'rule_type', 'metric', 'metric_value', 'threshold', 'suppression_reason'] as $field) {
@@ -151,13 +151,6 @@ function alarmmanager_validate_event(array $event): array {
 			throw new InvalidArgumentException('Invalid ownership epoch.');
 		}
 		$safe_context['ownership_epoch'] = $context['ownership_epoch'];
-	}
-
-	if (array_key_exists('routing_profile_id', $context)) {
-		if (!is_int($context['routing_profile_id']) || $context['routing_profile_id'] < 1 || $context['routing_profile_id'] > 2147483647) {
-			throw new InvalidArgumentException('Invalid routing profile.');
-		}
-		$safe_context['routing_profile_id'] = $context['routing_profile_id'];
 	}
 
 	return [
