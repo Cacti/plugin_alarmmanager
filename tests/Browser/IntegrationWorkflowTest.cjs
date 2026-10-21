@@ -30,13 +30,12 @@ const assert=require('node:assert/strict');
   }
   const draft=page.locator('details.alarmmanagerDashboardCard').last();
   await draft.locator('[name=name]').fill(draftName);
-  await draft.locator('[name=reference_id_path]').fill('ticket.id');
   await draft.getByRole('button',{name:'Save endpoint',exact:true}).click();
   await page.waitForURL(admin);
   check(await page.locator('details.alarmmanagerDashboardCard').count()===initial+1,'Saving a template creates a new integration');
   const saved=page.locator('details.alarmmanagerDashboardCard').filter({has:page.getByText(draftName,{exact:true})});
   await saved.locator('summary').first().click();
-  check(await saved.locator('[name=reference_id_path]').inputValue()==='ticket.id','Reference configuration persists');
+  check(await saved.locator('[name=reference_id_path], [name=reference_url_path]').count()===0,'External reference controls are removed');
   check(!(await saved.locator('[name=enabled]').isChecked()),'Saved draft stays disabled');
   // A provider preset that preselects credential authentication saves the draft
   // before any secret exists; the credential record is attached afterwards.

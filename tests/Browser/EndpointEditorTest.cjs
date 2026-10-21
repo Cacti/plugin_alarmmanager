@@ -53,11 +53,7 @@ const render=endpoint=>execFileSync('php',['-r',`function __($s,...$a){return $s
    check(await page.locator('[name=id]').count()===0,'Template draft has no saved identity');
    check((await page.locator('[name=name]').inputValue())===template.name,'Template fills integration name');
    assert.deepEqual(JSON.parse(await page.locator('[name=mapping_json]').inputValue()),template.transport.mapping,'Template retains its provider-specific mapping');checks++;
-   check(await page.locator('[name=reference_id_path]').isVisible(),'Reference paths are editable for HTTP and scripts');
-   await page.locator('[name=reference_id_path]').fill('ticket.id');
-   await page.locator('[name=reference_url_path]').fill('ticket.url');
-   const draft=await page.locator('form:has([name=action][value=endpoint_save])').evaluate(form=>Object.fromEntries(new FormData(form)));
-   check(draft.reference_id_path==='ticket.id'&&draft.reference_url_path==='ticket.url','Reference paths submit through the endpoint form');
+   check(await page.locator('[name=reference_id_path], [name=reference_url_path]').count()===0,'External reference controls are removed');
    const refs=page.locator('.alarmmanagerMappingRow').filter({has:page.locator('select option[value="integration.id"]:checked')});
    check(await refs.count()===(template.transport.mapping.default||[]).filter(field=>field.source==='integration.id').length,'External reference rows match the selected template');
   }
@@ -73,13 +69,13 @@ const render=endpoint=>execFileSync('php',['-r',`function __($s,...$a){return $s
   const eventMapping=JSON.parse(await serviceForm.locator('[name=mapping_json]').inputValue());
   assert.deepEqual(eventMapping,templates.servicenow_events.transport.mapping);checks++;
   check(!JSON.parse(await serviceForm.locator('[name=transport_json]').inputValue()).transition_overrides,'Event choice removes incident PATCH targets');
-  check(await serviceForm.locator('[name=reference_id_path]').inputValue()==='','Event choice clears incident response reference');
+  check(!JSON.parse(await serviceForm.locator('[name=transport_json]').inputValue()).response_reference,'Event choice clears incident response reference');
   await table.selectOption('incident');
   check(await serviceForm.locator('[name=url]').inputValue()==='https://custom.example.test/api/now/table/incident','Incident choice retains the instance');
   check(await serviceForm.getByLabel('Destination Field Name',{exact:true}).first().inputValue()==='short_description','Incident fields render after switching back');
   assert.deepEqual(JSON.parse(await serviceForm.locator('[name=mapping_json]').inputValue()),templates.servicenow.transport.mapping);checks++;
   check(JSON.parse(await serviceForm.locator('[name=transport_json]').inputValue()).transition_overrides.recovered.url==='https://custom.example.test/api/now/table/incident/{{integration.id}}','Incident PATCH target uses the chosen instance');
-  check(await serviceForm.locator('[name=reference_id_path]').inputValue()==='result.sys_id','Incident choice restores response reference');
+  check(JSON.parse(await serviceForm.locator('[name=transport_json]').inputValue()).response_reference.id==='result.sys_id','Incident choice restores response reference');
   check(await serviceForm.locator('[name=basic_username]').inputValue()==='fixture-user'&&await serviceForm.locator('[name=basic_password]').inputValue()==='fixture-password','Switching retains credentials');
   check(!(await serviceForm.locator('[name=enabled]').isChecked()),'Switching keeps draft disabled');
   await load({name:'Combined API',type:'restapi'});

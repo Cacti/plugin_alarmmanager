@@ -177,8 +177,6 @@
     if(preset.transport.response_reference)transport.response_reference=preset.transport.response_reference;
     raw.value=JSON.stringify(transport,null,2);
     form.querySelector('[name=http_method]').value='POST';
-    form.querySelector('[name=reference_id_path]').value=preset.transport.response_reference?.id||'';
-    form.querySelector('[name=reference_url_path]').value='';
     mapping.value=JSON.stringify(preset.transport.mapping,null,2);mapping.dispatchEvent(new Event('input',{bubbles:true}));showFields();
     const hint=form.querySelector('[data-integration-hint]');if(hint)hint.textContent=preset.hint;
    });

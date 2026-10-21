@@ -102,11 +102,6 @@ function alarmmanager_endpoint_editor(array $endpoint, int $revision, bool $new 
 
 	print '</details>';
 	print '</fieldset>';
-	print '<fieldset class="alarmmanagerFullWidth" data-endpoint-types="restapi webhook script"><legend>' . __esc('External ticket or message reference (optional)', 'alarmmanager') . '</legend>';
-	alarmmanager_input('reference_id_path', 'Response JSON path for external ID', $transport['response_reference']['id'] ?? '', 'text', 'maxlength="191"');
-	alarmmanager_input('reference_url_path', 'Response JSON path for HTTPS link', $transport['response_reference']['url'] ?? '', 'text', 'maxlength="191"');
-	print '<p>' . __esc('Successful responses must contain the configured fields. Later alarms in the same episode can map integration.id and integration.url. Scripts return the response JSON on stdout.', 'alarmmanager') . '</p></fieldset>';
-
 	print '<details class="alarmmanagerFullWidth alarmmanagerAdvanced"><summary>' . __esc('Advanced delivery settings', 'alarmmanager') . '</summary>';
 
 	foreach (['timeout_seconds' => ['Delivery timeout (seconds)', 1, 120, 10], 'max_attempts' => ['Maximum delivery attempts', 1, 20, 5], 'min_interval_ms' => ['Minimum time between deliveries (milliseconds)', 0, 3600000, 0]] as $key => [$label, $min, $max, $default]) {
