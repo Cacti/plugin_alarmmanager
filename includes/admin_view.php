@@ -348,6 +348,7 @@ function alarmmanager_admin_markup(array $state, string $section): void {
 				$choices[$field][(int) $row['id']] = $row['name'] . ' (#' . $row['id'] . ')';
 			}
 		}
+		print '<p class="alarmmanagerHint">' . __esc('Alarm notifications require an enabled matching Alarm Rule. Without one, alarms remain in history but no notifications are sent.', 'alarmmanager') . '</p>';
 		print '<p><a href="#alarmmanager_new_rule">' . __esc('Create a rule', 'alarmmanager') . '</a></p>';
 
 		if (!$config['rules']) {

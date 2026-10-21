@@ -30,7 +30,7 @@ final class DeviceStatusTest extends AlarmManagerTestCase {
 			self::assertTrue(alarmmanager_schema_install(), 'Upgrade/install is repeatable');
 			self::assertTrue(alarmmanager_schema_ready());
 			self::assertSame(0, (int) $db->query("SELECT COUNT(*) FROM information_schema.TRIGGERS WHERE TRIGGER_SCHEMA=DATABASE() AND EVENT_OBJECT_TABLE='host'")->fetchColumn(), 'No host triggers required');
-			alarmmanager_apply_configuration(['version' => 1, 'endpoints' => [['id' => 1, 'name' => 'Fixture', 'type' => 'webhook', 'transport' => ['url' => 'https://example.test']]], 'rules' => []]);
+			alarmmanager_apply_configuration(['version' => 1, 'endpoints' => [['id' => 1, 'name' => 'Fixture', 'type' => 'webhook', 'transport' => ['url' => 'https://example.test']]], 'rules' => [['id' => 1, 'name' => 'Device alarms', 'endpoints' => [1], 'policy' => []]]]);
 			$db->exec('INSERT INTO host (id,poller_id,status) VALUES (42,1,3), (43,2,1), (44,1,3), (45,1,3), (46,1,3)');
 			$db->exec("UPDATE host SET disabled='on' WHERE id=44");
 			$db->exec("UPDATE host SET deleted='on' WHERE id=45");
@@ -71,7 +71,7 @@ final class DeviceStatusTest extends AlarmManagerTestCase {
 			}
 			self::assertSame(3, (int) $db->query('SELECT COUNT(*) FROM plugin_alarmmanager_deliveries')->fetchColumn(), 'All three transitions route');
 			// Saved wording applies to subsequent events without rewriting history.
-			alarmmanager_apply_configuration(['version' => 1, 'device_summaries' => ['offline' => 'Device is Offline', 'recovering' => 'Device is Recovering', 'online' => 'Device is Online'], 'endpoints' => [['id' => 1, 'name' => 'Fixture', 'type' => 'webhook', 'transport' => ['url' => 'https://example.test']]], 'rules' => []]);
+			alarmmanager_apply_configuration(['version' => 1, 'device_summaries' => ['offline' => 'Device is Offline', 'recovering' => 'Device is Recovering', 'online' => 'Device is Online'], 'endpoints' => [['id' => 1, 'name' => 'Fixture', 'type' => 'webhook', 'transport' => ['url' => 'https://example.test']]], 'rules' => [['id' => 1, 'name' => 'Device alarms', 'endpoints' => [1], 'policy' => []]]]);
 			// Existing PHP integration remains synchronous and comparison reuses its receipt.
 			$fail += 20;
 			$host  = ['id' => 42, 'hostname' => 'fixture.test', 'description' => 'Fixture', 'status' => 1, 'status_fail_date' => $fail, 'status_rec_date' => time()];

@@ -296,6 +296,9 @@ final class TransportTest extends AlarmManagerTestCase {
 			foreach ([10 => '/ticket', 11 => '/ticket2'] as $id => $path) {
 				$this->tdefinition($id, 'webhook', ['url' => $http . $path, 'allow_http' => true, 'mapping' => $reference_map, 'response_reference' => ['id' => 'ticket.id', 'url' => 'ticket.url']]);
 			}
+			// The fixture's manually queued reference deliveries need an explicit routing rule too.
+			alarmmanager_db_write("UPDATE plugin_alarmmanager_rules SET endpoints_json = '[10,11]' WHERE id = 1");
+			unset($GLOBALS['alarmmanager_route_cache']);
 			$reference_event               = $event;
 			$reference_event['alarm_key']  = 'reference-test';
 			$reference_event['episode_id'] = 'reference-episode';

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Alarm Manager 0.11.0\n"
 "Report-Msgid-Bugs-To: https://github.com/bmfmancini/plugin_alarmmanager/issues\n"
-"POT-Creation-Date: 2026-10-20 21:36-0400\n"
+"POT-Creation-Date: 2026-10-20 21:40-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alarm Manager Developers <https://github.com/bmfmancini/plugin_alarmmanager>\n"
 "Language-Team: Alarm Manager Developers <https://github.com/bmfmancini/plugin_alarmmanager>\n"
@@ -153,7 +153,7 @@ msgstr ""
 msgid "Times use the selected timezone and the alarm event time. An end time before the start runs overnight. Equal times cover the entire selected day."
 msgstr ""
 
-#: includes/admin_view.php:197 includes/admin_view.php:351
+#: includes/admin_view.php:197 includes/admin_view.php:352
 msgid "Create a rule"
 msgstr ""
 
@@ -317,7 +317,7 @@ msgstr ""
 msgid "Available at (UTC)"
 msgstr ""
 
-#: includes/admin_view.php:281 includes/admin_view.php:394
+#: includes/admin_view.php:281 includes/admin_view.php:395
 msgid "Endpoint"
 msgstr ""
 
@@ -421,252 +421,256 @@ msgstr ""
 msgid "Warning"
 msgstr ""
 
-#: includes/admin_view.php:354
+#: includes/admin_view.php:351
+msgid "Alarm notifications require an enabled matching Alarm Rule. Without one, alarms remain in history but no notifications are sent."
+msgstr ""
+
+#: includes/admin_view.php:355
 msgid "No rules yet. Create a rule below to start routing alarms to your notification destinations."
 msgstr ""
 
-#: includes/admin_view.php:363
+#: includes/admin_view.php:364
 msgid "Credential values are never loaded into this page. Saving replaces the endpoint record; blank values do not preserve an old password. Use the CLI for protected backup/restore and poller provisioning."
 msgstr ""
 
-#: includes/admin_view.php:366
+#: includes/admin_view.php:367
 msgid "Create endpoint"
 msgstr ""
 
-#: includes/admin_view.php:366
+#: includes/admin_view.php:367
 msgid "No REST API or webhook endpoints have been saved. Create an endpoint to enter its bearer token, Basic authentication username and password, or API-key headers."
 msgstr ""
 
-#: includes/admin_view.php:370
+#: includes/admin_view.php:371
 msgid "Configured"
 msgstr ""
 
-#: includes/admin_view.php:373
+#: includes/admin_view.php:374
 msgid "Replace credential"
 msgstr ""
 
-#: includes/admin_view.php:379
+#: includes/admin_view.php:380
 msgid "Rotate local key"
 msgstr ""
 
-#: includes/admin_view.php:385
+#: includes/admin_view.php:386
 msgid "View delivery results"
 msgstr ""
 
-#: includes/admin_view.php:392
+#: includes/admin_view.php:393
 msgid "Enable and save the endpoint before sending a test. Preview is also available for disabled endpoints and sends no traffic."
 msgstr ""
 
-#: includes/admin_view.php:397
+#: includes/admin_view.php:398
 msgid " (disabled)"
 msgstr ""
 
-#: includes/admin_view.php:408
+#: includes/admin_view.php:409
 msgid "Device alarm summaries"
 msgstr ""
 
-#: includes/admin_view.php:412
+#: includes/admin_view.php:413
 msgid "Applies to new device alarms and recoveries. Existing history retains its original summary. These settings synchronize to collectors."
 msgstr ""
 
-#: includes/admin_view.php:412
+#: includes/admin_view.php:413
 msgid "Save device summaries"
 msgstr ""
 
-#: includes/admin_view.php:415
+#: includes/admin_view.php:416
 msgid "Apply configuration"
 msgstr ""
 
-#: includes/admin_view.php:415
+#: includes/admin_view.php:416
 msgid "Removed IDs are disabled, preserving history. Concurrent edits reject stale revisions. Main-poller settings replicate through Cacti synchronization."
 msgstr ""
 
-#: includes/admin_view.php:419
+#: includes/admin_view.php:420
 msgid "Daemon"
 msgstr ""
 
-#: includes/admin_view.php:419
+#: includes/admin_view.php:420
 msgid "Running"
 msgstr ""
 
-#: includes/admin_view.php:419
+#: includes/admin_view.php:420
 msgid "Supervisor"
 msgstr ""
 
-#: includes/admin_view.php:422
+#: includes/admin_view.php:423
 msgid "Active delivery workers"
 msgstr ""
 
-#: includes/admin_view.php:422
+#: includes/admin_view.php:423
 msgid "Active processing workers"
 msgstr ""
 
-#: includes/admin_view.php:424
+#: includes/admin_view.php:425
 msgid "Install and start the Alarm Manager service on this collector before enabling daemon workers."
 msgstr ""
 
-#: includes/admin_view.php:430
+#: includes/admin_view.php:431
 msgid "Changes apply automatically within a few seconds. Disabling the daemon lets current jobs finish and returns processing to the Cacti poller."
 msgstr ""
 
-#: includes/admin_view.php:430
+#: includes/admin_view.php:431
 msgid "Save daemon settings"
 msgstr ""
 
-#: includes/admin_view.php:434
+#: includes/admin_view.php:435
 msgid "Local queue health"
 msgstr ""
 
-#: includes/admin_view.php:435
+#: includes/admin_view.php:436
 msgid "Jobs"
 msgstr ""
 
-#: includes/admin_view.php:435
+#: includes/admin_view.php:436
 msgid "Oldest job age (seconds)"
 msgstr ""
 
-#: includes/admin_view.php:435
+#: includes/admin_view.php:436
 msgid "Queue"
 msgstr ""
 
-#: includes/admin_view.php:435
+#: includes/admin_view.php:436
 msgid "Retries"
 msgstr ""
 
-#: includes/admin_view.php:435 includes/admin_view.php:454
-#: includes/admin_view.php:495 includes/web_view.php:176
+#: includes/admin_view.php:436 includes/admin_view.php:455
+#: includes/admin_view.php:496 includes/web_view.php:176
 msgid "Status"
 msgstr ""
 
-#: includes/admin_view.php:450
+#: includes/admin_view.php:451
 msgid "No queue activity recorded."
 msgstr ""
 
-#: includes/admin_view.php:453
+#: includes/admin_view.php:454
 msgid "Local worker health"
 msgstr ""
 
-#: includes/admin_view.php:454
+#: includes/admin_view.php:455
 msgid "Current job"
 msgstr ""
 
-#: includes/admin_view.php:454
+#: includes/admin_view.php:455
 msgid "Heartbeat age (seconds)"
 msgstr ""
 
-#: includes/admin_view.php:454
+#: includes/admin_view.php:455
 msgid "PID"
 msgstr ""
 
-#: includes/admin_view.php:454 includes/admin_view.php:524
+#: includes/admin_view.php:455 includes/admin_view.php:525
 msgid "Poller"
 msgstr ""
 
-#: includes/admin_view.php:454
+#: includes/admin_view.php:455
 msgid "Role"
 msgstr ""
 
-#: includes/admin_view.php:454
+#: includes/admin_view.php:455
 msgid "Worker"
 msgstr ""
 
-#: includes/admin_view.php:469
+#: includes/admin_view.php:470
 msgid "No local worker heartbeats recorded."
 msgstr ""
 
-#: includes/admin_view.php:472
+#: includes/admin_view.php:473
 msgid "Completed delivery jobs in the last 300 seconds"
 msgstr ""
 
-#: includes/admin_view.php:472
+#: includes/admin_view.php:473
 msgid "Completed processing jobs in the last 300 seconds"
 msgstr ""
 
-#: includes/admin_view.php:472
+#: includes/admin_view.php:473
 msgid "Processing streams blocked behind a failed predecessor"
 msgstr ""
 
-#: includes/admin_view.php:475
+#: includes/admin_view.php:476
 msgid "Pending jobs for destination types without a qualified transport"
 msgstr ""
 
-#: includes/admin_view.php:482
+#: includes/admin_view.php:483
 msgid "Failed deliveries and replay"
 msgstr ""
 
-#: includes/admin_view.php:482
+#: includes/admin_view.php:483
 msgid "Failed processing jobs and replay"
 msgstr ""
 
-#: includes/admin_view.php:487
+#: includes/admin_view.php:488
 msgid "Collectors and remote history"
 msgstr ""
 
-#: includes/admin_view.php:487
+#: includes/admin_view.php:488
 msgid "Each collector owns its local delivery. Imported history records the original events and outcomes. Collector history does not create central delivery jobs."
 msgstr ""
 
-#: includes/admin_view.php:488
+#: includes/admin_view.php:489
 msgid "Configuration uses Cacti replication. Collectors automatically return history through Cacti's existing main database connection; no separate synchronization setup is required."
 msgstr ""
 
-#: includes/admin_view.php:494
+#: includes/admin_view.php:495
 msgid "Collectors"
 msgstr ""
 
-#: includes/admin_view.php:495
+#: includes/admin_view.php:496
 msgid "Last history sync (UTC)"
 msgstr ""
 
-#: includes/admin_view.php:495
+#: includes/admin_view.php:496
 msgid "Poller name"
 msgstr ""
 
-#: includes/admin_view.php:495
+#: includes/admin_view.php:496
 msgid "Poller_id"
 msgstr ""
 
-#: includes/admin_view.php:508
+#: includes/admin_view.php:509
 msgid "No remote collectors configured."
 msgstr ""
 
-#: includes/admin_view.php:524
+#: includes/admin_view.php:525
 msgid "All pollers"
 msgstr ""
 
-#: includes/admin_view.php:529
+#: includes/admin_view.php:530
 msgid "History record type"
 msgstr ""
 
-#: includes/admin_view.php:534
+#: includes/admin_view.php:535
 msgid "Filter"
 msgstr ""
 
-#: includes/admin_view.php:536
+#: includes/admin_view.php:537
 msgid "Latest 50 matching remote records; original IDs and delivery ownership are preserved."
 msgstr ""
 
-#: includes/admin_view.php:561
+#: includes/admin_view.php:562
 msgid "Remote history"
 msgstr ""
 
-#: includes/admin_view.php:569
+#: includes/admin_view.php:570
 msgid "Unknown collector"
 msgstr ""
 
-#: includes/admin_view.php:592
+#: includes/admin_view.php:593
 msgid "No matching remote records."
 msgstr ""
 
-#: includes/admin_view.php:599
+#: includes/admin_view.php:600
 msgid "Authentication"
 msgstr ""
 
-#: includes/admin_view.php:599
+#: includes/admin_view.php:600
 msgid "Authentication type"
 msgstr ""
 
-#: includes/admin_view.php:619
+#: includes/admin_view.php:620
 msgid "Saved credentials are encrypted and never displayed. New values replace the saved credential record."
 msgstr ""
 

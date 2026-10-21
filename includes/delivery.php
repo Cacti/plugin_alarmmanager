@@ -68,6 +68,22 @@ function alarmmanager_run_delivery(array $claim): bool {
 		if (!alarmmanager_device_event_authorized($event, (int) $claim['endpoint']['timeout_seconds'] + 5)) {
 			return alarmmanager_finish_delivery($claim, ['outcome' => 'failure', 'code' => 'device_owner_fenced']);
 		}
+		// An explicitly confirmed integration test is independent of alarm routing rules.
+		$allowed = (bool) alarmmanager_db_row("SELECT id FROM plugin_alarmmanager_decisions WHERE event_row_id = ? AND endpoint_id = ? AND reason = 'explicit_test_send' LIMIT 1", [$claim['event_row_id'], $claim['endpoint']['id']]);
+
+		if (!$allowed) {
+			foreach (alarmmanager_routing_snapshot()['rules'] as $rule) {
+				if (in_array((int) $claim['endpoint']['id'], $rule['endpoints'], true) && alarmmanager_rule_matches($rule['policy'], $event)) {
+					$allowed = true;
+
+					break;
+				}
+			}
+		}
+
+		if (!$allowed) {
+			return alarmmanager_finish_delivery($claim, ['outcome' => 'failure', 'code' => 'no_matching_rule']);
+		}
 		$previous_handler = pcntl_signal_get_handler(SIGALRM);
 		$previous_async   = pcntl_async_signals(true);
 		pcntl_signal(SIGALRM, function (): void { throw new RuntimeException('transport_timeout'); });

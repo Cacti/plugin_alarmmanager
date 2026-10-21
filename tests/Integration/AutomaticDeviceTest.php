@@ -1,7 +1,7 @@
 <?php
 // SPDX-License-Identifier: GPL-2.0-or-later
 final class AutomaticDeviceTest extends AlarmManagerTestCase {
-	public function testUnconfiguredDevicesAutomaticallyUseGlobalEndpoints(): void {
+	public function testDeviceCaptureRequiresEnabledMatchingRulesForDelivery(): void {
 		self::requireAlarmManagerTestDb();
 
 		if (getenv('ALARMMANAGER_TEST_ALLOW_CREATE') !== '1') {
@@ -56,7 +56,9 @@ final class AutomaticDeviceTest extends AlarmManagerTestCase {
 			while ($claim = alarmmanager_claim_processing()) {
 				alarmmanager_process_job($claim);
 			}
-			$this->assertSame([1, 2], array_map('intval', array_column(db_fetch_assoc_prepared('SELECT endpoint_id FROM plugin_alarmmanager_deliveries ORDER BY endpoint_id'), 'endpoint_id')), 'All enabled endpoints are queued without per-device rules');
+			$this->assertSame(0, (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_deliveries'), 'Enabled integrations alone do not send alarms');
+			$this->assertSame('no_route', db_fetch_cell_prepared('SELECT reason FROM plugin_alarmmanager_decisions ORDER BY id DESC LIMIT 1'));
+			$this->assertSame(1, (int) db_fetch_cell_prepared('SELECT active FROM plugin_alarmmanager_states'), 'Unrouted alarms remain active and recorded');
 			$host['status']          = 3;
 			$host['status_rec_date'] = time();
 			$upWrite                 = static fn (): bool => db_execute_prepared('UPDATE host SET status = ?, status_rec_date = FROM_UNIXTIME(?) WHERE id = ?', [$host['status'], $host['status_rec_date'], $host['id']]);
@@ -65,14 +67,14 @@ final class AutomaticDeviceTest extends AlarmManagerTestCase {
 			while ($claim = alarmmanager_claim_processing()) {
 				alarmmanager_process_job($claim);
 			}
-			$this->assertSame(4, (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_deliveries'), 'Recovery uses the same global endpoints');
+			$this->assertSame(0, (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_deliveries'), 'Recovery also requires an alarm rule');
 			$episodes = db_fetch_assoc_prepared('SELECT episode_id,sequence FROM plugin_alarmmanager_events ORDER BY id');
 			$this->assertSame($episodes[0]['episode_id'], $episodes[1]['episode_id']);
 			$this->assertGreaterThan((int) $episodes[0]['sequence'], (int) $episodes[1]['sequence']);
 			// Existing explicit rules, including disabled rules, retain control of delivery.
 			$routes['rules']    = [['id' => 1, 'name' => 'Disabled rule', 'enabled' => false, 'endpoints' => [1], 'policy' => []]];
 			alarmmanager_apply_configuration($routes);
-			$this->assertFalse(alarmmanager_routing_snapshot()['default_route']);
+			$this->assertSame([], alarmmanager_routing_snapshot()['rules']);
 			$host['status']           = 1;
 			$host['status_fail_date'] = time();
 			$nextWrite                = static fn (): bool => db_execute_prepared('UPDATE host SET status = ?, status_fail_date = FROM_UNIXTIME(?) WHERE id = ?', [$host['status'], $host['status_fail_date'], $host['id']]);
@@ -81,7 +83,51 @@ final class AutomaticDeviceTest extends AlarmManagerTestCase {
 			while ($claim = alarmmanager_claim_processing()) {
 				alarmmanager_process_job($claim);
 			}
-			$this->assertSame(4, (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_deliveries'), 'Disabled custom rules do not turn on the global fallback');
+			$this->assertSame(0, (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_deliveries'), 'Disabled rules do not send alarms');
+			$routes['rules'] = [['id' => 1, 'name' => 'Nonmatching rule', 'endpoints' => [1, 2], 'policy' => ['match' => ['sources' => ['syslog']]]]];
+			alarmmanager_apply_configuration($routes);
+			$host['status']          = 3;
+			$host['status_rec_date'] = time();
+			self::assertTrue(alarmmanager_device_core_commit($host, 1, static fn (): bool => db_execute_prepared('UPDATE host SET status=3,status_rec_date=FROM_UNIXTIME(?) WHERE id=42', [$host['status_rec_date']])));
+
+			while ($claim = alarmmanager_claim_processing()) {
+				alarmmanager_process_job($claim);
+			}
+			$this->assertSame(0, (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_deliveries'), 'Nonmatching rules do not send alarms');
+			$routes['rules'][0]['policy'] = [];
+			alarmmanager_apply_configuration($routes);
+			$host['status']           = 1;
+			$host['status_fail_date'] = time() + 1;
+			self::assertTrue(alarmmanager_device_core_commit($host, 3, static fn (): bool => db_execute_prepared('UPDATE host SET status=1,status_fail_date=FROM_UNIXTIME(?) WHERE id=42', [$host['status_fail_date']])));
+
+			while ($claim = alarmmanager_claim_processing()) {
+				alarmmanager_process_job($claim);
+			}
+			$this->assertSame([1, 2], array_map('intval', array_column(db_fetch_assoc_prepared('SELECT endpoint_id FROM plugin_alarmmanager_deliveries ORDER BY endpoint_id'), 'endpoint_id')), 'An enabled matching rule queues only its destinations');
+			$sent                                       = 0;
+			$GLOBALS['alarmmanager_transport_handlers'] = ['restapi' => static function () use (&$sent): array {
+				$sent++;
+
+				return ['outcome' => 'success', 'code' => 'fixture'];
+			}, 'webhook' => static function () use (&$sent): array {
+				$sent++;
+
+				return ['outcome' => 'success', 'code' => 'fixture'];
+			}];
+			$claim = alarmmanager_claim_delivery(['restapi', 'webhook']);
+			$this->assertNotNull($claim);
+			$routes['rules'][0]['enabled'] = false;
+			alarmmanager_apply_configuration($routes);
+			$this->assertTrue(alarmmanager_run_delivery($claim));
+			$this->assertSame(0, $sent, 'A queued delivery cannot send after its matching rule is disabled');
+			$this->assertSame('no_matching_rule', db_fetch_cell_prepared('SELECT code FROM plugin_alarmmanager_attempts ORDER BY id DESC LIMIT 1'));
+			$routes['rules'] = [];
+			alarmmanager_apply_configuration($routes);
+			$claim = alarmmanager_claim_delivery(['restapi', 'webhook']);
+			$this->assertNotNull($claim);
+			$this->assertTrue(alarmmanager_run_delivery($claim));
+			$this->assertSame(0, $sent, 'Removing all rules also blocks pending deliveries');
+			unset($GLOBALS['alarmmanager_transport_handlers']);
 			$routes['rules']    = [];
 
 			foreach ($routes['endpoints'] as &$endpoint) {
@@ -89,8 +135,9 @@ final class AutomaticDeviceTest extends AlarmManagerTestCase {
 			} unset($endpoint);
 			alarmmanager_apply_configuration($routes);
 			$db->exec('INSERT INTO host (id,poller_id,status) VALUES (43,1,3)');
-			$host['id']   = 43;
-			$noRouteWrite = static fn (): bool => db_execute_prepared('UPDATE host SET status = ?, status_fail_date = FROM_UNIXTIME(?) WHERE id = ?', [$host['status'], $host['status_fail_date'], $host['id']]);
+			$host['id']     = 43;
+			$host['status'] = 1;
+			$noRouteWrite   = static fn (): bool => db_execute_prepared('UPDATE host SET status = ?, status_fail_date = FROM_UNIXTIME(?) WHERE id = ?', [$host['status'], $host['status_fail_date'], $host['id']]);
 			$this->assertTrue(alarmmanager_device_core_commit($host, 3, $noRouteWrite));
 
 			while ($claim = alarmmanager_claim_processing()) {
@@ -100,7 +147,7 @@ final class AutomaticDeviceTest extends AlarmManagerTestCase {
 			$this->assertSame('no_route', db_fetch_cell_prepared('SELECT reason FROM plugin_alarmmanager_decisions ORDER BY id DESC LIMIT 1'));
 		} finally {
 			$db->exec("DROP DATABASE `$database`");
-			unset($GLOBALS['alarmmanager_route_cache']);
+			unset($GLOBALS['alarmmanager_route_cache'], $GLOBALS['alarmmanager_transport_handlers']);
 		}
 	}
 }
