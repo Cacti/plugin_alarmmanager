@@ -140,6 +140,23 @@ const render=endpoint=>execFileSync('php',['-r',`function __($s,...$a){return $s
    check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Endpoint deletion fits the viewport');
   }
   await load({name:'Unsaved draft',type:'restapi'});check(await page.getByRole('button',{name:'Delete endpoint',exact:true}).count()===0,'Unsaved drafts have no delete action');
+  const intents=await page.locator('.alarmmanagerEndpointEditor').evaluate(form=>{
+   const submissions=[];
+   form.noValidate=true;
+   form.addEventListener('submit',event=>{
+    event.preventDefault();
+    // Reproduce Cacti applySkin's submit debounce before form serialization.
+    form.querySelectorAll('button[type=submit]').forEach(button=>button.disabled=true);
+    submissions.push(new FormData(form).getAll('test_destination'));
+   });
+   const buttons=[form.querySelector('button[name=test_destination]'),form.querySelector('button[type=submit]'),null];
+   for(const button of buttons){
+    form.querySelectorAll('button[type=submit]').forEach(item=>item.disabled=false);
+    if(button)form.requestSubmit(button);else form.requestSubmit();
+   }
+   return submissions;
+  });
+  assert.deepEqual(intents,[['yes'],[],[]]);checks++;
   check(errors.length===0,'No browser errors');console.log(`PASS: ${checks} rendered endpoint checks`);
  }finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

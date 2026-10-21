@@ -30,6 +30,9 @@ final class ContractTest extends AlarmManagerTestCase {
 		foreach (['observe', 'centralized', 'legacy'] as $oldMode) {
 			$this->assertSame(AlarmManagerProducerBridge::validate([]), AlarmManagerProducerBridge::validate(['mode' => $oldMode]), 'Saved configurations lose their old operating mode.');
 		}
+		$this->assertSame(['channels' => ['script'], 'complete_history' => true], AlarmManagerProducerBridge::validate(['mode' => 'centralized', 'profile_id' => 7, 'channels' => ['script'], 'complete_history' => true]));
+		$this->expectException(InvalidArgumentException::class);
+		AlarmManagerProducerBridge::validate(['unknown_setting' => true]);
 	}
 
 	public function testDeviceContextIsBoundedAndAvailableToTemplates(): void {

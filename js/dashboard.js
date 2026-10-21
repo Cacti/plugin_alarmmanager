@@ -264,6 +264,15 @@
  }
  function init() {
   const app=document.getElementById('alarmmanager_app'); if(!app||app.dataset.initialized)return;app.dataset.initialized='yes';initRuleEditors(app);initReportQuery(app);initMappings(app);initLists(app);initDeliveryIntervals(app);initAuthentication(app);initEndpointTypes(app);initServiceNow(app);
+  app.querySelectorAll('.alarmmanagerEndpointEditor').forEach(form=>{
+   form.addEventListener('submit',event=>{
+    form.querySelector('[data-test-intent]')?.remove();
+    // Cacti disables submit buttons before the browser serializes their values.
+    if(event.submitter?.name==='test_destination'){
+     const intent=node('input');intent.type='hidden';intent.name='test_destination';intent.value='yes';intent.dataset.testIntent='yes';form.append(intent);
+    }
+   },true);
+  });
   const dashboard=app.querySelector('#alarmmanager_dashboard');if(!dashboard)return;
   const form=app.querySelector('#alarmmanager_filters'), status=app.querySelector('#alarmmanager_dashboard_status'), refresh=app.querySelector('#alarmmanager_refresh');
   const charts={}; let inFlight=false, timer=null;

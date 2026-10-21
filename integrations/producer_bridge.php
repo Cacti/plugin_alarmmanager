@@ -26,10 +26,10 @@
 if (!class_exists('AlarmManagerProducerBridge', false)) {
 	final class AlarmManagerProducerBridge {
 		public static function validate(array $definition): array {
-			if (array_diff(array_keys($definition), ['mode', 'channels', 'complete_history'])) {
+			if (array_diff(array_keys($definition), ['mode', 'profile_id', 'channels', 'complete_history'])) {
 				throw new InvalidArgumentException('invalid_producer_configuration');
 			}
-			// Accept saved mode keys during upgrades; they no longer select delivery behavior.
+			// Accept and discard retired mode/profile keys when reading saved configurations.
 			$mode     = $definition['mode'] ?? 'centralized';
 			$channels = $definition['channels'] ?? [];
 

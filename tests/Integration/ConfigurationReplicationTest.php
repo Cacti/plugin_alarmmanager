@@ -84,13 +84,14 @@ final class ConfigurationReplicationTest extends AlarmManagerTestCase {
 			$daemon = array_replace(alarmmanager_supervisor_options(), ['enabled' => true, 'processing_workers' => 3, 'delivery_workers' => 7]);
 			alarmmanager_save_supervisor_options($daemon);
 			alarmmanager_db_write("REPLACE INTO settings VALUES ('alarmmanager_notifications_paused', '1')");
-			alarmmanager_db_write('INSERT INTO plugin_alarmmanager_producer_config (source,scope,resource_id,definition) VALUES (?, ?, ?, ?)', ['syslog', 'default', 0, json_encode(['channels' => ['script']])]);
+			alarmmanager_db_write('INSERT INTO plugin_alarmmanager_producer_config (source,scope,resource_id,definition) VALUES (?, ?, ?, ?)', ['syslog', 'default', 0, json_encode(['profile_id' => 7, 'channels' => ['script']])]);
 			$sourceCipher = $connections[1]->query('SELECT ciphertext FROM plugin_alarmmanager_credentials WHERE endpoint_id=2')->fetchColumn();
 
 			foreach ([2, 3] as $poller) {
 				$data = ['class' => 'all', 'remote_poller_id' => $poller, 'rcnn_id' => $connections[$poller]];
 				$this->assertSame($data, alarmmanager_replicate_out($data));
 				$db = $connections[$poller];
+				$this->assertSame(['channels' => ['script'], 'complete_history' => false], json_decode($db->query("SELECT definition FROM plugin_alarmmanager_producer_config WHERE source='syslog'")->fetchColumn(), true), 'Retired profile settings are discarded during replication.');
 				$this->assertSame(4, (int) $db->query('SELECT COUNT(*) FROM plugin_alarmmanager_endpoints WHERE enabled=1')->fetchColumn(), 'Every destination replicates without profiles.');
 				$this->assertSame(1, (int) $db->query('SELECT COUNT(*) FROM plugin_alarmmanager_events')->fetchColumn(), 'Local history preserved.');
 				$this->assertSame(1, (int) $db->query('SELECT COUNT(*) FROM plugin_alarmmanager_jobs')->fetchColumn(), 'Local queued jobs preserved.');
