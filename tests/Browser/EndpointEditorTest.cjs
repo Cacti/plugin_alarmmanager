@@ -5,7 +5,7 @@ const {execFileSync}=require('node:child_process');
 const path=require('node:path'), assert=require('node:assert/strict');
 const root=path.resolve(__dirname,'../..'), cacti=process.env.CACTI_PATH;
 if(!cacti)throw Error('CACTI_PATH required for the local jQuery asset');
-const render=endpoint=>execFileSync('php',['-r',`function __($s,...$a){return $s;} function __esc($s,...$a){return htmlspecialchars($s);} function html_escape($s){return htmlspecialchars((string)$s);} function csrf_get_tokens(){return 'fixture';} require $argv[1].'/includes/admin_view.php'; alarmmanager_endpoint_editor(json_decode($argv[2],true),0,!isset(json_decode($argv[2],true)['id']));`,root,JSON.stringify(endpoint)],{encoding:'utf8'});
+const render=endpoint=>execFileSync('php',['-r',`function __($s,...$a){return $s;} function __esc($s,...$a){return htmlspecialchars($s);} function html_escape($s){return htmlspecialchars((string)$s);} function csrf_get_tokens(){return 'fixture';} require $argv[1].'/includes/admin_view.php'; alarmmanager_endpoint_editor(json_decode($argv[2],true),0,!isset(json_decode($argv[2],true)['id']),['offline'=>'Custom device offline']);`,root,JSON.stringify(endpoint)],{encoding:'utf8'});
 (async()=>{
  const browser=await chromium.launch({headless:true,executablePath:process.env.ALARMMANAGER_BROWSER_BINARY});const page=await browser.newPage();let checks=0;const errors=[];page.on('pageerror',e=>errors.push(e.message));
  const check=(ok,label)=>{if(!ok)throw Error(label);checks++;};
@@ -125,6 +125,7 @@ const render=endpoint=>execFileSync('php',['-r',`function __($s,...$a){return $s
   await page.setViewportSize({width:390,height:844});check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Combined editor fits mobile');
   await emailSubject.getByRole('button',{name:'Use device message',exact:true}).click();
   check(await emailSubject.locator('.alarmmanagerMessageChip').count()===9,'Shared device message inserts chips on mobile');
+  check((await page.locator('.alarmmanagerMessagePreview').first().textContent()).includes('Custom device offline'),'Alarm Summary preview uses the configured device summary');
   await emailSubject.screenshot({path:'/tmp/alarmmanager-message-chips-mobile.png'});
   await load({id:10,name:'Deletable draft',type:'restapi',enabled:false});
   await page.locator('.alarmmanagerDashboardCard > summary').click();

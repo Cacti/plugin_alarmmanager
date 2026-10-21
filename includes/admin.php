@@ -506,6 +506,7 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 	if ($test_destination) {
 		try {
 			$sample = alarmmanager_admin_json(file_get_contents(__DIR__ . '/../examples/event.json'), 65536);
+			$sample['summary'] = alarmmanager_device_summaries()['offline'];
 			$event_id = alarmmanager_enqueue_test($sample, $id);
 		} catch (Throwable $error) {
 			throw new RuntimeException('test_after_save_failed', 0, $error);

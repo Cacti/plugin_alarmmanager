@@ -49,7 +49,7 @@ function alarmmanager_textarea(string $key, string $label, string $value, int $l
 function alarmmanager_json_text($value): string {
 	return json_encode($value ?: new stdClass(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
 }
-function alarmmanager_endpoint_editor(array $endpoint, int $revision, bool $new = false): void {
+function alarmmanager_endpoint_editor(array $endpoint, int $revision, bool $new = false, array $summaries = []): void {
 	print '<details class="alarmmanagerDashboardCard" ' . ($new ? 'open' : '') . '><summary>' . html_escape($new ? __('New endpoint', 'alarmmanager') : $endpoint['name']) . '</summary>';
 	alarmmanager_form_start('endpoint_save', $revision, $new ? [] : ['id' => $endpoint['id']]);
 	alarmmanager_input('name', 'Name', $endpoint['name'], 'text', 'maxlength="128" required');
@@ -96,7 +96,7 @@ function alarmmanager_endpoint_editor(array $endpoint, int $revision, bool $new 
 	print '</div>';
 	print '<p>' . __esc('JSON output is sent to the script on standard input.', 'alarmmanager') . '</p><p>' . __esc('The executable must exist and be executable by the worker on every delivering poller. Arguments are passed directly without a shell.', 'alarmmanager') . '</p></fieldset>';
 	print '<p class="alarmmanagerFullWidth" data-endpoint-types="websocket">' . __esc('WebSocket delivery is not implemented.', 'alarmmanager') . '</p>';
-	print '<fieldset class="alarmmanagerFullWidth alarmmanagerMapping" data-message-template="' . html_escape(alarmmanager_message_template()) . '"><legend>' . __esc('Message fields', 'alarmmanager') . '</legend><p>' . __esc('Choose the alarm information to send to any service. Use Combined text to arrange device details, or Use device message to start with a complete message. Email uses Subject and Message; API destinations use the field names required by the receiving service.', 'alarmmanager') . '</p><div class="alarmmanagerMappingBuilder"></div>';
+	print '<fieldset class="alarmmanagerFullWidth alarmmanagerMapping" data-alarm-summary="' . html_escape($summaries['offline'] ?? 'Device Offline') . '" data-message-template="' . html_escape(alarmmanager_message_template()) . '"><legend>' . __esc('Message fields', 'alarmmanager') . '</legend><p>' . __esc('Choose the alarm information to send to any service. Use Combined text to arrange device details, or Use device message to start with a complete message. Email uses Subject and Message; API destinations use the field names required by the receiving service.', 'alarmmanager') . '</p><div class="alarmmanagerMappingBuilder"></div>';
 	print '<details class="alarmmanagerRawMapping"><summary>' . __esc('Advanced message configuration', 'alarmmanager') . '</summary>';
 	alarmmanager_textarea('mapping_json', 'Message configuration JSON', alarmmanager_json_text($mapping));
 
@@ -307,11 +307,11 @@ function alarmmanager_admin_markup(array $state, string $section): void {
 		print '</select></label><button type="submit">' . __esc('Add Integration', 'alarmmanager') . '</button></form><p>' . __esc('Templates fill a new disabled draft only. Replace the example destination or executable before saving; existing endpoints and credentials are preserved.', 'alarmmanager') . '</p>';
 
 		foreach ($config['endpoints'] as $item) {
-			alarmmanager_endpoint_editor($item, $revision);
+			alarmmanager_endpoint_editor($item, $revision, false, $config['device_summaries'] ?? []);
 		}
 
 		if ($adding) {
-			alarmmanager_endpoint_editor(['id' => 0, 'enabled' => false] + ($templates[$selected] ?? ['name' => '', 'type' => 'restapi']), $revision, true);
+			alarmmanager_endpoint_editor(['id' => 0, 'enabled' => false] + ($templates[$selected] ?? ['name' => '', 'type' => 'restapi']), $revision, true, $config['device_summaries'] ?? []);
 		}
 	} elseif ($section === 'rules') {
 		print '<h2>' . __esc('Alarm Rules', 'alarmmanager') . '</h2><p>' . __esc('Choose which alarms should notify, where to send them and when to pause notifications. Rules run from lowest to highest priority.', 'alarmmanager') . '</p>';
