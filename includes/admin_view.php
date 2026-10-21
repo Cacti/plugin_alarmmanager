@@ -28,7 +28,7 @@ require_once(__DIR__ . '/workers.php');
 require_once(__DIR__ . '/integrations.php');
 
 function alarmmanager_form_start(string $action, int $revision, array $hidden = []): void {
-	print '<form method="post" action="alarmmanager_admin.php" class="alarmmanagerEditor' . ($action === 'endpoint_save' ? ' alarmmanagerEndpointEditor' : ($action === 'endpoint_delete' ? ' alarmmanagerEndpointDelete' : '')) . '">';
+	print '<form method="post" action="alarmmanager_admin.php" class="alarmmanagerEditor' . ($action === 'endpoint_save' ? ' alarmmanagerEndpointEditor' : ($action === 'endpoint_delete' ? ' alarmmanagerEndpointDelete' : '')) . ($action === 'device_summaries_save' ? ' alarmmanagerSummaryEditor' : '') . '">';
 	alarmmanager_csrf_field();
 	print '<input type="hidden" name="action" value="' . html_escape($action) . '"><input type="hidden" name="revision" value="' . $revision . '">';
 
@@ -402,10 +402,10 @@ function alarmmanager_admin_markup(array $state, string $section): void {
 		$summaries = $config['device_summaries'] ?? ['offline' => 'Device Offline', 'recovering' => 'Device Recovering', 'online' => 'Device Online'];
 		alarmmanager_form_start('device_summaries_save', $revision);
 		print '<h2>' . __esc('Device alarm summaries', 'alarmmanager') . '</h2>';
-		alarmmanager_input('offline_summary', 'Offline summary (Cacti status 1)', $summaries['offline'], 'text', 'maxlength="512" required');
-		alarmmanager_input('recovering_summary', 'Recovering summary (Cacti status 2)', $summaries['recovering'] ?? 'Device Recovering', 'text', 'maxlength="512" required');
-		alarmmanager_input('online_summary', 'Online summary (Cacti status 3)', $summaries['online'], 'text', 'maxlength="512" required');
-		print '<p>' . __esc('Applies to new device alarms and recoveries. Existing history retains its original summary. These settings synchronize to collectors.', 'alarmmanager') . '</p><button type="submit">' . __esc('Save device summaries', 'alarmmanager') . '</button></form>';
+		alarmmanager_input('offline_summary', 'Offline summary', $summaries['offline'], 'text', 'maxlength="512" required');
+		alarmmanager_input('recovering_summary', 'Recovering summary', $summaries['recovering'] ?? 'Device Recovering', 'text', 'maxlength="512" required');
+		alarmmanager_input('online_summary', 'Online summary', $summaries['online'], 'text', 'maxlength="512" required');
+		print '<p>' . __esc('Applies to new device alarms and recoveries. Existing history retains its original summary. These settings synchronize to collectors.', 'alarmmanager') . '</p><div class="alarmmanagerSummaryActions"><button type="submit">' . __esc('Save device summaries', 'alarmmanager') . '</button></div></form>';
 		alarmmanager_form_start('configuration_save', $revision);
 		alarmmanager_textarea('configuration_json', 'Complete local routing configuration (no secrets)', alarmmanager_json_text($config), 1048576);
 		print '<button type="submit">' . __esc('Apply configuration', 'alarmmanager') . '</button></form><p>' . __esc('Removed IDs are disabled, preserving history. Concurrent edits reject stale revisions. Main-poller settings replicate through Cacti synchronization.', 'alarmmanager') . '</p>';
