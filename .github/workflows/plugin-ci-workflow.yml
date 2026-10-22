@@ -98,7 +98,7 @@ jobs:
     # fping is required by Cacti's pre-install path check (cli/install_cacti.php
     # refuses to continue without it), so the Cacti install step needs it present.
     - name: Install System Dependencies
-      run: sudo apt-get install -y fping rrdtool
+      run: sudo apt-get install -y fping rrdtool gettext
 
     - name: Setup Permissions
       run: |
@@ -215,7 +215,7 @@ jobs:
       run: |
         cd ${{ github.workspace }}/cacti/plugins/alarmmanager
         cp locales/po/alarmmanager.pot /tmp/alarmmanager.pot.before
-        sh locales/build_gettext.sh >/dev/null
+        sh locales/build_gettext.sh
         sed -E 's/^"POT-Creation-Date:.+$//' /tmp/alarmmanager.pot.before > /tmp/alarmmanager.pot.before.norm
         sed -E 's/^"POT-Creation-Date:.+$//' locales/po/alarmmanager.pot > /tmp/alarmmanager.pot.after.norm
         diff -u /tmp/alarmmanager.pot.before.norm /tmp/alarmmanager.pot.after.norm || {
