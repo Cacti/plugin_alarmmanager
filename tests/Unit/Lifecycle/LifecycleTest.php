@@ -40,7 +40,7 @@ final class LifecycleTest extends AlarmManagerTestCase {
 	 */
 	private function routingConfiguration(): array {
 		return json_decode(
-			file_get_contents(__DIR__ . '/../../../examples/routing.json'),
+			file_get_contents(__DIR__ . '/../../fixtures/routing.json'),
 			true,
 			32,
 			JSON_THROW_ON_ERROR

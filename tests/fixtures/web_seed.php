@@ -51,7 +51,7 @@ alarmmanager_test_web_schema($alarmmanager_test_db);
 if (!plugin_alarmmanager_install()) {
 	throw new RuntimeException('Fixture install failed');
 } alarmmanager_test_web_grants($alarmmanager_test_db);
-$routes                              = json_decode(file_get_contents(__DIR__ . '/../../examples/routing.json'), true);
+$routes                              = json_decode(file_get_contents(__DIR__ . '/routing.json'), true);
 $routes['endpoints'][0]['name']      = 'REST API <img src=x onerror=window.ALARM_BAD=1>';
 $routes['endpoints'][0]['transport'] = ['url' => 'https://example.test/alarms', 'credential' => true, 'mapping' => ['default' => [['to' => 'hostname', 'source' => 'device.id']]]];
 $routes['endpoints'][1]['transport'] = ['url' => 'https://webhook.example.test/alarms', 'mapping' => ['default' => [['to' => 'host', 'source' => 'device.id']]]];
