@@ -42,7 +42,7 @@ function alarmmanager_delivery_preview(array $event, array $endpoint): array {
 	$event    = alarmmanager_validate_event($event);
 	$settings = alarmmanager_endpoint_transport($endpoint);
 
-	return ['endpoint_id' => (int) $endpoint['id'], 'type' => $endpoint['type'], 'payload' => alarmmanager_map_payload($settings['mapping'], $event, in_array($endpoint['type'], ['restapi', 'webhook', 'script'], true) ? alarmmanager_delivery_reference($event, (int) $endpoint['id'], $settings['mapping'], $settings['transition_overrides'] ?? null) : []), 'credentials' => !empty($settings['credential']) ? '[REDACTED]' : 'none'];
+	return ['endpoint_id' => (int) $endpoint['id'], 'type' => $endpoint['type'], 'payload' => alarmmanager_notification_payload($settings, $event, in_array($endpoint['type'], ['restapi', 'webhook', 'script'], true) ? alarmmanager_delivery_reference($event, (int) $endpoint['id'], $settings['mapping'], $settings['transition_overrides'] ?? null) : []), 'credentials' => !empty($settings['credential']) ? '[REDACTED]' : 'none'];
 }
 function alarmmanager_retry_after(?string $value, ?int $now = null): int {
 	if ($value === null) {
@@ -77,7 +77,7 @@ function alarmmanager_http_result(int $status, string $body, array $settings, ?s
 			}
 		}
 
-		return alarmmanager_transport_reference_result(['outcome' => 'success', 'code' => 'http_' . $status], $body, $settings);
+		return alarmmanager_transport_reference_result(['outcome' => 'success', 'code' => !empty($settings['teams_workflow']) ? 'teams_workflow_accepted' : 'http_' . $status], $body, $settings);
 	}
 	$retry = in_array($status, [408, 425, 429], true) || $status >= 500;
 
@@ -111,11 +111,15 @@ function alarmmanager_http_transport(array $event, array $endpoint, string $idem
 	if ($target === null) {
 		return ['outcome' => 'retry', 'code' => 'integration_reference_missing'];
 	}
-	$payload = json_encode(alarmmanager_map_payload($settings['mapping'], $event, $reference), JSON_THROW_ON_ERROR);
+	$payload = json_encode(alarmmanager_notification_payload($settings, $event, $reference), JSON_THROW_ON_ERROR);
 	$headers = ['Content-Type: application/json', 'Idempotency-Key: ' . $idempotency, 'Expect:'];
 
 	if ($settings['credential']) {
 		$credential = alarmmanager_load_credential((int) $endpoint['id']);
+
+		if (!empty($settings['teams_workflow'])) {
+			$target['url'] = alarmmanager_teams_webhook_url($credential);
+		}
 
 		foreach ($credential['headers'] as $name => $value) {
 			$headers[] = $name . ': ' . $value;
