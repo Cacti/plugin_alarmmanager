@@ -203,8 +203,9 @@ jobs:
     - name: Run Plugin Test Suite (integration lane)
       env:
         ALARMMANAGER_TEST_DSN: 'mysql:host=127.0.0.1;port=3306;dbname=alarmmanager_test;charset=utf8mb4'
-        ALARMMANAGER_TEST_USER: cactiuser
-        ALARMMANAGER_TEST_PASSWORD: cactiuser
+        # Fixtures create and drop random databases in this disposable service.
+        ALARMMANAGER_TEST_USER: root
+        ALARMMANAGER_TEST_PASSWORD: cactiroot
         ALARMMANAGER_TEST_ALLOW_CREATE: '1'
       run: |
         cd ${{ github.workspace }}/cacti
