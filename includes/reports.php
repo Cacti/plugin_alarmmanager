@@ -216,6 +216,8 @@ function alarmmanager_report_list(string $kind, array $scope, array $filters): a
 	}
 	[$where, $params] = alarmmanager_report_where($scope, $filters, $time, $severity, $kind);
 
+	$collector = (int) ($filters['collector_id'] ?? 0);
+
 	if ($kind === 'events') {
 		$job      = $filters['job'] ?? 'delivery';
 		$relation = match ($job) {
@@ -224,7 +226,6 @@ function alarmmanager_report_list(string $kind, array $scope, array $filters): a
 			default      => 'plugin_alarmmanager_deliveries AS job WHERE job.event_row_id = e.id'
 		};
 		// Mirrored collector history folds into the events table by default; collector_id>0 narrows to one poller.
-		$collector = (int) ($filters['collector_id'] ?? 0);
 		$remote    = ($collector === 0 || ($collector > 1 && $collector !== alarmmanager_local_poller()))
 			&& in_array($kind, ['events', 'conditions'], true);
 		$checks = [];

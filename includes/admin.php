@@ -110,7 +110,11 @@ function alarmmanager_admin_json($value, int $limit = 131072): array {
 
 	return $result;
 }
-/** Read only a PHP-verified upload; never accept a client-supplied filesystem path. */
+/**
+ * Read only a PHP-verified upload; never accept a client-supplied filesystem path.
+ * @param  array<string, mixed> $file
+ * @return array<string, mixed>
+ */
 function alarmmanager_admin_configuration_upload(array $file): array {
 	if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK || !is_string($file['tmp_name'] ?? null) || !is_uploaded_file($file['tmp_name'])) {
 		throw new InvalidArgumentException('invalid_configuration_upload');
@@ -194,7 +198,11 @@ function alarmmanager_admin_rule_policy(array $input): array {
 	return alarmmanager_validate_rule_definition($policy);
 }
 
-/** Validate all daemon fields before any settings are written. */
+/**
+ * Validate all daemon fields before any settings are written.
+ * @param  array<string, mixed> $input
+ * @return array<string, mixed>
+ */
 function alarmmanager_admin_supervisor_settings(array $input): array {
 	$settings                       = alarmmanager_supervisor_options();
 	$settings['enabled']            = isset($input['daemon_enabled']);

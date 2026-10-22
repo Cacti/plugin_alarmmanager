@@ -139,7 +139,7 @@ function alarmmanager_http_transport(array $event, array $endpoint, string $idem
 		curl_setopt_array($curl, [CURLOPT_URL => $target['url'], CURLOPT_CUSTOMREQUEST => $target['method'], CURLOPT_POSTFIELDS => $payload,
 			CURLOPT_HTTPHEADER                   => $headers, CURLOPT_FOLLOWLOCATION => false, CURLOPT_MAXREDIRS => 0, CURLOPT_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
 			CURLOPT_SSL_VERIFYPEER               => true, CURLOPT_SSL_VERIFYHOST => 2, CURLOPT_CONNECTTIMEOUT => min((int) $endpoint['timeout_seconds'], $settings['connect_timeout_seconds']),
-			CURLOPT_TIMEOUT                      => (int) $endpoint['timeout_seconds'], CURLOPT_NOSIGNAL => true, CURLOPT_PROXY => '', CURLOPT_NETRC => CURL_NETRC_IGNORED,
+			CURLOPT_TIMEOUT                      => (int) $endpoint['timeout_seconds'], CURLOPT_NOSIGNAL => true, CURLOPT_PROXY => '', CURLOPT_NETRC => false,
 			CURLOPT_WRITEFUNCTION                => static function ($handle, string $chunk) use (&$body, &$too_large): int {
 				if (strlen($body) + strlen($chunk) > 65536) {
 					$too_large = true;

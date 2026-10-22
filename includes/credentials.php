@@ -166,7 +166,11 @@ function alarmmanager_credential_validate(#[\SensitiveParameter] array $record):
 
 	return $result;
 }
-/** Resolve only from the protected credential record; never from exported transport settings. */
+/**
+ * Resolve only from the protected credential record; never from exported transport settings.
+ * @param  array<string, mixed>|null $credential
+ * @return non-empty-string
+ */
 function alarmmanager_teams_webhook_url(#[\SensitiveParameter] ?array $credential): string {
 	if (empty($credential['teams_webhook_url'])) {
 		throw new InvalidArgumentException('teams_webhook_missing');

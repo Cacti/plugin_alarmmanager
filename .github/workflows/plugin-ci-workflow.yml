@@ -241,4 +241,7 @@ jobs:
       if: matrix.cacti == 'develop'
       run: |
         cd ${{ github.workspace }}/cacti/plugins/alarmmanager
+        # Root-run install/poller steps can create a log the runner cannot write.
+        sudo chown www-data:runner "$CACTI_PATH/log/cacti.log"
+        sudo chmod 664 "$CACTI_PATH/log/cacti.log"
         ../../include/vendor/bin/phpstan analyse --configuration=.phpstan.neon --no-progress

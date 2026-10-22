@@ -248,7 +248,12 @@ function alarmmanager_delivery_reference(array $event, int $endpoint_id, ?array 
 	return $row ? alarmmanager_external_reference_validate(json_decode($row['external_reference'], true, 8, JSON_THROW_ON_ERROR)) : [];
 }
 
-/** Keep the editable Combined text field while emitting the Workflows Adaptive Card envelope. */
+/**
+ * Keep the editable Combined text field while emitting the Workflows Adaptive Card envelope.
+ * @param array<string, mixed> $settings
+ * @param array<string, mixed> $event
+ * @param array<string, mixed> $reference
+ */
 function alarmmanager_notification_payload(array $settings, array $event, array $reference = []): stdClass {
 	$payload = alarmmanager_map_payload($settings['mapping'], $event, $reference);
 
