@@ -215,7 +215,7 @@ jobs:
       run: |
         cd ${{ github.workspace }}/cacti/plugins/alarmmanager
         cp locales/po/alarmmanager.pot /tmp/alarmmanager.pot.before
-        locales/build_gettext.sh >/dev/null
+        sh locales/build_gettext.sh >/dev/null
         sed -E 's/^"POT-Creation-Date:.+$//' /tmp/alarmmanager.pot.before > /tmp/alarmmanager.pot.before.norm
         sed -E 's/^"POT-Creation-Date:.+$//' locales/po/alarmmanager.pot > /tmp/alarmmanager.pot.after.norm
         diff -u /tmp/alarmmanager.pot.before.norm /tmp/alarmmanager.pot.after.norm || {
