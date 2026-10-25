@@ -30,7 +30,7 @@ function alarmmanager_admin_alert(mixed $alert): mixed {
 			'source'          => 'cacti',
 			'source_instance' => 'poller:' . $alert['collector_id'],
 			'resource_id'     => 'poller:' . $alert['collector_id'],
-			'alarm_key'       => 'admin_alert',
+			'alarm_key'       => 'admin_alert:' . $id,
 			'episode_id'      => $id,
 			'sequence'        => 1,
 			'transition'      => 'occurrence',

@@ -46,7 +46,7 @@ final class AdminAlertTest extends AlarmManagerTestCase {
 			$this->assertSame('cacti', $event['source']);
 			$this->assertSame('poller:3', $event['source_instance']);
 			$this->assertSame('poller:3', $event['resource_id']);
-			$this->assertSame('admin_alert', $event['alarm_key']);
+			$this->assertSame('admin_alert:' . $alert['event_id'], $event['alarm_key']);
 			$this->assertSame('occurrence', $event['transition']);
 			$this->assertSame('warning', $event['severity']);
 			$this->assertSame(3, $event['collector_id']);
@@ -60,6 +60,34 @@ final class AdminAlertTest extends AlarmManagerTestCase {
 			$this->assertSame($alert['message'], $event['details']);
 			$this->assertSame($alert['event_id'], $event['event_id']);
 			$this->assertSame($alert['event_id'], $event['episode_id']);
+		} finally {
+			$GLOBALS['config'] = $config;
+		}
+	}
+
+	public function testIndependentOccurrencesAreDeliveredAndRetriesStayStale(): void {
+		self::alarmmanager_test_load('includes/admin_alert.php');
+		self::alarmmanager_test_load('includes/lifecycle.php');
+		$config                                    = $GLOBALS['config'];
+		$GLOBALS['config']['poller_id']            = 3;
+		$states                                    = [];
+		$dispositions                              = [];
+		$GLOBALS['alarmmanager_test_hook_handler'] = static function ($hook, $envelope) use (&$states, &$dispositions) {
+			$event                           = $envelope['event'];
+			$key                             = alarmmanager_stream_key($event, 'centralized');
+			[$states[$key], $dispositions[]] = alarmmanager_transition($states[$key] ?? ['last_sequence' => 0], $event);
+
+			return ['status' => 'accepted'];
+		};
+
+		try {
+			$first  = $this->alert();
+			$second = array_replace($first, ['event_id' => 'admin-test-2']);
+			$this->assertSame('accepted', alarmmanager_admin_alert($first)['status']);
+			$this->assertSame('accepted', alarmmanager_admin_alert($second)['status']);
+			$this->assertSame('accepted', alarmmanager_admin_alert($first)['status']);
+			$this->assertSame(['occurrence', 'occurrence', 'stale'], $dispositions);
+			$this->assertCount(2, $states, 'Independent administrative alerts must not share sequence state.');
 		} finally {
 			$GLOBALS['config'] = $config;
 		}
