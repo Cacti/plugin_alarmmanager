@@ -35,6 +35,10 @@ function alarmmanager_endpoint_transport(array $endpoint): array {
 		throw new InvalidArgumentException('transport_not_configured');
 	}
 
+	if (array_key_exists('mapping_override', $endpoint)) {
+		$settings['mapping'] = alarmmanager_mapping_validate($endpoint['mapping_override']);
+	}
+
 	return $settings;
 }
 /** Preview deliberately does not load/decrypt secrets or invoke a transport. */

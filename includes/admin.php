@@ -195,6 +195,18 @@ function alarmmanager_admin_rule_policy(array $input): array {
 		$policy[$field] = alarmmanager_admin_int($input[$field] ?? 0, 0, 86400);
 	}
 
+	$enabled_templates = $input['template_enabled'] ?? [];
+	$templates         = $input['template_mapping'] ?? [];
+
+	if (!is_array($enabled_templates) || !array_is_list($enabled_templates) || count($enabled_templates) > 32 || !is_array($templates)) {
+		throw new InvalidArgumentException('invalid_mapping');
+	}
+
+	foreach ($enabled_templates as $destination) {
+		$id                                = alarmmanager_admin_int($destination);
+		$policy['template_overrides'][$id] = alarmmanager_admin_json($templates[$id] ?? '{}');
+	}
+
 	return alarmmanager_validate_rule_definition($policy);
 }
 

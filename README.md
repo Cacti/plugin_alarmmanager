@@ -71,6 +71,8 @@ Schema v12 stores integration IDs directly on rules and removes the routing-prof
 
 ## Notification rules
 
+Destinations provide a **Default message template**. In **Alarm Rules → Message template**, leave **Customize message for this rule** unchecked to use that default, or enable it for a selected destination to edit a copy using the same add/remove-field and combined-text controls. For example, a rule matching Cacti admin notifications can omit device Location and Contact while a device-status rule includes them; both use the same destination and credentials. Custom templates belong to the rule and destination, so changing one does not change other rules or the destination default. If several rules match the same destination, the first matching rule in priority and ID order supplies its template. Explicit destination tests use the destination default. Overrides are included in configuration export/import and Cacti replication; upgrade delivering collectors before using configurations containing this new rule option.
+
 Notifications require an enabled, matching Alarm Rule. Having an enabled integration alone does not send alarms.
 
 Open **Administration → Alarm Rules → Create a rule**. Enter a name, select one or more integrations directly, and enable the filters you need. Leave filters off to match all alarms. Device and collector pickers show names alongside IDs; sources use the names submitted by the calling plugins, such as `syslog` or `thold`.

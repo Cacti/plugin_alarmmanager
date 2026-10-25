@@ -54,7 +54,7 @@
  }
  function initMappings(app) {
   app.querySelectorAll('.alarmmanagerMapping').forEach(fieldset => {
-   const textarea=fieldset.querySelector('[name=mapping_json]'), holder=fieldset.querySelector('.alarmmanagerMappingBuilder'), form=fieldset.closest('form'), endpointType=form.querySelector('[name=type]');
+   const textarea=fieldset.querySelector('textarea[name]'), holder=fieldset.querySelector('.alarmmanagerMappingBuilder'), form=fieldset.closest('form'), endpointType=fieldset.dataset.mappingType?{value:fieldset.dataset.mappingType}:form.querySelector('[name=type]');
    const add=node('button','Add field'), status=node('p'), rows=node('div');add.type='button';holder.append(status,rows,add);
    const selectedState=()=>fieldset.dataset.mappingState||'default';
    let mapping={};
@@ -100,7 +100,14 @@
    function addField(to,source){const key=selectedState();mapping[key]??=[];if(mapping[key].length>=64){status.textContent='Maximum 64 fields per message.';return;}mapping[key].push({to,source,type:'identity',required:false});save();render();}
    add.addEventListener('click',()=>addField('field_'+((mapping[selectedState()]||[]).length+1),'device.hostname'));
    function changeType(){if(endpointType.value==='email'){mapping.default??=[];for(const item of [{to:'subject',source:'alarm.summary',type:'string',required:true},{to:'body',template:fieldset.dataset.messageTemplate,type:'string',required:false}]){if(!mapping.default.some(existing=>existing.to===item.to||existing.to.startsWith(item.to+'.')))mapping.default.push(item);}save();}render();}
-   jQuery(form).on('change','[name=type]',changeType);textarea.addEventListener('input',read);read();if(!form.querySelector('[name=id]'))changeType();
+   jQuery(form).on('change','[name=type]',changeType);textarea.addEventListener('input',read);read();if(!fieldset.dataset.mappingType&&!form.querySelector('[name=id]'))changeType();
+  });
+ }
+ function initRuleTemplates(app) {
+  app.querySelectorAll('[data-rule-template]').forEach(section=>{
+   const form=section.closest('form'),destination=form.querySelector('[data-alarm-destination][value="'+section.dataset.ruleTemplate+'"]'),toggle=section.querySelector('[name="template_enabled[]"]'),fields=section.querySelector('.alarmmanagerMapping');
+   const update=()=>{section.hidden=!destination.checked;toggle.disabled=!destination.checked;fields.disabled=!destination.checked||!toggle.checked;fields.inert=fields.disabled;};
+   destination.addEventListener('change',update);toggle.addEventListener('change',update);update();
   });
  }
  function initLists(app) {
@@ -263,7 +270,7 @@
   });
  }
  function init() {
-  const app=document.getElementById('alarmmanager_app'); if(!app||app.dataset.initialized)return;app.dataset.initialized='yes';initRuleEditors(app);initReportQuery(app);initMappings(app);initLists(app);initDeliveryIntervals(app);initAuthentication(app);initEndpointTypes(app);initServiceNow(app);
+  const app=document.getElementById('alarmmanager_app'); if(!app||app.dataset.initialized)return;app.dataset.initialized='yes';initRuleEditors(app);initReportQuery(app);initMappings(app);initRuleTemplates(app);initLists(app);initDeliveryIntervals(app);initAuthentication(app);initEndpointTypes(app);initServiceNow(app);
   app.querySelectorAll('.alarmmanagerEndpointEditor').forEach(form=>{
    form.addEventListener('submit',event=>{
     form.querySelector('[data-test-intent]')?.remove();

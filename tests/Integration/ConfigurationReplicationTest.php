@@ -76,8 +76,9 @@ final class ConfigurationReplicationTest extends AlarmManagerTestCase {
 				['id' => 3, 'name' => 'Script', 'type' => 'script', 'transport' => ['executable' => PHP_BINARY]],
 				['id' => 4, 'name' => 'Email', 'type' => 'email', 'transport' => ['to' => ['ops@example.test'], 'mapping' => ['default' => [['to' => 'subject', 'constant' => 'Alarm'], ['to' => 'message', 'source' => 'alarm.summary']]]]]
 			], 'rules' => []];
-			$alarmQuery      = json_encode(['version' => 1, 'conditions' => [['field' => 'severity', 'operator' => '=', 'value' => 'critical']]], JSON_THROW_ON_ERROR);
-			$routes['rules'] = [['id' => 1, 'name' => 'Critical alarms', 'endpoints' => [1, 2], 'policy' => ['alarm_query' => $alarmQuery]]];
+			$alarmQuery                                         = json_encode(['version' => 1, 'conditions' => [['field' => 'severity', 'operator' => '=', 'value' => 'critical']]], JSON_THROW_ON_ERROR);
+			$routes['rules']                                    = [['id' => 1, 'name' => 'Critical alarms', 'endpoints' => [1, 2], 'policy' => ['alarm_query' => $alarmQuery]]];
+			$routes['rules'][0]['policy']['template_overrides'] = [1 => ['default' => [['to' => 'text', 'source' => 'alarm.details']]]];
 			alarmmanager_apply_configuration($routes);
 			$this->assertSame('on', $connections[1]->query('SELECT requires_sync FROM poller WHERE id=2')->fetchColumn(), 'Main saves schedule native Cacti replication.');
 			alarmmanager_save_credential(2, ['headers' => ['Authorization' => 'Bearer generic-fixture']]);
@@ -104,6 +105,7 @@ final class ConfigurationReplicationTest extends AlarmManagerTestCase {
 				$definition = json_decode($db->query('SELECT definition FROM plugin_alarmmanager_configuration_history ORDER BY revision DESC LIMIT 1')->fetchColumn(), true, 24, JSON_THROW_ON_ERROR);
 				$this->assertSame($routes['device_summaries'], $definition['device_summaries'], 'Device summary settings synchronize to each collector.');
 				$this->assertSame($alarmQuery, $definition['rules'][0]['policy']['alarm_query'], 'Alarm conditions synchronize to collectors.');
+				$this->assertSame(alarmmanager_mapping_validate($routes['rules'][0]['policy']['template_overrides'][1]), $definition['rules'][0]['policy']['template_overrides'][1], 'Rule message templates synchronize with the rule.');
 				$revision = $db->query('SELECT config_revision FROM plugin_alarmmanager_schema')->fetchColumn();
 				alarmmanager_replicate_out($data);
 				$this->assertSame($revision, $db->query('SELECT config_revision FROM plugin_alarmmanager_schema')->fetchColumn(), 'Unchanged sync does not grow history.');
