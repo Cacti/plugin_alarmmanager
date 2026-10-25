@@ -15,6 +15,13 @@ final class AdminAlertTest extends AlarmManagerTestCase {
 		$alert                          = $this->alert();
 		$events                         = [];
 
+		$GLOBALS['alarmmanager_test_query_handler'] = function ($sql, $params) {
+			$this->assertSame('SELECT name FROM poller WHERE id = ?', $sql);
+			$this->assertSame([3], $params);
+
+			return [['name' => 'Main Poller']];
+		};
+
 		try {
 			foreach (['accepted', 'already_accepted', 'unhandled', 'failed', 'throw', 'invalid'] as $reply) {
 				$GLOBALS['alarmmanager_test_hook_handler'] = function ($hook, $envelope) use ($reply, $alert, &$events) {
@@ -44,10 +51,36 @@ final class AdminAlertTest extends AlarmManagerTestCase {
 			$this->assertSame('warning', $event['severity']);
 			$this->assertSame(3, $event['collector_id']);
 			$this->assertNull($event['device']['id']);
+			$this->assertSame(gethostname(), $event['device']['hostname']);
+			$this->assertSame('Main Poller', $event['device']['description']);
+			$this->assertSame('Main Poller', $event['device']['collector_name']);
+			$this->assertSame('', $event['device']['location']);
+			$this->assertSame('', $event['device']['contact']);
 			$this->assertSame($alert['subject'], $event['summary']);
 			$this->assertSame($alert['message'], $event['details']);
 			$this->assertSame($alert['event_id'], $event['event_id']);
 			$this->assertSame($alert['event_id'], $event['episode_id']);
+		} finally {
+			$GLOBALS['config'] = $config;
+		}
+	}
+
+	public function testCollectorNameFallsBackWithoutInventingDeviceIdentity(): void {
+		self::alarmmanager_test_load('includes/admin_alert.php');
+		$config                                    = $GLOBALS['config'];
+		$GLOBALS['config']['poller_id']            = 3;
+		$event                                     = null;
+		$GLOBALS['alarmmanager_test_hook_handler'] = static function ($hook, $envelope) use (&$event) {
+			$event = $envelope['event'];
+
+			return ['status' => 'accepted'];
+		};
+
+		try {
+			$this->assertSame('accepted', alarmmanager_admin_alert($this->alert())['status']);
+			$this->assertSame('Poller #3', $event['device']['description']);
+			$this->assertSame('Poller #3', $event['device']['collector_name']);
+			$this->assertNull($event['device']['id']);
 		} finally {
 			$GLOBALS['config'] = $config;
 		}

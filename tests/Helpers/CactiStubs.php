@@ -199,6 +199,10 @@ if (!function_exists('db_fetch_assoc_prepared')) {
 
 if (!function_exists('db_fetch_row_prepared')) {
 	function db_fetch_row_prepared($sql, $params = [], $log = true) {
+		if (isset($GLOBALS['alarmmanager_test_query_handler'])) {
+			return ($GLOBALS['alarmmanager_test_query_handler'])($sql, $params)[0] ?? false;
+		}
+
 		return false;
 	}
 }

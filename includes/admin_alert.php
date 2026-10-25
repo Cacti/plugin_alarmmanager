@@ -21,8 +21,11 @@ function alarmmanager_admin_alert(mixed $alert): mixed {
 			return $alert;
 		}
 
-		$id    = alarmmanager_event_token($alert['event_id'] ?? null, 128);
-		$event = alarmmanager_validate_event([
+		$id        = alarmmanager_event_token($alert['event_id'] ?? null, 128);
+		$collector = db_fetch_row_prepared('SELECT name FROM poller WHERE id = ?', [$alert['collector_id']], false);
+		$name      = ($collector['name'] ?? '') ?: ('Poller #' . $alert['collector_id']);
+		$hostname  = gethostname() ?: '';
+		$event     = alarmmanager_validate_event([
 			'event_id'        => $id,
 			'source'          => 'cacti',
 			'source_instance' => 'poller:' . $alert['collector_id'],
@@ -36,6 +39,7 @@ function alarmmanager_admin_alert(mixed $alert): mixed {
 			'collector_id'    => $alert['collector_id'],
 			'summary'         => $alert['subject'] ?? null,
 			'details'         => $alert['message'] ?? null,
+			'device'          => ['hostname' => $hostname, 'description' => $name, 'collector_name' => $name],
 			'context'         => ['source_notification_channels' => ['email']],
 		]);
 		$result = api_plugin_hook_function('alarmmanager_submit', [
