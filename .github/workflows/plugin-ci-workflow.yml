@@ -87,6 +87,7 @@ jobs:
       with:
         php-version: ${{ matrix.php }}
         extensions: intl, mysql, gd, xml, curl, json, mbstring
+        coverage: xdebug
         ini-values: "post_max_size=256M, max_execution_time=120, date.timezone=UTC"
 
     - name: Check PHP version
@@ -196,9 +197,21 @@ jobs:
         fi
 
     - name: Run Plugin Test Suite (unit lane)
+      env:
+        XDEBUG_MODE: coverage
       run: |
         cd ${{ github.workspace }}/cacti
-        include/vendor/bin/pest --configuration=plugins/alarmmanager/phpunit.xml
+        include/vendor/bin/pest --configuration=plugins/alarmmanager/phpunit.xml --coverage-clover=plugins/alarmmanager/coverage/unit.xml
+
+    - name: Require Full Coverage of Changed PHP Lines
+      if: github.event_name == 'pull_request'
+      env:
+        BASE_SHA: ${{ github.event.pull_request.base.sha }}
+      run: |
+        cd ${{ github.workspace }}/cacti/plugins/alarmmanager
+        git fetch --no-tags origin "$BASE_SHA"
+        git diff --unified=0 "$BASE_SHA"...HEAD -- '*.php' > coverage/patch.diff
+        php tests/bin/patch-coverage.php coverage/unit.xml coverage/patch.diff
 
     - name: Run Plugin Test Suite (integration lane)
       env:

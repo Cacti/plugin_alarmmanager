@@ -217,6 +217,10 @@ function alarmmanager_report_list(string $kind, array $scope, array $filters): a
 	}
 	[$where, $params] = alarmmanager_report_where($scope, $filters, $time, $severity, $kind);
 
+	// Both event and condition reports include mirrored collector history.
+	$remote = ($collector === 0 || ($collector > 1 && $collector !== alarmmanager_local_poller()))
+		&& in_array($kind, ['events', 'conditions'], true);
+
 	if ($kind === 'events') {
 		$job      = $filters['job'] ?? 'delivery';
 		$relation = match ($job) {
@@ -224,10 +228,6 @@ function alarmmanager_report_list(string $kind, array $scope, array $filters): a
 			'attempt'    => 'plugin_alarmmanager_attempts AS job INNER JOIN plugin_alarmmanager_deliveries AS delivery ON delivery.id = job.delivery_id WHERE delivery.event_row_id = e.id',
 			default      => 'plugin_alarmmanager_deliveries AS job WHERE job.event_row_id = e.id'
 		};
-		// Mirrored collector history folds into the events table by default; collector_id>0 narrows to one poller.
-
-		$remote = ($collector === 0 || ($collector > 1 && $collector !== alarmmanager_local_poller()))
-			&& in_array($kind, ['events', 'conditions'], true);
 		$checks = [];
 
 		if ($filters['status'] !== '') {
@@ -272,7 +272,7 @@ function alarmmanager_report_list(string $kind, array $scope, array $filters): a
 	$columns .= ", e.collector_id, COALESCE(NULLIF(collector.name, ''), CONCAT('Poller #', e.collector_id)) AS collector_name";
 	$offset = ($filters['page'] - 1) * 50;
 
-	if (($remote ?? false) === true) {
+	if ($remote) {
 		// Derived table keeps every e.* predicate resolvable; mirrored rows get NULL id so no Record ID is ever rendered.
 		$payload        = "JSON_UNQUOTE(JSON_EXTRACT(h.definition, '$.payload'))";
 		$remote_gate    = $collector > 1 ? ' AND h.poller_id = ?' : '';
@@ -318,7 +318,8 @@ function alarmmanager_report_list(string $kind, array $scope, array $filters): a
 	$rows = array_slice($rows, 0, 50);
 
 	if ($kind === 'events' && $rows) {
-		$ids = array_values(array_filter(array_column($rows, 'id'), 'is_int'));
+		// PDO can return BIGINT identifiers as strings; NULL identifies remote history.
+		$ids = array_values(array_filter(array_map('intval', array_column($rows, 'id'))));
 
 		foreach ($rows as &$row) {
 			$row['integration_status'] = $row['id'] === null ? __('Remote history', 'alarmmanager') : '';
