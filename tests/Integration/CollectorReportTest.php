@@ -14,9 +14,9 @@ final class CollectorReportTest extends AlarmManagerTestCase {
 		self::alarmmanager_test_load('includes/schema.php');
 		self::alarmmanager_test_load('includes/ingestion.php');
 		self::alarmmanager_test_load('includes/reports.php');
-		$db = alarmmanager_test_connect();
+		$db                              = alarmmanager_test_connect();
 		$GLOBALS['alarmmanager_test_db'] = $db;
-		$name = 'alarmmanager_test_' . bin2hex(random_bytes(6));
+		$name                            = 'alarmmanager_test_' . bin2hex(random_bytes(6));
 		$db->exec("CREATE DATABASE `$name`");
 		$db->exec("USE `$name`");
 
@@ -24,13 +24,13 @@ final class CollectorReportTest extends AlarmManagerTestCase {
 			$this->assertTrue(alarmmanager_schema_install());
 			$db->exec('CREATE TABLE poller (id INT PRIMARY KEY, name VARCHAR(128))');
 			$db->exec("INSERT INTO poller VALUES (1, 'Main collector'), (3, 'Remote collector')");
-			$event = json_decode(file_get_contents(dirname(__DIR__, 2) . '/examples/event.json'), true, 32, JSON_THROW_ON_ERROR);
+			$event                 = json_decode(file_get_contents(dirname(__DIR__, 2) . '/examples/event.json'), true, 32, JSON_THROW_ON_ERROR);
 			$event['collector_id'] = 3;
 			$event['device']['id'] = 42;
-			$event = alarmmanager_validate_event($event);
+			$event                 = alarmmanager_validate_event($event);
 			alarmmanager_transaction(static fn () => alarmmanager_persist_event($event, 'centralized', 1));
 			$filters = alarmmanager_report_filters(['until' => time() + 1]);
-			$scope = ['device_sql' => 'e.device_id = 42'];
+			$scope   = ['device_sql' => 'e.device_id = 42'];
 
 			foreach (['events', 'processing'] as $kind) {
 				$row = alarmmanager_report_list($kind, $scope, $filters)['rows'][0];

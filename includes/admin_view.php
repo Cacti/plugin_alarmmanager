@@ -49,6 +49,7 @@ function alarmmanager_textarea(string $key, string $label, string $value, int $l
 function alarmmanager_json_text($value): string {
 	return json_encode($value ?: new stdClass(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
 }
+/** @param array<string, string> $summaries */
 function alarmmanager_endpoint_editor(array $endpoint, int $revision, bool $new = false, array $summaries = []): void {
 	print '<details class="alarmmanagerDashboardCard" ' . ($new ? 'open' : '') . '><summary>' . html_escape($new ? __('New endpoint', 'alarmmanager') : $endpoint['name']) . '</summary>';
 	alarmmanager_form_start('endpoint_save', $revision, $new ? [] : ['id' => $endpoint['id']]);

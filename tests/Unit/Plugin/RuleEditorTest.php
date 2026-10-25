@@ -24,10 +24,14 @@
 final class RuleEditorTest extends AlarmManagerTestCase {
 	public function testEndpointTestingIsInTheEditor(): void {
 		self::alarmmanager_test_load('includes/admin_view.php');
+
 		if (!function_exists('csrf_get_tokens')) {
-			function csrf_get_tokens() { return 'unit-test'; }
+			function csrf_get_tokens() {
+				return 'unit-test';
+			}
 		}
 		ob_start();
+
 		try {
 			alarmmanager_endpoint_editor(['id' => 7, 'name' => 'Destination', 'type' => 'webhook', 'enabled' => true, 'transport' => []], 1);
 			$html = ob_get_contents();
@@ -53,10 +57,14 @@ final class RuleEditorTest extends AlarmManagerTestCase {
 
 	public function testConfigurationHasOneSettingsFormAndFileImport(): void {
 		self::alarmmanager_test_load('includes/admin_view.php');
+
 		if (!function_exists('csrf_get_tokens')) {
-			function csrf_get_tokens() { return 'unit-test'; }
+			function csrf_get_tokens() {
+				return 'unit-test';
+			}
 		}
 		ob_start();
+
 		try {
 			alarmmanager_admin_markup(['revision' => 1, 'configuration' => ['version' => 1, 'endpoints' => [], 'rules' => []]], 'configuration');
 			$html = ob_get_contents();
@@ -68,6 +76,7 @@ final class RuleEditorTest extends AlarmManagerTestCase {
 		$xpath = new DOMXPath($document);
 		$this->assertSame(1, $xpath->query('//form[input[@name="action" and @value="settings_save"]]')->length);
 		$this->assertSame(1, $xpath->query('//form[input[@value="settings_save"]]//button[@type="submit"]')->length);
+
 		foreach (['offline_summary', 'recovering_summary', 'online_summary', 'daemon_enabled', 'processing_workers', 'delivery_workers'] as $field) {
 			$this->assertSame(1, $xpath->query('//form[input[@value="settings_save"]]//input[@name="' . $field . '"]')->length);
 		}
@@ -81,6 +90,7 @@ final class RuleEditorTest extends AlarmManagerTestCase {
 
 	public function testConfigurationUploadRejectsMissingFailedAndLocalFiles(): void {
 		self::alarmmanager_test_load('includes/admin.php');
+
 		foreach ([[], ['error' => UPLOAD_ERR_INI_SIZE], ['error' => UPLOAD_ERR_OK, 'tmp_name' => __FILE__], ['error' => UPLOAD_ERR_OK, 'tmp_name' => []]] as $file) {
 			try {
 				alarmmanager_admin_configuration_upload($file);

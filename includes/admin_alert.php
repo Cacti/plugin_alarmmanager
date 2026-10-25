@@ -4,7 +4,7 @@
 require_once(__DIR__ . '/events.php');
 
 /** Functional admin_alert hook: only durable ingestion claims notification ownership. */
-function alarmmanager_admin_alert($alert) {
+function alarmmanager_admin_alert(mixed $alert): mixed {
 	global $config;
 	static $active = false;
 
@@ -21,7 +21,7 @@ function alarmmanager_admin_alert($alert) {
 			return $alert;
 		}
 
-		$id = alarmmanager_event_token($alert['event_id'] ?? null, 128);
+		$id    = alarmmanager_event_token($alert['event_id'] ?? null, 128);
 		$event = alarmmanager_validate_event([
 			'event_id'        => $id,
 			'source'          => 'cacti',

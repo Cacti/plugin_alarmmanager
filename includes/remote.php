@@ -249,7 +249,7 @@ function alarmmanager_sync_receive(string $body, int $poller, ?PDO $connection =
 	}
 	unset($record);
 	$digest = hash('sha256', $body);
-	alarmmanager_transaction(function () use ($packet, $digest, $poller, $connection): void {
+	alarmmanager_transaction(function () use ($packet, $poller, $connection): void {
 		alarmmanager_db_write("INSERT INTO plugin_alarmmanager_sync_peers (poller_id, instance_uuid, key_file, last_seen, enabled) VALUES (?, ?, '', UTC_TIMESTAMP(6), 1) ON DUPLICATE KEY UPDATE instance_uuid = VALUES(instance_uuid), last_seen = VALUES(last_seen), enabled = 1", [$poller, $packet['instance_uuid']], $connection);
 
 		if ($packet['heartbeat'] ?? false) {

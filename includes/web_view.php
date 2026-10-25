@@ -212,6 +212,7 @@ function alarmmanager_web_filters(array $filters, string $tab, bool $dashboard =
 	html_end_box(false);
 	print '<p class="alarmmanagerHint">' . __esc('Historical window uses UTC. Current conditions and queues ignore the time window.', 'alarmmanager') . '</p>';
 }
+/** @return list<array<string, mixed>> */
 function alarmmanager_view_collectors(): array {
 	return alarmmanager_db_rows('SELECT p.id AS poller_id, p.name FROM poller AS p WHERE p.id > 1 AND EXISTS (SELECT 1 FROM plugin_alarmmanager_remote_history AS h WHERE h.poller_id = p.id) ORDER BY p.name, p.id LIMIT 20');
 }

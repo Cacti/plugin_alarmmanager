@@ -4,7 +4,7 @@
 final class AdminAlertTest extends AlarmManagerTestCase {
 	public function testAdminAlertContractAndFallback(): void {
 		$handler = var_export(dirname(__DIR__, 3) . '/includes/admin_alert.php', true);
-		$script = '<?php require ' . $handler . ';' . <<<'CODE'
+		$script  = '<?php require ' . $handler . ';' . <<<'CODE'
 		$config = ['poller_id' => 3];
 		$alert = ['contract_version' => 1, 'status' => 'unhandled', 'event_id' => 'admin-test-1',
 			'occurred_at' => '2026-10-25T12:00:00Z', 'collector_id' => 3,
@@ -42,7 +42,7 @@ final class AdminAlertTest extends AlarmManagerTestCase {
 		fwrite($pipes[0], $script);
 		fclose($pipes[0]);
 		$output = stream_get_contents($pipes[1]);
-		$error = stream_get_contents($pipes[2]);
+		$error  = stream_get_contents($pipes[2]);
 		fclose($pipes[1]);
 		fclose($pipes[2]);
 		$this->assertSame(0, proc_close($process), $error);
