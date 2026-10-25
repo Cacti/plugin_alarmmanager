@@ -71,7 +71,14 @@ function plugin_alarmmanager_upgrade(): bool {
 	$stored  = db_fetch_cell_prepared('SELECT version FROM plugin_config WHERE directory = ?', ['alarmmanager'], '', false);
 
 	if (is_string($stored) && version_compare($stored, $version, '>=') && alarmmanager_schema_ready()) {
-		return alarmmanager_key_ready();
+		if (!alarmmanager_key_ready()) {
+			return false;
+		}
+		// Pulling new files at the same version must not leave the admin hook missing.
+		$registered = (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_hooks WHERE name = ? AND hook = ? AND function = ? AND file = ?',
+			['alarmmanager', 'admin_alert', 'alarmmanager_admin_alert', 'includes/admin_alert.php'], '', false);
+
+		return $registered === 1 || alarmmanager_registration_setup((int) db_fetch_cell_prepared('SELECT status FROM plugin_config WHERE directory = ?', ['alarmmanager'], '', false) === 1);
 	}
 
 	if (!alarmmanager_key_ready() || !alarmmanager_schema_install()) {

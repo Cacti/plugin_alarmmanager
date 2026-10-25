@@ -63,6 +63,10 @@ if (!function_exists('db_fetch_cell_prepared')) {
 			return str_repeat('a', 32);
 		}
 
+		if (str_contains($sql, 'COUNT(*) FROM plugin_hooks') && str_contains($sql, 'AND hook = ?')) {
+			return in_array($params[1], $GLOBALS['alarmmanager_test_hooks'], true) ? 1 : 0;
+		}
+
 		if (str_contains($sql, 'COUNT(*) FROM plugin_hooks')) {
 			return count(array_unique($GLOBALS['alarmmanager_test_hooks']));
 		}
