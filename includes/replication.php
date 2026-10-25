@@ -68,7 +68,6 @@ function alarmmanager_replicate_out(mixed $data): mixed {
 				}
 			});
 		}
-
 	}
 
 	return $data;

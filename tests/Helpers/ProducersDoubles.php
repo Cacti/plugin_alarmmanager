@@ -258,22 +258,21 @@ namespace {
 
 	if (!function_exists('alarmmanager_test_producer_namespace_prefix')) {
 		/**
-		 * Return the alias prologue for one producer double namespace.
+		 * Return the import prologue for one producer double namespace.
 		 *
 		 * Namespaced producer code compiled by eval() binds unqualified class
 		 * names to its own namespace with no global fallback, so the global
 		 * bridge double and the few core classes the pinned code references
-		 * are aliased into the namespace before the source segment.
+		 * are imported into the namespace before the source segment.
 		 *
 		 * @param string $namespace Double namespace for the segment.
 		 */
 		function alarmmanager_test_producer_namespace_prefix(string $namespace): string {
 			$prefix = 'namespace ' . $namespace . ';';
 
+			// Imports support internal classes on PHP 8.2 and apply to each evaluated segment.
 			foreach (['AlarmManagerProducerBridge', 'Throwable', 'Exception', 'RuntimeException', 'DateTimeImmutable', 'DateTimeZone', 'DateTime'] as $class) {
-				if (!class_exists($namespace . '\\' . $class, false) && !interface_exists($namespace . '\\' . $class, false) && !enum_exists($namespace . '\\' . $class, false)) {
-					$prefix .= 'if (!class_exists(' . var_export($namespace . '\\' . $class, true) . ', false) && !interface_exists(' . var_export($namespace . '\\' . $class, true) . ', false) && !enum_exists(' . var_export($namespace . '\\' . $class, true) . ', false)) { class_alias(' . var_export('\\' . $class, true) . ', ' . var_export($namespace . '\\' . $class, true) . '); }';
-				}
+				$prefix .= 'use \\' . $class . ';';
 			}
 
 			return $prefix;

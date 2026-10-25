@@ -75,7 +75,7 @@ final class RemoteTest extends AlarmManagerTestCase {
 			$this->assertSame(3, count(array_unique($ids)), 'independent durable node identities');
 			$this->assertNotSame($keys[2], $keys[1], 'remote setup key independent');
 			$this->ruse(1);
-			$routes = json_decode(file_get_contents(__DIR__ . '/../../examples/routing-delivery.json'), true);
+			$routes = json_decode(file_get_contents(__DIR__ . '/../fixtures/routing-delivery.json'), true);
 
 			foreach ($routes['endpoints'] as &$endpoint) {
 				$endpoint['transport']['credential'] = true;

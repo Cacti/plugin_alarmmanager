@@ -76,7 +76,7 @@ final class CactiMailerTest extends AlarmManagerTestCase {
 			 */
 			$bootstrap    = '<?php if (($conn_mode ?? null) !== "offline") { throw new RuntimeException("main_connection_attempted"); } define("CACTI_WEB", false); $config = '
 				. var_export($child_config, true) . '; $cacti_locale = "en-US"; $mail_methods = [2 => "SMTP"]; require_once '
-				. var_export($cacti . '/include/global_constants.php', true) . '; require_once ' . var_export($cacti . '/include/global_path.php', true) . '; require_once '
+				. var_export($cacti . '/include/global_constants.php', true) . '; if (is_file(' . var_export($cacti . '/include/global_path.php', true) . ')) { require_once ' . var_export($cacti . '/include/global_path.php', true) . '; } require_once '
 				. var_export($cacti . '/lib/functions.php', true) . '; require_once ' . var_export($cacti . '/lib/html_utility.php', true) . '; require_once '
 				. var_export($cacti . '/lib/database.php', true) . '; require_once ' . var_export($cacti . '/include/vendor/autoload.php', true) . '; require_once '
 				. var_export($cacti . '/include/global_languages.php', true) . ';';

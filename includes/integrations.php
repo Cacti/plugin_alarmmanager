@@ -73,6 +73,11 @@ function alarmmanager_integration_templates(): array {
 				['to' => 'channel', 'constant' => 'REPLACE-WITH-CHANNEL', 'type' => 'string', 'required' => true],
 				['to' => 'text', 'template' => alarmmanager_message_template(), 'type' => 'string', 'required' => true]
 			]]]],
+		'teams' => ['name' => 'Microsoft Teams (Workflows)', 'type' => 'webhook', 'auth' => 'teams',
+			'hint'            => 'In Teams Workflows, create Send webhook alerts to a channel with Anyone authentication. Sign in, select the channel, and add a co-owner. Paste the generated URL under Authentication. Save the disabled draft, review Preview, then enable and Test destination. Check workflow run history and the channel: HTTP acceptance does not confirm a Teams post. Tenant-authenticated triggers are not supported.',
+			'transport'       => ['url' => 'https://teams.workflow.invalid', 'method' => 'POST', 'credential' => true, 'teams_workflow' => true, 'mapping' => ['default' => [
+				['to' => 'text', 'template' => alarmmanager_message_template() . "\nSource: {{event.source}}\nCollector: {{event.collector_id}} {{device.collector_name}}\nEpisode: {{alarm.episode_id}}\nAlarm key: {{alarm.key}}", 'type' => 'string', 'required' => true]
+			]]]],
 		'telegram' => ['name' => 'Telegram bot', 'type' => 'webhook',
 			'hint'               => 'Replace the bot token in the URL and the chat ID constant before enabling; no credential record is used.',
 			'transport'          => ['url' => 'https://api.telegram.org/botREPLACE-WITH-TOKEN/sendMessage', 'method' => 'POST', 'credential' => false, 'response_match' => ['path' => 'ok', 'equals' => true], 'mapping' => ['default' => [
@@ -241,4 +246,31 @@ function alarmmanager_delivery_reference(array $event, int $endpoint_id, ?array 
 	$row = alarmmanager_db_row("SELECT d.external_reference FROM plugin_alarmmanager_deliveries AS d INNER JOIN plugin_alarmmanager_events AS e ON e.id = d.event_row_id WHERE d.endpoint_id = ? AND d.stream_key = ? AND e.episode_id = ? AND e.sequence < ? AND d.status = 'completed' AND d.external_reference IS NOT NULL ORDER BY e.sequence DESC, d.id DESC LIMIT 1", [$endpoint_id, alarmmanager_stream_key($event, 'centralized'), $event['episode_id'], $event['sequence']]);
 
 	return $row ? alarmmanager_external_reference_validate(json_decode($row['external_reference'], true, 8, JSON_THROW_ON_ERROR)) : [];
+}
+
+/**
+ * Keep the editable Combined text field while emitting the Workflows Adaptive Card envelope.
+ * @param array<string, mixed> $settings
+ * @param array<string, mixed> $event
+ * @param array<string, mixed> $reference
+ */
+function alarmmanager_notification_payload(array $settings, array $event, array $reference = []): stdClass {
+	$payload = alarmmanager_map_payload($settings['mapping'], $event, $reference);
+
+	if (!empty($settings['teams_workflow'])) {
+		if (!is_string($payload->text ?? null) || $payload->text === '') {
+			throw new InvalidArgumentException('teams_message_required');
+		}
+		$payload = (object) ['type' => 'message', 'attachments' => [
+			['contentType' => 'application/vnd.microsoft.card.adaptive', 'contentUrl' => null,
+				'content'     => ['type' => 'AdaptiveCard', 'version' => '1.2', '$schema' => 'http://adaptivecards.io/schemas/adaptive-card.json',
+					'body'                  => [['type' => 'TextBlock', 'text' => $payload->text, 'wrap' => true]]]]
+		]];
+	}
+
+	if (!empty($settings['teams_workflow']) && strlen(json_encode($payload, JSON_THROW_ON_ERROR)) > 28000) {
+		throw new InvalidArgumentException('teams_message_too_large');
+	}
+
+	return $payload;
 }

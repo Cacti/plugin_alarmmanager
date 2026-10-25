@@ -98,7 +98,7 @@ jobs:
     # fping is required by Cacti's pre-install path check (cli/install_cacti.php
     # refuses to continue without it), so the Cacti install step needs it present.
     - name: Install System Dependencies
-      run: sudo apt-get install -y fping rrdtool
+      run: sudo apt-get install -y fping rrdtool gettext
 
     - name: Setup Permissions
       run: |
@@ -203,8 +203,9 @@ jobs:
     - name: Run Plugin Test Suite (integration lane)
       env:
         ALARMMANAGER_TEST_DSN: 'mysql:host=127.0.0.1;port=3306;dbname=alarmmanager_test;charset=utf8mb4'
-        ALARMMANAGER_TEST_USER: cactiuser
-        ALARMMANAGER_TEST_PASSWORD: cactiuser
+        # Fixtures create and drop random databases in this disposable service.
+        ALARMMANAGER_TEST_USER: root
+        ALARMMANAGER_TEST_PASSWORD: cactiroot
         ALARMMANAGER_TEST_ALLOW_CREATE: '1'
       run: |
         cd ${{ github.workspace }}/cacti
@@ -214,7 +215,7 @@ jobs:
       run: |
         cd ${{ github.workspace }}/cacti/plugins/alarmmanager
         cp locales/po/alarmmanager.pot /tmp/alarmmanager.pot.before
-        locales/build_gettext.sh >/dev/null
+        sh locales/build_gettext.sh
         sed -E 's/^"POT-Creation-Date:.+$//' /tmp/alarmmanager.pot.before > /tmp/alarmmanager.pot.before.norm
         sed -E 's/^"POT-Creation-Date:.+$//' locales/po/alarmmanager.pot > /tmp/alarmmanager.pot.after.norm
         diff -u /tmp/alarmmanager.pot.before.norm /tmp/alarmmanager.pot.after.norm || {
@@ -240,4 +241,7 @@ jobs:
       if: matrix.cacti == 'develop'
       run: |
         cd ${{ github.workspace }}/cacti/plugins/alarmmanager
+        # Root-run install/poller steps can create a log the runner cannot write.
+        sudo chown www-data:runner "$CACTI_PATH/log/cacti.log"
+        sudo chmod 664 "$CACTI_PATH/log/cacti.log"
         ../../include/vendor/bin/phpstan analyse --configuration=.phpstan.neon --no-progress

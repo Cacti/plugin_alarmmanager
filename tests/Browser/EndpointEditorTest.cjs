@@ -58,6 +58,15 @@ const render=endpoint=>execFileSync('php',['-r',`function __($s,...$a){return $s
    const refs=page.locator('.alarmmanagerMappingRow').filter({has:page.locator('select option[value="integration.id"]:checked')});
    check(await refs.count()===(template.transport.mapping.default||[]).filter(field=>field.source==='integration.id').length,'External reference rows match the selected template');
   }
+  await load({...templates.teams,enabled:false});
+  check(await page.locator('[name=auth_type]').inputValue()==='teams','Teams selects encrypted workflow URL authentication');
+  const teamsSecret=page.locator('[name=teams_webhook_url]');
+  check(await teamsSecret.isVisible(),'Teams secret control is visible');
+  check(await teamsSecret.getAttribute('type')==='password','Workflow URL uses a password control');
+  check(await teamsSecret.inputValue()==='','Saved workflow URL is never rendered');
+  check(await page.locator('[data-integration-hint]').innerText().then(text=>text.includes('Anyone')&&text.includes('co-owner')),'Teams setup explains authentication and ownership');
+  const teamsData=await page.locator('form:has([name=action][value=endpoint_save])').evaluate(form=>Object.fromEntries(new FormData(form)));
+  check(teamsData.auth_type==='teams'&&JSON.parse(teamsData.transport_json).teams_workflow,'Draft preserves Teams transport and authentication');
   await load({...templates.servicenow,enabled:false});
   const serviceForm=page.locator('form:has([name=action][value=endpoint_save])'), table=serviceForm.locator('[name=servicenow_table]');
   check(await table.inputValue()==='incident','ServiceNow starts with Incident selected');

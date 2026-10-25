@@ -137,7 +137,7 @@ try {
 	if (!plugin_alarmmanager_install()) {
 		throw new RuntimeException('install_failure');
 	}
-	$routes = json_decode(file_get_contents(__DIR__ . '/../../examples/routing.json'), true, 32, JSON_THROW_ON_ERROR);
+	$routes = json_decode(file_get_contents(__DIR__ . '/../fixtures/routing.json'), true, 32, JSON_THROW_ON_ERROR);
 	alarmmanager_apply_configuration($routes);
 	$sample  = json_decode(file_get_contents(__DIR__ . '/../../examples/event.json'), true, 32, JSON_THROW_ON_ERROR);
 	$started = microtime(true);

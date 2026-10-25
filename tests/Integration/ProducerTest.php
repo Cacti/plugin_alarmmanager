@@ -169,7 +169,7 @@ final class ProducerTest extends AlarmManagerTestCase {
 			$this->assertNotSame(end($rows)['episode_id'], $recovery['episode_id'], 'new episode after recovery');
 			$this->producer_policy('syslog', 'default', 0, 'centralized', ['email', 'ticket', 'script'], true);
 			$this->assertTrue($this->producer_publish('syslog-occurrence', 'occurrence', false, 'syslog')['owned'], 'syslog occurrence');
-			$fixture = json_decode(file_get_contents(__DIR__ . '/../../examples/routing-delivery.json'), true, 24, JSON_THROW_ON_ERROR);
+			$fixture = json_decode(file_get_contents(__DIR__ . '/../fixtures/routing-delivery.json'), true, 24, JSON_THROW_ON_ERROR);
 
 			foreach ($fixture['endpoints'] as &$endpoint) {
 				unset($endpoint['transport']);

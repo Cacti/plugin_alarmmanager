@@ -1,317 +1,1624 @@
 /*
  +-------------------------------------------------------------------------+
- | Dashboard grid/card/render conventions adapted from                     |
- | Cacti plugin_syslog js/dashboard.js at                                  |
- | be1a8151c21ff81684d0e8ca0f9f0a78a8d48f27.                               |
- | Copyright (C) 2004-2026 The Cacti Group. Adaptation copyright 2026      |
- | Sean Mancini, distributed under GPL-2.0-or-later.                       |
+ | Copyright (C) 2004-2026 The Cacti Group                                 |
  |                                                                         |
  | This program is free software; you can redistribute it and/or           |
  | modify it under the terms of the GNU General Public License             |
  | as published by the Free Software Foundation; either version 2          |
  | of the License, or (at your option) any later version.                  |
  |                                                                         |
- | Uses Cacti's locally bundled d3/billboard; no syslog runtime dependency.|
- | https://github.com/bmfmancini/plugin_alarmmanager                       |
+ | This program is distributed in the hope that it will be useful,         |
+ | but WITHOUT ANY WARRANTY; without even the implied warranty of          |
+ | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           |
+ | GNU General Public License for more details.                            |
+ +-------------------------------------------------------------------------+
+ | Cacti: The Complete RRDTool-based Graphing Solution                     |
+ +-------------------------------------------------------------------------+
+ | This code is designed, written, and maintained by the Cacti Group. See  |
+ | about.php and/or the AUTHORS file for specific developer information.   |
+ +-------------------------------------------------------------------------+
+ | http://www.cacti.net/                                                   |
  +-------------------------------------------------------------------------+
 */
+
 (() => {
- 'use strict';
- const sourceFields = ['event.id','event.source','event.source_instance','event.collector_id','event.occurred_at','alarm.resource_id','alarm.key','alarm.episode_id','alarm.sequence','alarm.transition','alarm.severity','alarm.summary','alarm.details','device.id','device.hostname','device.description','device.location','device.contact','device.sysname','device.tags','context.rule_name','context.rule_type','context.metric','context.metric_value','context.threshold','context.suppression_reason','context.source_suppressed','context.source_notification_channels','context.ownership_epoch','integration.id','integration.url','device.cacti_location','device.collector_name','device.external_id','device.snmp_sysUpTimeInstance','device.uptime','device.status_fail_date','device.status_rec_date','device.status_last_error'];
- function node(tag, text, className) { const el=document.createElement(tag); if(text!==undefined) el.textContent=text; if(className) el.className=className; return el; }
- const palette=['#2278ad','#e67e22','#329c60','#d43f3a','#8e63aa','#19a2a5','#ad795b','#7b8994','#c4a132','#5d88b3'];
- const colorMaps={transitions:{raised:'#d43f3a',recovered:'#329c60',occurrence:'#2278ad',updated:'#8e63aa',reminder:'#e67e22'},severity:{critical:'#d43f3a',major:'#e67e22',minor:'#b89822',warning:'#c39b13',info:'#2278ad',clear:'#329c60'},deliveries:{completed:'#329c60',failed:'#d43f3a',pending:'#7b8994',leased:'#2278ad'},attempts:{success:'#329c60',failure:'#d43f3a',retry:'#e67e22',abandoned:'#7b8994',in_progress:'#2278ad'}};
- function color(panel,label,index){const value=colorMaps[panel]?.[label];return typeof value==='string'?value:palette[index%palette.length];}
- const fieldLabels = ['Event ID','Alarm source','Source instance','Collector ID','Time of alarm','Resource ID','Alarm key','Alarm episode ID','Alarm sequence','Alarm state','Severity','Alarm summary','Alarm details','Device ID','Hostname','Device description','SNMP location','Device contact','Device system name','Device tags','Rule name','Rule type','Metric','Metric value','Threshold','Suppression reason','Source suppressed','Source notification channels','Ownership version','Integration record ID','Integration record URL','Cacti location','Collector name','Device external ID','Last known SNMP uptime (ticks)','Last known SNMP uptime','Last failed datetime','Last restored datetime','Last status error'];
- function messageEditor(template, summary) {
-  template.setAttribute('aria-label','Template syntax');
-  const group=node('div',undefined,'alarmmanagerCombinedText'), label=node('label','Combined text'), editor=node('div',undefined,'alarmmanagerMessageEditor');
-  editor.contentEditable='true';editor.setAttribute('role','textbox');editor.setAttribute('aria-label','Combined text');editor.setAttribute('aria-multiline','true');label.append(editor);
-  const picker=node('details'), toggle=node('summary','Insert field'), search=node('input'), choices=node('div',undefined,'alarmmanagerFieldChoices');
-  search.type='search';search.placeholder='Search fields';search.setAttribute('aria-label','Search message fields');picker.append(toggle,search,choices);
-  const preview=node('pre',undefined,'alarmmanagerMessagePreview');preview.setAttribute('aria-label','Sample message preview');
-  const raw=node('details');raw.append(node('summary','Template syntax'),template.parentElement);group.append(label,picker,node('small','Sample preview — example values, not live device data'),preview,raw);
-  let caret=null;
-  const labelFor=field=>fieldLabels[sourceFields.indexOf(field)]||field;
-  const textOf=element=>Array.from(element.childNodes).map(child=>{
-   if(child.nodeType===Node.TEXT_NODE)return child.textContent;
-   if(child.dataset?.field)return '{{'+child.dataset.field+'}}';
-   if(child.nodeName==='BR')return child===element.lastChild?'':'\n';
-   return (['DIV','P'].includes(child.nodeName)&&child.previousSibling?'\n':'')+textOf(child);
-  }).join('');
-  function remember(){const selection=getSelection();if(selection.rangeCount&&editor.contains(selection.anchorNode))caret=selection.getRangeAt(0).cloneRange();}
-  function chip(field){const tag=node('span',labelFor(field),'alarmmanagerMessageChip');tag.dataset.field=field;tag.contentEditable='false';tag.tabIndex=0;tag.setAttribute('role','button');tag.setAttribute('aria-label',labelFor(field)+'. Press Delete to remove');tag.addEventListener('keydown',event=>{if(['Backspace','Delete'].includes(event.key)){event.preventDefault();tag.remove();sync();editor.focus();}});return tag;}
-  function draw(){editor.replaceChildren();const pattern=/{{([^{}]*)}}/g;let last=0;for(const match of template.value.matchAll(pattern)){editor.append(document.createTextNode(template.value.slice(last,match.index)));const field=match[1].trim();editor.append(sourceFields.includes(field)?chip(field):document.createTextNode(match[0]));last=match.index+match[0].length;}editor.append(document.createTextNode(template.value.slice(last)));caret=null;showPreview();}
-  function showPreview(){const samples={'device.hostname':'router.example.test','device.description':'Core router','device.location':'Toronto DC','device.contact':'Network team','device.sysname':'edge-01','device.id':'42','alarm.summary':summary,'alarm.transition':'raised','alarm.severity':'major','event.occurred_at':'2026-10-14T12:00:00Z'};preview.textContent=template.value.replace(/{{([^{}]*)}}/g,(_,field)=>samples[field.trim()]??'['+labelFor(field.trim())+' sample]');}
-  function sync(){template.value=textOf(editor);template.dispatchEvent(new Event('input',{bubbles:true}));showPreview();remember();}
-  function insert(content){editor.focus();const selection=getSelection(), range=caret&&editor.contains(caret.startContainer)?caret:document.createRange();if(!caret||!editor.contains(range.startContainer)){range.selectNodeContents(editor);range.collapse(false);}range.deleteContents();range.insertNode(content);range.setStartAfter(content);range.collapse(true);selection.removeAllRanges();selection.addRange(range);caret=range.cloneRange();sync();}
-  function filter(){choices.replaceChildren();sourceFields.filter(field=>!['device.tags','context.source_notification_channels'].includes(field)&&labelFor(field).toLowerCase().includes(search.value.toLowerCase())).forEach(field=>{const button=node('button',labelFor(field));button.type='button';button.addEventListener('click',()=>{insert(chip(field));picker.open=false;});choices.append(button);});if(!choices.children.length)choices.append(node('p','No matching fields'));}
-  editor.addEventListener('input',sync);editor.addEventListener('keyup',remember);editor.addEventListener('mouseup',remember);editor.addEventListener('blur',remember);
-  editor.addEventListener('paste',event=>{event.preventDefault();remember();insert(document.createTextNode(event.clipboardData.getData('text/plain')));});
-  editor.addEventListener('drop',event=>{event.preventDefault();insert(document.createTextNode(event.dataTransfer.getData('text/plain')));});
-  template.addEventListener('input',()=>{if(document.activeElement!==editor)draw();});search.addEventListener('input',filter);picker.addEventListener('toggle',()=>{if(picker.open)search.focus();});
-  filter();draw();return {group,refresh:draw,focus:()=>editor.focus()};
- }
- function initMappings(app) {
-  app.querySelectorAll('.alarmmanagerMapping').forEach(fieldset => {
-   const textarea=fieldset.querySelector('[name=mapping_json]'), holder=fieldset.querySelector('.alarmmanagerMappingBuilder'), form=fieldset.closest('form'), endpointType=form.querySelector('[name=type]');
-   const add=node('button','Add field'), status=node('p'), rows=node('div');add.type='button';holder.append(status,rows,add);
-   const selectedState=()=>fieldset.dataset.mappingState||'default';
-   let mapping={};
-   const parseValue=text=>{try{return JSON.parse(text);}catch{return text;}};
-   const save=()=>{textarea.value=JSON.stringify(mapping,null,2);};
-   function render() {
-    rows.replaceChildren(); const selected=selectedState(), email=endpointType.value==='email';add.hidden=email;status.textContent='';
-    const items=mapping[selected] || [], extraEmail=node('details');extraEmail.append(node('summary','Additional message fields'));
-    items.forEach((item,index)=>{
-     const row=node('div',undefined,'alarmmanagerMappingRow');
-     function control(label,element,parent=row) { const wrap=node('label',label);wrap.append(element);parent.append(wrap);return element; }
-     const path=control('Destination Field Name',node('input'));path.value=item.to||'';path.maxLength=191;
-     if(email&&['subject','body'].includes(item.to)){path.parentElement.hidden=true;row.append(node('strong',item.to==='subject'?'Subject':'Message'));}
-     const source=control('Cacti Value',node('select'));source.setAttribute('aria-label','Cacti Value');['constant','template',...sourceFields].forEach((key,i)=>{const o=node('option',i===0?'Custom value':i===1?'Combined text':fieldLabels[i-2]||key);o.value=key;source.append(o);});source.value='template' in item?'template':item.source||'constant';
-     const constant=control(email&&item.to==='body'?'Message text':'Custom value',node(email&&item.to==='body'?'textarea':'input')); constant.value='constant' in item ? (typeof item.constant==='string'?item.constant:JSON.stringify(item.constant)):'';
-     const template=control('Combined text',node('textarea'));template.value=item.template||'';template.maxLength=16384;template.placeholder='Device {{device.id}} with description {{device.description}} went down at {{event.occurred_at}}';
-     const chips=messageEditor(template,fieldset.dataset.alarmSummary), templateGroup=chips.group;row.append(templateGroup);
-     const deviceMessage=node('button','Use device message');deviceMessage.type='button';row.append(deviceMessage);
-     deviceMessage.addEventListener('click',()=>{source.value='template';template.value=fieldset.dataset.messageTemplate;type.value='string';update();chips.refresh();chips.focus();});
-     const options=node('details');options.className='alarmmanagerFieldOptions';options.append(node('summary','Field options'));row.append(options);
-     const type=control('Value format',node('select'),options);['identity','string','integer','number','boolean','html'].forEach((key,i)=>{const o=node('option',['Keep original value','Text','Whole number','Number','Yes / no','HTML-escaped text'][i]);o.value=key;type.append(o);});type.value=item.type||'identity';
-     const fallback=control('Use when missing',node('input'),options);fallback.value='default' in item ? JSON.stringify(item.default):'';
-     const values=control('Value replacements (JSON)',node('input'),options);values.value=item.values?JSON.stringify(item.values):'';
-     const required=control('Fail delivery if missing',node('input'),options);required.type='checkbox';required.checked=!!item.required;
-     const remove=node('button','Remove field');remove.type='button';remove.hidden=email&&['subject','body'].includes(item.to);row.append(remove);
-     function update(event) {
-      constant.parentElement.hidden=source.value!=='constant';templateGroup.hidden=source.value!=='template';
-      const fresh={...item,to:path.value,type:type.value,required:required.checked};
-      delete fresh.source;delete fresh.constant;delete fresh.template;delete fresh.default;delete fresh.values;
-      if(source.value==='constant')fresh.constant=event?.target===constant?(typeof item.constant==='string'||!('constant' in item)?constant.value:parseValue(constant.value)):('constant' in item?item.constant:parseValue(constant.value));else if(source.value==='template')fresh.template=template.value;else fresh.source=source.value;
-      if(fallback.value!=='')fresh.default=parseValue(fallback.value);
-      if(values.value!=='') {try{fresh.values=JSON.parse(values.value); values.setCustomValidity('');}catch{values.setCustomValidity('Use valid JSON for the value replacements.');options.open=true;return;}}
-      mapping[selected][index]=fresh;item=fresh;save();
-     }
-     constant.parentElement.hidden=source.value!=='constant';templateGroup.hidden=source.value!=='template';
-     [path,source,constant,template,type,fallback,values,required].forEach(el=>el.addEventListener('input',update));
-     jQuery(row).on('change','select',event=>{update(event);});
-     remove.addEventListener('click',()=>{mapping[selected].splice(index,1);save();render();});if(email&&!['subject','body'].includes(item.to)){extraEmail.append(row);}else rows.append(row);
-    });
-    if(extraEmail.children.length>1)rows.append(extraEmail);
-   }
-   function read() {try {const value=JSON.parse(textarea.value);if(!value||typeof value!=='object'||Array.isArray(value)||Object.values(value).some(v=>!Array.isArray(v)))throw Error();mapping=value;textarea.setCustomValidity('');render();}catch{status.textContent='Invalid message configuration. Correct the advanced configuration to continue.';fieldset.querySelector('.alarmmanagerRawMapping').open=true;textarea.setCustomValidity('Invalid message configuration.');}}
-   function addField(to,source){const key=selectedState();mapping[key]??=[];if(mapping[key].length>=64){status.textContent='Maximum 64 fields per message.';return;}mapping[key].push({to,source,type:'identity',required:false});save();render();}
-   add.addEventListener('click',()=>addField('field_'+((mapping[selectedState()]||[]).length+1),'device.hostname'));
-   function changeType(){if(endpointType.value==='email'){mapping.default??=[];for(const item of [{to:'subject',source:'alarm.summary',type:'string',required:true},{to:'body',template:fieldset.dataset.messageTemplate,type:'string',required:false}]){if(!mapping.default.some(existing=>existing.to===item.to||existing.to.startsWith(item.to+'.')))mapping.default.push(item);}save();}render();}
-   jQuery(form).on('change','[name=type]',changeType);textarea.addEventListener('input',read);read();if(!form.querySelector('[name=id]'))changeType();
-  });
- }
- function initLists(app) {
-  app.querySelectorAll('[data-list-editor]').forEach(target=>{
-   const kind=target.dataset.listEditor, jsonList=['arguments','tags'].includes(kind), input=target.matches('input')?target:target.querySelector('textarea'), container=node('div',undefined,'alarmmanagerListEditor'), rows=node('div'), add=node('button',kind==='headers'?'Add header':kind==='recipients'?'Add recipient':kind==='tags'?'Add tag':'Add argument');add.type='button';
-   let entries;
-   try{if(kind==='headers')entries=Object.entries(JSON.parse(input.value));else if(jsonList)entries=JSON.parse(input.value);else{entries=input.value.trim().startsWith('[')||input.value.trim().startsWith('{')?JSON.parse(input.value):input.value.split(',').map(v=>v.trim()).filter(Boolean);}
-    if(!Array.isArray(entries)||entries.some(v=>kind==='headers'?(!Array.isArray(v)||typeof v[1]!=='string'):typeof v!=='string'))return;
-   }catch{return;}
-   const originalLabel=input.closest('label'), raw=node('details'), rawSummary=node('summary','Advanced configuration');originalLabel.before(container);container.append(node('strong',kind==='headers'?'Authentication headers':kind==='recipients'?'Recipients':kind==='tags'?'Device tags':'Arguments'),rows,add,raw);raw.append(rawSummary,input);originalLabel.remove();input.hidden=true;
-   function save(){input.value=kind==='headers'?JSON.stringify(Object.fromEntries(entries)):jsonList?JSON.stringify(entries):entries.join(', ');input.dispatchEvent(new Event('input',{bubbles:true}));}
-   function render(){rows.replaceChildren();entries.forEach((entry,index)=>{const row=node('div',undefined,'alarmmanagerMappingRow');const name=node('input'), value=node('input');value.type=kind==='headers'?'password':kind==='recipients'?'email':'text';value.value=kind==='headers'?entry[1]:entry;const label=node('label',kind==='headers'?'Secret value':kind==='recipients'?'Email address':kind==='tags'?'Tag':'Argument');label.append(value);
-    if(kind==='headers'){name.value=entry[0];name.setCustomValidity(entries.filter(v=>v[0].toLowerCase()===entry[0].toLowerCase()).length>1?'Header names must be unique.':'');const keyLabel=node('label','Header name');keyLabel.append(name);row.append(keyLabel);}
-    row.append(label);const remove=node('button','Remove');remove.type='button';row.append(remove);rows.append(row);
-    function update(){if(kind==='headers'){entries[index]=[name.value,value.value];const keys=entries.map(v=>v[0].toLowerCase());name.setCustomValidity(keys.filter(v=>v===name.value.toLowerCase()).length>1?'Header names must be unique.':'');}else entries[index]=value.value;save();}
-    name.addEventListener('input',update);value.addEventListener('input',update);remove.addEventListener('click',()=>{entries.splice(index,1);save();render();});
-   });}
-   add.addEventListener('click',()=>{entries.push(kind==='headers'?['','']:'');render();rows.lastElementChild.querySelector('input').focus();});render();
-   // The structured editor owns this value; advanced fallback remains available without JavaScript.
-   raw.hidden=true;
-  });
- }
- function initDeliveryIntervals(app) {
-  app.querySelectorAll('[name=min_interval_ms]').forEach(stored=>{
-   const seconds=stored.cloneNode();seconds.removeAttribute('name');seconds.removeAttribute('value');seconds.value=Number(stored.value)/1000;seconds.max=Number(stored.max)/1000;seconds.step='0.001';stored.before(seconds);stored.hidden=true;stored.required=false;
-   stored.parentElement.firstChild.textContent='Minimum time between deliveries (seconds) ';
-   seconds.addEventListener('input',()=>{if(seconds.validity.valid)stored.value=Math.round(Number(seconds.value)*1000);});
-  });
- }
- function initAuthentication(app) {
-  app.querySelectorAll('.alarmmanagerAuth').forEach(fieldset => {
-   const select=fieldset.querySelector('[name=auth_type]');
-   function update() {
-    fieldset.querySelectorAll('.alarmmanagerAuthFields').forEach(group => {
-     const active=group.dataset.authType===select.value;
-     group.hidden=!active;
-     group.querySelectorAll('input,textarea').forEach(input => {
-      input.disabled=!active;
-      input.required=active && input.name!=='basic_password' && !fieldset.dataset.authOptional;
-     });
-    });
-   }
-   jQuery(fieldset).off('change.alarmmanagerAuth').on('change.alarmmanagerAuth','[name=auth_type]',update);update();
-  });
- }
- function initEndpointTypes(app) {
-  app.querySelectorAll('form.alarmmanagerEditor').forEach(form => {
-   const select=form.querySelector('[name=type]');if(!select)return;
-   function update() {
-    form.querySelectorAll('[data-endpoint-types]').forEach(group => {
-     const active=group.dataset.endpointTypes.split(' ').includes(select.value);
-     group.hidden=!active;
-     group.querySelectorAll('input,select,textarea').forEach(input=>{input.disabled=!active;});
-    });
-    if(['restapi','webhook'].includes(select.value))initAuthentication(form);
-   }
-   jQuery(form).on('change','[name=type]',update);update();
-  });
- }
- function initServiceNow(app) {
-  app.querySelectorAll('[data-servicenow-presets]').forEach(select=>{
-   const form=select.closest('form'), presets=JSON.parse(select.dataset.servicenowPresets), mapping=form.querySelector('[name=mapping_json]'), fieldset=form.querySelector('.alarmmanagerMapping');
-   function showFields() {fieldset.dataset.mappingState=select.value==='incident'?'raised':'default';mapping.dispatchEvent(new Event('input',{bubbles:true}));}
-   jQuery(form).on('change','[name=servicenow_table]',()=>{
-    const preset=presets[select.value], url=form.querySelector('[name=url]'), raw=form.querySelector('[name=transport_json]');
-    let transport;try {transport=JSON.parse(raw.value);}catch{return;}
-    const destination=new URL(preset.transport.url);try{const current=new URL(url.value);destination.protocol=current.protocol;destination.host=current.host;}catch{}
-    url.value=destination.href;
-    delete transport.transition_overrides;delete transport.response_reference;
-    if(preset.transport.transition_overrides)transport.transition_overrides=Object.fromEntries(Object.entries(preset.transport.transition_overrides).map(([key,target])=>[key,{...target,url:url.value+'/{{integration.id}}'}]));
-    if(preset.transport.response_reference)transport.response_reference=preset.transport.response_reference;
-    raw.value=JSON.stringify(transport,null,2);
-    form.querySelector('[name=http_method]').value='POST';
-    mapping.value=JSON.stringify(preset.transport.mapping,null,2);mapping.dispatchEvent(new Event('input',{bubbles:true}));showFields();
-    const hint=form.querySelector('[data-integration-hint]');if(hint)hint.textContent=preset.hint;
-   });
-   showFields();
-  });
- }
- // The Syslog version-1 document keeps grouped AND/OR/NOT conditions parameterized on the server.
- function initReportQuery(app) {
-  app.querySelectorAll('.alarmmanagerQueryBuilder').forEach(builder=>{
-  const form=builder.closest('form'), raw=builder.querySelector('textarea'), holder=builder.querySelector('.alarmmanagerQueryRows'), fields=JSON.parse(builder.dataset.queryFields);
-  const defaultField=Object.keys(fields)[0],defaultOperator=fields[defaultField].operators[0];
-  const blank=()=>({join:'AND',field:defaultField,operator:defaultOperator,value:'',negative:false});
-  let rows=raw.value?JSON.parse(raw.value).conditions:[blank()];
-  const status=node('p');status.setAttribute('role','status');builder.append(status);
-  function empty() {return rows.length===1&&!rows[0].rows&&rows[0].field===defaultField&&rows[0].operator===defaultOperator&&!rows[0].negative&&rows[0].value==='';}
-  function sync() {if(builder.disabled)return true;raw.value=empty()?'':JSON.stringify({version:1,conditions:rows});status.textContent=new TextEncoder().encode(raw.value).length>8192?'The search exceeds 8192 bytes. Remove a condition or shorten a value.':'';return !status.textContent;}
-  function select(options,value,label,change) {
-   const control=node('select');control.setAttribute('aria-label',label);
-   options.forEach(([key,text])=>{const option=node('option',text);option.value=key;control.append(option);});control.value=value;
-   jQuery(control).on('change',()=>{change(control.value);sync();});return control;
-  }
-  function render(container,conditions,depth=0) {
-   // Remove Cacti's body-appended dropdown menus before replacing their controls.
-   jQuery(container).find('select').each(function(){if(jQuery(this).data('select2'))jQuery(this).select2('destroy');});
-   container.replaceChildren();
-   conditions.forEach((condition,index)=>{
-    const line=node('div',undefined,'alarmmanagerQueryRow'), connector=node('div',undefined,'alarmmanagerQueryConnector');
-    if(index)connector.append(select([['AND','AND'],['OR','OR']],condition.join,'AND / OR',value=>condition.join=value));else connector.textContent=depth?'Group':'Where';
-    line.append(connector);
-    if(condition.negative)connector.append(node('strong','NOT','alarmmanagerQueryNot'));
-    if(condition.rows) {
-     const group=node('div',undefined,'alarmmanagerQueryGroup');line.classList.add('alarmmanagerQueryGroupRow');render(group,condition.rows,depth+1);line.append(group);
-    } else {
-     line.append(select(Object.entries(fields).map(([key,field])=>[key,field.label]),condition.field,'Search field',value=>{condition.field=value;condition.operator=fields[value].operators[0];condition.value='';queueMicrotask(()=>render(container,conditions,depth));}));
-     const definition=fields[condition.field];
-     line.append(select(definition.operators.map(op=>[op,{'contains':'contains','begins':'begins with','ends':'ends with','=':'equals','!=':'does not equal','has':'has tag'}[op]||op]),condition.operator,'Search operator',value=>{condition.operator=value;}));
-     let input;
-     if(definition.choices&&!Array.isArray(definition.choices)) {
-      const choices={...definition.choices};
-      if(condition.value!==''&&!(condition.value in choices))choices[condition.value]=`#${condition.value} (not listed)`;
-      input=select([['','Choose a value'],...Object.entries(choices)],String(condition.value),'Search value',value=>condition.value=value);input.required=true;
-     } else {
-      input=node('input');input.type='text';input.value=condition.value;input.maxLength=2048;input.setAttribute('aria-label','Search value');input.placeholder=definition.type==='integer'?'Enter a nonnegative integer':'Enter a value';
-      input.required=!(depth===0&&empty());
-      if(definition.type==='integer'){input.pattern='[0-9]+';input.inputMode='numeric';}
-      input.addEventListener('input',()=>{condition.value=input.value;sync();});
-      if(definition.choices){const list=node('datalist');list.id='am-query-values-'+Math.random().toString(36).slice(2);definition.choices.forEach(value=>{const option=node('option');option.value=value;list.append(option);});input.setAttribute('list',list.id);line.append(list);}
-     }
-     line.append(input);
-    }
-    const remove=node('button','Remove');remove.type='button';remove.setAttribute('aria-label','Remove condition');remove.addEventListener('click',()=>{conditions.splice(index,1);if(!conditions.length)conditions.push(blank());render(container,conditions,depth);sync();});line.append(remove);container.append(line);
-   });
-   const actions=node('div',undefined,'alarmmanagerQueryActions');
-   ['AND','OR','NOT','Group'].forEach(action=>{
-    const button=node('button',action);button.type='button';button.setAttribute('aria-label','Add '+action);button.disabled=depth>=15&&action==='Group';
-    button.addEventListener('click',()=>{conditions.push(action==='Group'?{join:'AND',negative:false,rows:[blank()]}:{...blank(),join:action==='OR'?'OR':'AND',negative:action==='NOT'});render(container,conditions,depth);sync();container.querySelectorAll('[aria-label="Search value"]')[container.querySelectorAll('[aria-label="Search value"]').length-1]?.focus();});actions.append(button);
-   });container.append(actions);
-  }
-  const clear=node('button','Clear conditions');clear.type='button';clear.addEventListener('click',()=>{rows=[blank()];render(holder,rows);sync();});builder.append(clear);
-  raw.hidden=true;const rawGroup=builder.querySelector('.alarmmanagerQueryRaw');if(rawGroup)rawGroup.hidden=true;
-  form.addEventListener('submit',event=>{if(!sync()){event.preventDefault();event.stopImmediatePropagation();}});
-  render(holder,rows);sync();
-  const quick=app.querySelector('.alarmmanagerQuickFilters');if(quick&&Array.from(quick.querySelectorAll('input,select')).some(input=>input.value!==''&&input.value!=='0'))quick.open=true;
-  });
- }
+	'use strict';
+	const sourceFields = [
+		'event.id',
+		'event.source',
+		'event.source_instance',
+		'event.collector_id',
+		'event.occurred_at',
+		'alarm.resource_id',
+		'alarm.key',
+		'alarm.episode_id',
+		'alarm.sequence',
+		'alarm.transition',
+		'alarm.severity',
+		'alarm.summary',
+		'alarm.details',
+		'device.id',
+		'device.hostname',
+		'device.description',
+		'device.location',
+		'device.contact',
+		'device.sysname',
+		'device.tags',
+		'context.rule_name',
+		'context.rule_type',
+		'context.metric',
+		'context.metric_value',
+		'context.threshold',
+		'context.suppression_reason',
+		'context.source_suppressed',
+		'context.source_notification_channels',
+		'context.ownership_epoch',
+		'integration.id',
+		'integration.url',
+		'device.cacti_location',
+		'device.collector_name',
+		'device.external_id',
+		'device.snmp_sysUpTimeInstance',
+		'device.uptime',
+		'device.status_fail_date',
+		'device.status_rec_date',
+		'device.status_last_error'
+	];
+	/**
+	 * Create a DOM element with optional text and a CSS class.
+	 */
+	function node(tag, text, className) {
+		const el = document.createElement(tag);
+		if (text !== undefined) el.textContent = text;
+		if (className) el.className = className;
+		return el;
+	}
+	const palette = [
+		'#2278ad',
+		'#e67e22',
+		'#329c60',
+		'#d43f3a',
+		'#8e63aa',
+		'#19a2a5',
+		'#ad795b',
+		'#7b8994',
+		'#c4a132',
+		'#5d88b3'
+	];
+	const colorMaps = {
+		transitions: {
+			raised: '#d43f3a',
+			recovered: '#329c60',
+			occurrence: '#2278ad',
+			updated: '#8e63aa',
+			reminder: '#e67e22'
+		},
+		severity: {
+			critical: '#d43f3a',
+			major: '#e67e22',
+			minor: '#b89822',
+			warning: '#c39b13',
+			info: '#2278ad',
+			clear: '#329c60'
+		},
+		deliveries: {
+			completed: '#329c60',
+			failed: '#d43f3a',
+			pending: '#7b8994',
+			leased: '#2278ad'
+		},
+		attempts: {
+			success: '#329c60',
+			failure: '#d43f3a',
+			retry: '#e67e22',
+			abandoned: '#7b8994',
+			in_progress: '#2278ad'
+		}
+	};
+	/**
+	 * Return the configured panel color or a fallback palette color.
+	 */
+	function color(panel, label, index) {
+		const value = colorMaps[panel]?.[label];
+		return typeof value === 'string' ? value : palette[index % palette.length];
+	}
+	const fieldLabels = [
+		'Event ID',
+		'Alarm source',
+		'Source instance',
+		'Collector ID',
+		'Time of alarm',
+		'Resource ID',
+		'Alarm key',
+		'Alarm episode ID',
+		'Alarm sequence',
+		'Alarm state',
+		'Severity',
+		'Alarm summary',
+		'Alarm details',
+		'Device ID',
+		'Hostname',
+		'Device description',
+		'SNMP location',
+		'Device contact',
+		'Device system name',
+		'Device tags',
+		'Rule name',
+		'Rule type',
+		'Metric',
+		'Metric value',
+		'Threshold',
+		'Suppression reason',
+		'Source suppressed',
+		'Source notification channels',
+		'Ownership version',
+		'Integration record ID',
+		'Integration record URL',
+		'Cacti location',
+		'Collector name',
+		'Device external ID',
+		'Last known SNMP uptime (ticks)',
+		'Last known SNMP uptime',
+		'Last failed datetime',
+		'Last restored datetime',
+		'Last status error'
+	];
+	/**
+	 * Build a field-chip message editor synchronized with the template textarea.
+	 */
+	function messageEditor(template, summary) {
+		template.setAttribute('aria-label', 'Template syntax');
+		const group = node('div', undefined, 'alarmmanagerCombinedText'),
+			label = node('label', 'Combined text'),
+			editor = node('div', undefined, 'alarmmanagerMessageEditor');
+		editor.contentEditable = 'true';
+		editor.setAttribute('role', 'textbox');
+		editor.setAttribute('aria-label', 'Combined text');
+		editor.setAttribute('aria-multiline', 'true');
+		label.append(editor);
+		const picker = node('details'),
+			toggle = node('summary', 'Insert field'),
+			search = node('input'),
+			choices = node('div', undefined, 'alarmmanagerFieldChoices');
+		search.type = 'search';
+		search.placeholder = 'Search fields';
+		search.setAttribute('aria-label', 'Search message fields');
+		picker.append(toggle, search, choices);
+		const preview = node('pre', undefined, 'alarmmanagerMessagePreview');
+		preview.setAttribute('aria-label', 'Sample message preview');
+		const raw = node('details');
+		raw.append(node('summary', 'Template syntax'), template.parentElement);
+		group.append(
+			label,
+			picker,
+			node('small', 'Sample preview — example values, not live device data'),
+			preview,
+			raw
+		);
+		let caret = null;
+		/**
+		 * Return the display label for a message source field.
+		 */
+		const labelFor = (field) => fieldLabels[sourceFields.indexOf(field)] || field;
+		/**
+		 * Serialize editor text and field chips back into template syntax.
+		 */
+		const textOf = (element) =>
+			Array.from(element.childNodes)
+				.map((child) => {
+					if (child.nodeType === Node.TEXT_NODE) return child.textContent;
+					if (child.dataset?.field) return '{{' + child.dataset.field + '}}';
+					if (child.nodeName === 'BR') return child === element.lastChild ? '' : '\n';
+					return (
+						(['DIV', 'P'].includes(child.nodeName) && child.previousSibling
+							? '\n'
+							: '') + textOf(child)
+					);
+				})
+				.join('');
+		/**
+		 * Remember the current selection when the caret is inside the editor.
+		 */
+		function remember() {
+			const selection = getSelection();
+			if (selection.rangeCount && editor.contains(selection.anchorNode))
+				caret = selection.getRangeAt(0).cloneRange();
+		}
+		/**
+		 * Create a removable, keyboard-accessible chip for a template field.
+		 */
+		function chip(field) {
+			const tag = node('span', labelFor(field), 'alarmmanagerMessageChip');
+			tag.dataset.field = field;
+			tag.contentEditable = 'false';
+			tag.tabIndex = 0;
+			tag.setAttribute('role', 'button');
+			tag.setAttribute('aria-label', labelFor(field) + '. Press Delete to remove');
+			tag.addEventListener('keydown', (event) => {
+				if (['Backspace', 'Delete'].includes(event.key)) {
+					event.preventDefault();
+					tag.remove();
+					sync();
+					editor.focus();
+				}
+			});
+			return tag;
+		}
+		/**
+		 * Rebuild the message editor from the stored template and refresh its preview.
+		 */
+		function draw() {
+			editor.replaceChildren();
+			const pattern = /{{([^{}]*)}}/g;
+			let last = 0;
+			for (const match of template.value.matchAll(pattern)) {
+				editor.append(document.createTextNode(template.value.slice(last, match.index)));
+				const field = match[1].trim();
+				editor.append(
+					sourceFields.includes(field) ? chip(field) : document.createTextNode(match[0])
+				);
+				last = match.index + match[0].length;
+			}
+			editor.append(document.createTextNode(template.value.slice(last)));
+			caret = null;
+			showPreview();
+		}
+		/**
+		 * Render a sample message using example values for template fields.
+		 */
+		function showPreview() {
+			const samples = {
+				'device.hostname': 'router.example.test',
+				'device.description': 'Core router',
+				'device.location': 'Toronto DC',
+				'device.contact': 'Network team',
+				'device.sysname': 'edge-01',
+				'device.id': '42',
+				'alarm.summary': summary,
+				'alarm.transition': 'raised',
+				'alarm.severity': 'major',
+				'event.occurred_at': '2026-10-14T12:00:00Z'
+			};
+			preview.textContent = template.value.replace(
+				/{{([^{}]*)}}/g,
+				(_, field) => samples[field.trim()] ?? '[' + labelFor(field.trim()) + ' sample]'
+			);
+		}
+		/**
+		 * Save editor contents, refresh the preview, and remember the caret.
+		 */
+		function sync() {
+			template.value = textOf(editor);
+			template.dispatchEvent(new Event('input', { bubbles: true }));
+			showPreview();
+			remember();
+		}
+		/**
+		 * Insert content at the saved caret position and synchronize the template.
+		 */
+		function insert(content) {
+			editor.focus();
+			const selection = getSelection(),
+				range =
+					caret && editor.contains(caret.startContainer) ? caret : document.createRange();
+			if (!caret || !editor.contains(range.startContainer)) {
+				range.selectNodeContents(editor);
+				range.collapse(false);
+			}
+			range.deleteContents();
+			range.insertNode(content);
+			range.setStartAfter(content);
+			range.collapse(true);
+			selection.removeAllRanges();
+			selection.addRange(range);
+			caret = range.cloneRange();
+			sync();
+		}
+		/**
+		 * Rebuild the field picker using the current search text.
+		 */
+		function filter() {
+			choices.replaceChildren();
+			sourceFields
+				.filter(
+					(field) =>
+						!['device.tags', 'context.source_notification_channels'].includes(field) &&
+						labelFor(field).toLowerCase().includes(search.value.toLowerCase())
+				)
+				.forEach((field) => {
+					const button = node('button', labelFor(field));
+					button.type = 'button';
+					button.addEventListener('click', () => {
+						insert(chip(field));
+						picker.open = false;
+					});
+					choices.append(button);
+				});
+			if (!choices.children.length) choices.append(node('p', 'No matching fields'));
+		}
+		editor.addEventListener('input', sync);
+		editor.addEventListener('keyup', remember);
+		editor.addEventListener('mouseup', remember);
+		editor.addEventListener('blur', remember);
+		editor.addEventListener('paste', (event) => {
+			event.preventDefault();
+			remember();
+			insert(document.createTextNode(event.clipboardData.getData('text/plain')));
+		});
+		editor.addEventListener('drop', (event) => {
+			event.preventDefault();
+			insert(document.createTextNode(event.dataTransfer.getData('text/plain')));
+		});
+		template.addEventListener('input', () => {
+			if (document.activeElement !== editor) draw();
+		});
+		search.addEventListener('input', filter);
+		picker.addEventListener('toggle', () => {
+			if (picker.open) search.focus();
+		});
+		filter();
+		draw();
+		return { group, refresh: draw, focus: () => editor.focus() };
+	}
+	/**
+	 * Initialize structured message mapping editors and their stored JSON values.
+	 */
+	function initMappings(app) {
+		app.querySelectorAll('.alarmmanagerMapping').forEach((fieldset) => {
+			const textarea = fieldset.querySelector('[name=mapping_json]'),
+				holder = fieldset.querySelector('.alarmmanagerMappingBuilder'),
+				form = fieldset.closest('form'),
+				endpointType = form.querySelector('[name=type]');
+			const add = node('button', 'Add field'),
+				status = node('p'),
+				rows = node('div');
+			add.type = 'button';
+			holder.append(status, rows, add);
+			/**
+			 * Return the message state currently selected for mapping edits.
+			 */
+			const selectedState = () => fieldset.dataset.mappingState || 'default';
+			let mapping = {};
+			/**
+			 * Parse a JSON value, preserving plain text when parsing fails.
+			 */
+			const parseValue = (text) => {
+				try {
+					return JSON.parse(text);
+				} catch {
+					return text;
+				}
+			};
+			/**
+			 * Serialize the current message mappings into the hidden textarea.
+			 */
+			const save = () => {
+				textarea.value = JSON.stringify(mapping, null, 2);
+			};
+			/**
+			 * Rebuild mapping controls for the selected message state and endpoint type.
+			 */
+			function render() {
+				rows.replaceChildren();
+				const selected = selectedState(),
+					email = endpointType.value === 'email';
+				add.hidden = email;
+				status.textContent = '';
+				const items = mapping[selected] || [],
+					extraEmail = node('details');
+				extraEmail.append(node('summary', 'Additional message fields'));
+				items.forEach((item, index) => {
+					const row = node('div', undefined, 'alarmmanagerMappingRow');
+					/**
+					 * Wrap a form control in a label and append it to the selected parent.
+					 */
+					function control(label, element, parent = row) {
+						const wrap = node('label', label);
+						wrap.append(element);
+						parent.append(wrap);
+						return element;
+					}
+					const path = control('Destination Field Name', node('input'));
+					path.value = item.to || '';
+					path.maxLength = 191;
+					if (email && ['subject', 'body'].includes(item.to)) {
+						path.parentElement.hidden = true;
+						row.append(node('strong', item.to === 'subject' ? 'Subject' : 'Message'));
+					}
+					const source = control('Cacti Value', node('select'));
+					source.setAttribute('aria-label', 'Cacti Value');
+					['constant', 'template', ...sourceFields].forEach((key, i) => {
+						const o = node(
+							'option',
+							i === 0
+								? 'Custom value'
+								: i === 1
+									? 'Combined text'
+									: fieldLabels[i - 2] || key
+						);
+						o.value = key;
+						source.append(o);
+					});
+					source.value = 'template' in item ? 'template' : item.source || 'constant';
+					const constant = control(
+						email && item.to === 'body' ? 'Message text' : 'Custom value',
+						node(email && item.to === 'body' ? 'textarea' : 'input')
+					);
+					constant.value =
+						'constant' in item
+							? typeof item.constant === 'string'
+								? item.constant
+								: JSON.stringify(item.constant)
+							: '';
+					const template = control('Combined text', node('textarea'));
+					template.value = item.template || '';
+					template.maxLength = 16384;
+					template.placeholder =
+						'Device {{device.id}} with description {{device.description}} went down at {{event.occurred_at}}';
+					const chips = messageEditor(template, fieldset.dataset.alarmSummary),
+						templateGroup = chips.group;
+					row.append(templateGroup);
+					const deviceMessage = node('button', 'Use device message');
+					deviceMessage.type = 'button';
+					row.append(deviceMessage);
+					deviceMessage.addEventListener('click', () => {
+						source.value = 'template';
+						template.value = fieldset.dataset.messageTemplate;
+						type.value = 'string';
+						update();
+						chips.refresh();
+						chips.focus();
+					});
+					const options = node('details');
+					options.className = 'alarmmanagerFieldOptions';
+					options.append(node('summary', 'Field options'));
+					row.append(options);
+					const type = control('Value format', node('select'), options);
+					['identity', 'string', 'integer', 'number', 'boolean', 'html'].forEach(
+						(key, i) => {
+							const o = node(
+								'option',
+								[
+									'Keep original value',
+									'Text',
+									'Whole number',
+									'Number',
+									'Yes / no',
+									'HTML-escaped text'
+								][i]
+							);
+							o.value = key;
+							type.append(o);
+						}
+					);
+					type.value = item.type || 'identity';
+					const fallback = control('Use when missing', node('input'), options);
+					fallback.value = 'default' in item ? JSON.stringify(item.default) : '';
+					const values = control('Value replacements (JSON)', node('input'), options);
+					values.value = item.values ? JSON.stringify(item.values) : '';
+					const required = control('Fail delivery if missing', node('input'), options);
+					required.type = 'checkbox';
+					required.checked = !!item.required;
+					const remove = node('button', 'Remove field');
+					remove.type = 'button';
+					remove.hidden = email && ['subject', 'body'].includes(item.to);
+					row.append(remove);
+					/**
+					 * Update the mapping entry from its controls and validate replacement JSON.
+					 */
+					function update(event) {
+						constant.parentElement.hidden = source.value !== 'constant';
+						templateGroup.hidden = source.value !== 'template';
+						const fresh = {
+							...item,
+							to: path.value,
+							type: type.value,
+							required: required.checked
+						};
+						delete fresh.source;
+						delete fresh.constant;
+						delete fresh.template;
+						delete fresh.default;
+						delete fresh.values;
+						if (source.value === 'constant')
+							fresh.constant =
+								event?.target === constant
+									? typeof item.constant === 'string' || !('constant' in item)
+										? constant.value
+										: parseValue(constant.value)
+									: 'constant' in item
+										? item.constant
+										: parseValue(constant.value);
+						else if (source.value === 'template') fresh.template = template.value;
+						else fresh.source = source.value;
+						if (fallback.value !== '') fresh.default = parseValue(fallback.value);
+						if (values.value !== '') {
+							try {
+								fresh.values = JSON.parse(values.value);
+								values.setCustomValidity('');
+							} catch {
+								values.setCustomValidity(
+									'Use valid JSON for the value replacements.'
+								);
+								options.open = true;
+								return;
+							}
+						}
+						mapping[selected][index] = fresh;
+						item = fresh;
+						save();
+					}
+					constant.parentElement.hidden = source.value !== 'constant';
+					templateGroup.hidden = source.value !== 'template';
+					[path, source, constant, template, type, fallback, values, required].forEach(
+						(el) => el.addEventListener('input', update)
+					);
+					jQuery(row).on('change', 'select', (event) => {
+						update(event);
+					});
+					remove.addEventListener('click', () => {
+						mapping[selected].splice(index, 1);
+						save();
+						render();
+					});
+					if (email && !['subject', 'body'].includes(item.to)) {
+						extraEmail.append(row);
+					} else rows.append(row);
+				});
+				if (extraEmail.children.length > 1) rows.append(extraEmail);
+			}
+			/**
+			 * Validate stored mapping JSON and rebuild the editor, or show a validation error.
+			 */
+			function read() {
+				try {
+					const value = JSON.parse(textarea.value);
+					if (
+						!value ||
+						typeof value !== 'object' ||
+						Array.isArray(value) ||
+						Object.values(value).some((v) => !Array.isArray(v))
+					)
+						throw Error();
+					mapping = value;
+					textarea.setCustomValidity('');
+					render();
+				} catch {
+					status.textContent =
+						'Invalid message configuration. Correct the advanced configuration to continue.';
+					fieldset.querySelector('.alarmmanagerRawMapping').open = true;
+					textarea.setCustomValidity('Invalid message configuration.');
+				}
+			}
+			/**
+			 * Append a mapping field unless the per-message field limit is reached.
+			 */
+			function addField(to, source) {
+				const key = selectedState();
+				mapping[key] ??= [];
+				if (mapping[key].length >= 64) {
+					status.textContent = 'Maximum 64 fields per message.';
+					return;
+				}
+				mapping[key].push({ to, source, type: 'identity', required: false });
+				save();
+				render();
+			}
+			add.addEventListener('click', () =>
+				addField(
+					'field_' + ((mapping[selectedState()] || []).length + 1),
+					'device.hostname'
+				)
+			);
+			/**
+			 * Ensure email subject and body mappings exist and refresh the editor.
+			 */
+			function changeType() {
+				if (endpointType.value === 'email') {
+					mapping.default ??= [];
+					for (const item of [
+						{ to: 'subject', source: 'alarm.summary', type: 'string', required: true },
+						{
+							to: 'body',
+							template: fieldset.dataset.messageTemplate,
+							type: 'string',
+							required: false
+						}
+					]) {
+						if (
+							!mapping.default.some(
+								(existing) =>
+									existing.to === item.to || existing.to.startsWith(item.to + '.')
+							)
+						)
+							mapping.default.push(item);
+					}
+					save();
+				}
+				render();
+			}
+			jQuery(form).on('change', '[name=type]', changeType);
+			textarea.addEventListener('input', read);
+			read();
+			if (!form.querySelector('[name=id]')) changeType();
+		});
+	}
+	/**
+	 * Initialize editable header, recipient, tag, and argument lists.
+	 */
+	function initLists(app) {
+		app.querySelectorAll('[data-list-editor]').forEach((target) => {
+			const kind = target.dataset.listEditor,
+				jsonList = ['arguments', 'tags'].includes(kind),
+				input = target.matches('input') ? target : target.querySelector('textarea'),
+				container = node('div', undefined, 'alarmmanagerListEditor'),
+				rows = node('div'),
+				add = node(
+					'button',
+					kind === 'headers'
+						? 'Add header'
+						: kind === 'recipients'
+							? 'Add recipient'
+							: kind === 'tags'
+								? 'Add tag'
+								: 'Add argument'
+				);
+			add.type = 'button';
+			let entries;
+			try {
+				if (kind === 'headers') entries = Object.entries(JSON.parse(input.value));
+				else if (jsonList) entries = JSON.parse(input.value);
+				else {
+					entries =
+						input.value.trim().startsWith('[') || input.value.trim().startsWith('{')
+							? JSON.parse(input.value)
+							: input.value
+									.split(',')
+									.map((v) => v.trim())
+									.filter(Boolean);
+				}
+				if (
+					!Array.isArray(entries) ||
+					entries.some((v) =>
+						kind === 'headers'
+							? !Array.isArray(v) || typeof v[1] !== 'string'
+							: typeof v !== 'string'
+					)
+				)
+					return;
+			} catch {
+				return;
+			}
+			const originalLabel = input.closest('label'),
+				raw = node('details'),
+				rawSummary = node('summary', 'Advanced configuration');
+			originalLabel.before(container);
+			container.append(
+				node(
+					'strong',
+					kind === 'headers'
+						? 'Authentication headers'
+						: kind === 'recipients'
+							? 'Recipients'
+							: kind === 'tags'
+								? 'Device tags'
+								: 'Arguments'
+				),
+				rows,
+				add,
+				raw
+			);
+			raw.append(rawSummary, input);
+			originalLabel.remove();
+			input.hidden = true;
+			/**
+			 * Serialize list entries and notify listeners of the updated value.
+			 */
+			function save() {
+				input.value =
+					kind === 'headers'
+						? JSON.stringify(Object.fromEntries(entries))
+						: jsonList
+							? JSON.stringify(entries)
+							: entries.join(', ');
+				input.dispatchEvent(new Event('input', { bubbles: true }));
+			}
+			/**
+			 * Rebuild list entry controls from the current values.
+			 */
+			function render() {
+				rows.replaceChildren();
+				entries.forEach((entry, index) => {
+					const row = node('div', undefined, 'alarmmanagerMappingRow');
+					const name = node('input'),
+						value = node('input');
+					value.type =
+						kind === 'headers' ? 'password' : kind === 'recipients' ? 'email' : 'text';
+					value.value = kind === 'headers' ? entry[1] : entry;
+					const label = node(
+						'label',
+						kind === 'headers'
+							? 'Secret value'
+							: kind === 'recipients'
+								? 'Email address'
+								: kind === 'tags'
+									? 'Tag'
+									: 'Argument'
+					);
+					label.append(value);
+					if (kind === 'headers') {
+						name.value = entry[0];
+						name.setCustomValidity(
+							entries.filter((v) => v[0].toLowerCase() === entry[0].toLowerCase())
+								.length > 1
+								? 'Header names must be unique.'
+								: ''
+						);
+						const keyLabel = node('label', 'Header name');
+						keyLabel.append(name);
+						row.append(keyLabel);
+					}
+					row.append(label);
+					const remove = node('button', 'Remove');
+					remove.type = 'button';
+					row.append(remove);
+					rows.append(row);
+					/**
+					 * Save a list entry and validate header name uniqueness.
+					 */
+					function update() {
+						if (kind === 'headers') {
+							entries[index] = [name.value, value.value];
+							const keys = entries.map((v) => v[0].toLowerCase());
+							name.setCustomValidity(
+								keys.filter((v) => v === name.value.toLowerCase()).length > 1
+									? 'Header names must be unique.'
+									: ''
+							);
+						} else entries[index] = value.value;
+						save();
+					}
+					name.addEventListener('input', update);
+					value.addEventListener('input', update);
+					remove.addEventListener('click', () => {
+						entries.splice(index, 1);
+						save();
+						render();
+					});
+				});
+			}
+			add.addEventListener('click', () => {
+				entries.push(kind === 'headers' ? ['', ''] : '');
+				render();
+				rows.lastElementChild.querySelector('input').focus();
+			});
+			render();
+			// The structured editor owns this value; advanced fallback remains available without JavaScript.
+			raw.hidden = true;
+		});
+	}
+	/**
+	 * Display delivery intervals in seconds while storing milliseconds.
+	 */
+	function initDeliveryIntervals(app) {
+		app.querySelectorAll('[name=min_interval_ms]').forEach((stored) => {
+			const seconds = stored.cloneNode();
+			seconds.removeAttribute('name');
+			seconds.removeAttribute('value');
+			seconds.value = Number(stored.value) / 1000;
+			seconds.max = Number(stored.max) / 1000;
+			seconds.step = '0.001';
+			stored.before(seconds);
+			stored.hidden = true;
+			stored.required = false;
+			stored.parentElement.firstChild.textContent =
+				'Minimum time between deliveries (seconds) ';
+			seconds.addEventListener('input', () => {
+				if (seconds.validity.valid) stored.value = Math.round(Number(seconds.value) * 1000);
+			});
+		});
+	}
+	/**
+	 * Initialize authentication field visibility and validation.
+	 */
+	function initAuthentication(app) {
+		app.querySelectorAll('.alarmmanagerAuth').forEach((fieldset) => {
+			const select = fieldset.querySelector('[name=auth_type]');
+			/**
+			 * Enable and require authentication fields for the selected authentication type.
+			 */
+			function update() {
+				fieldset.querySelectorAll('.alarmmanagerAuthFields').forEach((group) => {
+					const active = group.dataset.authType === select.value;
+					group.hidden = !active;
+					group.querySelectorAll('input,textarea').forEach((input) => {
+						input.disabled = !active;
+						input.required =
+							active &&
+							input.name !== 'basic_password' &&
+							!fieldset.dataset.authOptional;
+					});
+				});
+			}
+			jQuery(fieldset)
+				.off('change.alarmmanagerAuth')
+				.on('change.alarmmanagerAuth', '[name=auth_type]', update);
+			update();
+		});
+	}
+	/**
+	 * Initialize endpoint fields according to the selected transport type.
+	 */
+	function initEndpointTypes(app) {
+		app.querySelectorAll('form.alarmmanagerEditor').forEach((form) => {
+			const select = form.querySelector('[name=type]');
+			if (!select) return;
+			/**
+			 * Show and enable fields supported by the selected endpoint type.
+			 */
+			function update() {
+				form.querySelectorAll('[data-endpoint-types]').forEach((group) => {
+					const active = group.dataset.endpointTypes.split(' ').includes(select.value);
+					group.hidden = !active;
+					group.querySelectorAll('input,select,textarea').forEach((input) => {
+						input.disabled = !active;
+					});
+				});
+				if (['restapi', 'webhook'].includes(select.value)) initAuthentication(form);
+			}
+			jQuery(form).on('change', '[name=type]', update);
+			update();
+		});
+	}
+	/**
+	 * Initialize ServiceNow presets while retaining the configured destination host.
+	 */
+	function initServiceNow(app) {
+		app.querySelectorAll('[data-servicenow-presets]').forEach((select) => {
+			const form = select.closest('form'),
+				presets = JSON.parse(select.dataset.servicenowPresets),
+				mapping = form.querySelector('[name=mapping_json]'),
+				fieldset = form.querySelector('.alarmmanagerMapping');
+			/**
+			 * Select incident or default mappings and notify the mapping editor.
+			 */
+			function showFields() {
+				fieldset.dataset.mappingState = select.value === 'incident' ? 'raised' : 'default';
+				mapping.dispatchEvent(new Event('input', { bubbles: true }));
+			}
+			jQuery(form).on('change', '[name=servicenow_table]', () => {
+				const preset = presets[select.value],
+					url = form.querySelector('[name=url]'),
+					raw = form.querySelector('[name=transport_json]');
+				let transport;
+				try {
+					transport = JSON.parse(raw.value);
+				} catch {
+					return;
+				}
+				const destination = new URL(preset.transport.url);
+				try {
+					const current = new URL(url.value);
+					destination.protocol = current.protocol;
+					destination.host = current.host;
+				} catch {}
+				url.value = destination.href;
+				delete transport.transition_overrides;
+				delete transport.response_reference;
+				if (preset.transport.transition_overrides)
+					transport.transition_overrides = Object.fromEntries(
+						Object.entries(preset.transport.transition_overrides).map(
+							([key, target]) => [
+								key,
+								{ ...target, url: url.value + '/{{integration.id}}' }
+							]
+						)
+					);
+				if (preset.transport.response_reference)
+					transport.response_reference = preset.transport.response_reference;
+				raw.value = JSON.stringify(transport, null, 2);
+				form.querySelector('[name=http_method]').value = 'POST';
+				mapping.value = JSON.stringify(preset.transport.mapping, null, 2);
+				mapping.dispatchEvent(new Event('input', { bubbles: true }));
+				showFields();
+				const hint = form.querySelector('[data-integration-hint]');
+				if (hint) hint.textContent = preset.hint;
+			});
+			showFields();
+		});
+	}
+	// The Syslog version-1 document keeps grouped AND/OR/NOT conditions parameterized on the server.
+	/**
+	 * Initialize grouped report conditions using the version-1 query document.
+	 */
+	function initReportQuery(app) {
+		app.querySelectorAll('.alarmmanagerQueryBuilder').forEach((builder) => {
+			const form = builder.closest('form'),
+				raw = builder.querySelector('textarea'),
+				holder = builder.querySelector('.alarmmanagerQueryRows'),
+				fields = JSON.parse(builder.dataset.queryFields);
+			const defaultField = Object.keys(fields)[0],
+				defaultOperator = fields[defaultField].operators[0];
+			/**
+			 * Create an empty condition using the default field and operator.
+			 */
+			const blank = () => ({
+				join: 'AND',
+				field: defaultField,
+				operator: defaultOperator,
+				value: '',
+				negative: false
+			});
+			let rows = raw.value ? JSON.parse(raw.value).conditions : [blank()];
+			const status = node('p');
+			status.setAttribute('role', 'status');
+			builder.append(status);
+			/**
+			 * Check whether the query consists of a single untouched default condition.
+			 */
+			function empty() {
+				return (
+					rows.length === 1 &&
+					!rows[0].rows &&
+					rows[0].field === defaultField &&
+					rows[0].operator === defaultOperator &&
+					!rows[0].negative &&
+					rows[0].value === ''
+				);
+			}
+			/**
+			 * Serialize query conditions and report whether they fit the byte limit.
+			 */
+			function sync() {
+				if (builder.disabled) return true;
+				raw.value = empty() ? '' : JSON.stringify({ version: 1, conditions: rows });
+				status.textContent =
+					new TextEncoder().encode(raw.value).length > 8192
+						? 'The search exceeds 8192 bytes. Remove a condition or shorten a value.'
+						: '';
+				return !status.textContent;
+			}
+			/**
+			 * Create a labeled select control that synchronizes query changes.
+			 */
+			function select(options, value, label, change) {
+				const control = node('select');
+				control.setAttribute('aria-label', label);
+				options.forEach(([key, text]) => {
+					const option = node('option', text);
+					option.value = key;
+					control.append(option);
+				});
+				control.value = value;
+				jQuery(control).on('change', () => {
+					change(control.value);
+					sync();
+				});
+				return control;
+			}
+			/**
+			 * Render query conditions and nested groups with editable controls.
+			 */
+			function render(container, conditions, depth = 0) {
+				// Remove Cacti's body-appended dropdown menus before replacing their controls.
+				jQuery(container)
+					.find('select')
+					.each(function () {
+						if (jQuery(this).data('select2')) jQuery(this).select2('destroy');
+					});
+				container.replaceChildren();
+				conditions.forEach((condition, index) => {
+					const line = node('div', undefined, 'alarmmanagerQueryRow'),
+						connector = node('div', undefined, 'alarmmanagerQueryConnector');
+					if (index)
+						connector.append(
+							select(
+								[
+									['AND', 'AND'],
+									['OR', 'OR']
+								],
+								condition.join,
+								'AND / OR',
+								(value) => (condition.join = value)
+							)
+						);
+					else connector.textContent = depth ? 'Group' : 'Where';
+					line.append(connector);
+					if (condition.negative)
+						connector.append(node('strong', 'NOT', 'alarmmanagerQueryNot'));
+					if (condition.rows) {
+						const group = node('div', undefined, 'alarmmanagerQueryGroup');
+						line.classList.add('alarmmanagerQueryGroupRow');
+						render(group, condition.rows, depth + 1);
+						line.append(group);
+					} else {
+						line.append(
+							select(
+								Object.entries(fields).map(([key, field]) => [key, field.label]),
+								condition.field,
+								'Search field',
+								(value) => {
+									condition.field = value;
+									condition.operator = fields[value].operators[0];
+									condition.value = '';
+									queueMicrotask(() => render(container, conditions, depth));
+								}
+							)
+						);
+						const definition = fields[condition.field];
+						line.append(
+							select(
+								definition.operators.map((op) => [
+									op,
+									{
+										'contains': 'contains',
+										'begins': 'begins with',
+										'ends': 'ends with',
+										'=': 'equals',
+										'!=': 'does not equal',
+										'has': 'has tag'
+									}[op] || op
+								]),
+								condition.operator,
+								'Search operator',
+								(value) => {
+									condition.operator = value;
+								}
+							)
+						);
+						let input;
+						if (definition.choices && !Array.isArray(definition.choices)) {
+							const choices = { ...definition.choices };
+							if (condition.value !== '' && !(condition.value in choices))
+								choices[condition.value] = `#${condition.value} (not listed)`;
+							input = select(
+								[['', 'Choose a value'], ...Object.entries(choices)],
+								String(condition.value),
+								'Search value',
+								(value) => (condition.value = value)
+							);
+							input.required = true;
+						} else {
+							input = node('input');
+							input.type = 'text';
+							input.value = condition.value;
+							input.maxLength = 2048;
+							input.setAttribute('aria-label', 'Search value');
+							input.placeholder =
+								definition.type === 'integer'
+									? 'Enter a nonnegative integer'
+									: 'Enter a value';
+							input.required = !(depth === 0 && empty());
+							if (definition.type === 'integer') {
+								input.pattern = '[0-9]+';
+								input.inputMode = 'numeric';
+							}
+							input.addEventListener('input', () => {
+								condition.value = input.value;
+								sync();
+							});
+							if (definition.choices) {
+								const list = node('datalist');
+								list.id = 'am-query-values-' + Math.random().toString(36).slice(2);
+								definition.choices.forEach((value) => {
+									const option = node('option');
+									option.value = value;
+									list.append(option);
+								});
+								input.setAttribute('list', list.id);
+								line.append(list);
+							}
+						}
+						line.append(input);
+					}
+					const remove = node('button', 'Remove');
+					remove.type = 'button';
+					remove.setAttribute('aria-label', 'Remove condition');
+					remove.addEventListener('click', () => {
+						conditions.splice(index, 1);
+						if (!conditions.length) conditions.push(blank());
+						render(container, conditions, depth);
+						sync();
+					});
+					line.append(remove);
+					container.append(line);
+				});
+				const actions = node('div', undefined, 'alarmmanagerQueryActions');
+				['AND', 'OR', 'NOT', 'Group'].forEach((action) => {
+					const button = node('button', action);
+					button.type = 'button';
+					button.setAttribute('aria-label', 'Add ' + action);
+					button.disabled = depth >= 15 && action === 'Group';
+					button.addEventListener('click', () => {
+						conditions.push(
+							action === 'Group'
+								? { join: 'AND', negative: false, rows: [blank()] }
+								: {
+										...blank(),
+										join: action === 'OR' ? 'OR' : 'AND',
+										negative: action === 'NOT'
+									}
+						);
+						render(container, conditions, depth);
+						sync();
+						container
+							.querySelectorAll('[aria-label="Search value"]')
+							[
+								container.querySelectorAll('[aria-label="Search value"]').length - 1
+							]?.focus();
+					});
+					actions.append(button);
+				});
+				container.append(actions);
+			}
+			const clear = node('button', 'Clear conditions');
+			clear.type = 'button';
+			clear.addEventListener('click', () => {
+				rows = [blank()];
+				render(holder, rows);
+				sync();
+			});
+			builder.append(clear);
+			raw.hidden = true;
+			const rawGroup = builder.querySelector('.alarmmanagerQueryRaw');
+			if (rawGroup) rawGroup.hidden = true;
+			form.addEventListener('submit', (event) => {
+				if (!sync()) {
+					event.preventDefault();
+					event.stopImmediatePropagation();
+				}
+			});
+			render(holder, rows);
+			sync();
+			const quick = app.querySelector('.alarmmanagerQuickFilters');
+			if (
+				quick &&
+				Array.from(quick.querySelectorAll('input,select')).some(
+					(input) => input.value !== '' && input.value !== '0'
+				)
+			)
+				quick.open = true;
+		});
+	}
 
- function initRuleEditors(app) {
-  app.querySelectorAll('.alarmmanagerRule form').forEach(form=>{
-   [['all_devices','device_query'],['all_alarm_types','alarm_query']].forEach(([name,query])=>{
-    const toggle=form.querySelector(`[name=${name}]`),builder=form.querySelector(`[name=${query}]`)?.closest('.alarmmanagerQueryBuilder');
-    if(!toggle||!builder)return;
-    const update=()=>{builder.hidden=toggle.checked;builder.disabled=toggle.checked;};
-    toggle.addEventListener('change',update);update();
-   });
-  });
-  app.querySelectorAll('.alarmmanagerDestinations').forEach(group=>{
-   const boxes=Array.from(group.querySelectorAll('[data-alarm-destination]'));
-   if(!boxes.length)return;
-   const update=()=>boxes[0].setCustomValidity(boxes.some(box=>box.checked)?'':'Select at least one alarm destination.');
-   boxes.forEach(box=>box.addEventListener('change',update));update();
-  });
-  app.querySelectorAll('.alarmmanagerRuleOption').forEach(option=>{
-   const toggle=option.querySelector('input[type=checkbox]'),fields=option.querySelector('[data-rule-fields]');
-   if(!toggle||!fields)return;
-   const update=()=>{fields.hidden=!toggle.checked;fields.disabled=!toggle.checked;};
-   toggle.addEventListener('change',update);update();
-  });
- }
- function init() {
-  const app=document.getElementById('alarmmanager_app'); if(!app||app.dataset.initialized)return;app.dataset.initialized='yes';initRuleEditors(app);initReportQuery(app);initMappings(app);initLists(app);initDeliveryIntervals(app);initAuthentication(app);initEndpointTypes(app);initServiceNow(app);
-  app.querySelectorAll('.alarmmanagerEndpointEditor').forEach(form=>{
-   form.addEventListener('submit',event=>{
-    form.querySelector('[data-test-intent]')?.remove();
-    // Cacti disables submit buttons before the browser serializes their values.
-    if(event.submitter?.name==='test_destination'){
-     const intent=node('input');intent.type='hidden';intent.name='test_destination';intent.value='yes';intent.dataset.testIntent='yes';form.append(intent);
-    }
-   },true);
-  });
-  const dashboard=app.querySelector('#alarmmanager_dashboard');if(!dashboard)return;
-  const form=app.querySelector('#alarmmanager_filters'), status=app.querySelector('#alarmmanager_dashboard_status'), refresh=app.querySelector('#alarmmanager_refresh');
-  const charts={}; let inFlight=false, timer=null;
-  function url(tab,extra={},filters={}) {if(['deliveries','processing','attempts'].includes(tab)){extra={...extra,job:{deliveries:'delivery',processing:'processing',attempts:'attempt'}[tab]};tab='events';}const values=new URLSearchParams();for(const [key,value] of Object.entries(filters)){if(['range','until','mode','source','severity','transition','status','reason','device_id','endpoint_id','event_id','acknowledged','query'].includes(key))values.set(key,String(value));} values.set('tab',tab);for(const [key,value]of Object.entries(extra))values.set(key,String(value));return 'alarmmanager.php?'+values.toString();}
-  function link(text,tab,extra,filters) {const a=node('a',text);a.href=url(tab,extra,filters);return a;}
-  function legend(panel,rows,tab,field,filters) {const holder=app.querySelector('#alarmmanager_legend_'+panel);holder.replaceChildren();const list=node('ul');rows.forEach((row,index)=>{const li=node('li'),swatch=node('span',undefined,'alarmmanagerSwatch');swatch.style.backgroundColor=color(panel,row.label,index);swatch.setAttribute('aria-hidden','true');li.append(swatch,link(`${row.label}: ${Number(row.count).toLocaleString()}`,tab,{[field]:row.label},filters));list.append(li);});holder.append(list);if(!rows.length)holder.append(node('p','No matching records.'));}
-  function chart(panel,rows) {
-   if(charts[panel]){charts[panel].destroy();delete charts[panel];}
-   app.querySelector('#alarmmanager_chart_'+panel).hidden=typeof window.bb==='undefined'||!rows.length;
-   if(typeof window.bb==='undefined'||!rows.length)return;
-   // Developer-owned series IDs; user labels appear only in textContent links.
-   charts[panel]=window.bb.generate({render:{lazy:false},transition:{duration:0},bindto:'#alarmmanager_chart_'+panel,data:{columns:rows.map((r,i)=>['slice_'+i,Number(r.count)]),colors:Object.fromEntries(rows.map((r,i)=>['slice_'+i,color(panel,r.label,i)])),type:'donut'},donut:{label:{show:false}},legend:{show:false},tooltip:{show:false},size:{height:230},padding:{right:12}});
-  }
-  function summaries(result) {
-   const f=result.filters,current=app.querySelector('#alarmmanager_current'),history=app.querySelector('#alarmmanager_historical');current.replaceChildren(node('strong','Current conditions: '));history.replaceChildren(node('strong','Historical events: '));
-   current.append(link(`Active ${result.current.conditions.active}`,'conditions',{},f),link(`Acknowledged ${result.current.conditions.acknowledged}`,'conditions',{acknowledged:1},f));
-   const waiting=(result.current.queues.delivery||[]).filter(row=>row.label==='pending').reduce((total,row)=>total+Number(row.count),0);
-   current.append(link(`Queued messages ${waiting}`,'deliveries',{status:'pending',current:1},f),node('span',result.notifications_paused?' · Delivery paused':' · Delivery running'));
-   if(result.can_admin){const control=node('a','Manage queue');control.href='alarmmanager_admin.php?section=queue';current.append(control);}
-   const events=result.historical.events;[['All',events.events,''],['Raised',events.raised,'raised'],['Recovered',events.recovered,'recovered'],['Occurrences',events.occurrences,'occurrence']].forEach(([title,count,transition])=>history.append(link(`${title} ${Number(count).toLocaleString()}`,'events',{transition},f)));
-  }
-  function render(result) {
-   const f=result.filters;summaries(result);
-   [['severity','events','severity'],['source','events','source'],['deliveries','deliveries','status'],['attempts','attempts','status'],['suppression','decisions','reason']].forEach(([panel,tab,field])=>{legend(panel,result.panels[panel],tab,field,f);chart(panel,result.panels[panel]);});
-   const rows=result.panels.transitions, kinds=['raised','recovered','occurrence','updated','reminder'];
-   legend('transitions',kinds.map(kind=>({label:kind,count:rows.filter(r=>r.label===kind).reduce((n,r)=>n+Number(r.count),0)})),'events','transition',f);
-   if(charts.transitions){charts.transitions.destroy();delete charts.transitions;}
-   app.querySelector('#alarmmanager_chart_transitions').hidden=typeof window.bb==='undefined'||!rows.length;
-   if(typeof window.bb!=='undefined'&&rows.length){const buckets=[];for(let epoch=Math.floor((f.until-f.range)/result.bucket_seconds)*result.bucket_seconds;epoch<f.until;epoch+=result.bucket_seconds)buckets.push(epoch);const columns=[['x',...buckets.map(epoch=>(result.bucket_seconds>=86400?new Date(epoch*1000).toISOString().slice(5,10):new Date(epoch*1000).toISOString().slice(8,16).replace('T',' ')))],...kinds.map(kind=>[kind,...buckets.map(epoch=>rows.filter(r=>Number(r.bucket)===epoch&&r.label===kind).reduce((n,r)=>n+Number(r.count),0))])];charts.transitions=window.bb.generate({render:{lazy:false},transition:{duration:0},bindto:'#alarmmanager_chart_transitions',data:{x:'x',columns,type:'bar',groups:[kinds],colors:{raised:'#d43f3a',recovered:'#329c60',occurrence:'#2278ad',updated:'#8e63aa',reminder:'#e67e22'}},axis:{x:{type:'category',tick:{culling:{max:6},multiline:false}},y:{min:0,padding:{bottom:0}}},tooltip:{show:false},size:{height:230}});}
-   const endpoints=app.querySelector('#alarmmanager_legend_endpoints');endpoints.replaceChildren();result.panels.endpoints.forEach(row=>endpoints.append(link(`${row.label}: ${row.successes}/${row.attempts} successful attempts; average ${row.average_ms} ms`,'attempts',{endpoint_id:row.endpoint_id},f),node('br')));if(!result.panels.endpoints.length)endpoints.append(node('p','No attempts in this window.'));
-   const queues=app.querySelector('#alarmmanager_legend_queues');queues.replaceChildren();Object.entries(result.current.queues).forEach(([queue,items])=>{queues.append(node('h4',queue));items.forEach(row=>queues.append(link(`${row.label}: ${row.count}; oldest ${row.oldest_age_seconds}s`,queue==='processing'?'processing':'deliveries',{status:row.label,current:1},f),node('br')));});
-   app.querySelector('#alarmmanager_panel_workers').hidden=!result.can_admin;
-   const workers=app.querySelector('#alarmmanager_legend_workers');workers.replaceChildren();result.workers.forEach(row=>workers.append(node('p',`${row.role} · poller ${row.poller_id} · PID ${row.pid} · ${row.status} · heartbeat ${row.age_seconds}s ago${row.age_seconds>30?' (stale)':''}`)));if(!result.workers.length)workers.append(node('p','No recent workers.'));
-   status.textContent=`Updated ${new Date().toLocaleTimeString()} · historical UTC window ${f.from} to ${f.to} · ${f.mode} mode`+(typeof window.bb==='undefined'?' · chart library unavailable; linked counts remain available.':'');
-  }
-  async function load() {if(inFlight||!app.isConnected)return;inFlight=true;status.textContent='Loading statistics…';const params=new URLSearchParams(new FormData(form));params.set('action','dashboard_data');try{const response=await fetch('alarmmanager.php?'+params,{credentials:'same-origin',cache:'no-store'});const result=await response.json();if(!response.ok||result.error)throw Error();if(app.isConnected)render(result);}catch{status.textContent='Statistics unavailable. Check permissions and refresh.';}finally{inFlight=false;}}
-  form.addEventListener('submit',event=>{event.preventDefault();load();});refresh.addEventListener('change',()=>{if(timer)clearInterval(timer);const seconds=Number(refresh.value);if(seconds)timer=setInterval(()=>{if(!app.isConnected){clearInterval(timer);return;}load();},seconds*1000);});
-  app.querySelectorAll('.alarmmanagerCardToggle').forEach(button=>button.addEventListener('click',()=>{const body=button.closest('article').querySelector('.alarmmanagerCardBody');body.hidden=!body.hidden;button.setAttribute('aria-expanded',String(!body.hidden));button.textContent=body.hidden?'Expand':'Collapse';if(!body.hidden)window.dispatchEvent(new Event('resize'));}));load();
- }
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+	/**
+	 * Initialize rule query visibility, destination validation, and optional fields.
+	 */
+	function initRuleEditors(app) {
+		app.querySelectorAll('.alarmmanagerRule form').forEach((form) => {
+			[
+				['all_devices', 'device_query'],
+				['all_alarm_types', 'alarm_query']
+			].forEach(([name, query]) => {
+				const toggle = form.querySelector(`[name=${name}]`),
+					builder = form
+						.querySelector(`[name=${query}]`)
+						?.closest('.alarmmanagerQueryBuilder');
+				if (!toggle || !builder) return;
+				/**
+				 * Show the rule query builder when its all-values checkbox is cleared.
+				 */
+				const update = () => {
+					builder.hidden = toggle.checked;
+					builder.disabled = toggle.checked;
+				};
+				toggle.addEventListener('change', update);
+				update();
+			});
+		});
+		app.querySelectorAll('.alarmmanagerDestinations').forEach((group) => {
+			const boxes = Array.from(group.querySelectorAll('[data-alarm-destination]'));
+			if (!boxes.length) return;
+			/**
+			 * Require at least one checked alarm destination.
+			 */
+			const update = () =>
+				boxes[0].setCustomValidity(
+					boxes.some((box) => box.checked) ? '' : 'Select at least one alarm destination.'
+				);
+			boxes.forEach((box) => box.addEventListener('change', update));
+			update();
+		});
+		app.querySelectorAll('.alarmmanagerRuleOption').forEach((option) => {
+			const toggle = option.querySelector('input[type=checkbox]'),
+				fields = option.querySelector('[data-rule-fields]');
+			if (!toggle || !fields) return;
+			/**
+			 * Show and enable rule option fields when their checkbox is selected.
+			 */
+			const update = () => {
+				fields.hidden = !toggle.checked;
+				fields.disabled = !toggle.checked;
+			};
+			toggle.addEventListener('change', update);
+			update();
+		});
+	}
+	/**
+	 * Initialize administration controls and the dashboard once per app element.
+	 */
+	function init() {
+		const app = document.getElementById('alarmmanager_app');
+		if (!app || app.dataset.initialized) return;
+		app.dataset.initialized = 'yes';
+		initRuleEditors(app);
+		initReportQuery(app);
+		initMappings(app);
+		initLists(app);
+		initDeliveryIntervals(app);
+		initAuthentication(app);
+		initEndpointTypes(app);
+		initServiceNow(app);
+		app.querySelectorAll('.alarmmanagerEndpointEditor').forEach((form) => {
+			form.addEventListener(
+				'submit',
+				(event) => {
+					form.querySelector('[data-test-intent]')?.remove();
+					// Cacti disables submit buttons before the browser serializes their values.
+					if (event.submitter?.name === 'test_destination') {
+						const intent = node('input');
+						intent.type = 'hidden';
+						intent.name = 'test_destination';
+						intent.value = 'yes';
+						intent.dataset.testIntent = 'yes';
+						form.append(intent);
+					}
+				},
+				true
+			);
+		});
+		const dashboard = app.querySelector('#alarmmanager_dashboard');
+		if (!dashboard) return;
+		const form = app.querySelector('#alarmmanager_filters'),
+			status = app.querySelector('#alarmmanager_dashboard_status'),
+			refresh = app.querySelector('#alarmmanager_refresh');
+		const charts = {};
+		let inFlight = false,
+			timer = null;
+		/**
+		 * Build a report URL from supported filters and dashboard drill-down parameters.
+		 */
+		function url(tab, extra = {}, filters = {}) {
+			if (['deliveries', 'processing', 'attempts'].includes(tab)) {
+				extra = {
+					...extra,
+					job: { deliveries: 'delivery', processing: 'processing', attempts: 'attempt' }[
+						tab
+					]
+				};
+				tab = 'events';
+			}
+			const values = new URLSearchParams();
+			for (const [key, value] of Object.entries(filters)) {
+				if (
+					[
+						'range',
+						'until',
+						'mode',
+						'source',
+						'severity',
+						'transition',
+						'status',
+						'reason',
+						'device_id',
+						'endpoint_id',
+						'event_id',
+						'acknowledged',
+						'query'
+					].includes(key)
+				)
+					values.set(key, String(value));
+			}
+			values.set('tab', tab);
+			for (const [key, value] of Object.entries(extra)) values.set(key, String(value));
+			return 'alarmmanager.php?' + values.toString();
+		}
+		/**
+		 * Create a text link to a filtered report.
+		 */
+		function link(text, tab, extra, filters) {
+			const a = node('a', text);
+			a.href = url(tab, extra, filters);
+			return a;
+		}
+		/**
+		 * Render linked panel counts with color swatches and an empty-state message.
+		 */
+		function legend(panel, rows, tab, field, filters) {
+			const holder = app.querySelector('#alarmmanager_legend_' + panel);
+			holder.replaceChildren();
+			const list = node('ul');
+			rows.forEach((row, index) => {
+				const li = node('li'),
+					swatch = node('span', undefined, 'alarmmanagerSwatch');
+				swatch.style.backgroundColor = color(panel, row.label, index);
+				swatch.setAttribute('aria-hidden', 'true');
+				li.append(
+					swatch,
+					link(
+						`${row.label}: ${Number(row.count).toLocaleString()}`,
+						tab,
+						{ [field]: row.label },
+						filters
+					)
+				);
+				list.append(li);
+			});
+			holder.append(list);
+			if (!rows.length) holder.append(node('p', 'No matching records.'));
+		}
+		/**
+		 * Replace a panel donut chart when chart data and the library are available.
+		 */
+		function chart(panel, rows) {
+			if (charts[panel]) {
+				charts[panel].destroy();
+				delete charts[panel];
+			}
+			app.querySelector('#alarmmanager_chart_' + panel).hidden =
+				typeof window.bb === 'undefined' || !rows.length;
+			if (typeof window.bb === 'undefined' || !rows.length) return;
+			// Developer-owned series IDs; user labels appear only in textContent links.
+			charts[panel] = window.bb.generate({
+				render: { lazy: false },
+				transition: { duration: 0 },
+				bindto: '#alarmmanager_chart_' + panel,
+				data: {
+					columns: rows.map((r, i) => ['slice_' + i, Number(r.count)]),
+					colors: Object.fromEntries(
+						rows.map((r, i) => ['slice_' + i, color(panel, r.label, i)])
+					),
+					type: 'donut'
+				},
+				donut: { label: { show: false } },
+				legend: { show: false },
+				tooltip: { show: false },
+				size: { height: 230 },
+				padding: { right: 12 }
+			});
+		}
+		/**
+		 * Render current condition, delivery queue, and historical event summaries.
+		 */
+		function summaries(result) {
+			const f = result.filters,
+				current = app.querySelector('#alarmmanager_current'),
+				history = app.querySelector('#alarmmanager_historical');
+			current.replaceChildren(node('strong', 'Current conditions: '));
+			history.replaceChildren(node('strong', 'Historical events: '));
+			current.append(
+				link(`Active ${result.current.conditions.active}`, 'conditions', {}, f),
+				link(
+					`Acknowledged ${result.current.conditions.acknowledged}`,
+					'conditions',
+					{ acknowledged: 1 },
+					f
+				)
+			);
+			const waiting = (result.current.queues.delivery || [])
+				.filter((row) => row.label === 'pending')
+				.reduce((total, row) => total + Number(row.count), 0);
+			current.append(
+				link(
+					`Queued messages ${waiting}`,
+					'deliveries',
+					{ status: 'pending', current: 1 },
+					f
+				),
+				node(
+					'span',
+					result.notifications_paused ? ' · Delivery paused' : ' · Delivery running'
+				)
+			);
+			if (result.can_admin) {
+				const control = node('a', 'Manage queue');
+				control.href = 'alarmmanager_admin.php?section=queue';
+				current.append(control);
+			}
+			const events = result.historical.events;
+			[
+				['All', events.events, ''],
+				['Raised', events.raised, 'raised'],
+				['Recovered', events.recovered, 'recovered'],
+				['Occurrences', events.occurrences, 'occurrence']
+			].forEach(([title, count, transition]) =>
+				history.append(
+					link(`${title} ${Number(count).toLocaleString()}`, 'events', { transition }, f)
+				)
+			);
+		}
+		/**
+		 * Refresh dashboard charts, linked counts, queues, and worker status.
+		 */
+		function render(result) {
+			const f = result.filters;
+			summaries(result);
+			[
+				['severity', 'events', 'severity'],
+				['source', 'events', 'source'],
+				['deliveries', 'deliveries', 'status'],
+				['attempts', 'attempts', 'status'],
+				['suppression', 'decisions', 'reason']
+			].forEach(([panel, tab, field]) => {
+				legend(panel, result.panels[panel], tab, field, f);
+				chart(panel, result.panels[panel]);
+			});
+			const rows = result.panels.transitions,
+				kinds = ['raised', 'recovered', 'occurrence', 'updated', 'reminder'];
+			legend(
+				'transitions',
+				kinds.map((kind) => ({
+					label: kind,
+					count: rows
+						.filter((r) => r.label === kind)
+						.reduce((n, r) => n + Number(r.count), 0)
+				})),
+				'events',
+				'transition',
+				f
+			);
+			if (charts.transitions) {
+				charts.transitions.destroy();
+				delete charts.transitions;
+			}
+			app.querySelector('#alarmmanager_chart_transitions').hidden =
+				typeof window.bb === 'undefined' || !rows.length;
+			if (typeof window.bb !== 'undefined' && rows.length) {
+				const buckets = [];
+				for (
+					let epoch =
+						Math.floor((f.until - f.range) / result.bucket_seconds) *
+						result.bucket_seconds;
+					epoch < f.until;
+					epoch += result.bucket_seconds
+				)
+					buckets.push(epoch);
+				const columns = [
+					[
+						'x',
+						...buckets.map((epoch) =>
+							result.bucket_seconds >= 86400
+								? new Date(epoch * 1000).toISOString().slice(5, 10)
+								: new Date(epoch * 1000)
+										.toISOString()
+										.slice(8, 16)
+										.replace('T', ' ')
+						)
+					],
+					...kinds.map((kind) => [
+						kind,
+						...buckets.map((epoch) =>
+							rows
+								.filter((r) => Number(r.bucket) === epoch && r.label === kind)
+								.reduce((n, r) => n + Number(r.count), 0)
+						)
+					])
+				];
+				charts.transitions = window.bb.generate({
+					render: { lazy: false },
+					transition: { duration: 0 },
+					bindto: '#alarmmanager_chart_transitions',
+					data: {
+						x: 'x',
+						columns,
+						type: 'bar',
+						groups: [kinds],
+						colors: {
+							raised: '#d43f3a',
+							recovered: '#329c60',
+							occurrence: '#2278ad',
+							updated: '#8e63aa',
+							reminder: '#e67e22'
+						}
+					},
+					axis: {
+						x: { type: 'category', tick: { culling: { max: 6 }, multiline: false } },
+						y: { min: 0, padding: { bottom: 0 } }
+					},
+					tooltip: { show: false },
+					size: { height: 230 }
+				});
+			}
+			const endpoints = app.querySelector('#alarmmanager_legend_endpoints');
+			endpoints.replaceChildren();
+			result.panels.endpoints.forEach((row) =>
+				endpoints.append(
+					link(
+						`${row.label}: ${row.successes}/${row.attempts} successful attempts; average ${row.average_ms} ms`,
+						'attempts',
+						{ endpoint_id: row.endpoint_id },
+						f
+					),
+					node('br')
+				)
+			);
+			if (!result.panels.endpoints.length)
+				endpoints.append(node('p', 'No attempts in this window.'));
+			const queues = app.querySelector('#alarmmanager_legend_queues');
+			queues.replaceChildren();
+			Object.entries(result.current.queues).forEach(([queue, items]) => {
+				queues.append(node('h4', queue));
+				items.forEach((row) =>
+					queues.append(
+						link(
+							`${row.label}: ${row.count}; oldest ${row.oldest_age_seconds}s`,
+							queue === 'processing' ? 'processing' : 'deliveries',
+							{ status: row.label, current: 1 },
+							f
+						),
+						node('br')
+					)
+				);
+			});
+			app.querySelector('#alarmmanager_panel_workers').hidden = !result.can_admin;
+			const workers = app.querySelector('#alarmmanager_legend_workers');
+			workers.replaceChildren();
+			result.workers.forEach((row) =>
+				workers.append(
+					node(
+						'p',
+						`${row.role} · poller ${row.poller_id} · PID ${row.pid} · ${row.status} · heartbeat ${row.age_seconds}s ago${row.age_seconds > 30 ? ' (stale)' : ''}`
+					)
+				)
+			);
+			if (!result.workers.length) workers.append(node('p', 'No recent workers.'));
+			status.textContent =
+				`Updated ${new Date().toLocaleTimeString()} · historical UTC window ${f.from} to ${f.to} · ${f.mode} mode` +
+				(typeof window.bb === 'undefined'
+					? ' · chart library unavailable; linked counts remain available.'
+					: '');
+		}
+		/**
+		 * Fetch dashboard statistics while preventing overlapping or detached-app requests.
+		 */
+		async function load() {
+			if (inFlight || !app.isConnected) return;
+			inFlight = true;
+			status.textContent = 'Loading statistics…';
+			const params = new URLSearchParams(new FormData(form));
+			params.set('action', 'dashboard_data');
+			try {
+				const response = await fetch('alarmmanager.php?' + params, {
+					credentials: 'same-origin',
+					cache: 'no-store'
+				});
+				const result = await response.json();
+				if (!response.ok || result.error) throw Error();
+				if (app.isConnected) render(result);
+			} catch {
+				status.textContent = 'Statistics unavailable. Check permissions and refresh.';
+			} finally {
+				inFlight = false;
+			}
+		}
+		form.addEventListener('submit', (event) => {
+			event.preventDefault();
+			load();
+		});
+		refresh.addEventListener('change', () => {
+			if (timer) clearInterval(timer);
+			const seconds = Number(refresh.value);
+			if (seconds)
+				timer = setInterval(() => {
+					if (!app.isConnected) {
+						clearInterval(timer);
+						return;
+					}
+					load();
+				}, seconds * 1000);
+		});
+		app.querySelectorAll('.alarmmanagerCardToggle').forEach((button) =>
+			button.addEventListener('click', () => {
+				const body = button.closest('article').querySelector('.alarmmanagerCardBody');
+				body.hidden = !body.hidden;
+				button.setAttribute('aria-expanded', String(!body.hidden));
+				button.textContent = body.hidden ? 'Expand' : 'Collapse';
+				if (!body.hidden) window.dispatchEvent(new Event('resize'));
+			})
+		);
+		load();
+	}
+	if (document.readyState === 'loading')
+		document.addEventListener('DOMContentLoaded', init, { once: true });
+	else init();
 })();
-

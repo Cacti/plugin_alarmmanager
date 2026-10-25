@@ -4,7 +4,7 @@
 final class ActivationReplicationTest extends AlarmManagerTestCase {
 	public function testActivationReplicatesFinalStateWithoutCoreChanges(): void {
 		$bootstrap = var_export(dirname(__DIR__, 2) . '/bootstrap-unit.php', true);
-		$setup = var_export(dirname(__DIR__, 3) . '/setup.php', true);
+		$setup     = var_export(dirname(__DIR__, 3) . '/setup.php', true);
 
 		foreach (['enabled', 'remote', 'invalid', 'disabled', 'failure'] as $scenario) {
 			$script = '<?php require ' . $bootstrap . '; require ' . $setup . '; $scenario = ' . var_export($scenario, true) . ';' . <<<'CODE'
@@ -13,6 +13,7 @@ final class ActivationReplicationTest extends AlarmManagerTestCase {
 			$GLOBALS['alarmmanager_test_status'] = 4;
 			$GLOBALS['activation_snapshots'] = [];
 			$GLOBALS['alarmmanager_test_log'] = [];
+			function get_username($user = null) { return 'unit-test'; }
 			function api_plugin_check_config($plugin) { return plugin_alarmmanager_check_config(); }
 			function api_plugin_enable_hooks($plugin) { api_plugin_replicate_config(); }
 			function api_plugin_replicate_config() {
@@ -40,19 +41,20 @@ final class ActivationReplicationTest extends AlarmManagerTestCase {
 			fwrite($pipes[0], $script);
 			fclose($pipes[0]);
 			$output = stream_get_contents($pipes[1]);
-			$error = stream_get_contents($pipes[2]);
+			$error  = stream_get_contents($pipes[2]);
 			fclose($pipes[1]);
 			fclose($pipes[2]);
 			$this->assertSame(0, proc_close($process), $scenario . ': ' . $error);
 			$this->assertSame('', $error);
-			$result = json_decode($output, true, 16, JSON_THROW_ON_ERROR);
+			$result   = json_decode($output, true, 16, JSON_THROW_ON_ERROR);
 			$expected = $scenario === 'invalid' ? [] : [[3 => 4, 4 => 4]];
 
 			if ($scenario === 'enabled') {
 				$expected[] = [3 => 1, 4 => 1];
 			}
 			$this->assertSame($expected, $result['snapshots'], $scenario);
-			$this->assertSame($scenario === 'failure' ? ['plugin activation replication failed; retry Cacti synchronization from main'] : [], $result['logs'], $scenario);
+			$logs = array_values(array_filter($result['logs'], static fn ($message) => !str_starts_with($message, 'NOTE: Cacti Plugin alarmmanager has been enabled by ')));
+			$this->assertSame($scenario === 'failure' ? ['plugin activation replication failed; retry Cacti synchronization from main'] : [], $logs, $scenario);
 		}
 	}
 }
