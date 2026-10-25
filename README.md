@@ -142,6 +142,8 @@ and delivery pause status; its count follows the current visibility and filters.
 
 ### Microsoft Teams (Workflows)
 
+Adaptive Card payloads are assembled locally with no CDN, downloaded library, or remote schema lookup. The optional `$schema` URL is omitted; the card retains its required type and version. No Adaptive Cards library needs vendoring. Sending Teams notifications requires connectivity to the configured Microsoft HTTPS workflow endpoint; a fully air-gapped installation cannot deliver to Teams.
+
 Select **Microsoft Teams (Workflows)** in Integrations → Add Integration. This creates a disabled draft. It uses the supported **When a Teams webhook request is received** trigger, not the retired Office 365 connector.
 
 1. In Teams, open the destination channel's **Workflows**, select **Send webhook alerts to a channel**, sign in to the Teams connection, and select the team/channel. Use **Anyone** trigger authentication. Save and copy the generated webhook URL. The workflow must post the received Adaptive Card attachments to the channel.

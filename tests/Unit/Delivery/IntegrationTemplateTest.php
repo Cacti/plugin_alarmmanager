@@ -207,6 +207,10 @@ final class IntegrationTemplateTest extends AlarmManagerTestCase {
 			$card                = alarmmanager_notification_payload($settings, $event);
 			$this->assertSame('message', $card->type);
 			$this->assertSame('application/vnd.microsoft.card.adaptive', $card->attachments[0]['contentType']);
+			$this->assertNull($card->attachments[0]['contentUrl']);
+			$this->assertSame('AdaptiveCard', $card->attachments[0]['content']['type']);
+			$this->assertSame('1.2', $card->attachments[0]['content']['version']);
+			$this->assertArrayNotHasKey('$schema', $card->attachments[0]['content']);
 			$text = $card->attachments[0]['content']['body'][0]['text'];
 
 			foreach (['State: ' . $transition, 'Episode: sample-outage-0001', 'Alarm key: device:42:reachability', 'Source: sample', 'Collector: 1', 'Location: ', 'Description: '] as $value) {

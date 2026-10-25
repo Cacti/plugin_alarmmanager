@@ -263,7 +263,7 @@ function alarmmanager_notification_payload(array $settings, array $event, array 
 		}
 		$payload = (object) ['type' => 'message', 'attachments' => [
 			['contentType' => 'application/vnd.microsoft.card.adaptive', 'contentUrl' => null,
-				'content'     => ['type' => 'AdaptiveCard', 'version' => '1.2', '$schema' => 'http://adaptivecards.io/schemas/adaptive-card.json',
+				'content'     => ['type' => 'AdaptiveCard', 'version' => '1.2',
 					'body'                  => [['type' => 'TextBlock', 'text' => $payload->text, 'wrap' => true]]]]
 		]];
 	}
