@@ -54,6 +54,9 @@ final class ReportTableTest extends AlarmManagerTestCase {
 			ob_clean();
 			alarmmanager_report_table('events', ['rows' => [['id' => null, 'event_row_id' => 42]]], ['admin' => false], [], true);
 			$mirror = ob_get_contents();
+			ob_clean();
+			alarmmanager_report_table('deliveries', ['rows' => [['id' => 7, 'payload' => '{"text":"<b>down</b>"}']]], ['admin' => false], [], true);
+			$payload = ob_get_contents();
 		} finally {
 			ob_end_clean();
 			restore_error_handler();
@@ -62,5 +65,8 @@ final class ReportTableTest extends AlarmManagerTestCase {
 		$this->assertStringContainsString('matched', $decisions);
 		$this->assertStringContainsString('event_id=42', $local);
 		$this->assertStringNotContainsString('event_id=42', $mirror);
+		$this->assertStringContainsString('class="linkOverDark alarmmanagerPayloadLink"', $payload);
+		$this->assertStringContainsString('data-payload="{&quot;text&quot;:&quot;&lt;b&gt;down&lt;/b&gt;&quot;}"', $payload);
+		$this->assertStringNotContainsString('<b>down</b>', $payload);
 	}
 }
