@@ -310,6 +310,8 @@ function alarmmanager_report_table(string $kind, array $result, array $scope, ar
 
 			if (($key === 'event_row_id' || ($key === 'id' && in_array($kind, ['events', 'conditions'], true))) && !$is_mirror) {
 				$link = '<a class="linkOverDark" href="' . html_escape(alarmmanager_report_url($filters, 'events', ['event_id' => $row[$key]])) . '">' . html_escape((string) $row[$key]) . '</a>';
+			} elseif ($key === 'payload' && !empty($row[$key])) {
+				$link = '<a class="linkOverDark alarmmanagerPayloadLink" href="#" data-payload="' . $value . '">' . __esc('Display', 'alarmmanager') . '</a>';
 			} elseif ($key === 'external_url' && !empty($row['external_id']) && !empty($row[$key])) {
 				require_once(__DIR__ . '/integrations.php');
 

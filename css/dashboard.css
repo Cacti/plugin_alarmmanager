@@ -326,3 +326,7 @@
 #alarmmanager_app .alarmmanagerPhoneList [aria-invalid="true"] { border-color:#c0392b; }
 .alarmmanagerPhoneError { margin:6px 0 0; color:#c0392b; }
 #alarmmanager_app[data-theme="dark"] .alarmmanagerPhoneError, #alarmmanager_app[data-theme="midwinter"] .alarmmanagerPhoneError, #alarmmanager_app[data-theme="deepness"] .alarmmanagerPhoneError { color:#ff8a80; }
+.alarmmanagerPayloadTable { width:100%; border-collapse:collapse; }
+.alarmmanagerPayloadTable td { padding:2px 6px; vertical-align:top; overflow-wrap:anywhere; }
+.alarmmanagerPayloadTable pre { margin:0; white-space:pre-wrap; overflow-wrap:anywhere; }
+.alarmmanagerPayloadKey { font-weight:bold; white-space:nowrap; }

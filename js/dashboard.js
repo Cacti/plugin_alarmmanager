@@ -1324,6 +1324,88 @@
 	}
 	// The Syslog version-1 document keeps grouped AND/OR/NOT conditions parameterized on the server.
 	/** Initialize grouped report and rule query builders. */
+	/** Show report payloads in a hover dialog, matching the plugin_audit event details popup. */
+	function initPayloadPopups(app) {
+		const links = app.querySelectorAll('.alarmmanagerPayloadLink');
+		if (!links.length || !window.jQuery?.fn?.dialog) return;
+		let timer = null;
+		const close =
+			/** Remove any open payload dialog. */
+			() => {
+				const dialog = window.jQuery('#alarmmanager_payload');
+				if (!dialog.length) return;
+				if (dialog.hasClass('ui-dialog-content')) dialog.dialog('close');
+				dialog.remove();
+			};
+		const open =
+			/** Render one payload as an attribute/value table beside its link. */
+			(link) => {
+				let data;
+				try {
+					data = JSON.parse(link.dataset.payload);
+				} catch {
+					data = { payload: link.dataset.payload };
+				}
+				const table = node('table');
+				table.className = 'cactiTable alarmmanagerPayloadTable';
+				const head = table.createTHead().insertRow();
+				head.className = 'tableHeader';
+				['Attrib', 'Value'].forEach(
+					/** Add one header cell. */
+					(label) => {
+						const th = node('th');
+						th.className = 'tableSubHeaderColumn';
+						th.textContent = label;
+						head.append(th);
+					}
+				);
+				const body = table.createTBody();
+				Object.entries(data && typeof data === 'object' ? data : { payload: data }).forEach(
+					/** Add one top-level attribute; nested values are pretty-printed. */
+					([key, value]) => {
+						const row = body.insertRow(),
+							name = row.insertCell(),
+							cell = row.insertCell();
+						name.className = 'alarmmanagerPayloadKey';
+						name.textContent = key;
+						if (value !== null && typeof value === 'object') {
+							const pre = node('pre');
+							pre.textContent = JSON.stringify(value, null, 2);
+							cell.append(pre);
+						} else cell.textContent = value === null ? '—' : String(value);
+					}
+				);
+				const holder = node('div');
+				holder.id = 'alarmmanager_payload';
+				holder.title = 'Event Payload';
+				holder.append(table);
+				document.body.append(holder);
+				const dialog = window.jQuery(holder).dialog({
+					minWidth: 600,
+					maxHeight: Math.max(300, window.innerHeight - 80),
+					position: { my: 'left', at: 'right', of: link, collision: 'fit' },
+					close: () => holder.remove()
+				});
+				dialog.closest('.ui-dialog').on('mouseenter', () => clearTimeout(timer)).on('mouseleave', () => {
+					timer = setTimeout(close, 400);
+				});
+			};
+		links.forEach(
+			/** Bind hover open/close with the same 400 ms delay plugin_audit uses. */
+			(link) => {
+				link.addEventListener('click', (event) => event.preventDefault());
+				link.addEventListener('mouseenter', () => {
+					clearTimeout(timer);
+					close();
+					timer = setTimeout(() => open(link), 400);
+				});
+				link.addEventListener('mouseleave', () => {
+					clearTimeout(timer);
+					timer = setTimeout(close, 400);
+				});
+			}
+		);
+	}
 	function initReportQuery(app) {
 		app.querySelectorAll('.alarmmanagerQueryBuilder').forEach(
 			/** Build an editor for one serialized query document. */
@@ -1717,6 +1799,7 @@
 		initEndpointTypes(app);
 		initServiceNow(app);
 		initProviders(app);
+		initPayloadPopups(app);
 		app.querySelectorAll('.alarmmanagerEndpointEditor').forEach(
 			/** Bind endpoint submissions to preserve explicit test-send intent. */
 			(form) => {
