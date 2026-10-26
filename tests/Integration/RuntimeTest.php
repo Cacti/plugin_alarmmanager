@@ -459,7 +459,7 @@ final class RuntimeTest extends AlarmManagerTestCase {
 	 * Install one fixture routing configuration with capped endpoints and optional overlap/stop rules.
 	 */
 	private function am_routes(array $policy = [], bool $overlap = false, bool $stop = false): void {
-		$routes                       = json_decode(file_get_contents(__DIR__ . '/../../examples/routing.json'), true, 32, JSON_THROW_ON_ERROR);
+		$routes                       = json_decode(file_get_contents(__DIR__ . '/../fixtures/routing.json'), true, 32, JSON_THROW_ON_ERROR);
 		$routes['rules'][0]['policy'] = $policy;
 		$routes['rules'][0]['stop']   = $stop;
 

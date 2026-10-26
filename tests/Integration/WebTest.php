@@ -109,7 +109,7 @@ final class WebTest extends AlarmManagerTestCase {
 			$create['id']       = 2147483647;
 			$create['revision'] = $created['revision'];
 			$this->wreject(fn () => $this->waction($create), 'A posted arbitrary ID cannot create a record');
-			$routes                         = json_decode(file_get_contents(__DIR__ . '/../../examples/routing.json'), true);
+			$routes                         = json_decode(file_get_contents(__DIR__ . '/../fixtures/routing.json'), true);
 			$routes['endpoints'][0]['name'] = '<img src=x onerror=window.ALARM_BAD=1>';
 			alarmmanager_apply_configuration($routes);
 			$direct    = alarmmanager_admin_configuration();
