@@ -78,6 +78,22 @@ function alarmmanager_integration_templates(): array {
 			'transport'       => ['url' => 'https://teams.workflow.invalid', 'method' => 'POST', 'credential' => true, 'teams_workflow' => true, 'mapping' => ['default' => [
 				['to' => 'text', 'template' => alarmmanager_message_template() . "\nSource: {{event.source}}\nCollector: {{event.collector_id}} {{device.collector_name}}\nEpisode: {{alarm.episode_id}}\nAlarm key: {{alarm.key}}", 'type' => 'string', 'required' => true]
 			]]]],
+		'twilio' => ['name' => 'Twilio SMS', 'type' => 'restapi', 'auth' => 'basic',
+			'hint'             => 'Replace REPLACE-WITH-ACCOUNT-SID in the URL with your AC Account SID. Under Basic authentication, use an API Key SID and secret (recommended), or the Account SID and Auth Token. Set From to your Twilio sender and To to the recipient in E.164 format. Keep Body within 1,600 characters; long SMS messages incur multiple segment charges. HTTP 201 means Twilio accepted the message, not handset delivery. Check Twilio Messaging logs. Retries after an uncertain response can send duplicates.',
+			'transport'        => ['url' => 'https://api.twilio.com/2010-04-01/Accounts/REPLACE-WITH-ACCOUNT-SID/Messages.json', 'method' => 'POST', 'body_encoding' => 'form', 'credential' => true, 'success_codes' => [201], 'response_reference' => ['id' => 'sid'], 'mapping' => ['default' => [
+				['to' => 'From', 'constant' => 'REPLACE-WITH-TWILIO-NUMBER', 'type' => 'string', 'required' => true],
+				['to' => 'To', 'constant' => 'REPLACE-WITH-RECIPIENT-NUMBER', 'type' => 'string', 'required' => true],
+				['to' => 'Body', 'template' => '{{device.hostname}}: {{alarm.summary}} ({{alarm.severity}}, {{alarm.transition}})', 'type' => 'string', 'required' => true]
+			]]]],
+		'twilio_whatsapp' => ['name' => 'Twilio WhatsApp', 'type' => 'restapi', 'auth' => 'basic',
+			'hint'                      => 'Use your Account SID in the URL and API Key SID/secret under Basic authentication. Set From and To to whatsapp:+E.164 addresses, MessagingServiceSid to your MG service, and ContentSid to an approved HX template such as Cacti alarm: {{1}}. The Combined text field supplies template variable 1. Recipients must opt in. HTTP 201 confirms acceptance only; check Twilio Messaging logs. Retries can send duplicates.',
+			'transport'                 => ['url' => 'https://api.twilio.com/2010-04-01/Accounts/REPLACE-WITH-ACCOUNT-SID/Messages.json', 'method' => 'POST', 'body_encoding' => 'form', 'twilio_whatsapp' => true, 'credential' => true, 'success_codes' => [201], 'response_reference' => ['id' => 'sid'], 'mapping' => ['default' => [
+				['to' => 'From', 'constant' => 'whatsapp:REPLACE-WITH-TWILIO-NUMBER', 'type' => 'string', 'required' => true],
+				['to' => 'To', 'constant' => 'whatsapp:REPLACE-WITH-RECIPIENT-NUMBER', 'type' => 'string', 'required' => true],
+				['to' => 'MessagingServiceSid', 'constant' => 'REPLACE-WITH-MESSAGING-SERVICE-SID', 'type' => 'string', 'required' => true],
+				['to' => 'ContentSid', 'constant' => 'REPLACE-WITH-CONTENT-SID', 'type' => 'string', 'required' => true],
+				['to' => 'text', 'template' => '{{device.hostname}}: {{alarm.summary}} ({{alarm.severity}}, {{alarm.transition}})', 'type' => 'string', 'required' => true]
+			]]]],
 		'telegram' => ['name' => 'Telegram bot', 'type' => 'webhook',
 			'hint'               => 'Replace the bot token in the URL and the chat ID constant before enabling; no credential record is used.',
 			'transport'          => ['url' => 'https://api.telegram.org/botREPLACE-WITH-TOKEN/sendMessage', 'method' => 'POST', 'credential' => false, 'response_match' => ['path' => 'ok', 'equals' => true], 'mapping' => ['default' => [
@@ -256,6 +272,16 @@ function alarmmanager_delivery_reference(array $event, int $endpoint_id, ?array 
  */
 function alarmmanager_notification_payload(array $settings, array $event, array $reference = []): stdClass {
 	$payload = alarmmanager_map_payload($settings['mapping'], $event, $reference);
+
+	if (!empty($settings['twilio_whatsapp'])) {
+		if (!is_string($payload->text ?? null) || trim($payload->text) === '' || isset($payload->Body) || isset($payload->ContentVariables)) {
+			throw new InvalidArgumentException('invalid_twilio_message');
+		}
+		// shortcut: WhatsApp uses variable 1; extend when multi-variable templates are needed.
+		// WhatsApp template variables cannot contain line breaks or tabs.
+		$payload->ContentVariables = json_encode(['1' => preg_replace('/\s+/u', ' ', trim($payload->text))], JSON_THROW_ON_ERROR);
+		unset($payload->text);
+	}
 
 	if (!empty($settings['teams_workflow'])) {
 		if (!is_string($payload->text ?? null) || $payload->text === '') {

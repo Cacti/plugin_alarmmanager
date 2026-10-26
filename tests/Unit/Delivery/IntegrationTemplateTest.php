@@ -48,17 +48,86 @@ final class IntegrationTemplateTest extends AlarmManagerTestCase {
 			$this->assertArrayNotHasKey('id', $template);
 			$this->assertArrayNotHasKey('enabled', $template);
 			$transport = alarmmanager_transport_configuration($template['type'], $template['transport']);
-			$this->assertSame(in_array($key, ['slack', 'teams', 'servicenow', 'servicenow_events'], true), (bool) ($transport['credential'] ?? false));
+			$this->assertSame(in_array($key, ['slack', 'teams', 'twilio', 'twilio_whatsapp', 'servicenow', 'servicenow_events'], true), (bool) ($transport['credential'] ?? false));
 			$this->assertArrayNotHasKey('headers', $template['transport']);
 			$this->assertArrayNotHasKey('basic', $template['transport']);
 
 			if (isset($template['auth'])) {
-				$this->assertSame(['teams' => 'teams', 'slack' => 'bearer', 'servicenow' => 'basic', 'servicenow_events' => 'basic'][$key], $template['auth']);
+				$this->assertSame(['twilio' => 'basic', 'twilio_whatsapp' => 'basic', 'teams' => 'teams', 'slack' => 'bearer', 'servicenow' => 'basic', 'servicenow_events' => 'basic'][$key], $template['auth']);
 			} else {
 				$this->assertArrayNotHasKey('auth', $template);
 			}
 		}
 		$this->assertArrayNotHasKey('transition_overrides', alarmmanager_transport_configuration('webhook', ['url' => 'https://x.example.invalid/a']));
+	}
+
+	public function testTwilioPresetsPreserveMessagesCredentialsAndConfiguration(): void {
+		self::alarmmanager_test_load('includes/admin.php');
+		self::alarmmanager_test_load('includes/transports.php');
+		$event            = $this->sampleEvent();
+		$event['summary'] = "Link \"down\" & café\ncheck\tport";
+
+		foreach (['twilio', 'twilio_whatsapp'] as $key) {
+			$template = alarmmanager_integration_templates()[$key];
+			$settings = alarmmanager_transport_configuration($template['type'], $template['transport']);
+			$this->assertSame('form', $settings['body_encoding']);
+			$this->assertSame($settings, alarmmanager_transport_configuration('restapi', json_decode(json_encode($settings, JSON_THROW_ON_ERROR), true, 32, JSON_THROW_ON_ERROR)));
+			$saved = alarmmanager_admin_transport_fields('restapi', $settings, ['endpoint_fields' => 'yes']);
+			$this->assertSame('form', $saved['body_encoding']);
+			$this->assertSame($key === 'twilio_whatsapp', $saved['twilio_whatsapp'] ?? false);
+
+			foreach (['raised', 'recovered'] as $transition) {
+				$event['transition'] = $transition;
+				$payload             = alarmmanager_notification_payload($settings, $event);
+
+				if ($key === 'twilio') {
+					$this->assertStringContainsString($event['summary'], $payload->Body);
+					$this->assertStringContainsString($transition, $payload->Body);
+				} else {
+					$this->assertObjectNotHasProperty('text', $payload);
+					$this->assertObjectNotHasProperty('Body', $payload);
+					$variables = json_decode($payload->ContentVariables, true, 8, JSON_THROW_ON_ERROR);
+					$this->assertSame('router.example.test: Link "down" & café check port (major, ' . $transition . ')', $variables[1]);
+				}
+			}
+			$result = alarmmanager_http_result(201, '{"sid":"SMfixture","status":"queued"}', $settings);
+			$this->assertSame('success', $result['outcome']);
+			$this->assertSame('SMfixture', $result['external_reference']['id']);
+			$this->assertSame('external_reference_invalid', alarmmanager_http_result(201, '{}', $settings)['code']);
+			$this->assertSame('failure', alarmmanager_http_result(400, 'secret', $settings)['outcome']);
+			$this->assertSame(30, alarmmanager_http_result(429, '', $settings, '30')['retry_after']);
+			$this->assertSame('retry', alarmmanager_http_result(503, '', $settings)['outcome']);
+		}
+		$credential = alarmmanager_admin_credential(['auth_type' => 'basic', 'basic_username' => 'SKfixture', 'basic_password' => 'fixture-secret']);
+		$key        = random_bytes(32);
+		$cipher     = alarmmanager_encrypt_credential($credential, 42, $key);
+		$this->assertSame($credential, alarmmanager_decrypt_credential($cipher, 42, $key));
+		$this->assertStringNotContainsString('fixture-secret', $cipher);
+	}
+
+	public function testTwilioRejectsInvalidEncodingAndTemplatePayloads(): void {
+		self::alarmmanager_test_load('includes/transports.php');
+		$templates = alarmmanager_integration_templates();
+
+		foreach ([[], false, 'xml'] as $encoding) {
+			$this->assertRejects(fn () => alarmmanager_transport_configuration('restapi', array_replace($templates['twilio']['transport'], ['body_encoding' => $encoding])), 'invalid_body_encoding', 'Invalid encoding');
+		}
+		$this->assertSame('json', alarmmanager_transport_configuration('restapi', array_replace($templates['twilio']['transport'], ['body_encoding' => 'json']))['body_encoding']);
+		$this->assertRejects(fn () => alarmmanager_transport_configuration('webhook', array_replace($templates['teams']['transport'], ['body_encoding' => 'form'])), 'invalid_body_encoding', 'Teams remains JSON');
+
+		foreach (['invalid_body_encoding', 'invalid_twilio_transport', 'invalid_twilio_message'] as $code) {
+			$this->assertStringNotContainsString('Action failed:', alarmmanager_admin_error_message(new InvalidArgumentException($code)));
+		}
+		$settings = $templates['twilio_whatsapp']['transport'];
+
+		foreach ([['body_encoding' => 'json'], ['method' => 'PATCH'], ['allow_http' => true], ['credential' => false]] as $invalid) {
+			$this->assertRejects(fn () => alarmmanager_transport_configuration('restapi', array_replace($settings, $invalid)), 'invalid_twilio_transport', 'Invalid WhatsApp transport');
+		}
+
+		foreach ([[], [['to' => 'text', 'constant' => ' ']], [['to' => 'text', 'constant' => 1]], [['to' => 'text', 'constant' => 'Alarm'], ['to' => 'Body', 'constant' => 'conflict']], [['to' => 'text', 'constant' => 'Alarm'], ['to' => 'ContentVariables', 'constant' => '{}']]] as $mapping) {
+			$settings['mapping'] = ['default' => $mapping];
+			$this->assertRejects(fn () => alarmmanager_notification_payload($settings, $this->sampleEvent()), 'invalid_twilio_message', 'Invalid WhatsApp message');
+		}
 	}
 
 	public function testGenericTemplatesMapExternalReferences(): void {

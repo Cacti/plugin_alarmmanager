@@ -53,7 +53,7 @@ function alarmmanager_admin_transport_fields(string $type, array $transport, arr
 		return $transport;
 	}
 	$keys = match ($type) {
-		'restapi', 'webhook' => ['teams_workflow', 'url', 'method', 'ca_bundle', 'credential', 'allow_http', 'success_codes', 'response_match', 'connect_timeout_seconds', 'response_reference', 'transition_overrides'],
+		'restapi', 'webhook' => ['twilio_whatsapp', 'body_encoding', 'teams_workflow', 'url', 'method', 'ca_bundle', 'credential', 'allow_http', 'success_codes', 'response_match', 'connect_timeout_seconds', 'response_reference', 'transition_overrides'],
 		'email'              => ['to', 'from', 'html', 'attachments'],
 		'script'             => ['executable', 'arguments', 'compatibility', 'retry_exit_codes', 'response_reference'],
 		default              => []
@@ -634,6 +634,9 @@ function alarmmanager_admin_error_message(Throwable $error): string {
 		'invalid_transport'              => 'Action failed. Transport settings do not match the endpoint type.',
 		'invalid_teams_webhook_url'      => 'Paste the complete signed HTTPS Teams Workflow URL from Microsoft. Legacy connector URLs and tenant-authenticated triggers are not supported.',
 		'teams_webhook_missing'          => 'Save a Teams Workflow URL under Authentication before enabling this endpoint.',
+		'invalid_twilio_message'         => 'Map nonempty Combined text to text for WhatsApp template variable 1; remove Body and ContentVariables mappings.',
+		'invalid_twilio_transport'       => 'Twilio WhatsApp requires POST, form encoding, encrypted authentication and TLS.',
+		'invalid_body_encoding'          => 'Use json or form for HTTP body_encoding; Teams Workflows require json.',
 		'invalid_teams_workflow'         => 'Teams Workflows require the preset destination, POST, encrypted authentication and TLS. Restore the Teams preset delivery options.',
 		'teams_message_too_large'        => 'Shorten the Teams Combined text mapping: the encoded card exceeds 28,000 bytes.',
 		'teams_message_required'         => 'Map a nonempty Combined text message to the text field.',

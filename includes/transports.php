@@ -115,8 +115,10 @@ function alarmmanager_http_transport(array $event, array $endpoint, string $idem
 	if ($target === null) {
 		return ['outcome' => 'retry', 'code' => 'integration_reference_missing'];
 	}
-	$payload = json_encode(alarmmanager_notification_payload($settings, $event, $reference), JSON_THROW_ON_ERROR);
-	$headers = ['Content-Type: application/json', 'Idempotency-Key: ' . $idempotency, 'Expect:'];
+	$form    = ($settings['body_encoding'] ?? 'json') === 'form';
+	$payload = alarmmanager_notification_payload($settings, $event, $reference);
+	$payload = $form ? http_build_query($payload, '', '&', PHP_QUERY_RFC3986) : json_encode($payload, JSON_THROW_ON_ERROR);
+	$headers = ['Content-Type: ' . ($form ? 'application/x-www-form-urlencoded' : 'application/json'), 'Idempotency-Key: ' . $idempotency, 'Expect:'];
 
 	if ($settings['credential']) {
 		$credential = alarmmanager_load_credential((int) $endpoint['id']);

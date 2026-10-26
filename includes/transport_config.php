@@ -62,7 +62,7 @@ function alarmmanager_transport_configuration(string $type, $settings): array {
 		return [];
 	} // Old endpoint rows remain configurable but cannot send.
 	$keys = match ($type) {
-		'restapi', 'webhook' => ['mapping', 'teams_workflow', 'url', 'method', 'credential', 'success_codes', 'response_match', 'connect_timeout_seconds', 'allow_http', 'ca_bundle', 'response_reference', 'transition_overrides'],
+		'restapi', 'webhook' => ['mapping', 'twilio_whatsapp', 'body_encoding', 'teams_workflow', 'url', 'method', 'credential', 'success_codes', 'response_match', 'connect_timeout_seconds', 'allow_http', 'ca_bundle', 'response_reference', 'transition_overrides'],
 		'email'              => ['mapping', 'to', 'from', 'html', 'attachments'],
 		'script'             => ['mapping', 'executable', 'arguments', 'retry_exit_codes', 'compatibility', 'response_reference'],
 		default              => throw new InvalidArgumentException('unsupported_transport')
@@ -105,11 +105,25 @@ function alarmmanager_transport_configuration(string $type, $settings): array {
 		}
 		$result += ['url' => $url, 'method' => $method, 'allow_http' => $allow_http, 'credential' => alarmmanager_config_bool($settings['credential'] ?? false), 'success_codes' => array_values(array_unique($codes)), 'response_match' => $match, 'connect_timeout_seconds' => alarmmanager_config_int($settings['connect_timeout_seconds'] ?? 5, 1, 30)];
 
+		if (isset($settings['body_encoding'])) {
+			if (!in_array($settings['body_encoding'], ['json', 'form'], true) || (!empty($settings['teams_workflow']) && $settings['body_encoding'] !== 'json')) {
+				throw new InvalidArgumentException('invalid_body_encoding');
+			}
+			$result['body_encoding'] = $settings['body_encoding'];
+		}
+
 		if (alarmmanager_config_bool($settings['teams_workflow'] ?? false)) {
 			if ($type !== 'webhook' || $url !== 'https://teams.workflow.invalid' || $method !== 'POST' || $allow_http || !$result['credential'] || !empty($settings['transition_overrides']) || $match !== null || !empty($settings['response_reference'])) {
 				throw new InvalidArgumentException('invalid_teams_workflow');
 			}
 			$result['teams_workflow'] = true;
+		}
+
+		if (alarmmanager_config_bool($settings['twilio_whatsapp'] ?? false)) {
+			if (($result['body_encoding'] ?? 'json') !== 'form' || $method !== 'POST' || $allow_http || !$result['credential'] || !empty($settings['teams_workflow'])) {
+				throw new InvalidArgumentException('invalid_twilio_transport');
+			}
+			$result['twilio_whatsapp'] = true;
 		}
 		$ca = $settings['ca_bundle'] ?? null;
 
