@@ -2,7 +2,7 @@
 
 * Require an enabled matching Alarm Rule for notifications. Remove automatic routing to all integrations when no rules exist, and recheck queued alarms before delivery. Unrouted alarms remain captured with a no-route decision.
 
-* Alarm Rules: use the shared AND/OR/NOT/group condition builder for Match alarms, with named source, severity, alarm change, device and collector choices, summary text and exact device tags. Applies to all alarm types hides the builder and clears alarm conditions on save.
+* Alarm Rules: use the shared AND/OR/NOT/group condition builder for Match alarms, with named source, severity, alarm change, device and collector choices, summary text and exact device tags. Applies to all alarm sources hides the builder and clears alarm conditions on save.
 
 * Alarm Rules: add Applies to all devices to hide device conditions and save rules without a device filter.
 

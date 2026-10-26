@@ -279,7 +279,7 @@ function alarmmanager_rule_editor(array $item, int $revision, array $configurati
 	print '<fieldset class="alarmmanagerRuleSection alarmmanagerQueryBuilder"' . ($policy['device_query'] === '' ? ' hidden disabled' : '') . ' data-query-fields="' . html_escape(json_encode($device_fields, JSON_THROW_ON_ERROR)) . '"><legend>' . __esc('Match devices', 'alarmmanager') . '</legend><p class="alarmmanagerHint">' . __esc('Build device conditions using AND, OR and groups. These conditions use the current Cacti device settings and must also satisfy any alarm filters below. With no device conditions, all devices can match.', 'alarmmanager') . '</p><div class="alarmmanagerQueryRows"></div><textarea name="device_query" maxlength="8192" hidden>' . html_escape($policy['device_query']) . '</textarea></fieldset>';
 	$alarm_query = alarmmanager_rule_alarm_query($policy);
 	print '<div class="alarmmanagerRuleSection">';
-	alarmmanager_checkbox('all_alarm_types', 'Applies to all alarm types', $alarm_query === '');
+	alarmmanager_checkbox('all_alarm_types', 'Applies to all alarm sources', $alarm_query === '');
 	print '</div>';
 	$alarm_fields = alarmmanager_rule_alarm_fields();
 
