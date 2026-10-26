@@ -99,7 +99,7 @@ final class ChangedPathsTest extends AlarmManagerTestCase {
 			}
 
 			if (str_contains($sql, 'configuration_history')) {
-				return [['definition' => json_encode(['version' => 1, 'endpoints' => [['id' => 7, 'name' => 'Test', 'type' => 'webhook', 'transport' => ['credential' => true, 'url' => 'https://example.test/alerts']]], 'rules' => []])]];
+				return [['definition' => json_encode(['version' => 1, 'endpoints' => [['id' => 7, 'name' => 'Test', 'type' => 'webhook', 'transport' => alarmmanager_integration_templates()['teams']['transport']]], 'rules' => []])]];
 			}
 
 			return [];
@@ -110,6 +110,37 @@ final class ChangedPathsTest extends AlarmManagerTestCase {
 				'offline_summary'                                                            => 'Offline', 'recovering_summary' => 'Recovering', 'online_summary' => 'Online',
 				'processing_workers'                                                         => 3, 'delivery_workers' => 2]));
 			$this->assertSame(3, alarmmanager_supervisor_options()['processing_workers']);
+			$teams                                      = alarmmanager_integration_templates()['teams']['transport'];
+			$url                                        = 'https://prod.logic.azure.com/workflows/fixture?sig=fixture';
+			$key                                        = random_bytes(32);
+			$cipher                                     = alarmmanager_encrypt_credential(['teams_webhook_url' => $url], 7, $key);
+			$query_handler                              = $GLOBALS['alarmmanager_test_query_handler'];
+			$cell_handler                               = $GLOBALS['alarmmanager_test_cell_handler'];
+			$GLOBALS['alarmmanager_test_cell_handler']  = static fn ($sql) => str_contains($sql, 'settings_user') ? base64_encode($key) : $cell_handler($sql);
+			$GLOBALS['alarmmanager_test_query_handler'] = static function ($sql) use ($query_handler, $cipher) {
+				if (str_contains($sql, 'SELECT id FROM plugin_alarmmanager_endpoints')) {
+					return [['id' => 7]];
+				}
+
+				if (str_contains($sql, 'SELECT endpoint_id FROM plugin_alarmmanager_credentials')) {
+					return [['endpoint_id' => 7]];
+				}
+
+				if (str_contains($sql, 'SELECT ciphertext')) {
+					return [['ciphertext' => $cipher]];
+				}
+
+				return $query_handler($sql);
+			};
+
+			foreach (['teams', 'keep'] as $auth) {
+				$this->assertSame('Configuration saved.', alarmmanager_admin_action(['action' => 'endpoint_save', 'revision' => 1, 'id' => 7, 'name' => 'Teams',
+					'enabled'                                                                    => 'yes', 'type' => 'webhook', 'url' => $teams['url'], 'auth_type' => $auth, 'teams_webhook_url' => $url,
+					'transport_json'                                                             => json_encode($teams), 'mapping_json' => json_encode($teams['mapping'])]));
+			}
+			$GLOBALS['alarmmanager_test_query_handler'] = $query_handler;
+			$GLOBALS['alarmmanager_test_cell_handler']  = $cell_handler;
+
 			$writes = [];
 
 			try {
@@ -122,18 +153,6 @@ final class ChangedPathsTest extends AlarmManagerTestCase {
 			}
 			$this->assertSame('COMMIT', $writes[array_key_last($writes)][0], 'Destination changes commit before attempting the inline test.');
 			$this->assertTrue((bool) array_filter($writes, static fn ($write) => str_contains($write[0], 'INSERT INTO plugin_alarmmanager_configuration_history')));
-			$transport                                  = alarmmanager_integration_templates()['teams']['transport'];
-			$key                                        = random_bytes(32);
-			$cipher                                     = alarmmanager_encrypt_credential(['teams_webhook_url' => 'https://prod.logic.azure.com/workflows/f?sig=fixture'], 7, $key);
-			$query                                      = $GLOBALS['alarmmanager_test_query_handler'];
-			$GLOBALS['alarmmanager_test_query_handler'] = static fn ($sql) => str_contains($sql, 'plugin_alarmmanager_credentials') ? [['endpoint_id' => 7, 'ciphertext' => $cipher]] : (str_contains($sql, 'SELECT id FROM plugin_alarmmanager_endpoints') ? [['id' => 7]] : $query($sql));
-			$GLOBALS['alarmmanager_test_cell_handler']  = static fn ($sql) => str_contains($sql, 'settings_user') ? base64_encode($key) : (str_contains($sql, 'config_revision') ? 2 : 0);
-
-			foreach (['keep', 'teams'] as $auth) {
-				$this->assertSame('Configuration saved.', alarmmanager_admin_action(['action' => 'endpoint_save', 'revision' => 1, 'id' => 7, 'name' => 'Teams',
-					'enabled'                                                                    => 'yes', 'type' => 'webhook', 'url' => $transport['url'], 'auth_type' => $auth, 'teams_webhook_url' => 'https://prod.logic.azure.com/workflows/f?sig=fixture',
-					'transport_json'                                                             => json_encode($transport), 'mapping_json' => json_encode($transport['mapping'])]));
-			}
 		} finally {
 			[$GLOBALS['config'], $_SESSION, $_SERVER['REQUEST_METHOD'],
 				$GLOBALS['alarmmanager_test_config_options'], $GLOBALS['alarmmanager_test_allowed_realms']] = $before;

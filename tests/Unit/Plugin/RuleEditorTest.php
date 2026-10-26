@@ -33,31 +33,18 @@ final class RuleEditorTest extends AlarmManagerTestCase {
 		ob_start();
 
 		try {
-			alarmmanager_endpoint_editor(['id' => 7, 'name' => 'Destination', 'type' => 'webhook', 'enabled' => true, 'transport' => []], 1);
+			alarmmanager_endpoint_editor(['id' => 7, 'name' => 'Destination', 'type' => 'webhook', 'enabled' => true, 'transport' => alarmmanager_integration_templates()['teams']['transport']], 1);
 			$html = ob_get_contents();
 		} finally {
 			ob_end_clean();
 		}
+		$this->assertStringContainsString('readonly', $html);
+		$this->assertStringContainsString('Workflows', $html);
 		$this->assertStringContainsString('name="test_destination" value="yes"', $html);
 		$this->assertStringNotContainsString('section=test', $html);
 		$this->assertStringContainsString('Test destination saves the current settings', $html);
 		$this->assertLessThan(strpos($html, 'name="test_destination"'), strpos($html, '>Save endpoint</button>'), 'Implicit form submission must default to saving, not sending a test.');
 		$this->assertArrayNotHasKey('test', alarmmanager_admin_sections());
-	}
-
-	public function testTeamsEditorShowsWorkflowSetupHint(): void {
-		self::alarmmanager_test_load('includes/admin_view.php');
-		$endpoint = alarmmanager_integration_templates()['teams'];
-		ob_start();
-
-		try {
-			alarmmanager_endpoint_editor($endpoint + ['id' => 7], 1);
-			$html = ob_get_contents();
-		} finally {
-			ob_end_clean();
-		}
-		$this->assertStringContainsString('data-integration-hint', $html);
-		$this->assertStringContainsString('readonly', $html);
 	}
 
 	public function testSharedDaemonSettingsValidation(): void {
