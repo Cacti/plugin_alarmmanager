@@ -753,19 +753,151 @@
 							'"]'
 					),
 					toggle = section.querySelector('[name="template_enabled[]"]'),
-					fields = section.querySelector('.alarmmanagerMapping');
+					fields = section.querySelector('.alarmmanagerMapping'),
+					state = section.querySelector('[data-template-state]'),
+					count = section.querySelector('[data-recipient-count]'),
+					recipients = section.querySelector('[name^="recipient_numbers["]');
 				const update =
-					/** Update template visibility and editability from the selected destination. */
+					/** Update template visibility, editability, and summary badges from the selected destination. */
 					() => {
 						section.hidden = !destination.checked;
 						toggle.disabled = !destination.checked;
-						section.querySelectorAll('[name^="recipient_numbers["]').forEach((input) => { input.disabled = !destination.checked; });
+						section
+							.querySelectorAll('[name^="recipient_numbers["], .alarmmanagerPhoneList')
+							.forEach(
+								/** Match recipient editability to the destination selection. */
+								(input) => {
+									input.disabled = !destination.checked;
+								}
+							);
 						fields.disabled = !destination.checked || !toggle.checked;
 						fields.inert = fields.disabled;
+						state.dataset.templateState = toggle.checked ? 'custom' : 'default';
+						state.textContent = toggle.checked
+							? 'Custom template'
+							: 'Default template';
+						if (count && recipients) {
+							const total = recipients.value
+								.split(/[\s,;]+/)
+								.filter(Boolean).length;
+							count.textContent = total
+								? 'Recipients: ' + total
+								: 'Destination recipient';
+						}
 					};
 				destination.addEventListener('change', update);
 				toggle.addEventListener('change', update);
+				recipients?.addEventListener('input', update);
 				update();
+			}
+		);
+	}
+	/** Replace phone-number textareas with add and remove controls. */
+	function initPhoneLists(app) {
+		app.querySelectorAll('textarea[data-phone-list]').forEach(
+			/** Build a phone list editor backed by one textarea. */
+			(textarea) => {
+				const label = textarea.closest('label'),
+					container = node('fieldset', undefined, 'alarmmanagerPhoneList'),
+					list = node('ul'),
+					entry = node('div', undefined, 'alarmmanagerPhoneEntry'),
+					input = node('input'),
+					add = node('button', 'Add number'),
+					message = node('p', undefined, 'alarmmanagerPhoneError'),
+					numbers = textarea.value.split(/[\s,;]+/).filter(Boolean);
+				input.type = 'tel';
+				input.placeholder = '+15551234567';
+				input.autocomplete = 'off';
+				input.setAttribute('aria-label', 'Phone number to add');
+				add.type = 'button';
+				message.setAttribute('aria-live', 'polite');
+				entry.append(input, add);
+				label.before(container);
+				container.append(
+					node('legend', label.firstChild.textContent.trim()),
+					list,
+					entry,
+					message,
+					textarea
+				);
+				label.remove();
+				textarea.hidden = true;
+				/** Save the numbers in the backing textarea, one per line. */
+				function save() {
+					textarea.value = numbers.join('\n');
+					textarea.dispatchEvent(new Event('input', { bubbles: true }));
+				}
+				/** Show or clear the validation message for the entry field. */
+				function report(error) {
+					message.textContent = error;
+					message.hidden = !error;
+					input.setAttribute('aria-invalid', error ? 'true' : 'false');
+				}
+				/** Render one removable chip per number. */
+				function render() {
+					list.replaceChildren(
+						...numbers.map(
+							/** Create the chip and remove control for one number. */
+							(number, index) => {
+								const item = node('li'),
+									remove = node('button', '×');
+								remove.type = 'button';
+								remove.setAttribute('aria-label', 'Remove ' + number);
+								remove.addEventListener('click', () => {
+									numbers.splice(index, 1);
+									save();
+									render();
+									input.focus();
+								});
+								item.append(node('span', number), remove);
+								return item;
+							}
+						)
+					);
+					list.hidden = !numbers.length;
+				}
+				/** Validate the entered number and add it to the list. */
+				function addNumber() {
+					const value = input.value.replace(/[\s().-]/g, '').replace(/^whatsapp:/, '');
+					const error = !/^\+[1-9][0-9]{1,14}$/.test(value)
+						? 'Enter the number in international format, such as +15551234567.'
+						: numbers.includes(value)
+							? 'This number is already in the list.'
+							: numbers.length >= 50
+								? 'A rule can have up to 50 recipients.'
+								: '';
+					report(error);
+					if (error) return false;
+					numbers.push(value);
+					input.value = '';
+					save();
+					render();
+					return true;
+				}
+				add.addEventListener('click', () => {
+					addNumber();
+					input.focus();
+				});
+				input.addEventListener('keydown', (event) => {
+					if (event.key !== 'Enter') return;
+					event.preventDefault();
+					addNumber();
+				});
+				input.addEventListener('input', () => report(''));
+				textarea.form?.addEventListener(
+					'submit',
+					/** Keep a typed number that was not added yet instead of silently dropping it. */
+					(event) => {
+						if (!container.disabled && input.value.trim() && !addNumber()) {
+							event.preventDefault();
+							event.stopImmediatePropagation();
+							input.focus();
+						}
+					},
+					true
+				);
+				report('');
+				render();
 			}
 		);
 	}
@@ -1577,6 +1709,7 @@
 		initRuleEditors(app);
 		initReportQuery(app);
 		initMappings(app);
+		initPhoneLists(app);
 		initRuleTemplates(app);
 		initLists(app);
 		initDeliveryIntervals(app);

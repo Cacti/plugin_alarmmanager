@@ -298,3 +298,31 @@
 
 .alarmmanagerEndpointActions button[name=test_destination] { order:1; }
 .alarmmanagerEndpointActions button:not([name]) { order:2; }
+
+/* Rule template destinations render as accordion cards with live status badges. */
+#alarmmanager_app [data-rule-template] { margin:0 0 10px; padding:0 14px; border:1px solid var(--search-border); border-radius:8px; background:var(--search-card); }
+#alarmmanager_app [data-rule-template][open] { padding-bottom:14px; }
+#alarmmanager_app [data-rule-template][hidden] { display:none; }
+#alarmmanager_app [data-rule-template] > summary { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:0 -14px; padding:12px 14px; border-radius:8px; cursor:pointer; list-style:none; font-weight:bold; overflow-wrap:anywhere; }
+#alarmmanager_app [data-rule-template] > summary::-webkit-details-marker { display:none; }
+#alarmmanager_app [data-rule-template] > summary::after { content:''; flex:none; width:7px; height:7px; margin:0 4px 4px auto; border-right:2px solid var(--search-muted); border-bottom:2px solid var(--search-muted); transform:rotate(45deg); transition:transform .15s; }
+#alarmmanager_app [data-rule-template][open] > summary::after { margin-bottom:-4px; transform:rotate(-135deg); }
+#alarmmanager_app [data-rule-template] > summary:hover { background:var(--search-tint); }
+#alarmmanager_app [data-rule-template][open] > summary { margin-bottom:14px; border-bottom:1px solid var(--search-border); border-radius:8px 8px 0 0; background:var(--search-tint); }
+.alarmmanagerBadge { padding:2px 9px; border:1px solid var(--search-border); border-radius:999px; background:var(--search-card); color:var(--search-muted); font-size:.85em; font-weight:normal; white-space:nowrap; }
+.alarmmanagerBadge[data-template-state="custom"] { border-color:var(--search-accent); color:var(--search-accent); }
+
+/* Twilio rule recipients are added one at a time and shown as removable chips. */
+#alarmmanager_app .alarmmanagerPhoneList { margin:0 0 8px; padding:12px; min-width:0; border:1px solid var(--search-border); border-radius:6px; }
+#alarmmanager_app .alarmmanagerPhoneList > legend { font-weight:bold; padding:0 6px; }
+#alarmmanager_app .alarmmanagerPhoneList ul { display:flex; flex-wrap:wrap; gap:6px; margin:0 0 10px; padding:0; list-style:none; }
+#alarmmanager_app .alarmmanagerPhoneList ul[hidden] { display:none; }
+#alarmmanager_app .alarmmanagerPhoneList li { display:inline-flex; align-items:center; gap:4px; padding:2px 2px 2px 10px; border:1px solid var(--search-border); border-radius:999px; background:var(--search-tint); font-family:monospace; }
+#alarmmanager_app .alarmmanagerPhoneList li button { padding:0 7px; border:0; border-radius:999px; background:transparent; font-size:1.1em; line-height:1.4; }
+#alarmmanager_app .alarmmanagerPhoneList li button:hover { background:var(--search-card); }
+#alarmmanager_app .alarmmanagerPhoneEntry { display:flex; gap:8px; max-width:600px; }
+#alarmmanager_app .alarmmanagerPhoneEntry input { flex:1 1 auto; min-width:0; }
+#alarmmanager_app .alarmmanagerPhoneEntry button { flex:none; }
+#alarmmanager_app .alarmmanagerPhoneList [aria-invalid="true"] { border-color:#c0392b; }
+.alarmmanagerPhoneError { margin:6px 0 0; color:#c0392b; }
+#alarmmanager_app[data-theme="dark"] .alarmmanagerPhoneError, #alarmmanager_app[data-theme="midwinter"] .alarmmanagerPhoneError, #alarmmanager_app[data-theme="deepness"] .alarmmanagerPhoneError { color:#ff8a80; }

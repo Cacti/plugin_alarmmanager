@@ -43,8 +43,8 @@ function alarmmanager_input(string $key, string $label, $value = '', string $typ
 function alarmmanager_checkbox(string $key, string $label, bool $checked = false): void {
 	print '<label><input type="checkbox" name="' . $key . '" value="yes" ' . ($checked ? 'checked' : '') . '> ' . __esc($label, 'alarmmanager') . '</label>';
 }
-function alarmmanager_textarea(string $key, string $label, string $value, int $limit = 131072): void {
-	print '<label class="alarmmanagerFullWidth">' . __esc($label, 'alarmmanager') . '<textarea name="' . $key . '" rows="8" maxlength="' . $limit . '" spellcheck="false">' . html_escape($value) . '</textarea></label>';
+function alarmmanager_textarea(string $key, string $label, string $value, int $limit = 131072, string $extra = ''): void {
+	print '<label class="alarmmanagerFullWidth">' . __esc($label, 'alarmmanager') . '<textarea name="' . $key . '" rows="8" maxlength="' . $limit . '" spellcheck="false"' . ($extra === '' ? '' : ' ' . $extra) . '>' . html_escape($value) . '</textarea></label>';
 }
 function alarmmanager_json_text($value): string {
 	return json_encode($value ?: new stdClass(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
@@ -248,13 +248,20 @@ function alarmmanager_rule_editor(array $item, int $revision, array $configurati
 	print '<fieldset class="alarmmanagerRuleSection"><legend>' . __esc('Message template', 'alarmmanager') . '</legend><p>' . __esc('Use each destination default, or customize its message for this rule. Customization starts with a copy of the destination template and does not change other rules. If several rules match the same destination, the first matching rule in priority and ID order supplies its template.', 'alarmmanager') . '</p>';
 
 	foreach ($configuration['endpoints'] as $endpoint) {
-		$id     = (int) $endpoint['id'];
-		$custom = isset($policy['template_overrides'][$id]);
-		print '<details data-rule-template="' . $id . '"' . (in_array($id, $selected, true) ? '' : ' hidden') . '><summary>' . html_escape($endpoint['name']) . '</summary><label><input type="checkbox" name="template_enabled[]" value="' . $id . '"' . ($custom ? ' checked' : '') . '> ' . __esc('Customize message for this rule', 'alarmmanager') . '</label><p>' . __esc('Unchecked: Use destination default.', 'alarmmanager') . '</p>';
+		$id         = (int) $endpoint['id'];
+		$custom     = isset($policy['template_overrides'][$id]);
+		$twilio     = in_array($endpoint['transport']['provider'] ?? '', ['twilio', 'twilio_whatsapp'], true);
+		$recipients = $policy['recipient_overrides'][$id] ?? [];
+		print '<details data-rule-template="' . $id . '"' . (in_array($id, $selected, true) ? '' : ' hidden') . '><summary><span>' . html_escape($endpoint['name']) . '</span><span class="alarmmanagerBadge" data-template-state="' . ($custom ? 'custom' : 'default') . '">' . __esc($custom ? 'Custom template' : 'Default template', 'alarmmanager') . '</span>';
 
-		if (in_array($endpoint['transport']['provider'] ?? '', ['twilio', 'twilio_whatsapp'], true)) {
-			alarmmanager_textarea('recipient_numbers[' . $id . ']', 'Twilio recipients for this rule', implode("\n", $policy['recipient_overrides'][$id] ?? []), 2048);
-			print '<p>' . __esc('Optional: one international phone number per line, or separated by commas. These numbers replace the destination recipient for this rule. Leave blank to use the destination default. Each number has its own delivery status and retries.', 'alarmmanager') . '</p>';
+		if ($twilio) {
+			print '<span class="alarmmanagerBadge" data-recipient-count>' . ($recipients ? __esc('Recipients: %d', count($recipients), 'alarmmanager') : __esc('Destination recipient', 'alarmmanager')) . '</span>';
+		}
+		print '</summary><label><input type="checkbox" name="template_enabled[]" value="' . $id . '"' . ($custom ? ' checked' : '') . '> ' . __esc('Customize message for this rule', 'alarmmanager') . '</label><p>' . __esc('Unchecked: Use destination default.', 'alarmmanager') . '</p>';
+
+		if ($twilio) {
+			alarmmanager_textarea('recipient_numbers[' . $id . ']', 'Twilio recipients for this rule', implode("\n", $recipients), 2048, 'data-phone-list');
+			print '<p class="alarmmanagerHint">' . __esc('Optional: add each phone number in international format, such as +15551234567. These numbers replace the destination recipient for this rule. Leave the list empty to use the destination default. Each number has its own delivery status and retries.', 'alarmmanager') . '</p>';
 		}
 		alarmmanager_mapping_editor($policy['template_overrides'][$id] ?? $endpoint['transport']['mapping'] ?? [], $configuration['device_summaries'] ?? [], 'template_mapping[' . $id . ']', $endpoint['type'], 'Rule message template');
 		print '</details>';
