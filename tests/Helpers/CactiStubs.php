@@ -275,7 +275,7 @@ if (!function_exists('get_current_page')) {
 }
 
 if (!function_exists('__')) {
-	function __($text, $domain = null) {
+	function __($text, ...$args) {
 		return $text;
 	}
 }
@@ -299,7 +299,7 @@ if (!function_exists('html_escape')) {
 }
 
 if (!function_exists('__esc')) {
-	function __esc($text, $domain = null) {
+	function __esc($text, ...$args) {
 		return html_escape($text);
 	}
 }
