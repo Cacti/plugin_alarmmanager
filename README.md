@@ -139,3 +139,32 @@ Discarded deliveries appear as failed with reason `queue_cleared` and can be
 explicitly replayed from delivery history. New alarms can still add messages;
 pause before clearing for maintenance. The dashboard shows waiting notifications
 and delivery pause status; its count follows the current visibility and filters.
+
+### Microsoft Teams (Workflows)
+
+Adaptive Card payloads are assembled locally with no CDN, downloaded library, or remote schema lookup. The optional `$schema` URL is omitted; the card retains its required type and version. No Adaptive Cards library needs vendoring. Sending Teams notifications requires connectivity to the configured Microsoft HTTPS workflow endpoint; a fully air-gapped installation cannot deliver to Teams.
+
+Select **Microsoft Teams (Workflows)** in Integrations → Add Integration. This creates a disabled draft. It uses the supported **When a Teams webhook request is received** trigger, not the retired Office 365 connector.
+
+1. In Teams, open the destination channel's **Workflows**, select **Send webhook alerts to a channel**, sign in to the Teams connection, and select the team/channel. Use **Anyone** trigger authentication. Save and copy the generated webhook URL. The workflow must post the received Adaptive Card attachments to the channel.
+2. Assign a continuing owner and at least one co-owner. Workflows belong to users, not channels; an absent owner can orphan a workflow. Co-owners must maintain valid connections and channel access. Verify that your tenant allows Workflows, Power Automate, the Teams connector, and the Anyone trigger. This preset does not acquire OAuth tokens for tenant/user-restricted triggers. Do not send an Authorization header with Anyone authentication.
+3. In Alarm Manager leave the Destination URL at `https://teams.workflow.invalid` (a nonsecret marker). Under **Authentication → Teams Workflow URL**, paste the complete generated URL, including its signature. Save the disabled draft. Saved URLs are encrypted with the existing endpoint credential mechanism and are never filled back into the editor or ordinary configuration exports. Keep saved authentication when editing. To rotate, select Teams Workflow URL again and paste the replacement.
+4. Review the editable `text` Combined text mapping and Preview. It includes summary, severity, transition, source, hostname, description, location, collector, event time, alarm key and episode ID. Missing optional device values appear blank. Each transition (raised, updated, reminder, occurrence, recovered) posts a new Adaptive Card; recovery carries the same episode ID and alarm key. No message editing or acknowledgment callback is implemented. Event time and captured uptime are not outage duration.
+5. Enable and **Test destination**, then check both workflow run history and the actual channel. Select the endpoint in the desired notification rules. Enabling through the editor requires a saved or newly supplied workflow URL. Test destination uses the existing queue and requires an enabled endpoint.
+
+The existing mapping system has no automatic Cacti base-URL field. If useful, add a Markdown link in Combined text using your installation's fixed HTTPS base URL and `{{device.id}}`, for example `[Device](https://cacti.example.test/host.php?action=edit&id={{device.id}})` for device-backed alarms. Retain the episode ID for alarm correlation; no external Teams message ID is recorded.
+
+HTTP 2xx is recorded as `teams_workflow_accepted`: acceptance by the workflow, **not confirmed Teams channel delivery**. A later action can fail after HTTP 202. HTTP 401/403 and other permanent 4xx fail; 408/425/429 and 5xx use existing retry/backoff and Retry-After handling. Response bodies and signed URLs are not included in results. Delivery retries/replays can create duplicate Teams posts if a request was accepted before a timeout; Workflows do not promise Idempotency-Key deduplication. Cards over 28,000 encoded bytes are rejected; shorten the mapping if needed.
+
+Each endpoint retains its independent worker queue, attempt history, replay, timeout and rate limit settings. Routing, episode processing, maintenance, acknowledgment suppression and cooldown policies remain shared. Remote collectors use the existing central configuration/credential replication and local encryption key; they deliver locally without contacting the main poller per notification. Permit outbound DNS and TCP 443 from every delivering collector to the hostname in the generated URL (commercial cloud `*.logic.azure.com` or `*.environment.api.powerplatform.com`). Other cloud hostname formats are rejected by this preset. Microsoft-side workflow connections must also be permitted by tenant policy. TLS hostname/certificate verification stays enabled; install any configured private CA PEM on each collector. Ordinary configuration exports exclude the signed URL, but explicit credential backups and protected collector-provisioning bundles contain secrets and must remain private.
+
+Microsoft states that the webhook templates and Teams webhook trigger do not require a premium license. Users still need access to Teams/Workflows and a permitted connection; extra premium actions can have additional licensing requirements. Flow performance-profile and Teams connector throttling limits apply. Channel type and posting-identity support vary; verify private/shared-channel support for the chosen workflow before enabling production notifications.
+
+Official references (reviewed October 21, 2026):
+
+- [Create webhooks using Teams Workflows; ownership and channel limitations](https://learn.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/add-incoming-webhook)
+- [Teams connector: webhook authentication, Adaptive Card format and throttling](https://learn.microsoft.com/en-us/connectors/teams/)
+- [Microsoft Support: webhook templates, setup and licensing](https://support.microsoft.com/en-us/workflows/send-messages-in-teams-using-incoming-webhooks)
+- [Power Automate: asynchronous HTTP 202 acceptance](https://learn.microsoft.com/en-us/power-automate/guidance/coding-guidelines/asychronous-flow-pattern)
+
+Live Teams delivery remains unverified without a workflow URL and channel access.

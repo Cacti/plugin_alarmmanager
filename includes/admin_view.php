@@ -49,7 +49,10 @@ function alarmmanager_textarea(string $key, string $label, string $value, int $l
 function alarmmanager_json_text($value): string {
 	return json_encode($value ?: new stdClass(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
 }
-/** @param array<string, string> $summaries */
+/**
+ * @param array<string, mixed>  $endpoint
+ * @param array<string, string> $summaries
+ */
 function alarmmanager_endpoint_editor(array $endpoint, int $revision, bool $new = false, array $summaries = []): void {
 	print '<details class="alarmmanagerDashboardCard" ' . ($new ? 'open' : '') . '><summary>' . html_escape($new ? __('New endpoint', 'alarmmanager') : $endpoint['name']) . '</summary>';
 	alarmmanager_form_start('endpoint_save', $revision, $new ? [] : ['id' => $endpoint['id']]);
@@ -74,11 +77,15 @@ function alarmmanager_endpoint_editor(array $endpoint, int $revision, bool $new 
 	$mapping   = $transport['mapping'] ?? ($new ? alarmmanager_integration_templates()['webhook']['transport']['mapping'] : ['default' => []]);
 	unset($transport['mapping']);
 
-	if ($new && isset($endpoint['hint'])) {
+	if (!empty($transport['teams_workflow'])) {
+		$endpoint['hint'] = alarmmanager_integration_templates()['teams']['hint'];
+	}
+
+	if (isset($endpoint['hint'])) {
 		print '<p class="alarmmanagerFullWidth" data-integration-hint>' . __esc($endpoint['hint'], 'alarmmanager') . '</p>';
 	}
 	print '<fieldset class="alarmmanagerFullWidth alarmmanagerDestination" data-endpoint-types="restapi webhook"><legend>' . __esc('Destination', 'alarmmanager') . '</legend>';
-	alarmmanager_input('url', 'URL', $transport['url'] ?? '', 'url', 'maxlength="2048"');
+	alarmmanager_input('url', 'URL', $transport['url'] ?? '', 'url', 'maxlength="2048"' . (!empty($transport['teams_workflow']) ? ' readonly' : ''));
 	print '</fieldset>';
 	print '<div class="alarmmanagerFullWidth" data-endpoint-types="restapi webhook">';
 	alarmmanager_auth_editor(!$new ? (!empty($transport['credential']) ? 'keep' : 'none') : ($endpoint['auth'] ?? 'none'), false, $new);
@@ -462,12 +469,14 @@ function alarmmanager_auth_editor(string $selected, bool $replacement = false, b
 	if ($selected === 'keep') {
 		$options['keep'] = 'Keep saved authentication';
 	}
-	$options += ['bearer' => 'Bearer token', 'basic' => 'Basic authentication', 'headers' => 'Custom authentication headers'];
+	$options += ['bearer' => 'Bearer token', 'basic' => 'Basic authentication', 'headers' => 'Custom authentication headers', 'teams' => 'Teams Workflow URL'];
 
 	foreach ($options as $value => $label) {
 		print '<option value="' . $value . '"' . ($selected === $value ? ' selected' : '') . '>' . __esc($label, 'alarmmanager') . '</option>';
 	}
-	print '</select></label><div class="alarmmanagerAuthFields" data-auth-type="bearer">';
+	print '</select></label><div class="alarmmanagerAuthFields" data-auth-type="teams">';
+	alarmmanager_input('teams_webhook_url', 'Teams Workflow URL (secret)', '', 'password', 'autocomplete="new-password" maxlength="4096"');
+	print '</div><div class="alarmmanagerAuthFields" data-auth-type="bearer">';
 	alarmmanager_input('bearer_token', 'Bearer token', '', 'password', 'autocomplete="new-password" maxlength="4089"');
 	print '</div><div class="alarmmanagerAuthFields" data-auth-type="basic">';
 	alarmmanager_input('basic_username', 'Username', '', 'text', 'autocomplete="off" maxlength="4096"');

@@ -53,7 +53,7 @@ function alarmmanager_admin_transport_fields(string $type, array $transport, arr
 		return $transport;
 	}
 	$keys = match ($type) {
-		'restapi', 'webhook' => ['url', 'method', 'ca_bundle', 'credential', 'allow_http', 'success_codes', 'response_match', 'connect_timeout_seconds', 'response_reference', 'transition_overrides'],
+		'restapi', 'webhook' => ['teams_workflow', 'url', 'method', 'ca_bundle', 'credential', 'allow_http', 'success_codes', 'response_match', 'connect_timeout_seconds', 'response_reference', 'transition_overrides'],
 		'email'              => ['to', 'from', 'html', 'attachments'],
 		'script'             => ['executable', 'arguments', 'compatibility', 'retry_exit_codes', 'response_reference'],
 		default              => []
@@ -438,11 +438,22 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 				$transport['method']     = $input['http_method'] ?? 'POST';
 				$transport['ca_bundle']  = ($input['ca_bundle'] ?? '') === '' ? null : $input['ca_bundle'];
 				$transport['credential'] = match ($input['auth_type'] ?? '') {
+					'teams' => true,
 					'none'  => false,
 					'keep'  => (bool) (array_column($settings['endpoints'], null, 'id')[$id]['transport']['credential'] ?? false),
 					default => isset($input['credential']) || $credential !== null
 				};
 				$transport['allow_http'] = isset($input['allow_http']);
+			}
+
+			if (!empty($transport['teams_workflow']) && $item['enabled']) {
+				$saved = $credential;
+
+				if ($saved === null && $id > 0 && alarmmanager_db_row('SELECT endpoint_id FROM plugin_alarmmanager_credentials WHERE endpoint_id = ?', [$id])) {
+					$saved = alarmmanager_load_credential($id);
+				}
+
+				alarmmanager_teams_webhook_url($saved);
 			}
 			$transport['mapping'] = alarmmanager_admin_json($input['mapping_json'] ?? '{}');
 			$item['transport']    = $transport;
@@ -536,12 +547,18 @@ function alarmmanager_admin_credential(#[\SensitiveParameter] array $input, bool
 	$type = $input['auth_type'] ?? null;
 
 	if ($type !== null) {
-		if (!in_array($type, ['none', 'keep', 'bearer', 'basic', 'headers'], true)) {
+		if (!in_array($type, ['none', 'keep', 'bearer', 'basic', 'headers', 'teams'], true)) {
 			throw new InvalidArgumentException('invalid_credentials');
 		}
 
 		if ($type === 'none' || $type === 'keep') {
 			return null;
+		}
+
+		if ($type === 'teams') {
+			$url = $input['teams_webhook_url'] ?? '';
+
+			return $allow_unfilled && $url === '' ? null : alarmmanager_credential_validate(['teams_webhook_url' => $url]);
 		}
 		$fields = match ($type) {
 			'bearer' => ['bearer_token'], 'basic' => ['basic_username', 'basic_password'], 'headers' => ['headers']
@@ -603,6 +620,11 @@ function alarmmanager_admin_error_message(Throwable $error): string {
 		'configuration_changed'          => 'Configuration changed. Reload before applying your edits.',
 		'permission_denied'              => 'Action failed. Administrator access, POST and a valid CSRF token are required.',
 		'invalid_transport'              => 'Action failed. Transport settings do not match the endpoint type.',
+		'invalid_teams_webhook_url'      => 'Paste the complete signed HTTPS Teams Workflow URL from Microsoft. Legacy connector URLs and tenant-authenticated triggers are not supported.',
+		'teams_webhook_missing'          => 'Save a Teams Workflow URL under Authentication before enabling this endpoint.',
+		'invalid_teams_workflow'         => 'Teams Workflows require the preset destination, POST, encrypted authentication and TLS. Restore the Teams preset delivery options.',
+		'teams_message_too_large'        => 'Shorten the Teams Combined text mapping: the encoded card exceeds 28,000 bytes.',
+		'teams_message_required'         => 'Map a nonempty Combined text message to the text field.',
 		'invalid_transport_url'          => 'Action failed. Use an HTTPS URL without credentials, query parameters or fragments.',
 		'invalid_mapping_path'           => 'Message field names must start with a letter or underscore and use letters, digits, underscores or dot-separated paths.',
 		'conflicting_mapping'            => 'Message fields have duplicate or overlapping destination names. Give each field a unique destination name.',

@@ -76,11 +76,15 @@ final class ConfigurationReplicationTest extends AlarmManagerTestCase {
 				['id' => 3, 'name' => 'Script', 'type' => 'script', 'transport' => ['executable' => PHP_BINARY]],
 				['id' => 4, 'name' => 'Email', 'type' => 'email', 'transport' => ['to' => ['ops@example.test'], 'mapping' => ['default' => [['to' => 'subject', 'constant' => 'Alarm'], ['to' => 'message', 'source' => 'alarm.summary']]]]]
 			], 'rules' => []];
+			$routes['endpoints'][] = ['id' => 5] + alarmmanager_integration_templates()['teams'];
+			unset($routes['endpoints'][4]['auth'], $routes['endpoints'][4]['hint']);
+			$teamsUrl        = 'https://prod-01.westus.logic.azure.com/workflows/fixture/triggers/manual/paths/invoke?sig=teams-fixture';
 			$alarmQuery      = json_encode(['version' => 1, 'conditions' => [['field' => 'severity', 'operator' => '=', 'value' => 'critical']]], JSON_THROW_ON_ERROR);
 			$routes['rules'] = [['id' => 1, 'name' => 'Critical alarms', 'endpoints' => [1, 2], 'policy' => ['alarm_query' => $alarmQuery]]];
 			alarmmanager_apply_configuration($routes);
 			$this->assertSame('on', $connections[1]->query('SELECT requires_sync FROM poller WHERE id=2')->fetchColumn(), 'Main saves schedule native Cacti replication.');
 			alarmmanager_save_credential(2, ['headers' => ['Authorization' => 'Bearer generic-fixture']]);
+			alarmmanager_save_credential(5, ['teams_webhook_url' => $teamsUrl]);
 			$daemon = array_replace(alarmmanager_supervisor_options(), ['enabled' => true, 'processing_workers' => 3, 'delivery_workers' => 7]);
 			alarmmanager_save_supervisor_options($daemon);
 			alarmmanager_db_write("REPLACE INTO settings VALUES ('alarmmanager_notifications_paused', '1')");
@@ -92,11 +96,13 @@ final class ConfigurationReplicationTest extends AlarmManagerTestCase {
 				$this->assertSame($data, alarmmanager_replicate_out($data));
 				$db = $connections[$poller];
 				$this->assertSame(['channels' => ['script'], 'complete_history' => false], json_decode($db->query("SELECT definition FROM plugin_alarmmanager_producer_config WHERE source='syslog'")->fetchColumn(), true), 'Retired profile settings are discarded during replication.');
-				$this->assertSame(4, (int) $db->query('SELECT COUNT(*) FROM plugin_alarmmanager_endpoints WHERE enabled=1')->fetchColumn(), 'Every destination replicates without profiles.');
+				$this->assertSame(5, (int) $db->query('SELECT COUNT(*) FROM plugin_alarmmanager_endpoints WHERE enabled=1')->fetchColumn(), 'Every destination replicates without profiles.');
 				$this->assertSame(1, (int) $db->query('SELECT COUNT(*) FROM plugin_alarmmanager_events')->fetchColumn(), 'Local history preserved.');
 				$this->assertSame(1, (int) $db->query('SELECT COUNT(*) FROM plugin_alarmmanager_jobs')->fetchColumn(), 'Local queued jobs preserved.');
 				$this->assertSame($nodes[$poller], $db->query('SELECT instance_uuid FROM plugin_alarmmanager_node')->fetchColumn());
 				$this->assertSame(base64_encode($keys[$poller]), $db->query("SELECT value FROM settings_user WHERE name='alarmmanager_key'")->fetchColumn());
+				$this->assertSame($teamsUrl, alarmmanager_load_credential(5)['teams_webhook_url']);
+				$this->assertTrue(alarmmanager_endpoint_transport(['id' => 5, 'type' => 'webhook'])['teams_workflow']);
 				$cipher = $db->query('SELECT ciphertext FROM plugin_alarmmanager_credentials WHERE endpoint_id=2')->fetchColumn();
 				$this->assertNotSame($sourceCipher, $cipher, 'Remote credentials are re-encrypted, not copied ciphertext.');
 				$this->assertSame('Bearer generic-fixture', alarmmanager_decrypt_credential($cipher, 2, $keys[$poller])['headers']['Authorization']);
