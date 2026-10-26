@@ -182,13 +182,13 @@ function alarmmanager_report_list(string $kind, array $scope, array $filters): a
 
 			break;
 		case 'deliveries': $base = 'plugin_alarmmanager_deliveries AS d INNER JOIN plugin_alarmmanager_events AS e ON e.id = d.event_row_id LEFT JOIN plugin_alarmmanager_endpoints AS ep ON ep.id = d.endpoint_id';
-			$columns                = 'd.id, d.event_row_id, d.created_at, d.updated_at, d.endpoint_id, COALESCE(ep.name, CONCAT(\'Deleted endpoint #\', d.endpoint_id)) AS endpoint, d.status, d.attempts, d.last_error, JSON_UNQUOTE(JSON_EXTRACT(d.external_reference, \'$.id\')) AS external_id, JSON_UNQUOTE(JSON_EXTRACT(d.external_reference, \'$.url\')) AS external_url, JSON_UNQUOTE(JSON_EXTRACT(e.payload, \'$.summary\')) AS summary, e.device_id';
+			$columns                = 'd.id, d.recipient, d.event_row_id, d.created_at, d.updated_at, d.endpoint_id, COALESCE(ep.name, CONCAT(\'Deleted endpoint #\', d.endpoint_id)) AS endpoint, d.status, d.attempts, d.last_error, JSON_UNQUOTE(JSON_EXTRACT(d.external_reference, \'$.id\')) AS external_id, JSON_UNQUOTE(JSON_EXTRACT(d.external_reference, \'$.url\')) AS external_url, JSON_UNQUOTE(JSON_EXTRACT(e.payload, \'$.summary\')) AS summary, e.device_id';
 			$order                  = 'd.id';
 			$time                   = 'd.created_at';
 
 			break;
 		case 'attempts': $base = 'plugin_alarmmanager_attempts AS a INNER JOIN plugin_alarmmanager_deliveries AS d ON d.id = a.delivery_id INNER JOIN plugin_alarmmanager_events AS e ON e.id = d.event_row_id';
-			$columns              = 'a.id, a.delivery_id, a.attempt_number, a.outcome, a.code, a.started_at, a.duration_ms, d.endpoint_id, e.id AS event_row_id, e.device_id';
+			$columns              = 'a.id, a.delivery_id, d.recipient, a.attempt_number, a.outcome, a.code, a.started_at, a.duration_ms, d.endpoint_id, e.id AS event_row_id, e.device_id';
 			$order                = 'a.id';
 			$time                 = 'a.started_at';
 
@@ -384,8 +384,8 @@ function alarmmanager_event_detail(array $scope, array $filters): ?array {
 	$event['_row_id']   = $id;
 	$event['_workflow'] = [
 		'processing' => alarmmanager_report_rows('SELECT id, status, attempts, last_error, created_at, available_at FROM plugin_alarmmanager_jobs WHERE event_row_id = ? LIMIT 1', [$id]),
-		'deliveries' => alarmmanager_report_rows("SELECT d.id, COALESCE(ep.name, CONCAT('Deleted endpoint #', d.endpoint_id)) AS integration, d.status, d.attempts, d.last_error, JSON_UNQUOTE(JSON_EXTRACT(d.external_reference, '$.id')) AS external_id, JSON_UNQUOTE(JSON_EXTRACT(d.external_reference, '$.url')) AS external_url, d.updated_at FROM plugin_alarmmanager_deliveries AS d LEFT JOIN plugin_alarmmanager_endpoints AS ep ON ep.id = d.endpoint_id WHERE d.event_row_id = ? ORDER BY d.id DESC LIMIT 100", [$id]),
-		'attempts'   => alarmmanager_report_rows("SELECT a.id, a.delivery_id, COALESCE(ep.name, CONCAT('Deleted endpoint #', d.endpoint_id)) AS integration, a.attempt_number, a.outcome, a.code, a.duration_ms, a.started_at FROM plugin_alarmmanager_attempts AS a INNER JOIN plugin_alarmmanager_deliveries AS d ON d.id = a.delivery_id LEFT JOIN plugin_alarmmanager_endpoints AS ep ON ep.id = d.endpoint_id WHERE d.event_row_id = ? ORDER BY a.id DESC LIMIT 100", [$id]),
+		'deliveries' => alarmmanager_report_rows("SELECT d.id, d.recipient, COALESCE(ep.name, CONCAT('Deleted endpoint #', d.endpoint_id)) AS integration, d.status, d.attempts, d.last_error, JSON_UNQUOTE(JSON_EXTRACT(d.external_reference, '$.id')) AS external_id, JSON_UNQUOTE(JSON_EXTRACT(d.external_reference, '$.url')) AS external_url, d.updated_at FROM plugin_alarmmanager_deliveries AS d LEFT JOIN plugin_alarmmanager_endpoints AS ep ON ep.id = d.endpoint_id WHERE d.event_row_id = ? ORDER BY d.id DESC LIMIT 100", [$id]),
+		'attempts'   => alarmmanager_report_rows("SELECT a.id, a.delivery_id, d.recipient, COALESCE(ep.name, CONCAT('Deleted endpoint #', d.endpoint_id)) AS integration, a.attempt_number, a.outcome, a.code, a.duration_ms, a.started_at FROM plugin_alarmmanager_attempts AS a INNER JOIN plugin_alarmmanager_deliveries AS d ON d.id = a.delivery_id LEFT JOIN plugin_alarmmanager_endpoints AS ep ON ep.id = d.endpoint_id WHERE d.event_row_id = ? ORDER BY a.id DESC LIMIT 100", [$id]),
 		'decisions'  => alarmmanager_report_rows('SELECT rule_id, endpoint_id, reason, created_at FROM plugin_alarmmanager_decisions WHERE event_row_id = ? ORDER BY id DESC LIMIT 100', [$id])
 	];
 

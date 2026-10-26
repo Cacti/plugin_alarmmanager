@@ -131,7 +131,7 @@ function alarmmanager_rule_alarm_fields(): array {
 }
 
 function alarmmanager_validate_rule_definition(array $rule): array {
-	alarmmanager_event_keys($rule, ['match', 'device_query', 'alarm_query', 'schedule', 'maintenance_schedule', 'suppress_acknowledged', 'cooldown_seconds', 'duplicate_seconds', 'template_overrides']);
+	alarmmanager_event_keys($rule, ['match', 'device_query', 'alarm_query', 'schedule', 'maintenance_schedule', 'suppress_acknowledged', 'cooldown_seconds', 'duplicate_seconds', 'template_overrides', 'recipient_overrides']);
 	$match = $rule['match'] ?? [];
 
 	if (!is_array($match)) {
@@ -188,6 +188,21 @@ function alarmmanager_validate_rule_definition(array $rule): array {
 		'cooldown_seconds'      => alarmmanager_config_int($rule['cooldown_seconds'] ?? 0, 0, 86400),
 		'duplicate_seconds'     => alarmmanager_config_int($rule['duplicate_seconds'] ?? 0, 0, 86400)
 	];
+
+	if (array_key_exists('recipient_overrides', $rule)) {
+		if (!is_array($rule['recipient_overrides']) || count($rule['recipient_overrides']) > 32) {
+			throw new InvalidArgumentException('invalid_twilio_recipients');
+		}
+
+		foreach ($rule['recipient_overrides'] as $id => $numbers) {
+			alarmmanager_config_int($id, 1, 2147483647);
+			$numbers = alarmmanager_twilio_recipients($numbers);
+
+			if ($numbers) {
+				$result['recipient_overrides'][$id] = $numbers;
+			}
+		}
+	}
 
 	if (array_key_exists('template_overrides', $rule)) {
 		$overrides = $rule['template_overrides'];
@@ -321,6 +336,12 @@ function alarmmanager_configuration(array $configuration): array {
 
 		if (array_diff(array_keys($rule['policy']['template_overrides'] ?? []), $rule['endpoints'])) {
 			throw new InvalidArgumentException('missing_endpoint');
+		}
+
+		foreach ($rule['policy']['recipient_overrides'] ?? [] as $id => $numbers) {
+			if (!in_array($id, $rule['endpoints'], true) || !in_array($result['endpoints'][$id]['transport']['provider'] ?? '', ['twilio', 'twilio_whatsapp'], true)) {
+				throw new InvalidArgumentException('recipient_destination_invalid');
+			}
 		}
 
 		foreach ($rule['endpoints'] as $id) {

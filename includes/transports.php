@@ -118,6 +118,14 @@ function alarmmanager_http_transport(array $event, array $endpoint, string $idem
 	$form    = ($settings['body_encoding'] ?? 'json') === 'form';
 	$payload = alarmmanager_notification_payload($settings, $event, $reference);
 
+	if (isset($endpoint['recipient'])) {
+		if (!in_array($settings['provider'] ?? '', ['twilio', 'twilio_whatsapp'], true)) {
+			throw new InvalidArgumentException('recipient_destination_invalid');
+		}
+		$numbers     = alarmmanager_twilio_recipients([$endpoint['recipient']]);
+		$payload->To = (($settings['provider'] === 'twilio_whatsapp') ? 'whatsapp:' : '') . $numbers[0];
+	}
+
 	$headers = ['Content-Type: ' . ($form ? 'application/x-www-form-urlencoded' : 'application/json'), 'Idempotency-Key: ' . $idempotency, 'Expect:'];
 
 	if ($settings['credential']) {

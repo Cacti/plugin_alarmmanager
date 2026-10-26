@@ -95,7 +95,7 @@ function alarmmanager_sync_entities(): array {
 		'event'      => ['events', ['id', 'event_id', 'source', 'source_instance', 'mode', 'payload', 'collector_id', 'processing_poller_id', 'received_at']],
 		'processing' => ['jobs', ['id', 'event_row_id', 'status', 'attempts', 'last_error', 'created_at', 'updated_at']],
 		'decision'   => ['decisions', ['id', 'event_row_id', 'rule_id', 'endpoint_id', 'reason', 'config_revision', 'created_at']],
-		'delivery'   => ['deliveries', ['id', 'event_row_id', 'endpoint_id', 'status', 'attempts', 'last_error', 'idempotency_key', 'created_at', 'updated_at', 'external_reference']],
+		'delivery'   => ['deliveries', ['id', 'event_row_id', 'endpoint_id', 'status', 'attempts', 'last_error', 'idempotency_key', 'created_at', 'updated_at', 'external_reference', 'recipient']],
 		'attempt'    => ['attempts', ['id', 'delivery_id', 'attempt_number', 'outcome', 'code', 'started_at', 'ended_at', 'duration_ms']]
 	];
 }
@@ -220,6 +220,11 @@ function alarmmanager_sync_receive(string $body, int $poller, ?PDO $connection =
 
 		if ($record['entity'] === 'delivery') {
 			$record['data']['external_reference'] ??= null;
+			$record['data']['recipient'] ??= '';
+
+			if ($record['data']['recipient'] !== '') {
+				$record['data']['recipient'] = alarmmanager_twilio_recipients([$record['data']['recipient']])[0];
+			}
 		}
 		$record['data'] = alarmmanager_sync_normalize($record['data']);
 		$key            = $record['entity'] . ':' . $record['id'];

@@ -113,11 +113,11 @@ function alarmmanager_schema_install(): bool {
 		return false;
 	}
 
-	return alarmmanager_schema_remote() && alarmmanager_schema_record_ids() && alarmmanager_schema_integrations() && alarmmanager_schema_device_status() && alarmmanager_schema_sync() && alarmmanager_schema_direct_routes();
+	return alarmmanager_schema_remote() && alarmmanager_schema_record_ids() && alarmmanager_schema_integrations() && alarmmanager_schema_device_status() && alarmmanager_schema_sync() && alarmmanager_schema_direct_routes() && alarmmanager_schema_recipients();
 }
 
 function alarmmanager_schema_ready(): bool {
-	return (int) db_fetch_cell_prepared('SELECT version FROM plugin_alarmmanager_schema WHERE id = 1', [], '', false) === 12;
+	return (int) db_fetch_cell_prepared('SELECT version FROM plugin_alarmmanager_schema WHERE id = 1', [], '', false) === 13;
 }
 
 /** Self-healing gate for runtime lanes. Full replication carries settings and
@@ -185,7 +185,7 @@ function alarmmanager_schema_runtime(): bool {
 	try {
 		$version = db_fetch_cell_prepared('SELECT version FROM plugin_alarmmanager_schema WHERE id = 1', [], '', false);
 
-		if ($version === false || (int) $version > 12) {
+		if ($version === false || (int) $version > 13) {
 			return false;
 		}
 		alarmmanager_schema_column('plugin_alarmmanager_schema', 'config_revision', 'BIGINT UNSIGNED NOT NULL DEFAULT 0');
@@ -467,6 +467,37 @@ function alarmmanager_schema_direct_routes(): bool {
 		alarmmanager_db_write('ALTER TABLE plugin_alarmmanager_device_owners DROP COLUMN IF EXISTS profile_id');
 		alarmmanager_db_write('DROP TABLE IF EXISTS plugin_alarmmanager_profiles');
 		alarmmanager_db_write('UPDATE plugin_alarmmanager_schema SET version = 12 WHERE id = 1');
+
+		return true;
+	} catch (Throwable $error) {
+		return false;
+	}
+}
+
+/** v13: retain one durable delivery and retry stream per recipient. */
+function alarmmanager_schema_recipients(): bool {
+	try {
+		alarmmanager_schema_column('plugin_alarmmanager_deliveries', 'recipient', "VARCHAR(16) CHARACTER SET ascii COLLATE ascii_bin NOT NULL DEFAULT ''");
+		$old = db_fetch_cell_prepared("SELECT COUNT(*) FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'plugin_alarmmanager_deliveries' AND INDEX_NAME = 'event_endpoint'", [], '', false);
+
+		if ($old === false) {
+			throw new RuntimeException('storage_failure');
+		}
+
+		if ((int) $old > 0) {
+			alarmmanager_db_write('ALTER TABLE plugin_alarmmanager_deliveries DROP INDEX event_endpoint, ADD UNIQUE KEY event_endpoint_recipient (event_row_id, endpoint_id, recipient)');
+		} else {
+			$count = db_fetch_cell_prepared("SELECT COUNT(*) FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'plugin_alarmmanager_deliveries' AND INDEX_NAME = 'event_endpoint_recipient'", [], '', false);
+
+			if ($count === false) {
+				throw new RuntimeException('storage_failure');
+			}
+
+			if ((int) $count === 0) {
+				alarmmanager_db_write('ALTER TABLE plugin_alarmmanager_deliveries ADD UNIQUE KEY event_endpoint_recipient (event_row_id, endpoint_id, recipient)');
+			}
+		}
+		alarmmanager_db_write('UPDATE plugin_alarmmanager_schema SET version = 13 WHERE id = 1');
 
 		return true;
 	} catch (Throwable $error) {

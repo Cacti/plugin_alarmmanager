@@ -759,6 +759,7 @@
 					() => {
 						section.hidden = !destination.checked;
 						toggle.disabled = !destination.checked;
+						section.querySelectorAll('[name^="recipient_numbers["]').forEach((input) => { input.disabled = !destination.checked; });
 						fields.disabled = !destination.checked || !toggle.checked;
 						fields.inert = fields.disabled;
 					};

@@ -195,6 +195,32 @@ function alarmmanager_admin_rule_policy(array $input): array {
 		$policy[$field] = alarmmanager_admin_int($input[$field] ?? 0, 0, 86400);
 	}
 
+	$recipients = $input['recipient_numbers'] ?? [];
+
+	if (!is_array($recipients) || count($recipients) > 32) {
+		throw new InvalidArgumentException('invalid_twilio_recipients');
+	}
+	$destinations = $input['endpoints'] ?? [];
+
+	if (!is_array($destinations) || !array_is_list($destinations) || count($destinations) > 32) {
+		throw new InvalidArgumentException('invalid_twilio_recipients');
+	}
+	$destinations = array_map(static fn ($id) => alarmmanager_admin_int($id), $destinations);
+
+	foreach ($recipients as $id => $text) {
+		if (!is_string($text) || strlen($text) > 2048) {
+			throw new InvalidArgumentException('invalid_twilio_recipients');
+		}
+
+		if (!in_array(alarmmanager_admin_int($id), $destinations, true)) {
+			continue;
+		}
+		$numbers = alarmmanager_twilio_recipients(preg_split('/[\s,;]+/', trim($text), -1, PREG_SPLIT_NO_EMPTY));
+
+		if ($numbers) {
+			$policy['recipient_overrides'][alarmmanager_admin_int($id)] = $numbers;
+		}
+	}
 	$enabled_templates = $input['template_enabled'] ?? [];
 	$templates         = $input['template_mapping'] ?? [];
 
@@ -681,6 +707,8 @@ function alarmmanager_admin_error_message(Throwable $error): string {
 		'configuration_changed'          => 'Configuration changed. Reload before applying your edits.',
 		'permission_denied'              => 'Action failed. Administrator access, POST and a valid CSRF token are required.',
 		'invalid_provider'               => 'Choose a supported integration provider.',
+		'invalid_twilio_recipients'      => 'Enter up to 50 phone numbers in international format, such as +15551234567, separated by commas or new lines.',
+		'recipient_destination_invalid'  => 'Rule recipient lists require a selected Twilio SMS or WhatsApp destination.',
 		'invalid_twilio_account'         => 'Enter your Twilio Account SID: AC followed by 32 hexadecimal characters.',
 		'invalid_twilio_credentials'     => 'Enter an API Key SID (SK…) or Account SID (AC…) with its matching secret.',
 		'invalid_provider_instance'      => 'Enter the HTTPS ServiceNow instance URL without an API path.',

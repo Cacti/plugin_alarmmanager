@@ -143,3 +143,20 @@ function alarmmanager_provider_request(array $settings, array $target, stdClass 
 
 	return [$target, $payload];
 }
+
+/** @return list<string> Canonical E.164 recipients; WhatsApp prefixes are applied by the transport. */
+function alarmmanager_twilio_recipients(mixed $recipients): array {
+	if (!is_array($recipients) || !array_is_list($recipients) || count($recipients) > 50) {
+		throw new InvalidArgumentException('invalid_twilio_recipients');
+	}
+	$result = [];
+
+	foreach ($recipients as $number) {
+		if (!is_string($number) || !preg_match('/\A(?:whatsapp:)?(\+[1-9][0-9]{1,14})\z/D', trim($number), $match)) {
+			throw new InvalidArgumentException('invalid_twilio_recipients');
+		}
+		$result[] = $match[1];
+	}
+
+	return array_values(array_unique($result));
+}

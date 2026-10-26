@@ -68,6 +68,21 @@ The preset posts form-encoded fields and records Twilio's returned Message SID i
 
 See the [Twilio Messages API](https://www.twilio.com/docs/messaging/api/message-resource) and [API key documentation](https://www.twilio.com/docs/iam/api-keys).
 
+### Twilio recipients in alarm rules
+
+In an alarm rule, select a Twilio destination and expand its destination section under **Message template**. Enter **Twilio recipients for this rule** as international numbers, one per line or separated by commas (up to 50). For example:
+
+```text
++15551234567
++15557654321
+```
+
+The list replaces that destination's default recipient for this rule. Leave it blank to use the destination default. SMS and WhatsApp share the same number-list format; the WhatsApp prefix is applied automatically. Duplicate numbers are removed. Message customization is independent of the recipient list. If several rules match the same destination, the first matching rule by priority and ID supplies both the recipients and the message.
+
+Each recipient has its own durable delivery record, retry status, and idempotency key. Successful recipients are not resent when a sibling fails. Removing a recipient from the matching rule cancels its queued send before transport execution. History shows the recipient alongside delivery results. An uncertain provider response can still cause a duplicate message to that recipient on retry.
+
+Version 0.12.0 upgrades the delivery table to schema 13 without deleting history. Update all delivering collectors before using recipient lists. **Test destination** continues to use the destination default recipient; it does not evaluate a rule's recipient list.
+
 ### Twilio WhatsApp
 
 Choose **Twilio WhatsApp** and enter the same Account SID and credential fields as SMS. Set **WhatsApp sender** to your approved WhatsApp sender and **WhatsApp recipient** to an opted-in recipient using `whatsapp:+15551234567` addresses. Set **Messaging Service SID** to the `MG...` service containing that sender and **Approved Template SID** to your approved `HX...` template.

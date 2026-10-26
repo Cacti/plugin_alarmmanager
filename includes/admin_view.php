@@ -251,6 +251,11 @@ function alarmmanager_rule_editor(array $item, int $revision, array $configurati
 		$id     = (int) $endpoint['id'];
 		$custom = isset($policy['template_overrides'][$id]);
 		print '<details data-rule-template="' . $id . '"' . (in_array($id, $selected, true) ? '' : ' hidden') . '><summary>' . html_escape($endpoint['name']) . '</summary><label><input type="checkbox" name="template_enabled[]" value="' . $id . '"' . ($custom ? ' checked' : '') . '> ' . __esc('Customize message for this rule', 'alarmmanager') . '</label><p>' . __esc('Unchecked: Use destination default.', 'alarmmanager') . '</p>';
+
+		if (in_array($endpoint['transport']['provider'] ?? '', ['twilio', 'twilio_whatsapp'], true)) {
+			alarmmanager_textarea('recipient_numbers[' . $id . ']', 'Twilio recipients for this rule', implode("\n", $policy['recipient_overrides'][$id] ?? []), 2048);
+			print '<p>' . __esc('Optional: one international phone number per line, or separated by commas. These numbers replace the destination recipient for this rule. Leave blank to use the destination default. Each number has its own delivery status and retries.', 'alarmmanager') . '</p>';
+		}
 		alarmmanager_mapping_editor($policy['template_overrides'][$id] ?? $endpoint['transport']['mapping'] ?? [], $configuration['device_summaries'] ?? [], 'template_mapping[' . $id . ']', $endpoint['type'], 'Rule message template');
 		print '</details>';
 	}
