@@ -205,10 +205,12 @@ final class TransportTest extends AlarmManagerTestCase {
 				$primary_db->exec("DROP DATABASE `$remote_database`");
 			}
 			// Worker-only test sends and simultaneous destinations with one transient failure.
-			$routes                                     = json_decode(file_get_contents(__DIR__ . '/../fixtures/routing.json'), true);
-			$routes['endpoints'][0]['transport']        = $plain;
-			$routes['endpoints'][0]['transport']['url'] = $http . '/retry';
-			$routes['endpoints'][1]['transport']        = ['url' => $http . '/echo', 'allow_http' => true, 'mapping' => ['default' => [['to' => 'host', 'source' => 'device.id']]], 'response_match' => ['path' => 'request.host', 'equals' => 42]];
+			$routes                                                          = json_decode(file_get_contents(__DIR__ . '/../../examples/routing.json'), true);
+			$routes['endpoints'][0]['transport']                             = $plain;
+			$routes['endpoints'][0]['transport']['url']                      = $http . '/retry';
+			$routes['endpoints'][1]['transport']                             = ['url' => $http . '/echo', 'allow_http' => true, 'mapping' => ['default' => [['to' => 'host', 'source' => 'device.id']]], 'response_match' => ['path' => 'request.host', 'equals' => 42]];
+			$routes['rules'][0]['policy']['template_overrides'][2]           = ['default' => [['to' => 'host', 'constant' => 84]]];
+			$routes['endpoints'][1]['transport']['response_match']['equals'] = 84;
 			alarmmanager_apply_configuration($routes);
 			$this->assertFalse(str_contains(db_fetch_cell_prepared('SELECT definition FROM plugin_alarmmanager_configuration_history ORDER BY revision DESC LIMIT 1'), 'fixture-token'), 'Configuration history excludes credentials');
 			$response = alarmmanager_submit(['contract_version' => 1, 'mode' => 'centralized', 'status' => 'unhandled', 'event' => $event]);
@@ -230,7 +232,9 @@ final class TransportTest extends AlarmManagerTestCase {
 			$this->assertTrue($claim && alarmmanager_run_delivery($claim), 'Retry completed');
 			$stats = $this->tstats($http);
 			$this->assertTrue($stats['counts']['/echo'] === $echo_count && count($stats['keys']['/retry']) === 2 && $stats['keys']['/retry'][0] === $stats['keys']['/retry'][1], 'No sibling resend/stable idempotency');
-			$before  = $stats['counts']['/echo'];
+			$before                                                          = $stats['counts']['/echo'];
+			$routes['endpoints'][1]['transport']['response_match']['equals'] = 42;
+			$this->tdefinition(2, 'webhook', $routes['endpoints'][1]['transport']);
 			$test_id = alarmmanager_enqueue_test($event, 2);
 			$this->assertTrue($this->tstats($http)['counts']['/echo'] === $before, 'Test action only queued');
 			$claim = alarmmanager_claim_delivery(['webhook']);
