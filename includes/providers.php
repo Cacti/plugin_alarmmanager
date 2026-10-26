@@ -3,7 +3,7 @@
 
 /**
  * Provider identity travels with the existing transport JSON and collector configuration.
- * @return array<string, array<string, mixed>>
+ * @return array<string, array{name: string, auth: 'basic'|'bearer'|'teams'|'provider_token', fields: array<string, string>, labels: array<string, string>, token_label?: string}>
  */
 function alarmmanager_provider_definitions(): array {
 	return [
