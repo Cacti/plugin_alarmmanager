@@ -131,7 +131,7 @@ function alarmmanager_rule_alarm_fields(): array {
 }
 
 function alarmmanager_validate_rule_definition(array $rule): array {
-	alarmmanager_event_keys($rule, ['match', 'device_query', 'alarm_query', 'schedule', 'maintenance_schedule', 'suppress_acknowledged', 'cooldown_seconds', 'duplicate_seconds']);
+	alarmmanager_event_keys($rule, ['match', 'device_query', 'alarm_query', 'schedule', 'maintenance_schedule', 'suppress_acknowledged', 'cooldown_seconds', 'duplicate_seconds', 'template_overrides']);
 	$match = $rule['match'] ?? [];
 
 	if (!is_array($match)) {
@@ -179,7 +179,7 @@ function alarmmanager_validate_rule_definition(array $rule): array {
 		AlarmManager\QueryBuilder::compile($alarm_query, alarmmanager_rule_alarm_fields());
 	}
 
-	return [
+	$result = [
 		'alarm_query'           => $alarm_query,
 		'device_query'          => $device_query,
 		'match'                 => $match, 'schedule' => alarmmanager_validate_schedule($rule['schedule'] ?? null),
@@ -188,6 +188,21 @@ function alarmmanager_validate_rule_definition(array $rule): array {
 		'cooldown_seconds'      => alarmmanager_config_int($rule['cooldown_seconds'] ?? 0, 0, 86400),
 		'duplicate_seconds'     => alarmmanager_config_int($rule['duplicate_seconds'] ?? 0, 0, 86400)
 	];
+
+	if (array_key_exists('template_overrides', $rule)) {
+		$overrides = $rule['template_overrides'];
+
+		if (!is_array($overrides) || count($overrides) > 32) {
+			throw new InvalidArgumentException('invalid_mapping');
+		}
+
+		foreach ($overrides as $id => $mapping) {
+			alarmmanager_config_int($id, 1, 2147483647);
+			$result['template_overrides'][$id] = alarmmanager_mapping_validate($mapping);
+		}
+	}
+
+	return $result;
 }
 function alarmmanager_rule_matches(array $rule, array $event): bool {
 	$fields = ['sources' => $event['source'], 'severities' => $event['severity'], 'transitions' => $event['transition'], 'device_ids' => $event['device']['id'], 'collector_ids' => $event['collector_id']];
@@ -302,6 +317,10 @@ function alarmmanager_configuration(array $configuration): array {
 	foreach ($result['rules'] as $rule) {
 		if (!$rule['endpoints']) {
 			throw new InvalidArgumentException('empty_rule_destinations');
+		}
+
+		if (array_diff(array_keys($rule['policy']['template_overrides'] ?? []), $rule['endpoints'])) {
+			throw new InvalidArgumentException('missing_endpoint');
 		}
 
 		foreach ($rule['endpoints'] as $id) {

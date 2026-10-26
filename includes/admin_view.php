@@ -50,6 +50,18 @@ function alarmmanager_json_text($value): string {
 	return json_encode($value ?: new stdClass(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
 }
 /**
+ * @param array<string, mixed>  $mapping
+ * @param array<string, string> $summaries
+ */
+function alarmmanager_mapping_editor(array $mapping, array $summaries = [], string $name = 'mapping_json', string $type = '', string $title = 'Default message template'): void {
+	print '<fieldset class="alarmmanagerFullWidth alarmmanagerMapping" data-mapping-type="' . html_escape($type) . '" data-alarm-summary="' . html_escape($summaries['offline'] ?? 'Device Offline') . '" data-message-template="' . html_escape(alarmmanager_message_template()) . '"><legend>' . __esc($title, 'alarmmanager') . '</legend><p>' . __esc('Choose the alarm information to send to any service. Use Combined text to arrange device details, or Use device message to start with a complete message. Email uses Subject and Message; API destinations use the field names required by the receiving service.', 'alarmmanager') . '</p><div class="alarmmanagerMappingBuilder"></div>';
+	print '<details class="alarmmanagerRawMapping"><summary>' . __esc('Advanced message configuration', 'alarmmanager') . '</summary>';
+	alarmmanager_textarea($name, 'Message configuration JSON', alarmmanager_json_text($mapping));
+
+	print '</details>';
+	print '</fieldset>';
+}
+/**
  * @param array<string, mixed>  $endpoint
  * @param array<string, string> $summaries
  */
@@ -104,12 +116,7 @@ function alarmmanager_endpoint_editor(array $endpoint, int $revision, bool $new 
 	print '</div>';
 	print '<p>' . __esc('JSON output is sent to the script on standard input.', 'alarmmanager') . '</p><p>' . __esc('The executable must exist and be executable by the worker on every delivering poller. Arguments are passed directly without a shell.', 'alarmmanager') . '</p></fieldset>';
 	print '<p class="alarmmanagerFullWidth" data-endpoint-types="websocket">' . __esc('WebSocket delivery is not implemented.', 'alarmmanager') . '</p>';
-	print '<fieldset class="alarmmanagerFullWidth alarmmanagerMapping" data-alarm-summary="' . html_escape($summaries['offline'] ?? 'Device Offline') . '" data-message-template="' . html_escape(alarmmanager_message_template()) . '"><legend>' . __esc('Message fields', 'alarmmanager') . '</legend><p>' . __esc('Choose the alarm information to send to any service. Use Combined text to arrange device details, or Use device message to start with a complete message. Email uses Subject and Message; API destinations use the field names required by the receiving service.', 'alarmmanager') . '</p><div class="alarmmanagerMappingBuilder"></div>';
-	print '<details class="alarmmanagerRawMapping"><summary>' . __esc('Advanced message configuration', 'alarmmanager') . '</summary>';
-	alarmmanager_textarea('mapping_json', 'Message configuration JSON', alarmmanager_json_text($mapping));
-
-	print '</details>';
-	print '</fieldset>';
+	alarmmanager_mapping_editor($mapping, $summaries);
 	print '<details class="alarmmanagerFullWidth alarmmanagerAdvanced"><summary>' . __esc('Advanced delivery settings', 'alarmmanager') . '</summary>';
 
 	foreach (['timeout_seconds' => ['Delivery timeout (seconds)', 1, 120, 10], 'max_attempts' => ['Maximum delivery attempts', 1, 20, 5], 'min_interval_ms' => ['Minimum time between deliveries (milliseconds)', 0, 3600000, 0]] as $key => [$label, $min, $max, $default]) {
@@ -211,6 +218,17 @@ function alarmmanager_rule_editor(array $item, int $revision, array $configurati
 	}
 	print '</div><p class="alarmmanagerHint">' . __esc('Select one or more alarm destinations. Disabled destinations do not send alarms.', 'alarmmanager') . '</p></fieldset></fieldset>';
 
+	print '<fieldset class="alarmmanagerRuleSection"><legend>' . __esc('Message template', 'alarmmanager') . '</legend><p>' . __esc('Use each destination default, or customize its message for this rule. Customization starts with a copy of the destination template and does not change other rules. If several rules match the same destination, the first matching rule in priority and ID order supplies its template.', 'alarmmanager') . '</p>';
+
+	foreach ($configuration['endpoints'] as $endpoint) {
+		$id     = (int) $endpoint['id'];
+		$custom = isset($policy['template_overrides'][$id]);
+		print '<details data-rule-template="' . $id . '"' . (in_array($id, $selected, true) ? '' : ' hidden') . '><summary>' . html_escape($endpoint['name']) . '</summary><label><input type="checkbox" name="template_enabled[]" value="' . $id . '"' . ($custom ? ' checked' : '') . '> ' . __esc('Customize message for this rule', 'alarmmanager') . '</label><p>' . __esc('Unchecked: Use destination default.', 'alarmmanager') . '</p>';
+		alarmmanager_mapping_editor($policy['template_overrides'][$id] ?? $endpoint['transport']['mapping'] ?? [], $configuration['device_summaries'] ?? [], 'template_mapping[' . $id . ']', $endpoint['type'], 'Rule message template');
+		print '</details>';
+	}
+	print '</fieldset>';
+
 	print '<div class="alarmmanagerRuleSection">';
 	alarmmanager_checkbox('all_devices', 'Applies to all devices', $policy['device_query'] === '');
 	print '</div>';
@@ -230,7 +248,7 @@ function alarmmanager_rule_editor(array $item, int $revision, array $configurati
 		$alarm_fields[$field]['choices'] = (object) ($choices[$choice] ?? []);
 	}
 
-	foreach (['cacti_device' => __('Device Status', 'alarmmanager'), 'syslog' => __('Syslog', 'alarmmanager'), 'thold' => __('Thold', 'alarmmanager')] as $source => $label) {
+	foreach (['cacti_device' => __('Device Status', 'alarmmanager'), 'syslog' => __('Syslog', 'alarmmanager'), 'thold' => __('Thold', 'alarmmanager'), 'cacti' => __('Cacti_Admin_Notifications', 'alarmmanager')] as $source => $label) {
 		if (isset($choices['sources'][$source])) {
 			$alarm_fields['source']['choices']->$source = $label;
 		}

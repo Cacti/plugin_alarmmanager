@@ -76,6 +76,10 @@ function alarmmanager_run_delivery(array $claim): bool {
 				if (in_array((int) $claim['endpoint']['id'], $rule['endpoints'], true) && alarmmanager_rule_matches($rule['policy'], $event)) {
 					$allowed = true;
 
+					if (isset($rule['policy']['template_overrides'][(int) $claim['endpoint']['id']])) {
+						$claim['endpoint']['mapping_override'] = $rule['policy']['template_overrides'][(int) $claim['endpoint']['id']];
+					}
+
 					break;
 				}
 			}
