@@ -22,6 +22,7 @@
  +-------------------------------------------------------------------------+
 */
 require_once(__DIR__ . '/mapping.php');
+require_once(__DIR__ . '/providers.php');
 
 function alarmmanager_transport_text($value, int $limit): string {
 	$value = alarmmanager_event_text($value, $limit);
@@ -62,13 +63,20 @@ function alarmmanager_transport_configuration(string $type, $settings): array {
 		return [];
 	} // Old endpoint rows remain configurable but cannot send.
 	$keys = match ($type) {
-		'restapi', 'webhook' => ['mapping', 'twilio_whatsapp', 'body_encoding', 'teams_workflow', 'url', 'method', 'credential', 'success_codes', 'response_match', 'connect_timeout_seconds', 'allow_http', 'ca_bundle', 'response_reference', 'transition_overrides'],
+		'restapi', 'webhook' => ['provider', 'mapping', 'twilio_whatsapp', 'body_encoding', 'teams_workflow', 'url', 'method', 'credential', 'success_codes', 'response_match', 'connect_timeout_seconds', 'allow_http', 'ca_bundle', 'response_reference', 'transition_overrides'],
 		'email'              => ['mapping', 'to', 'from', 'html', 'attachments'],
 		'script'             => ['mapping', 'executable', 'arguments', 'retry_exit_codes', 'compatibility', 'response_reference'],
 		default              => throw new InvalidArgumentException('unsupported_transport')
 	};
 	alarmmanager_event_keys($settings, $keys);
 	$result = ['mapping' => alarmmanager_mapping_validate($settings['mapping'] ?? [])];
+
+	if (array_key_exists('provider', $settings)) {
+		if (!is_string($settings['provider']) || !isset(alarmmanager_provider_definitions()[$settings['provider']])) {
+			throw new InvalidArgumentException('invalid_provider');
+		}
+		$result['provider'] = $settings['provider'];
+	}
 
 	if (in_array($type, ['restapi', 'webhook'], true)) {
 		$allow_http = alarmmanager_config_bool($settings['allow_http'] ?? false);

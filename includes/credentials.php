@@ -104,7 +104,7 @@ function alarmmanager_secret_key(bool $lock = false): string {
 	return alarmmanager_decode_key(db_fetch_cell_prepared('SELECT value FROM settings_user WHERE user_id = ? AND name = ?' . ($lock ? ' FOR UPDATE' : ''), [1, 'alarmmanager_key'], '', false));
 }
 function alarmmanager_credential_validate(#[\SensitiveParameter] array $record): array {
-	alarmmanager_event_keys($record, ['headers', 'basic', 'teams_webhook_url']);
+	alarmmanager_event_keys($record, ['headers', 'basic', 'teams_webhook_url', 'provider_token']);
 	$headers = $record['headers'] ?? [];
 
 	if (!is_array($headers) || count($headers) > 32) {
@@ -142,6 +142,15 @@ function alarmmanager_credential_validate(#[\SensitiveParameter] array $record):
 			throw new InvalidArgumentException('invalid_credentials');
 		}
 		$result['basic'] = $basic;
+	}
+
+	if (array_key_exists('provider_token', $record)) {
+		$token = $record['provider_token'];
+
+		if (!is_string($token) || $token === '' || strlen($token) > 4096 || preg_match('/[\x00-\x20\x7f]/', $token) || $headers || isset($record['basic']) || isset($record['teams_webhook_url'])) {
+			throw new InvalidArgumentException('invalid_credentials');
+		}
+		$result['provider_token'] = $token;
 	}
 
 	if (isset($record['teams_webhook_url'])) {

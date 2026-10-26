@@ -52,11 +52,17 @@ By default, Alarm Manager processes bounded batches at the end of each Cacti pol
 
 For distributed installations, deploy the plugin files on the main poller and collectors, and enable the plugin through the main poller's Plugin Management page. Manage destinations, rules, credentials, worker settings, and delivery pause/resume on poller 1. Cacti synchronizes the configuration to remote collectors. Install the systemd service on each machine that will run resident workers, and ensure configured script executables and custom CA files exist at the same paths on the relevant collectors.
 
+### Provider setup
+
+Selecting an integration opens its provider-specific fields and standard payload. Slack asks for a bot token, channel ID, and message. Twilio asks for account credentials, sender, recipient, and message. Telegram and PagerDuty keys use encrypted credentials rather than exported URLs or mappings. The selected provider is preserved through save/reopen, export/import, and collector synchronization.
+
+Existing destinations remain custom integrations until explicitly converted. Changing providers asks before replacing message fields, disables the destination, and requires credentials for the new provider. Advanced message mappings remain available. Deploy matching plugin files to every delivering collector before using the new provider configuration.
+
 ### Twilio SMS
 
-Choose the **Twilio SMS** destination preset. Replace the Account SID placeholder in the URL with your `AC...` Account SID. In **Authentication → Basic authentication**, enter an API Key SID (`SK...`) as Username and its secret as Password; Account SID/Auth Token credentials also work. Credentials use the existing encrypted storage and collector synchronization.
+Choose the **Twilio SMS** destination preset. Enter your `AC...` **Account SID**. Choose **API Key SID and Secret** and enter the `SK...` key and secret, or choose **Account SID and Auth Token** and enter the Auth Token. The URL and Basic authentication header are generated automatically. Credentials use the existing encrypted storage and collector synchronization.
 
-In the message mapping, replace **From** with your SMS-capable Twilio number and **To** with the recipient, both in E.164 format (for example, `+15551234567`). Edit **Body** for the alarm text, keeping it within 1,600 characters. Each destination sends to one recipient; use additional destinations for other recipients. Save the disabled draft, then enable it and use **Test destination**. Trial accounts require verified recipients, and sender registration and geographic permissions must allow the message.
+Set **Sender phone number** to your SMS-capable Twilio number and **Recipient phone number** to the recipient, both in E.164 format (for example, `+15551234567`). Edit **Message** for the alarm text, keeping it within 1,600 characters. Each destination sends to one recipient; use additional destinations for other recipients. Save the disabled draft, then enable it and use **Test destination**. Trial accounts require verified recipients, and sender registration and geographic permissions must allow the message.
 
 The preset posts form-encoded fields and records Twilio's returned Message SID in delivery history. HTTP 201 confirms API acceptance; check Twilio Messaging logs for actual delivery. No delivery-status callback is installed. Long messages can incur multiple SMS segment charges. An uncertain response followed by a retry can send a duplicate SMS; the worker's idempotency header does not guarantee Twilio deduplication.
 
@@ -64,7 +70,7 @@ See the [Twilio Messages API](https://www.twilio.com/docs/messaging/api/message-
 
 ### Twilio WhatsApp
 
-Choose **Twilio WhatsApp** and configure the same Account SID URL and encrypted Basic credentials as SMS. Set **From** to your approved WhatsApp sender and **To** to an opted-in recipient using `whatsapp:+15551234567` addresses. Set **MessagingServiceSid** to the `MG...` service containing that sender and **ContentSid** to your approved `HX...` template.
+Choose **Twilio WhatsApp** and enter the same Account SID and credential fields as SMS. Set **WhatsApp sender** to your approved WhatsApp sender and **WhatsApp recipient** to an opted-in recipient using `whatsapp:+15551234567` addresses. Set **Messaging Service SID** to the `MG...` service containing that sender and **Approved Template SID** to your approved `HX...` template.
 
 Use a template such as `Cacti alarm: {{1}}.` with one variable. The **Combined text** mapping (`text`) fills variable `1`; JSON escaping is automatic and whitespace is collapsed to fit WhatsApp template-variable requirements. Do not add `Body` or `ContentVariables` mappings. Recovery events fill the same variable with the recovered alarm state. This template preset supports proactive alarms outside the 24-hour customer service window.
 

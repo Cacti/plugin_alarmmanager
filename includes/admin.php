@@ -53,7 +53,7 @@ function alarmmanager_admin_transport_fields(string $type, array $transport, arr
 		return $transport;
 	}
 	$keys = match ($type) {
-		'restapi', 'webhook' => ['twilio_whatsapp', 'body_encoding', 'teams_workflow', 'url', 'method', 'ca_bundle', 'credential', 'allow_http', 'success_codes', 'response_match', 'connect_timeout_seconds', 'response_reference', 'transition_overrides'],
+		'restapi', 'webhook' => ['provider', 'twilio_whatsapp', 'body_encoding', 'teams_workflow', 'url', 'method', 'ca_bundle', 'credential', 'allow_http', 'success_codes', 'response_match', 'connect_timeout_seconds', 'response_reference', 'transition_overrides'],
 		'email'              => ['to', 'from', 'html', 'attachments'],
 		'script'             => ['executable', 'arguments', 'compatibility', 'retry_exit_codes', 'response_reference'],
 		default              => []
@@ -402,6 +402,7 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 	$supervisor_saved    = false;
 	$settings            = $state['configuration'];
 	$credential          = null;
+	$provider_changed    = false;
 	$create_section      = null;
 	$id                  = 0;
 
@@ -429,8 +430,31 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 			if (!is_string($type)) {
 				throw new InvalidArgumentException('invalid_action');
 			}
+			$previous = array_column($settings['endpoints'], null, 'id')[$id] ?? [];
+			$provider = $input['provider'] ?? ($previous['transport']['provider'] ?? '');
+
+			if (!is_string($provider) || ($provider !== '' && !isset(alarmmanager_provider_definitions()[$provider]))) {
+				throw new InvalidArgumentException('invalid_provider');
+			}
+			$provider_changed = $provider !== ($previous['transport']['provider'] ?? '');
+
+			if ($id > 0 && $provider_changed && empty($input['provider_reset'])) {
+				throw new InvalidArgumentException('confirmation_required');
+			}
+
+			if ($provider_changed && ($input['auth_type'] ?? '') === 'keep') {
+				throw new InvalidArgumentException('provider_credentials_required');
+			}
+
+			if ($provider !== '') {
+				$type = alarmmanager_integration_templates()[$provider]['type'];
+
+				if (str_starts_with($provider, 'twilio') && ($input['twilio_auth_mode'] ?? '') === 'account') {
+					$input['basic_username'] = $input['provider_account_sid'] ?? '';
+				}
+			}
 			$item['type'] = $type;
-			$credential   = isset($input['endpoint_fields']) && !in_array($type, ['restapi', 'webhook'], true) ? null : alarmmanager_admin_credential($input, $id === 0);
+			$credential   = isset($input['endpoint_fields']) && !in_array($type, ['restapi', 'webhook'], true) ? null : alarmmanager_admin_credential($input, $id === 0 || ($provider !== '' && !$item['enabled']));
 
 			if ($credential !== null && !in_array($type, ['restapi', 'webhook'], true)) {
 				throw new InvalidArgumentException('credential_endpoint_invalid');
@@ -468,6 +492,21 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 				alarmmanager_teams_webhook_url($saved);
 			}
 			$transport['mapping'] = alarmmanager_admin_json($input['mapping_json'] ?? '{}');
+
+			if ($provider !== '') {
+				$transport = alarmmanager_provider_transport($provider, $transport, $input, $item['enabled']);
+
+				if ($item['enabled']) {
+					$saved = $credential;
+
+					if ($saved === null && $id > 0 && !$provider_changed) {
+						$saved = alarmmanager_load_credential($id);
+					}
+					alarmmanager_provider_credentials($provider, $saved);
+				}
+			} else {
+				unset($transport['provider']);
+			}
 			$item['transport']    = $transport;
 		} else {
 			$list = $input['endpoints'] ?? [];
@@ -503,7 +542,7 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 	}
 
 	try {
-		alarmmanager_transaction(function () use ($settings, $revision, $credential, $create_section, &$id, $supervisor, &$supervisor_saved): void {
+		alarmmanager_transaction(function () use ($settings, $revision, $credential, $create_section, &$id, $supervisor, &$supervisor_saved, $provider_changed): void {
 			if ($create_section !== null) {
 				$index          = array_key_last($settings[$create_section]);
 				$item           = $settings[$create_section][$index];
@@ -517,6 +556,10 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 			}
 			$settings = alarmmanager_configuration($settings);
 			alarmmanager_write_configuration($settings, $revision);
+
+			if ($provider_changed) {
+				alarmmanager_db_write('DELETE FROM plugin_alarmmanager_credentials WHERE endpoint_id = ?', [$id]);
+			}
 
 			if ($credential !== null) {
 				alarmmanager_write_credential($id, $credential);
@@ -559,12 +602,18 @@ function alarmmanager_admin_credential(#[\SensitiveParameter] array $input, bool
 	$type = $input['auth_type'] ?? null;
 
 	if ($type !== null) {
-		if (!in_array($type, ['none', 'keep', 'bearer', 'basic', 'headers', 'teams'], true)) {
+		if (!in_array($type, ['none', 'keep', 'bearer', 'basic', 'headers', 'teams', 'provider_token'], true)) {
 			throw new InvalidArgumentException('invalid_credentials');
 		}
 
 		if ($type === 'none' || $type === 'keep') {
 			return null;
+		}
+
+		if ($type === 'provider_token') {
+			$token = $input['provider_token'] ?? '';
+
+			return $allow_unfilled && $token === '' ? null : alarmmanager_credential_validate(['provider_token' => $token]);
 		}
 
 		if ($type === 'teams') {
@@ -631,6 +680,11 @@ function alarmmanager_admin_error_message(Throwable $error): string {
 		'invalid_configuration_upload'   => 'Choose a readable JSON configuration file no larger than 1 MiB. Check the server upload limit if uploading fails.',
 		'configuration_changed'          => 'Configuration changed. Reload before applying your edits.',
 		'permission_denied'              => 'Action failed. Administrator access, POST and a valid CSRF token are required.',
+		'invalid_provider'               => 'Choose a supported integration provider.',
+		'invalid_twilio_account'         => 'Enter your Twilio Account SID: AC followed by 32 hexadecimal characters.',
+		'invalid_twilio_credentials'     => 'Enter an API Key SID (SK…) or Account SID (AC…) with its matching secret.',
+		'invalid_provider_instance'      => 'Enter the HTTPS ServiceNow instance URL without an API path.',
+		'provider_credentials_required'  => 'Enter credentials for this integration before enabling it. Credentials from another provider cannot be reused.',
 		'invalid_transport'              => 'Action failed. Transport settings do not match the endpoint type.',
 		'invalid_teams_webhook_url'      => 'Paste the complete signed HTTPS Teams Workflow URL from Microsoft. Legacy connector URLs and tenant-authenticated triggers are not supported.',
 		'teams_webhook_missing'          => 'Save a Teams Workflow URL under Authentication before enabling this endpoint.',

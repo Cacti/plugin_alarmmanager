@@ -117,7 +117,7 @@ function alarmmanager_http_transport(array $event, array $endpoint, string $idem
 	}
 	$form    = ($settings['body_encoding'] ?? 'json') === 'form';
 	$payload = alarmmanager_notification_payload($settings, $event, $reference);
-	$payload = $form ? http_build_query($payload, '', '&', PHP_QUERY_RFC3986) : json_encode($payload, JSON_THROW_ON_ERROR);
+
 	$headers = ['Content-Type: ' . ($form ? 'application/x-www-form-urlencoded' : 'application/json'), 'Idempotency-Key: ' . $idempotency, 'Expect:'];
 
 	if ($settings['credential']) {
@@ -127,6 +127,8 @@ function alarmmanager_http_transport(array $event, array $endpoint, string $idem
 			$target['url'] = alarmmanager_teams_webhook_url($credential);
 		}
 
+		[$target, $payload] = alarmmanager_provider_request($settings, $target, $payload, $credential);
+
 		foreach ($credential['headers'] as $name => $value) {
 			$headers[] = $name . ': ' . $value;
 		}
@@ -135,6 +137,7 @@ function alarmmanager_http_transport(array $event, array $endpoint, string $idem
 			$headers[] = 'Authorization: Basic ' . base64_encode($credential['basic']['username'] . ':' . $credential['basic']['password']);
 		}
 	}
+	$payload      = $form ? http_build_query($payload, '', '&', PHP_QUERY_RFC3986) : json_encode($payload, JSON_THROW_ON_ERROR);
 	$curl         = curl_init();
 	$body         = '';
 	$header_bytes = 0;

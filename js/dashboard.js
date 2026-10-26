@@ -425,6 +425,8 @@
 				/** Render the selected state's mapping fields and email-specific controls. */
 				function render() {
 					rows.replaceChildren();
+					const providerSelect = form.querySelector('[name=provider]');
+					const providerDefinition = providerSelect ? JSON.parse(providerSelect.dataset.providerDefinitions)[providerSelect.value] : null;
 					const selected = selectedState(),
 						email = endpointType.value === 'email';
 					add.hidden = email;
@@ -452,7 +454,13 @@
 									node('strong', item.to === 'subject' ? 'Subject' : 'Message')
 								);
 							}
+							const providerLabel = providerDefinition?.labels[item.to];
+							if (providerLabel) {
+								path.parentElement.hidden = true;
+								row.append(node('strong', providerLabel));
+							}
 							const source = control('Cacti Value', node('select'));
+							if (providerLabel) source.parentElement.hidden = true;
 							source.setAttribute('aria-label', 'Cacti Value');
 							['constant', 'template', ...sourceFields].forEach(
 								/** Add an available source field to the mapping selector. */
@@ -472,7 +480,7 @@
 							source.value =
 								'template' in item ? 'template' : item.source || 'constant';
 							const constant = control(
-								email && item.to === 'body' ? 'Message text' : 'Custom value',
+								providerLabel || (email && item.to === 'body' ? 'Message text' : 'Custom value'),
 								node(email && item.to === 'body' ? 'textarea' : 'input')
 							);
 							constant.value =
@@ -494,6 +502,7 @@
 							row.append(templateGroup);
 							const deviceMessage = node('button', 'Use device message');
 							deviceMessage.type = 'button';
+							deviceMessage.hidden = !!providerLabel && source.value !== 'template';
 							row.append(deviceMessage);
 							deviceMessage.addEventListener(
 								'click',
@@ -1032,6 +1041,90 @@
 			}
 		);
 	}
+	/** Keep provider setup fields and payload mappings together in the existing endpoint form. */
+	function initProviders(app) {
+		app.querySelectorAll('.alarmmanagerEndpointEditor').forEach((form) => {
+			const select = form.querySelector('[name=provider]');
+			if (!select) return;
+			const definitions = JSON.parse(select.dataset.providerDefinitions),
+				templates = JSON.parse(select.dataset.providerTemplates),
+				auth = form.querySelector('[name=auth_type]'),
+				mapping = form.querySelector('[name=mapping_json]'),
+				raw = form.querySelector('[name=transport_json]');
+			let previous = select.value;
+			const label = (name, text) => {
+				const input = form.querySelector(`[name=${name}]`);
+				if (input?.parentElement.firstChild?.nodeType === Node.TEXT_NODE)
+					input.parentElement.firstChild.textContent = text + ' ';
+			};
+			function update() {
+				const provider = select.value, definition = definitions[provider];
+				form.querySelector('[name=type]').parentElement.hidden = !!definition;
+				form.querySelector('.alarmmanagerDestination').hidden = !!definition;
+				form.querySelector('[name=http_method]').parentElement.hidden = !!definition;
+				form.querySelector('[name=allow_http]').parentElement.hidden = !!definition;
+				form.querySelectorAll('[data-providers]').forEach((group) => {
+					const active = group.dataset.providers.split(' ').includes(provider);
+					group.hidden = !active;
+					group.querySelectorAll('input,select').forEach((input) => { input.disabled = !active; });
+				});
+				Array.from(auth.options).forEach((option) => {
+					option.disabled = !!definition && ![definition.auth, 'keep'].includes(option.value);
+					option.hidden = option.disabled;
+				});
+				if (definition && ![definition.auth, 'keep'].includes(auth.value)) auth.value = definition.auth;
+				label('bearer_token', provider === 'slack' ? 'Slack bot token' : 'Bearer token');
+				label('provider_token', definition?.token_label || 'Provider token');
+				const twilio = provider.startsWith('twilio'), account = form.querySelector('[name=twilio_auth_mode]').value === 'account';
+				label('basic_username', twilio ? (account ? 'Account SID (from above)' : 'API Key SID (SK…)') : 'Username');
+				label('basic_password', twilio ? (account ? 'Auth Token' : 'API Key Secret') : 'Password');
+				const username = form.querySelector('[name=basic_username]');
+				username.readOnly = twilio && account;
+				if (twilio && account) username.value = form.querySelector('[name=provider_account_sid]').value;
+				if (definition) {
+					Array.from(auth.options).forEach((option) => {
+						if (option.value === definition.auth) option.textContent = twilio ? 'Enter Twilio credentials' : (definition.token_label || (provider === 'slack' ? 'Slack bot token' : provider === 'teams' ? 'Workflow URL' : 'Username and password'));
+					});
+				}
+				initAuthentication(form);
+			}
+			jQuery(form).on('change', '[name=provider]', () => {
+				if (select.value === previous) return;
+				if (!window.confirm('Changing integration provider replaces the message fields and connection settings. Saved credentials will not be reused. Continue?')) {
+					select.value = previous;
+					return;
+				}
+				const provider = select.value, preset = templates[provider || 'webhook'];
+				const transport = structuredClone(preset.transport);
+				if (provider === 'pagerduty') Object.values(transport.mapping).forEach((items) => {
+					for (let i = items.length - 1; i >= 0; i--) if (items[i].to === 'routing_key') items.splice(i, 1);
+				});
+				mapping.value = JSON.stringify(transport.mapping, null, 2);
+				delete transport.mapping;
+				raw.value = JSON.stringify(transport, null, 2);
+				form.querySelector('[name=type]').value = preset.type;
+				if (!form.querySelector('[name=type]').value) form.querySelector('[name=type]').value = 'restapi';
+				form.querySelector('[name=url]').value = transport.url;
+				form.querySelector('[name=http_method]').value = transport.method || 'POST';
+				form.querySelector('[name=allow_http]').checked = false;
+				form.querySelector('[name=enabled]').checked = false;
+				form.querySelector('[name=provider_reset]').value = 'yes';
+				form.querySelectorAll('.alarmmanagerAuth input,.alarmmanagerAuth textarea').forEach((input) => { input.value = input.name === 'headers' ? '{}' : ''; });
+				auth.querySelector('[value=keep]')?.remove();
+				auth.value = definitions[provider]?.auth || 'none';
+				form.querySelectorAll('.alarmmanagerProviderSettings input').forEach((input) => { input.value = ''; });
+				const hint = form.querySelector('[data-integration-hint]');
+				if (hint) hint.textContent = '';
+				previous = provider;
+				jQuery(form.querySelector('[name=type]')).trigger('change');
+				mapping.dispatchEvent(new Event('input', { bubbles: true }));
+				update();
+			});
+			jQuery(form).on('change', '[name=twilio_auth_mode],[name=auth_type]', update);
+			form.querySelector('[name=provider_account_sid]').addEventListener('input', update);
+			update();
+		});
+	}
 	/** Initialize ServiceNow incident and event preset switching. */
 	function initServiceNow(app) {
 		app.querySelectorAll('[data-servicenow-presets]').forEach(
@@ -1489,6 +1582,7 @@
 		initAuthentication(app);
 		initEndpointTypes(app);
 		initServiceNow(app);
+		initProviders(app);
 		app.querySelectorAll('.alarmmanagerEndpointEditor').forEach(
 			/** Bind endpoint submissions to preserve explicit test-send intent. */
 			(form) => {

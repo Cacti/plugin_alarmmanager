@@ -273,6 +273,10 @@ function alarmmanager_delivery_reference(array $event, int $endpoint_id, ?array 
 function alarmmanager_notification_payload(array $settings, array $event, array $reference = []): stdClass {
 	$payload = alarmmanager_map_payload($settings['mapping'], $event, $reference);
 
+	if (($settings['provider'] ?? '') === 'pagerduty') {
+		$payload->routing_key = '[REDACTED]';
+	}
+
 	if (!empty($settings['twilio_whatsapp'])) {
 		if (!is_string($payload->text ?? null) || trim($payload->text) === '' || isset($payload->Body) || isset($payload->ContentVariables)) {
 			throw new InvalidArgumentException('invalid_twilio_message');

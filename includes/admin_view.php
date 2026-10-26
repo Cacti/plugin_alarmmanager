@@ -71,6 +71,22 @@ function alarmmanager_endpoint_editor(array $endpoint, int $revision, bool $new 
 	alarmmanager_input('name', 'Name', $endpoint['name'], 'text', 'maxlength="128" required');
 	alarmmanager_checkbox('enabled', 'Enabled', $endpoint['enabled'] ?? true);
 	print '<input type="hidden" name="endpoint_fields" value="yes">';
+	$transport = $endpoint['transport'] ?? [];
+	$provider  = $transport['provider'] ?? ($endpoint['integration_provider'] ?? '');
+	$providers = alarmmanager_provider_definitions();
+	print '<label>' . __esc('Integration provider', 'alarmmanager') . ' <select name="provider" data-provider-definitions="' . html_escape(json_encode($providers, JSON_THROW_ON_ERROR)) . '" data-provider-templates="' . html_escape(json_encode(alarmmanager_integration_templates(), JSON_THROW_ON_ERROR)) . '"><option value="">' . __esc('Custom integration', 'alarmmanager') . '</option>';
+
+	foreach ($providers as $key => $definition) {
+		print '<option value="' . $key . '" ' . ($provider === $key ? 'selected' : '') . '>' . __esc($definition['name'], 'alarmmanager') . '</option>';
+	}
+	print '</select></label><input type="hidden" name="provider_reset" value=""><div class="alarmmanagerFullWidth alarmmanagerProviderSettings">';
+
+	foreach (['account_sid' => ['Account SID (AC…)', 'twilio twilio_whatsapp'], 'instance_url' => ['ServiceNow instance URL', 'servicenow servicenow_events']] as $key => [$label, $choices]) {
+		print '<div data-providers="' . $choices . '">';
+		alarmmanager_input('provider_' . $key, $label, alarmmanager_provider_value($provider, $key, $transport), 'text', 'maxlength="2048"');
+		print '</div>';
+	}
+	print '<div data-providers="twilio twilio_whatsapp"><label>' . __esc('Twilio credentials', 'alarmmanager') . ' <select name="twilio_auth_mode"><option value="api_key">' . __esc('API Key SID and Secret (recommended)', 'alarmmanager') . '</option><option value="account">' . __esc('Account SID and Auth Token', 'alarmmanager') . '</option></select></label></div></div>';
 	print '<label>' . __esc('Send using', 'alarmmanager') . ' <select name="type">';
 
 	foreach ([($endpoint['type'] === 'webhook' ? 'webhook' : 'restapi') => 'Webhook / REST API', 'email' => 'Email', 'script' => 'Script'] + ($endpoint['type'] === 'websocket' ? ['websocket' => 'WebSocket (unsupported, saved)'] : []) as $type => $label) {
@@ -79,7 +95,7 @@ function alarmmanager_endpoint_editor(array $endpoint, int $revision, bool $new 
 
 	$transport = $endpoint['transport'] ?? [];
 
-	if (($endpoint['provider'] ?? '') === 'servicenow' || preg_match('~/api/now/table/(incident|em_event)(?:[/?]|$)~', $transport['url'] ?? '')) {
+	if ($provider === '' && (($endpoint['provider'] ?? '') === 'servicenow' || preg_match('~/api/now/table/(incident|em_event)(?:[/?]|$)~', $transport['url'] ?? ''))) {
 		$templates = alarmmanager_integration_templates();
 		$presets   = ['incident' => $templates['servicenow'], 'em_event' => $templates['servicenow_events']];
 		$events    = str_contains($transport['url'] ?? '', '/api/now/table/em_event');
@@ -87,7 +103,18 @@ function alarmmanager_endpoint_editor(array $endpoint, int $revision, bool $new 
 		print '<p class="alarmmanagerFullWidth">' . __esc('Changing the record type replaces the destination table, message fields and recovery settings with its defaults. Your instance and credentials are retained.', 'alarmmanager') . '</p>';
 	}
 	$mapping   = $transport['mapping'] ?? ($new ? alarmmanager_integration_templates()['webhook']['transport']['mapping'] : ['default' => []]);
+
+	if ($provider === 'pagerduty') {
+		foreach ($mapping as &$items) {
+			$items = array_values(array_filter($items, static fn ($item) => ($item['to'] ?? '') !== 'routing_key'));
+		}
+		unset($items);
+	}
 	unset($transport['mapping']);
+
+	if ($provider !== '') {
+		$endpoint['hint'] = 'Enter the provider settings and credentials below. Message fields use the provider’s standard payload. Save a disabled draft first, then enable and Test destination when ready.';
+	}
 
 	if (!empty($transport['teams_workflow'])) {
 		$endpoint['hint'] = alarmmanager_integration_templates()['teams']['hint'];
@@ -100,7 +127,7 @@ function alarmmanager_endpoint_editor(array $endpoint, int $revision, bool $new 
 	alarmmanager_input('url', 'URL', $transport['url'] ?? '', 'url', 'maxlength="2048"' . (!empty($transport['teams_workflow']) ? ' readonly' : ''));
 	print '</fieldset>';
 	print '<div class="alarmmanagerFullWidth" data-endpoint-types="restapi webhook">';
-	alarmmanager_auth_editor(!$new ? (!empty($transport['credential']) ? 'keep' : 'none') : ($endpoint['auth'] ?? 'none'), false, $new);
+	alarmmanager_auth_editor(!$new ? (!empty($transport['credential']) ? 'keep' : 'none') : ($providers[$provider]['auth'] ?? ($endpoint['auth'] ?? 'none')), false, $new);
 	print '</div><fieldset class="alarmmanagerFullWidth" data-endpoint-types="email"><legend>' . __esc('Email settings', 'alarmmanager') . '</legend>';
 
 	foreach (['to' => 'Recipients', 'from' => 'Sender email (blank uses Cacti default)'] as $key => $label) {
@@ -319,6 +346,7 @@ function alarmmanager_admin_markup(array $state, string $section): void {
 		print '<p>' . __esc('Create an integration, configure its destination and credentials, test a sample alarm here, then select it directly in a rule.', 'alarmmanager') . '</p>';
 		print '<form method="get" action="alarmmanager_admin.php" class="alarmmanagerTemplatePicker"><input type="hidden" name="section" value="endpoints"><input type="hidden" name="add" value="1"><label>' . __esc('Start a new integration from a template', 'alarmmanager') . '<select name="integration_template"><option value="">' . __esc('Blank endpoint', 'alarmmanager') . '</option>';
 		$templates = alarmmanager_integration_templates();
+		$providers = alarmmanager_provider_definitions();
 		$selected  = (string) get_filter_request_var('integration_template', FILTER_CALLBACK, ['options' => static fn ($value) => is_string($value) && isset($templates[$value]) ? $value : false, 'default' => '']);
 		$adding    = $selected !== '' || (string) get_filter_request_var('add', FILTER_CALLBACK, ['options' => static fn ($value) => $value === '1' ? '1' : false, 'default' => '']) === '1';
 
@@ -335,7 +363,7 @@ function alarmmanager_admin_markup(array $state, string $section): void {
 		}
 
 		if ($adding) {
-			alarmmanager_endpoint_editor(['id' => 0, 'enabled' => false] + ($templates[$selected] ?? ['name' => '', 'type' => 'restapi']), $revision, true, $config['device_summaries'] ?? []);
+			alarmmanager_endpoint_editor(['id' => 0, 'enabled' => false, 'integration_provider' => isset($providers[$selected]) ? $selected : ''] + ($templates[$selected] ?? ['name' => '', 'type' => 'restapi']), $revision, true, $config['device_summaries'] ?? []);
 		}
 	} elseif ($section === 'rules') {
 		print '<h2>' . __esc('Alarm Rules', 'alarmmanager') . '</h2><p>' . __esc('Choose which alarms should notify, where to send them and when to pause notifications. Rules run from lowest to highest priority.', 'alarmmanager') . '</p>';
@@ -487,12 +515,14 @@ function alarmmanager_auth_editor(string $selected, bool $replacement = false, b
 	if ($selected === 'keep') {
 		$options['keep'] = 'Keep saved authentication';
 	}
-	$options += ['bearer' => 'Bearer token', 'basic' => 'Basic authentication', 'headers' => 'Custom authentication headers', 'teams' => 'Teams Workflow URL'];
+	$options += ['bearer' => 'Bearer token', 'basic' => 'Basic authentication', 'headers' => 'Custom authentication headers', 'teams' => 'Teams Workflow URL', 'provider_token' => 'Provider token'];
 
 	foreach ($options as $value => $label) {
 		print '<option value="' . $value . '"' . ($selected === $value ? ' selected' : '') . '>' . __esc($label, 'alarmmanager') . '</option>';
 	}
-	print '</select></label><div class="alarmmanagerAuthFields" data-auth-type="teams">';
+	print '</select></label><div class="alarmmanagerAuthFields" data-auth-type="provider_token">';
+	alarmmanager_input('provider_token', 'Provider token', '', 'password', 'autocomplete="new-password" maxlength="4096"');
+	print '</div><div class="alarmmanagerAuthFields" data-auth-type="teams">';
 	alarmmanager_input('teams_webhook_url', 'Teams Workflow URL (secret)', '', 'password', 'autocomplete="new-password" maxlength="4096"');
 	print '</div><div class="alarmmanagerAuthFields" data-auth-type="bearer">';
 	alarmmanager_input('bearer_token', 'Bearer token', '', 'password', 'autocomplete="new-password" maxlength="4089"');
