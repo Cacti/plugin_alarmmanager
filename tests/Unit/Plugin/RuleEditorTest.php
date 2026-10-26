@@ -33,11 +33,13 @@ final class RuleEditorTest extends AlarmManagerTestCase {
 		ob_start();
 
 		try {
-			alarmmanager_endpoint_editor(['id' => 7, 'name' => 'Destination', 'type' => 'webhook', 'enabled' => true, 'transport' => []], 1);
+			alarmmanager_endpoint_editor(['id' => 7, 'name' => 'Destination', 'type' => 'webhook', 'enabled' => true, 'transport' => alarmmanager_integration_templates()['teams']['transport']], 1);
 			$html = ob_get_contents();
 		} finally {
 			ob_end_clean();
 		}
+		$this->assertStringContainsString('readonly', $html);
+		$this->assertStringContainsString('Workflows', $html);
 		$this->assertStringContainsString('name="test_destination" value="yes"', $html);
 		$this->assertStringNotContainsString('section=test', $html);
 		$this->assertStringContainsString('Test destination saves the current settings', $html);
