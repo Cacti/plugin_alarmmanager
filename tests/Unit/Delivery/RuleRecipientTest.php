@@ -123,9 +123,13 @@ final class RuleRecipientTest extends AlarmManagerTestCase {
 		self::alarmmanager_test_load('includes/queue.php');
 		$GLOBALS['config']['poller_id']               = 1;
 		$stored                                       = [];
-		$GLOBALS['alarmmanager_test_execute_handler'] = static function ($sql, $params) use (&$stored) { if (str_contains($sql, 'INSERT INTO plugin_alarmmanager_remote_history')) { $stored[] = $params; }
+		$GLOBALS['alarmmanager_test_execute_handler'] = static function ($sql, $params) use (&$stored) {
+			if (str_contains($sql, 'INSERT INTO plugin_alarmmanager_remote_history')) {
+				$stored[] = $params;
+			}
 
-return true; };
+			return true;
+		};
 		$GLOBALS['alarmmanager_test_query_handler'] = static fn ($sql) => str_contains($sql, 'FROM poller') ? [['id' => 3]] : [];
 		$data                                       = ['id' => 1, 'event_row_id' => 1, 'endpoint_id' => 9, 'status' => 'completed', 'attempts' => 1, 'last_error' => '', 'idempotency_key' => str_repeat('a', 64), 'created_at' => '2026-10-26 21:00:00', 'updated_at' => '2026-10-26 21:00:00', 'external_reference' => null];
 
