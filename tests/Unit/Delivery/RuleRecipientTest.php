@@ -101,7 +101,7 @@ final class RuleRecipientTest extends AlarmManagerTestCase {
 		self::alarmmanager_test_load('includes/transports.php');
 		$key                                        = random_bytes(32);
 		$cipher                                     = alarmmanager_encrypt_credential(['basic' => ['username' => 'fixture', 'password' => 'secret']], 9, $key);
-		$GLOBALS['alarmmanager_test_cell_handler']  = static fn () => base64_encode($key);
+		$GLOBALS['alarmmanager_test_cell_handler']  = static fn ($sql) => str_contains($sql, '@@in_transaction') ? 0 : base64_encode($key);
 		$GLOBALS['alarmmanager_test_query_handler'] = static fn ($sql) => str_contains($sql, 'plugin_alarmmanager_transports') ? [['definition' => json_encode($GLOBALS['recipient_fixture_transport'])]] : (str_contains($sql, 'SELECT ciphertext') ? [['ciphertext' => $cipher]] : []);
 		$event                                      = alarmmanager_validate_event(json_decode(file_get_contents(__DIR__ . '/../../../examples/event.json'), true));
 		$endpoint                                   = ['id' => 9, 'type' => 'restapi', 'timeout_seconds' => 1, 'recipient' => '+15551234567'];
