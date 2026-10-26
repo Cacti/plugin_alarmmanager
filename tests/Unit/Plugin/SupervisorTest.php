@@ -99,6 +99,7 @@ final class SupervisorTest extends AlarmManagerTestCase {
 			}
 			$this->assertTrue($rejected);
 			$this->assertSame($settings, alarmmanager_supervisor_options(), 'Rejected values leave the saved file intact');
+			$this->assertSame([], alarmmanager_daemon_status(), 'No heartbeat file means the daemon has not started');
 			$status = ['updated_at' => time(), 'enabled' => false, 'processing_workers' => 0, 'delivery_workers' => 0];
 			alarmmanager_daemon_write_json(dirname(alarmmanager_daemon_config_path()) . '/status.json', $status);
 			$this->assertSame($status, alarmmanager_daemon_status());

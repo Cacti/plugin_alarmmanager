@@ -3,7 +3,7 @@
 
 final class ReplicationHookTest extends AlarmManagerTestCase {
 	public function testFailuresRemainInsideTheHookAndRequeueAfterCactiFinishes(): void {
-		$bootstrap = var_export(dirname(__DIR__, 2) . '/bootstrap-unit.php', true);
+		$bootstrap   = var_export(dirname(__DIR__, 2) . '/bootstrap-unit.php', true);
 		$replication = var_export(dirname(__DIR__, 3) . '/includes/replication.php', true);
 
 		foreach (['remote_read', 'invalid_connection', 'retry_write'] as $scenario) {
@@ -30,7 +30,7 @@ final class ReplicationHookTest extends AlarmManagerTestCase {
 			fwrite($pipes[0], $script);
 			fclose($pipes[0]);
 			$output = stream_get_contents($pipes[1]);
-			$error = stream_get_contents($pipes[2]);
+			$error  = stream_get_contents($pipes[2]);
 			fclose($pipes[1]);
 			fclose($pipes[2]);
 			$this->assertSame(0, proc_close($process), $error);
@@ -39,6 +39,7 @@ final class ReplicationHookTest extends AlarmManagerTestCase {
 			$this->assertTrue($result['returned']);
 			$this->assertStringContainsString('configuration replication failed for collector 3', $result['logs'][0]);
 			$this->assertStringNotContainsString('PASSWORD_MUST_NOT_BE_LOGGED', $output);
+
 			if ($scenario === 'retry_write') {
 				$this->assertNull($result['retry']);
 				$this->assertStringContainsString('retry could not be queued', $result['logs'][1]);

@@ -98,7 +98,12 @@ function alarmmanager_save_supervisor_options(array $settings): void {
 
 /** @return array<string, mixed> */
 function alarmmanager_daemon_status(): array {
-	$data = @file_get_contents(dirname(alarmmanager_daemon_config_path()) . '/status.json', false, null, 0, 4097);
+	$path = dirname(alarmmanager_daemon_config_path()) . '/status.json';
+
+	if (!is_file($path)) {
+		return [];
+	}
+	$data = @file_get_contents($path, false, null, 0, 4097);
 
 	try {
 		$status = $data !== false && strlen($data) <= 4096 ? json_decode($data, true, 8, JSON_THROW_ON_ERROR) : [];

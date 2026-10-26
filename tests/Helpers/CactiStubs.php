@@ -40,6 +40,7 @@ if (!function_exists('alarmmanager_test_reset_state')) {
 	$GLOBALS['alarmmanager_test_workers']       = [];
 
 	function alarmmanager_test_reset_state(): void {
+		unset($GLOBALS['alarmmanager_test_cell_handler'], $GLOBALS['alarmmanager_test_hook_handler'], $GLOBALS['alarmmanager_test_query_handler'], $GLOBALS['alarmmanager_test_execute_handler']);
 		$GLOBALS['alarmmanager_test_store']         = [];
 		$GLOBALS['alarmmanager_test_hooks']         = [];
 		$GLOBALS['alarmmanager_test_realms']        = [];
@@ -54,8 +55,16 @@ if (!function_exists('alarmmanager_test_reset_state')) {
 
 if (!function_exists('db_fetch_cell_prepared')) {
 	function db_fetch_cell_prepared($sql, $params = [], $column = '', $log = true) {
+		if (isset($GLOBALS['alarmmanager_test_cell_handler'])) {
+			return ($GLOBALS['alarmmanager_test_cell_handler'])($sql, $params);
+		}
+
 		if (str_contains($sql, 'SELECT instance_uuid FROM plugin_alarmmanager_node')) {
 			return str_repeat('a', 32);
+		}
+
+		if (str_contains($sql, 'COUNT(*) FROM plugin_hooks') && str_contains($sql, 'AND hook = ?')) {
+			return in_array($params[1], $GLOBALS['alarmmanager_test_hooks'], true) ? 1 : 0;
 		}
 
 		if (str_contains($sql, 'COUNT(*) FROM plugin_hooks')) {
@@ -112,6 +121,10 @@ if (!function_exists('db_fetch_cell_prepared')) {
 
 if (!function_exists('db_execute_prepared')) {
 	function db_execute_prepared($sql, $params = [], $log = true) {
+		if (isset($GLOBALS['alarmmanager_test_execute_handler'])) {
+			return ($GLOBALS['alarmmanager_test_execute_handler'])($sql, $params);
+		}
+
 		if ($GLOBALS['alarmmanager_test_write_failure']) {
 			return false;
 		}
@@ -176,12 +189,20 @@ if (!function_exists('db_execute_prepared')) {
 
 if (!function_exists('db_fetch_assoc_prepared')) {
 	function db_fetch_assoc_prepared($sql, $params = [], $log = true) {
+		if (isset($GLOBALS['alarmmanager_test_query_handler'])) {
+			return ($GLOBALS['alarmmanager_test_query_handler'])($sql, $params);
+		}
+
 		return [];
 	}
 }
 
 if (!function_exists('db_fetch_row_prepared')) {
 	function db_fetch_row_prepared($sql, $params = [], $log = true) {
+		if (isset($GLOBALS['alarmmanager_test_query_handler'])) {
+			return ($GLOBALS['alarmmanager_test_query_handler'])($sql, $params)[0] ?? false;
+		}
+
 		return false;
 	}
 }
@@ -280,5 +301,24 @@ if (!function_exists('html_escape')) {
 if (!function_exists('__esc')) {
 	function __esc($text, $domain = null) {
 		return html_escape($text);
+	}
+}
+
+if (!function_exists('api_plugin_hook_function')) {
+	function api_plugin_hook_function($hook, $data = null) {
+		return isset($GLOBALS['alarmmanager_test_hook_handler'])
+			? ($GLOBALS['alarmmanager_test_hook_handler'])($hook, $data) : $data;
+	}
+}
+
+if (!function_exists('get_guest_account')) {
+	function get_guest_account() {
+		return 0;
+	}
+}
+
+if (!function_exists('csrf_check')) {
+	function csrf_check($fatal = true) {
+		return !empty($GLOBALS['alarmmanager_test_csrf_valid']);
 	}
 }

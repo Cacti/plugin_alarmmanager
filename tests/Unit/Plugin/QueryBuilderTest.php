@@ -83,5 +83,4 @@ final class QueryBuilderTest extends AlarmManagerTestCase {
 		$this->assertSame('(e.device_id = 42) AND e.id = ?', $where);
 		$this->assertSame([94], $params);
 	}
-
 }

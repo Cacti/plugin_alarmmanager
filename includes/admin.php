@@ -110,7 +110,11 @@ function alarmmanager_admin_json($value, int $limit = 131072): array {
 
 	return $result;
 }
-/** Read only a PHP-verified upload; never accept a client-supplied filesystem path. */
+/**
+ * Read only a PHP-verified upload; never accept a client-supplied filesystem path.
+ * @param  array<string, mixed> $file
+ * @return array<string, mixed>
+ */
 function alarmmanager_admin_configuration_upload(array $file): array {
 	if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK || !is_string($file['tmp_name'] ?? null) || !is_uploaded_file($file['tmp_name'])) {
 		throw new InvalidArgumentException('invalid_configuration_upload');
@@ -194,7 +198,11 @@ function alarmmanager_admin_rule_policy(array $input): array {
 	return alarmmanager_validate_rule_definition($policy);
 }
 
-/** Validate all daemon fields before any settings are written. */
+/**
+ * Validate all daemon fields before any settings are written.
+ * @param  array<string, mixed> $input
+ * @return array<string, mixed>
+ */
 function alarmmanager_admin_supervisor_settings(array $input): array {
 	$settings                       = alarmmanager_supervisor_options();
 	$settings['enabled']            = isset($input['daemon_enabled']);
@@ -468,7 +476,7 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 
 	if ($action === 'settings_save') {
 		$previous_supervisor = alarmmanager_supervisor_options();
-		$supervisor = alarmmanager_admin_supervisor_settings($input);
+		$supervisor          = alarmmanager_admin_supervisor_settings($input);
 	}
 
 	try {
@@ -490,6 +498,7 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 			if ($credential !== null) {
 				alarmmanager_write_credential($id, $credential);
 			}
+
 			if ($supervisor !== null) {
 				alarmmanager_save_supervisor_options($supervisor);
 				$supervisor_saved = true;
@@ -499,15 +508,16 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 		if ($supervisor_saved) {
 			alarmmanager_save_supervisor_options($previous_supervisor);
 		}
+
 		throw $error;
 	}
 	unset($GLOBALS['alarmmanager_route_cache']);
 
 	if ($test_destination) {
 		try {
-			$sample = alarmmanager_admin_json(file_get_contents(__DIR__ . '/../examples/event.json'), 65536);
+			$sample            = alarmmanager_admin_json(file_get_contents(__DIR__ . '/../examples/event.json'), 65536);
 			$sample['summary'] = alarmmanager_device_summaries()['offline'];
-			$event_id = alarmmanager_enqueue_test($sample, $id);
+			$event_id          = alarmmanager_enqueue_test($sample, $id);
 		} catch (Throwable $error) {
 			throw new RuntimeException('test_after_save_failed', 0, $error);
 		}

@@ -33,10 +33,25 @@ final class SetupTest extends AlarmManagerTestCase {
 		$this->assertSame($key, $GLOBALS['alarmmanager_test_store']['1:alarmmanager_key'], 'Repeat install changed the key.');
 		$this->assertTrue(plugin_alarmmanager_upgrade(), 'Upgrade readiness failed.');
 		$this->assertSame($key, $GLOBALS['alarmmanager_test_store']['1:alarmmanager_key'], 'Upgrade changed the key.');
-		$this->assertSame([], array_diff($GLOBALS['alarmmanager_test_hooks'], ['config_arrays', 'draw_navigation_text', 'alarmmanager_submit', 'poller_bottom', 'replicate_out', 'top_header_tabs', 'top_graph_header_tabs']), 'Unexpected producer/poller hook.');
-		$this->assertCount(7, array_unique($GLOBALS['alarmmanager_test_hooks']));
+		$this->assertSame([], array_diff($GLOBALS['alarmmanager_test_hooks'], ['config_arrays', 'draw_navigation_text', 'alarmmanager_submit', 'admin_alert', 'poller_bottom', 'replicate_out', 'top_header_tabs', 'top_graph_header_tabs']), 'Unexpected producer/poller hook.');
+		$this->assertCount(8, array_unique($GLOBALS['alarmmanager_test_hooks']));
 		plugin_alarmmanager_uninstall();
 		$this->assertSame($key, $GLOBALS['alarmmanager_test_store']['1:alarmmanager_key'], 'Uninstall removed the key.');
+	}
+
+	public function testCurrentVersionRepairsMissingAdminAlertRegistration(): void {
+		self::alarmmanager_test_load('setup.php');
+		$this->assertTrue(plugin_alarmmanager_install());
+		$GLOBALS['alarmmanager_test_version'] = plugin_alarmmanager_version()['version'];
+		$GLOBALS['alarmmanager_test_schema']  = 12;
+		$key                                  = $GLOBALS['alarmmanager_test_store']['1:alarmmanager_key'];
+		$GLOBALS['alarmmanager_test_hooks']   = array_values(array_diff($GLOBALS['alarmmanager_test_hooks'], ['admin_alert']));
+		$this->assertTrue(plugin_alarmmanager_upgrade());
+		$this->assertContains('admin_alert', $GLOBALS['alarmmanager_test_hooks']);
+		$this->assertSame($key, $GLOBALS['alarmmanager_test_store']['1:alarmmanager_key']);
+		$this->assertTrue(plugin_alarmmanager_upgrade());
+		unset($GLOBALS['alarmmanager_test_store']['1:alarmmanager_key']);
+		$this->assertFalse(plugin_alarmmanager_upgrade(), 'Current-version repair must not recreate a lost encryption key.');
 	}
 
 	public function testCurrentPluginVersionUpgradesOlderSchema(): void {
