@@ -6,9 +6,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Alarm Manager 0.11.0\n"
+"Project-Id-Version: Alarm Manager 0.11.1\n"
 "Report-Msgid-Bugs-To: https://github.com/bmfmancini/plugin_alarmmanager/issues\n"
-"POT-Creation-Date: 2026-10-21 21:16-0400\n"
+"POT-Creation-Date: 2026-10-26 10:05-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alarm Manager Developers <https://github.com/bmfmancini/plugin_alarmmanager>\n"
 "Language-Team: Alarm Manager Developers <https://github.com/bmfmancini/plugin_alarmmanager>\n"
@@ -710,7 +710,7 @@ msgstr ""
 msgid "Statistics could not be rendered."
 msgstr ""
 
-#: includes/web_view.php:128 setup.php:143 setup.php:159 setup.php:160
+#: includes/web_view.php:128 setup.php:150 setup.php:166 setup.php:167
 msgid "Alarm Manager"
 msgstr ""
 
@@ -887,18 +887,18 @@ msgstr ""
 msgid "Confirm replay may repeat an external effect"
 msgstr ""
 
-#: setup.php:95
+#: setup.php:102
 msgid "Alarm Manager View"
 msgstr ""
 
-#: setup.php:96
+#: setup.php:103
 msgid "Alarm Manager Administration"
 msgstr ""
 
-#: setup.php:127
+#: setup.php:134
 msgid "Import/Export"
 msgstr ""
 
-#: setup.php:129 setup.php:135 setup.php:141
+#: setup.php:136 setup.php:142 setup.php:148
 msgid "Alarm Manager Settings"
 msgstr ""
