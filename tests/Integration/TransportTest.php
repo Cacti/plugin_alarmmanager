@@ -205,7 +205,7 @@ final class TransportTest extends AlarmManagerTestCase {
 				$primary_db->exec("DROP DATABASE `$remote_database`");
 			}
 			// Worker-only test sends and simultaneous destinations with one transient failure.
-			$routes                                                          = json_decode(file_get_contents(__DIR__ . '/../../examples/routing.json'), true);
+			$routes                                                          = json_decode(file_get_contents(__DIR__ . '/../fixtures/routing.json'), true);
 			$routes['endpoints'][0]['transport']                             = $plain;
 			$routes['endpoints'][0]['transport']['url']                      = $http . '/retry';
 			$routes['endpoints'][1]['transport']                             = ['url' => $http . '/echo', 'allow_http' => true, 'mapping' => ['default' => [['to' => 'host', 'source' => 'device.id']]], 'response_match' => ['path' => 'request.host', 'equals' => 42]];

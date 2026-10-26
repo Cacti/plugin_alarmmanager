@@ -29,7 +29,7 @@ Alarm Manager is a Cacti plugin for routing alarms to notification services and 
 
    ```sh
    cd <cacti-root>/plugins
-   git clone https://github.com/bmfmancini/plugin_alarmmanager.git alarmmanager
+   git clone https://github.com/Cacti/plugin_alarmmanager.git alarmmanager
    ```
 
 2. Disable Cacti's `DEBUG_SQL_FLOW` tracing before installation or enablement, as it can expose encryption-key material.
