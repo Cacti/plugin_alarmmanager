@@ -165,11 +165,12 @@ function alarmmanager_report_where(array $scope, array $filters, ?string $time_c
 }
 /** Every report joins the event and applies the same visibility predicate before LIMIT. */
 function alarmmanager_report_list(string $kind, array $scope, array $filters): array {
-	$base     = 'plugin_alarmmanager_events AS e';
-	$order    = 'e.id';
-	$time     = 'e.received_at';
-	$severity = 'e.severity';
-	$columns  = 'e.id, e.received_at, e.source, e.transition, e.severity, e.device_id, COALESCE(NULLIF(JSON_UNQUOTE(JSON_EXTRACT(e.payload, \'$.device.description\')), \'\'), JSON_UNQUOTE(JSON_EXTRACT(e.payload, \'$.device.hostname\'))) AS device_name, e.event_id, JSON_UNQUOTE(JSON_EXTRACT(e.payload, \'$.summary\')) AS summary, e.payload';
+	$collector = (int) ($filters['collector_id'] ?? 0);
+	$base      = 'plugin_alarmmanager_events AS e';
+	$order     = 'e.id';
+	$time      = 'e.received_at';
+	$severity  = 'e.severity';
+	$columns   = 'e.id, e.received_at, e.source, e.transition, e.severity, e.device_id, COALESCE(NULLIF(JSON_UNQUOTE(JSON_EXTRACT(e.payload, \'$.device.description\')), \'\'), JSON_UNQUOTE(JSON_EXTRACT(e.payload, \'$.device.hostname\'))) AS device_name, e.event_id, JSON_UNQUOTE(JSON_EXTRACT(e.payload, \'$.summary\')) AS summary, e.payload';
 
 	switch ($kind) {
 		case 'events': break;
@@ -216,7 +217,9 @@ function alarmmanager_report_list(string $kind, array $scope, array $filters): a
 	}
 	[$where, $params] = alarmmanager_report_where($scope, $filters, $time, $severity, $kind);
 
-	$collector = (int) ($filters['collector_id'] ?? 0);
+	// Both event and condition reports include mirrored collector history.
+	$remote = ($collector === 0 || ($collector > 1 && $collector !== alarmmanager_local_poller()))
+		&& in_array($kind, ['events', 'conditions'], true);
 
 	if ($kind === 'events') {
 		$job      = $filters['job'] ?? 'delivery';
@@ -225,9 +228,6 @@ function alarmmanager_report_list(string $kind, array $scope, array $filters): a
 			'attempt'    => 'plugin_alarmmanager_attempts AS job INNER JOIN plugin_alarmmanager_deliveries AS delivery ON delivery.id = job.delivery_id WHERE delivery.event_row_id = e.id',
 			default      => 'plugin_alarmmanager_deliveries AS job WHERE job.event_row_id = e.id'
 		};
-		// Mirrored collector history folds into the events table by default; collector_id>0 narrows to one poller.
-		$remote    = ($collector === 0 || ($collector > 1 && $collector !== alarmmanager_local_poller()))
-			&& in_array($kind, ['events', 'conditions'], true);
 		$checks = [];
 
 		if ($filters['status'] !== '') {
@@ -272,7 +272,7 @@ function alarmmanager_report_list(string $kind, array $scope, array $filters): a
 	$columns .= ", e.collector_id, COALESCE(NULLIF(collector.name, ''), CONCAT('Poller #', e.collector_id)) AS collector_name";
 	$offset = ($filters['page'] - 1) * 50;
 
-	if (($remote ?? false) === true) {
+	if ($remote) {
 		// Derived table keeps every e.* predicate resolvable; mirrored rows get NULL id so no Record ID is ever rendered.
 		$payload        = "JSON_UNQUOTE(JSON_EXTRACT(h.definition, '$.payload'))";
 		$remote_gate    = $collector > 1 ? ' AND h.poller_id = ?' : '';
@@ -318,7 +318,7 @@ function alarmmanager_report_list(string $kind, array $scope, array $filters): a
 	$rows = array_slice($rows, 0, 50);
 
 	if ($kind === 'events' && $rows) {
-		// PDO may return BIGINT identifiers as strings. NULL marks remote-only history.
+		// PDO can return BIGINT identifiers as strings; NULL identifies remote history.
 		$ids = array_values(array_filter(array_map('intval', array_column($rows, 'id'))));
 
 		foreach ($rows as &$row) {

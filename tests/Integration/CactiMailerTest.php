@@ -61,6 +61,8 @@ final class CactiMailerTest extends AlarmManagerTestCase {
 		mkdir($tmp . '/plugins/alarmmanager/includes');
 		copy(__DIR__ . '/../../includes/mail_child.php', $tmp . '/plugins/alarmmanager/includes/mail_child.php');
 		copy(__DIR__ . '/../../includes/email_boundary.php', $tmp . '/plugins/alarmmanager/includes/email_boundary.php');
+		$child = $tmp . '/plugins/alarmmanager/includes/mail_child.php';
+		file_put_contents($child, str_replace('} catch (Throwable $error) {', '} catch (Throwable $error) { file_put_contents(' . var_export($tmp . '/child-error.log', true) . ', $error->getMessage());', file_get_contents($child)));
 		$server = proc_open(['python3', __DIR__ . '/../fixtures/smtp_server.py', $tmp . '/message.json'], [0 => ['file', '/dev/null', 'r'], 1 => ['pipe', 'w'], 2 => ['file', '/dev/null', 'w']], $pipes);
 
 		try {
@@ -76,7 +78,7 @@ final class CactiMailerTest extends AlarmManagerTestCase {
 			 */
 			$bootstrap    = '<?php if (($conn_mode ?? null) !== "offline") { throw new RuntimeException("main_connection_attempted"); } define("CACTI_WEB", false); $config = '
 				. var_export($child_config, true) . '; $cacti_locale = "en-US"; $mail_methods = [2 => "SMTP"]; require_once '
-				. var_export($cacti . '/include/global_constants.php', true) . '; if (is_file(' . var_export($cacti . '/include/global_path.php', true) . ')) { require_once ' . var_export($cacti . '/include/global_path.php', true) . '; } require_once '
+				. var_export($cacti . '/include/global_constants.php', true) . '; ' . (is_file($cacti . '/include/global_path.php') ? 'require_once ' . var_export($cacti . '/include/global_path.php', true) . '; ' : '') . 'require_once '
 				. var_export($cacti . '/lib/functions.php', true) . '; require_once ' . var_export($cacti . '/lib/html_utility.php', true) . '; require_once '
 				. var_export($cacti . '/lib/database.php', true) . '; require_once ' . var_export($cacti . '/include/vendor/autoload.php', true) . '; require_once '
 				. var_export($cacti . '/include/global_languages.php', true) . ';';
@@ -85,7 +87,7 @@ final class CactiMailerTest extends AlarmManagerTestCase {
 			$event                                = alarmmanager_validate_event(json_decode(file_get_contents(__DIR__ . '/../../examples/event.json'), true));
 			$GLOBALS['mail_transport_definition'] = ['to' => [['email' => 'one@example.test', 'name' => 'One'], ['email' => 'two@example.test', 'name' => 'Two']], 'from' => [['email' => 'alarm@example.test', 'name' => 'Alarm']], 'html' => true, 'mapping' => ['default' => [['to' => 'subject', 'constant' => 'Fixture alert'], ['to' => 'body', 'constant' => '<b>Fixture body</b>']]], 'attachments' => [['attachment' => 'fixture attachment', 'filename' => 'test.txt', 'mime_type' => 'text/plain', 'inline' => 'attachment']]];
 			$result                               = alarmmanager_email_transport($event, ['id' => 1, 'type' => 'email', 'timeout_seconds' => 5], str_repeat('6', 64));
-			$this->assertSame(['outcome' => 'success', 'code' => 'email_sent'], $result, 'Actual pinned Cacti send_mail/PHPMailer delivery');
+			$this->assertSame(['outcome' => 'success', 'code' => 'email_sent'], $result, 'Actual pinned Cacti send_mail/PHPMailer delivery: ' . (is_file($tmp . '/child-error.log') ? file_get_contents($tmp . '/child-error.log') : 'no child exception'));
 			$message = json_decode(file_get_contents($tmp . '/message.json'), true);
 			$this->assertTrue(count($message['recipients']) === 2 && str_contains(implode(' ', $message['recipients']), 'one@example.test') && str_contains(implode(' ', $message['recipients']), 'two@example.test'), 'Actual recipients preserved');
 			$this->assertTrue($message['subject'] === 'Fixture alert' && $message['idempotency'] === str_repeat('6', 64), 'Actual subject/idempotency header');
