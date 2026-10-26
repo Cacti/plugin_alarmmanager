@@ -62,7 +62,7 @@ function alarmmanager_transport_configuration(string $type, $settings): array {
 		return [];
 	} // Old endpoint rows remain configurable but cannot send.
 	$keys = match ($type) {
-		'restapi', 'webhook' => ['mapping', 'url', 'method', 'credential', 'success_codes', 'response_match', 'connect_timeout_seconds', 'allow_http', 'ca_bundle', 'response_reference', 'transition_overrides'],
+		'restapi', 'webhook' => ['mapping', 'teams_workflow', 'url', 'method', 'credential', 'success_codes', 'response_match', 'connect_timeout_seconds', 'allow_http', 'ca_bundle', 'response_reference', 'transition_overrides'],
 		'email'              => ['mapping', 'to', 'from', 'html', 'attachments'],
 		'script'             => ['mapping', 'executable', 'arguments', 'retry_exit_codes', 'compatibility', 'response_reference'],
 		default              => throw new InvalidArgumentException('unsupported_transport')
@@ -104,6 +104,13 @@ function alarmmanager_transport_configuration(string $type, $settings): array {
 			}
 		}
 		$result += ['url' => $url, 'method' => $method, 'allow_http' => $allow_http, 'credential' => alarmmanager_config_bool($settings['credential'] ?? false), 'success_codes' => array_values(array_unique($codes)), 'response_match' => $match, 'connect_timeout_seconds' => alarmmanager_config_int($settings['connect_timeout_seconds'] ?? 5, 1, 30)];
+
+		if (alarmmanager_config_bool($settings['teams_workflow'] ?? false)) {
+			if ($type !== 'webhook' || $url !== 'https://teams.workflow.invalid' || $method !== 'POST' || $allow_http || !$result['credential'] || !empty($settings['transition_overrides']) || $match !== null || !empty($settings['response_reference'])) {
+				throw new InvalidArgumentException('invalid_teams_workflow');
+			}
+			$result['teams_workflow'] = true;
+		}
 		$ca = $settings['ca_bundle'] ?? null;
 
 		if ($ca !== null && (!is_string($ca) || !str_starts_with($ca, '/') || strlen($ca) > 1024 || preg_match('/[\x00-\x1f]/', $ca))) {

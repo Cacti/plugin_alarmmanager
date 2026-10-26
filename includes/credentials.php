@@ -104,7 +104,7 @@ function alarmmanager_secret_key(bool $lock = false): string {
 	return alarmmanager_decode_key(db_fetch_cell_prepared('SELECT value FROM settings_user WHERE user_id = ? AND name = ?' . ($lock ? ' FOR UPDATE' : ''), [1, 'alarmmanager_key'], '', false));
 }
 function alarmmanager_credential_validate(#[\SensitiveParameter] array $record): array {
-	alarmmanager_event_keys($record, ['headers', 'basic']);
+	alarmmanager_event_keys($record, ['headers', 'basic', 'teams_webhook_url']);
 	$headers = $record['headers'] ?? [];
 
 	if (!is_array($headers) || count($headers) > 32) {
@@ -144,11 +144,39 @@ function alarmmanager_credential_validate(#[\SensitiveParameter] array $record):
 		$result['basic'] = $basic;
 	}
 
+	if (isset($record['teams_webhook_url'])) {
+		$url   = $record['teams_webhook_url'];
+		$parts = is_string($url) ? parse_url($url) : false;
+		$host  = strtolower($parts['host'] ?? '');
+
+		if (!$parts || strlen($url) > 4096 || ($parts['scheme'] ?? '') !== 'https' || isset($parts['user']) || isset($parts['pass']) || isset($parts['fragment']) || (isset($parts['port']) && $parts['port'] !== 443) || preg_match('/[\\x00-\\x20\\x7f]/', $url) || !preg_match('/(?:\\.logic\\.azure\\.com|\\.environment\\.api\\.powerplatform\\.com)$/D', $host) || !str_contains($parts['path'] ?? '', '/workflows/') || empty($parts['query']) || $headers || isset($record['basic'])) {
+			throw new InvalidArgumentException('invalid_teams_webhook_url');
+		}
+		parse_str($parts['query'], $query);
+
+		if (!is_string($query['sig'] ?? null) || $query['sig'] === '') {
+			throw new InvalidArgumentException('invalid_teams_webhook_url');
+		}
+		$result['teams_webhook_url'] = $url;
+	}
+
 	if (strlen(json_encode($result, JSON_THROW_ON_ERROR)) > 65536) {
 		throw new InvalidArgumentException('credential_limit');
 	}
 
 	return $result;
+}
+/**
+ * Resolve only from the protected credential record; never from exported transport settings.
+ * @param  array<string, mixed>|null $credential
+ * @return non-empty-string
+ */
+function alarmmanager_teams_webhook_url(#[\SensitiveParameter] ?array $credential): string {
+	if (empty($credential['teams_webhook_url'])) {
+		throw new InvalidArgumentException('teams_webhook_missing');
+	}
+
+	return $credential['teams_webhook_url'];
 }
 function alarmmanager_encrypt_credential(#[\SensitiveParameter] array $record, int $endpoint_id, #[\SensitiveParameter] string $key): string {
 	if ($endpoint_id < 1 || strlen($key) !== 32) {
