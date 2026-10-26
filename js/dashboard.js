@@ -1896,7 +1896,7 @@
 			/** Reload dashboard data without navigating on filter submission. */
 			(event) => {
 				event.preventDefault();
-				load();
+				void load();
 			}
 		);
 		refresh.addEventListener(
@@ -1913,7 +1913,7 @@
 								clearInterval(timer);
 								return;
 							}
-							load();
+							void load();
 						},
 						seconds * 1000
 					);
@@ -1936,7 +1936,7 @@
 					}
 				)
 		);
-		load();
+		void load();
 	}
 	if (document.readyState === 'loading')
 		document.addEventListener('DOMContentLoaded', init, { once: true });
