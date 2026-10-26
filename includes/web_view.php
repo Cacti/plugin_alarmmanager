@@ -306,7 +306,7 @@ function alarmmanager_report_table(string $kind, array $result, array $scope, ar
 		foreach ($headers as $key) {
 			$value = html_escape((string) ($row[$key] ?? '—'));
 
-			$is_mirror = $row['id'] === null;
+			$is_mirror = !isset($row['id']);
 
 			if (($key === 'event_row_id' || ($key === 'id' && in_array($kind, ['events', 'conditions'], true))) && !$is_mirror) {
 				$link = '<a class="linkOverDark" href="' . html_escape(alarmmanager_report_url($filters, 'events', ['event_id' => $row[$key]])) . '">' . html_escape((string) $row[$key]) . '</a>';
