@@ -250,6 +250,58 @@ final class IntegrationTemplateTest extends AlarmManagerTestCase {
 		$this->assertStringNotContainsString('fixture-secret', alarmmanager_admin_error_message(new InvalidArgumentException('invalid_teams_webhook_url')));
 	}
 
+	public function testTeamsPayloadLimitsAndCredentialSignatureAreEnforced(): void {
+		self::alarmmanager_test_load('includes/admin.php');
+		$settings = alarmmanager_integration_templates()['teams']['transport'];
+
+		foreach (['' => 'teams_message_required', str_repeat('x', 28000) => 'teams_message_too_large'] as $text => $message) {
+			$event               = $this->sampleEvent();
+			$event['summary']    = $text;
+			$settings['mapping'] = ['default' => [['to' => 'text', 'source' => 'alarm.summary']]];
+			$this->assertRejects(fn () => alarmmanager_notification_payload($settings, $event), $message, 'Teams card limits');
+		}
+
+		foreach (['sig=', 'sig[]=secret', 'other=secret'] as $query) {
+			$this->assertRejects(fn () => alarmmanager_credential_validate(['teams_webhook_url' => 'https://prod.logic.azure.com/workflows/f?' . $query]), 'invalid_teams_webhook_url', 'A scalar signature is required');
+		}
+
+		foreach (['teams_webhook_missing', 'invalid_teams_workflow', 'teams_message_too_large', 'teams_message_required'] as $message) {
+			$this->assertNotSame('Action failed.', alarmmanager_admin_error_message(new InvalidArgumentException($message)));
+		}
+	}
+
+	public function testTeamsPreviewAndTransportUseProtectedCredentials(): void {
+		self::alarmmanager_test_load('includes/transports.php');
+		$settings                                   = alarmmanager_integration_templates()['teams']['transport'];
+		$key                                        = random_bytes(32);
+		$record                                     = ['headers' => [], 'teams_webhook_url' => 'https://prod.logic.azure.com/workflows/f?sig=fixture'];
+		$cipher                                     = alarmmanager_encrypt_credential($record, 7, $key);
+		$GLOBALS['alarmmanager_test_cell_handler']  = static fn () => base64_encode($key);
+		$GLOBALS['alarmmanager_test_query_handler'] = static function ($sql) use ($settings, $cipher) {
+			return str_contains($sql, 'plugin_alarmmanager_transports') ? [['definition' => json_encode($settings)]] : [['ciphertext' => $cipher]];
+		};
+		$event    = $this->sampleEvent();
+		$endpoint = ['id' => 7, 'type' => 'webhook', 'timeout_seconds' => 1];
+		$preview  = alarmmanager_delivery_preview($event, $endpoint);
+		$this->assertSame('[REDACTED]', $preview['credentials']);
+		$this->assertSame('message', $preview['payload']->type);
+		$this->assertStringNotContainsString('sig=', json_encode($preview));
+		// A legacy credential without the signed URL must fail before sending.
+		$cipher                                     = alarmmanager_encrypt_credential(['headers' => []], 7, $key);
+		$GLOBALS['alarmmanager_test_query_handler'] = static fn ($sql) => str_contains($sql, 'plugin_alarmmanager_transports') ? [['definition' => json_encode($settings)]] : [['ciphertext' => $cipher]];
+
+		try {
+			alarmmanager_http_transport($event, $endpoint, 'fixture');
+			$this->fail('A signed workflow URL is required.');
+		} catch (InvalidArgumentException $error) {
+			$this->assertSame('teams_webhook_missing', $error->getMessage());
+		}
+		$settings                                   = ['url' => 'http://127.0.0.1:1/alerts', 'allow_http' => true, 'mapping' => $settings['mapping']];
+		$GLOBALS['alarmmanager_test_query_handler'] = static fn () => [['definition' => json_encode($settings)]];
+		$result                                     = alarmmanager_http_transport($event, $endpoint, 'fixture');
+		$this->assertSame('retry', $result['outcome']);
+	}
+
 	public function testTransitionTargetResolvesAndValidatesOverrides(): void {
 		self::alarmmanager_test_load('includes/transports.php');
 		$settings = ['url' => 'https://base.example.invalid/api', 'method' => 'POST', 'transition_overrides' => ['recovered' => ['url' => 'https://base.example.invalid/api/{{integration.id}}', 'method' => 'PATCH']]];

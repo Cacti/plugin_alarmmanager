@@ -45,6 +45,21 @@ final class RuleEditorTest extends AlarmManagerTestCase {
 		$this->assertArrayNotHasKey('test', alarmmanager_admin_sections());
 	}
 
+	public function testTeamsEditorShowsWorkflowSetupHint(): void {
+		self::alarmmanager_test_load('includes/admin_view.php');
+		$endpoint = alarmmanager_integration_templates()['teams'];
+		ob_start();
+
+		try {
+			alarmmanager_endpoint_editor($endpoint + ['id' => 7], 1);
+			$html = ob_get_contents();
+		} finally {
+			ob_end_clean();
+		}
+		$this->assertStringContainsString('data-integration-hint', $html);
+		$this->assertStringContainsString('readonly', $html);
+	}
+
 	public function testSharedDaemonSettingsValidation(): void {
 		self::alarmmanager_test_load('includes/admin.php');
 		$settings = alarmmanager_admin_supervisor_settings(['processing_workers' => '3', 'delivery_workers' => '0']);
