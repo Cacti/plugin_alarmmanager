@@ -136,8 +136,8 @@
 }
 
 
-#alarmmanager_app { --search-border:#cbd8d1; --search-card:#fff; --search-text:#23362f; --search-tint:#e2ede6; --search-muted:#596d64; --search-accent:#276448; color:var(--search-text); padding:12px; max-width:1800px; box-sizing:border-box; }
-#alarmmanager_app[data-theme="dark"], #alarmmanager_app[data-theme="midwinter"], #alarmmanager_app[data-theme="deepness"] { --search-border:#53606b; --search-card:#20272e; --search-text:#e6edf3; --search-tint:#303c47; --search-muted:#b7c4d0; --search-accent:#8ed6b2; }
+#alarmmanager_app { --search-border:#cbd8d1; --search-card:#fff; --search-text:#23362f; --search-tint:#e2ede6; --search-muted:#596d64; --search-accent:#276448; --search-warn:#8a5c00; --search-danger:#a8352a; color:var(--search-text); padding:12px; max-width:1800px; box-sizing:border-box; }
+#alarmmanager_app[data-theme="dark"], #alarmmanager_app[data-theme="midwinter"], #alarmmanager_app[data-theme="deepness"] { --search-border:#53606b; --search-card:#20272e; --search-text:#e6edf3; --search-tint:#303c47; --search-muted:#b7c4d0; --search-accent:#8ed6b2; --search-warn:#f0c46b; --search-danger:#f08a80; }
 #alarmmanager_app h1 { font-size:22px; margin:0 0 12px; }
 #alarmmanager_app a:not(.tab) { color:var(--search-accent); text-decoration:underline; overflow-wrap:anywhere; }
 .alarmmanagerDashboardBar { padding:12px; border:1px solid var(--search-border); border-radius:8px; background:var(--search-card); }
@@ -366,6 +366,26 @@
 #alarmmanager_app .alarmmanagerSettingsSplit > div + div { padding-left:24px; border-left:1px solid var(--search-border); }
 #alarmmanager_app .alarmmanagerSettingsSplit label { margin:0 0 4px; }
 .alarmmanagerBadge[data-state="running"] { border-color:var(--search-accent); color:var(--search-accent); }
+.alarmmanagerBadge[data-state="paused"] { border-color:var(--search-warn); color:var(--search-warn); }
+/* Queue: status, count and both controls on one bar. */
+#alarmmanager_app .alarmmanagerQueueBar .alarmmanagerBadge { font-size:1em; font-weight:bold; }
+#alarmmanager_app .alarmmanagerQueueBar .alarmmanagerBadge::before { content:'\25CF'; margin-right:6px; }
+#alarmmanager_app .alarmmanagerQueueCounter { display:flex; flex-wrap:wrap; align-items:center; gap:12px 18px; margin:14px 0; padding:16px 20px; border-radius:8px; background:var(--search-tint); }
+#alarmmanager_app .alarmmanagerQueueCounter > strong { font-size:3em; line-height:1; }
+#alarmmanager_app .alarmmanagerQueueCounter > div { display:flex; flex-direction:column; gap:2px; }
+#alarmmanager_app .alarmmanagerQueueCounter span { font-size:1.15em; }
+#alarmmanager_app .alarmmanagerQueueCounter small { color:var(--search-muted); font-size:.95em; }
+#alarmmanager_app .alarmmanagerQueueToggle { margin-left:auto; border:1px solid var(--search-accent); border-radius:6px; background:var(--search-card); color:var(--search-accent); cursor:pointer; }
+#alarmmanager_app .alarmmanagerQueueToggle[aria-expanded="true"] { background:var(--search-accent); color:var(--search-card); }
+#alarmmanager_app .alarmmanagerQueueMessages { margin:0 0 14px; overflow-x:auto; }
+#alarmmanager_app .alarmmanagerQueueMessages p.alarmmanagerHint { margin:6px 0 0; }
+#alarmmanager_app .alarmmanagerQueueActions { display:grid; grid-template-columns:repeat(auto-fit, minmax(160px, 1fr)); gap:10px; }
+#alarmmanager_app .alarmmanagerQueueBar form.alarmmanagerEditor { display:contents; }
+#alarmmanager_app .alarmmanagerQueueBar > p.alarmmanagerHint { margin:14px 0 0; padding-top:12px; border-top:1px solid var(--search-border); color:var(--search-muted); }
+#alarmmanager_app .alarmmanagerDangerAction { border:1px solid var(--search-danger); border-radius:6px; background:var(--search-card); color:var(--search-danger); cursor:pointer; }
+#alarmmanager_app .alarmmanagerDangerAction:disabled { border-color:var(--search-border); color:var(--search-muted); opacity:.6; cursor:default; }
+.ui-dialog .alarmmanagerDialogDanger { border-color:#a8352a; background:#a8352a; color:#fff; }
+.ui-dialog .alarmmanagerConfirmDialog ul { margin:8px 0 0; padding-left:20px; }
 @media(max-width:600px) {
 	#alarmmanager_app .alarmmanagerSettingsCard { padding:14px; }
 	#alarmmanager_app .alarmmanagerSettingsSplit > div + div { padding:16px 0 0; border-left:0; border-top:1px solid var(--search-border); }
