@@ -23,6 +23,7 @@
 const {chromium}=require(process.env.ALARMMANAGER_PLAYWRIGHT_MODULE||'playwright');
 const {execFileSync}=require('node:child_process');
 const path=require('node:path'),assert=require('node:assert/strict');
+const fs=require('node:fs'),os=require('node:os'),shots=fs.mkdtempSync(path.join(os.tmpdir(),'alarmmanager-'));
 const root=path.resolve(__dirname,'../..'),fixture=path.join(root,'tests/fixtures/rule_editor.php');
 const env={...process.env,CACTI_TEST_BOOTSTRAP:'1'},cacti=process.env.CACTI_PATH;
 if(!cacti)throw Error('CACTI_PATH required for the Cacti jQuery and Select2 assets');
@@ -97,17 +98,17 @@ const render=()=>execFileSync('php',[fixture],{env,encoding:'utf8'});
    await page.locator('#alarmmanager_app').evaluate((app,value)=>app.dataset.theme=value,theme);
    for(const width of [1280,390]){
     await page.setViewportSize({width,height:1000});
-    if(!(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1))){console.log(await page.evaluate(()=>({width:innerWidth,scroll:document.documentElement.scrollWidth,nodes:[...document.querySelectorAll('*')].filter(e=>e.getBoundingClientRect().right>innerWidth+1).slice(0,12).map(e=>({tag:e.tagName,cls:e.className,width:e.getBoundingClientRect().width,right:e.getBoundingClientRect().right}))})));await page.screenshot({path:'/tmp/am-rule-overflow.png',fullPage:true});}
+    if(!(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1))){console.log(await page.evaluate(()=>({width:innerWidth,scroll:document.documentElement.scrollWidth,nodes:[...document.querySelectorAll('*')].filter(e=>e.getBoundingClientRect().right>innerWidth+1).slice(0,12).map(e=>({tag:e.tagName,cls:e.className,width:e.getBoundingClientRect().width,right:e.getBoundingClientRect().right}))})));await page.screenshot({path:path.join(shots,'am-rule-overflow.png'),fullPage:true});}
     check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),theme+' fits '+width+'px');
    }
   }
   await saved.locator('summary').first().click();
   await page.evaluate(()=>window.scrollTo(0,0));
-  await page.screenshot({path:'/tmp/alarmmanager-rule-editor-mobile.png',fullPage:true});
+  await page.screenshot({path:path.join(shots,'alarmmanager-rule-editor-mobile.png'),fullPage:true});
   await page.setViewportSize({width:1280,height:1000});
   await page.locator('#alarmmanager_app').evaluate(app=>app.dataset.theme='modern');
   await page.evaluate(()=>window.scrollTo(0,0));
-  await page.screenshot({path:'/tmp/alarmmanager-rule-editor-desktop.png',fullPage:true});
+  await page.screenshot({path:path.join(shots,'alarmmanager-rule-editor-desktop.png'),fullPage:true});
   await page.setContent('<main id="alarmmanager_app">'+execFileSync('php',[fixture,'--empty'],{env,encoding:'utf8'})+'</main>');
   check(await page.getByText('No alarm sources detected yet. Sources appear after their first alarm.',{exact:true}).count()===1,'Empty history explains why no source choices are available');
   check(await page.getByRole('link',{name:'Create integration',exact:true}).count()===1,'Empty rules page points to the missing prerequisite');
