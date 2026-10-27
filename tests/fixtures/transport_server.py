@@ -66,6 +66,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
 plain = http.server.ThreadingHTTPServer(('127.0.0.1', 0), Handler)
 secure = http.server.ThreadingHTTPServer(('127.0.0.1', 0), Handler)
 context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+context.minimum_version = ssl.TLSVersion.TLSv1_2
 context.load_cert_chain(sys.argv[1], sys.argv[2])
 secure.socket = context.wrap_socket(secure.socket, server_side=True)
 threading.Thread(target=plain.serve_forever, daemon=True).start()
