@@ -246,7 +246,7 @@ function alarmmanager_device_summaries(): array {
 }
 
 function alarmmanager_configuration(array $configuration): array {
-	alarmmanager_event_keys($configuration, ['version', 'endpoints', 'rules', 'device_summaries']);
+	alarmmanager_event_keys($configuration, ['version', 'endpoints', 'rules', 'device_summaries', 'event_log']);
 
 	if (($configuration['version'] ?? null) !== 1) {
 		throw new InvalidArgumentException('invalid_configuration');
@@ -267,6 +267,30 @@ function alarmmanager_configuration(array $configuration): array {
 		}
 		$result['device_summaries'][$state] = trim($text);
 	}
+	$event_log = $configuration['event_log'] ?? [];
+
+	if (!is_array($event_log)) {
+		throw new InvalidArgumentException('invalid_event_log');
+	}
+	alarmmanager_event_keys($event_log, ['enabled', 'target', 'path', 'max_bytes']);
+	$target = $event_log['target'] ?? 'cacti_log';
+
+	if (!in_array($target, ['cacti_log', 'file'], true)) {
+		throw new InvalidArgumentException('invalid_event_log');
+	}
+	$path = $event_log['path'] ?? null;
+
+	// The full filesystem safety check (parent directory, plugin/web root, symlinks) runs at write
+	// time against live disk state in alarmmanager_event_log_path_validate(); this is syntax only.
+	if ($target === 'file') {
+		if (!is_string($path) || trim($path) === '' || !str_starts_with($path, '/') || strlen($path) > 1024 || preg_match('/[\x00-\x1f\x7f]/', $path) || basename($path) === '') {
+			throw new InvalidArgumentException('invalid_event_log_path');
+		}
+		$path = rtrim($path);
+	} else {
+		$path = null;
+	}
+	$result['event_log'] = ['enabled' => alarmmanager_config_bool($event_log['enabled'] ?? false), 'target' => $target, 'path' => $path, 'max_bytes' => alarmmanager_config_int($event_log['max_bytes'] ?? 52428800, 1048576, 524288000)];
 
 	foreach (['endpoints', 'rules'] as $section) {
 		$items = alarmmanager_config_list($configuration[$section] ?? [], 200);

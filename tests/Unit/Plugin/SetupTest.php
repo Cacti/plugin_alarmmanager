@@ -197,12 +197,14 @@ final class SetupTest extends AlarmManagerTestCase {
 
 	public function testAdministrationSectionsUseTheNativeConsoleMenu(): void {
 		self::alarmmanager_test_load('setup.php');
-		$previous_menu   = $GLOBALS['menu'] ?? [];
-		$previous_glyphs = $GLOBALS['menu_glyphs'] ?? [];
+		$previous_menu    = $GLOBALS['menu'] ?? [];
+		$previous_glyphs  = $GLOBALS['menu_glyphs'] ?? [];
+		$previous_enabled = $GLOBALS['alarmmanager_test_plugin_enabled'] ?? null;
 
 		try {
-			$GLOBALS['menu']        = ['Management' => ['host.php' => 'Devices'], 'Import/Export' => []];
-			$GLOBALS['menu_glyphs'] = [];
+			$GLOBALS['menu']                              = ['Management' => ['host.php' => 'Devices'], 'Import/Export' => []];
+			$GLOBALS['menu_glyphs']                       = [];
+			$GLOBALS['alarmmanager_test_plugin_enabled']  = true;
 			alarmmanager_config_arrays();
 			$items = $GLOBALS['menu']['Alarm Manager Settings'];
 			$this->assertCount(6, $items);
@@ -213,8 +215,31 @@ final class SetupTest extends AlarmManagerTestCase {
 			$this->assertArrayNotHasKey('plugins/alarmmanager/alarmmanager_admin.php', $items);
 			$this->assertSame(['host.php' => 'Devices'], $GLOBALS['menu']['Management']);
 		} finally {
-			$GLOBALS['menu']        = $previous_menu;
-			$GLOBALS['menu_glyphs'] = $previous_glyphs;
+			$GLOBALS['menu']                              = $previous_menu;
+			$GLOBALS['menu_glyphs']                       = $previous_glyphs;
+			$GLOBALS['alarmmanager_test_plugin_enabled']  = $previous_enabled;
+		}
+	}
+
+	public function testDisabledPluginDoesNotInjectTheConsoleMenu(): void {
+		// Cacti core never disables the config_arrays hook itself (so a disabled
+		// plugin can still reach its settings); the menu gate has to live here.
+		self::alarmmanager_test_load('setup.php');
+		$previous_menu    = $GLOBALS['menu'] ?? [];
+		$previous_glyphs  = $GLOBALS['menu_glyphs'] ?? [];
+		$previous_enabled = $GLOBALS['alarmmanager_test_plugin_enabled'] ?? null;
+
+		try {
+			$GLOBALS['menu']                              = ['Management' => ['host.php' => 'Devices'], 'Import/Export' => []];
+			$GLOBALS['menu_glyphs']                       = [];
+			$GLOBALS['alarmmanager_test_plugin_enabled']  = false;
+			alarmmanager_config_arrays();
+			$this->assertArrayNotHasKey('Alarm Manager Settings', $GLOBALS['menu'], 'A disabled plugin must not advertise its administration menu.');
+			$this->assertSame(['Management' => ['host.php' => 'Devices'], 'Import/Export' => []], $GLOBALS['menu']);
+		} finally {
+			$GLOBALS['menu']                              = $previous_menu;
+			$GLOBALS['menu_glyphs']                       = $previous_glyphs;
+			$GLOBALS['alarmmanager_test_plugin_enabled']  = $previous_enabled;
 		}
 	}
 
