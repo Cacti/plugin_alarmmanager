@@ -1243,9 +1243,13 @@
 					input.parentElement.firstChild.textContent = text + ' ';
 			};
 			function update() {
-				const provider = select.value, definition = definitions[provider];
-				form.querySelector('[name=type]').parentElement.hidden = !!definition;
-				form.querySelector('.alarmmanagerDestination').hidden = !!definition;
+				const provider = select.value, definition = definitions[provider],
+					type = form.querySelector('[name=type]'),
+					http = ['restapi', 'webhook'].includes(type.value);
+				// Providers and the URL apply to HTTP destinations only; SNMP trap and syslog keep a fixed type.
+				type.parentElement.hidden = !!definition || 'fixedType' in type.parentElement.dataset;
+				select.parentElement.hidden = !http;
+				form.querySelector('.alarmmanagerDestination').hidden = !!definition || !http;
 				form.querySelector('[name=http_method]').parentElement.hidden = !!definition;
 				form.querySelector('[name=allow_http]').parentElement.hidden = !!definition;
 				form.querySelectorAll('[data-providers]').forEach((group) => {
@@ -1305,7 +1309,7 @@
 				mapping.dispatchEvent(new Event('input', { bubbles: true }));
 				update();
 			});
-			jQuery(form).on('change', '[name=twilio_auth_mode],[name=auth_type]', update);
+			jQuery(form).on('change', '[name=twilio_auth_mode],[name=auth_type],[name=type]', update);
 			form.querySelector('[name=provider_account_sid]').addEventListener('input', update);
 			update();
 		});

@@ -62,7 +62,7 @@ final class SnmpSyslogTest extends AlarmManagerTestCase {
 	public function testSettingsValidateStrictly(): void {
 		self::alarmmanager_test_load('includes/transports.php');
 		$trap = alarmmanager_transport_configuration('snmptrap', $this->template('snmptrap'));
-		$this->assertSame(['credential' => true, 'version' => '2c', 'host' => 'trap-receiver.example.invalid', 'port' => 162, 'transport' => 'udp', 'notification' => 'trap', 'base_oid' => '1.3.6.1.4.1.23925.6'], array_diff_key($trap, ['mapping' => true]));
+		$this->assertSame(['credential' => true, 'version' => '2c', 'host' => 'trap-receiver.example.invalid', 'port' => 162, 'transport' => 'udp', 'notification' => 'trap'], array_diff_key($trap, ['mapping' => true]));
 		$this->assertSame($trap, alarmmanager_transport_configuration('snmptrap', json_decode(json_encode($trap), true)));
 		$v3 = alarmmanager_transport_configuration('snmptrap', $this->template('snmptrap', ['version' => '3', 'host' => '2001:db8::1', 'security_name' => 'nms', 'engine_id' => '0x80001f8880aabbccdd']));
 		$this->assertSame(['authPriv', 'SHA', 'AES', '0x80001f8880aabbccdd'], [$v3['security_level'], $v3['auth_protocol'], $v3['priv_protocol'], $v3['engine_id']]);
@@ -74,11 +74,12 @@ final class SnmpSyslogTest extends AlarmManagerTestCase {
 			$this->reject(fn () => alarmmanager_transport_configuration('snmptrap', $this->template('snmptrap', $bad)), $bad['host'] === null ? 'Invalid event text.' : 'invalid_transport_host');
 		}
 
-		foreach ([['version' => '1'], ['transport' => 'sctp'], ['notification' => 'ack'], ['base_oid' => '1.3.6.x'], ['base_oid' => 7], ['version' => '3'], ['version' => '3', 'security_name' => 'has space'], ['version' => '3', 'security_name' => 'nms', 'engine_id' => '80001f'], ['version' => '3', 'security_name' => 'nms', 'auth_protocol' => 'MD5']] as $bad) {
+		foreach ([['version' => '1'], ['transport' => 'sctp'], ['notification' => 'ack'], ['version' => '3'], ['version' => '3', 'security_name' => 'has space'], ['version' => '3', 'security_name' => 'nms', 'engine_id' => '80001f'], ['version' => '3', 'security_name' => 'nms', 'auth_protocol' => 'MD5']] as $bad) {
 			$this->reject(fn () => alarmmanager_transport_configuration('snmptrap', $this->template('snmptrap', $bad)), 'invalid_snmp_settings');
 		}
 		$this->reject(fn () => alarmmanager_transport_configuration('snmptrap', $this->template('snmptrap', ['port' => 70000])), 'invalid_configuration');
 		$this->reject(fn () => alarmmanager_transport_configuration('snmptrap', $this->template('snmptrap', ['mapping' => alarmmanager_integration_templates()['webhook']['transport']['mapping']])), 'invalid_snmp_mapping');
+		$this->reject(fn () => alarmmanager_transport_configuration('snmptrap', $this->template('snmptrap', ['base_oid' => '1.3.6.1.4.1.9'])), 'Unknown event fields.');
 		$this->reject(fn () => alarmmanager_transport_configuration('syslog', $this->template('syslog', ['mapping' => ['default' => [['to' => 'text', 'source' => 'alarm.summary']]]])), 'invalid_syslog_mapping');
 
 		foreach ([['protocol' => 'relp'], ['format' => 'cef'], ['facility' => 'kern'], ['app_name' => 'has space'], ['app_name' => str_repeat('a', 49)]] as $bad) {
@@ -118,40 +119,38 @@ final class SnmpSyslogTest extends AlarmManagerTestCase {
 		}
 	}
 
+	public function testTrapDescriptionCarriesStateAndCorrelation(): void {
+		self::alarmmanager_test_load('includes/transports.php');
+		$event = alarmmanager_validate_event($this->sampleEvent(['severity' => 'critical']));
+		$this->assertSame('CRITICAL raised router.example.test: Down | Host: r1 | key=device:42:reachability episode=sample-outage-0001 source=sample event=sample-event-0001', alarmmanager_snmptrap_description($event, "Down\r\n Host: r1\x07"));
+		$recovered = alarmmanager_validate_event($this->sampleEvent(['severity' => 'clear', 'transition' => 'recovered', 'device' => ['hostname' => '']]));
+		$this->assertStringStartsWith('CLEAR recovered Back | key=device:42:reachability ', alarmmanager_snmptrap_description($recovered, 'Back'));
+		$long = alarmmanager_snmptrap_description($event, str_repeat('é', 800));
+		$this->assertLessThanOrEqual(1000, strlen($long), 'fits cactiEventDescription');
+		$this->assertTrue(mb_check_encoding($long, 'UTF-8'));
+		$this->assertStringEndsWith(' event=sample-event-0001', $long, 'identifiers are never truncated');
+	}
+
 	public function testTrapCommandKeepsSecretsOutOfArgv(): void {
 		self::alarmmanager_test_load('includes/transports.php');
 		$settings      = alarmmanager_transport_configuration('snmptrap', $this->template('snmptrap'));
-		$event         = alarmmanager_validate_event($this->sampleEvent(['details' => str_repeat('d', 2000), 'summary' => '-v looks like an option']));
-		$payload       = alarmmanager_notification_payload($settings, $event);
-		[$argv, $conf] = alarmmanager_snmptrap_command('/usr/bin/snmptrap', $settings, ['snmp' => ['community' => 'topsecret']], $payload, 'raised', 4);
+		[$argv, $conf] = alarmmanager_snmptrap_command('/usr/bin/snmptrap', $settings, ['snmp' => ['community' => 'topsecret']], '-v looks like an option', 4);
 		$this->assertSame("defCommunity topsecret\n", $conf);
 		$this->assertNotContains('topsecret', $argv);
-		$this->assertSame(['/usr/bin/snmptrap', '-v', '2c', '-m', '', '-M', '/nonexistent', '--', 'udp:trap-receiver.example.invalid:162', '', '1.3.6.1.4.1.23925.6.0.1'], array_slice($argv, 0, 11));
-		$varbinds = array_chunk(array_slice($argv, 11), 3);
-		$byOid    = array_column($varbinds, null, 0);
-		$this->assertSame(['i', '2'], array_slice($byOid['1.3.6.1.4.1.23925.6.1.5.0'], 1), 'major severity');
-		$this->assertSame(['u', '42'], array_slice($byOid['1.3.6.1.4.1.23925.6.1.9.0'], 1));
-		$this->assertSame('-v looks like an option', $byOid['1.3.6.1.4.1.23925.6.1.10.0'][2]);
-		$this->assertSame(1024, strlen($byOid['1.3.6.1.4.1.23925.6.1.11.0'][2]));
-		$this->assertArrayNotHasKey('1.3.6.1.4.1.23925.6.1.13.0', $byOid, 'missing rule name is omitted');
+		$this->assertSame(['/usr/bin/snmptrap', '-v', '2c', '-m', '', '-M', '/nonexistent', '--', 'udp:trap-receiver.example.invalid:162', '', '.1.3.6.1.4.1.23925.3.2.1', '.1.3.6.1.4.1.23925.3.1.1.0', 's', '-v looks like an option'], $argv, 'CACTI-MIB cactiNotify with cactiEventDescription, as Cacti\'s own agent sends it');
 
 		$v3            = alarmmanager_transport_configuration('snmptrap', $this->template('snmptrap', ['version' => '3', 'host' => '2001:db8::1', 'notification' => 'inform', 'security_name' => 'nms', 'auth_protocol' => 'SHA-256', 'priv_protocol' => 'AES-256', 'engine_id' => '0x80001f8880aabbccdd']));
-		[$argv, $conf] = alarmmanager_snmptrap_command('/usr/bin/snmptrap', $v3, ['snmp' => ['auth_passphrase' => 'authsecret', 'priv_passphrase' => 'privsecret']], $payload, 'recovered', 3);
+		[$argv, $conf] = alarmmanager_snmptrap_command('/usr/bin/snmptrap', $v3, ['snmp' => ['auth_passphrase' => 'authsecret', 'priv_passphrase' => 'privsecret']], 'x', 3);
 		$this->assertSame("defAuthPassphrase authsecret\ndefPrivPassphrase privsecret\n", $conf);
 		$this->assertSame([], array_values(array_filter($argv, static fn ($arg) => str_contains($arg, 'secret'))));
-		$this->assertSame(['-u', 'nms', '-l', 'authPriv', '-a', 'SHA-256', '-x', 'AES-256', '-Ci', '-r', '0', '-t', '3', '--', 'udp6:[2001:db8::1]:162', '', '1.3.6.1.4.1.23925.6.0.2'], array_slice($argv, 7, 17), 'INFORM skips the trap engine ID');
-		[$argv, $conf] = alarmmanager_snmptrap_command('/usr/bin/snmptrap', ['notification' => 'trap', 'security_level' => 'noAuthNoPriv'] + $v3, [], new stdClass(), 'raised', 3);
+		$this->assertSame(['-u', 'nms', '-l', 'authPriv', '-a', 'SHA-256', '-x', 'AES-256', '-Ci', '-r', '0', '-t', '3', '--', 'udp6:[2001:db8::1]:162', ''], array_slice($argv, 7, 16), 'INFORM skips the trap engine ID');
+		[$argv, $conf] = alarmmanager_snmptrap_command('/usr/bin/snmptrap', ['notification' => 'trap', 'security_level' => 'noAuthNoPriv'] + $v3, [], 'x', 3);
 		$this->assertSame('', $conf);
 		$this->assertSame(['-u', 'nms', '-l', 'noAuthNoPriv', '-e', '0x80001f8880aabbccdd', '--'], array_slice($argv, 7, 7));
 
-		$this->reject(fn () => alarmmanager_snmptrap_command('/usr/bin/snmptrap', $settings, [], $payload, 'raised', 3), 'snmp_credentials_missing');
-		$this->reject(fn () => alarmmanager_snmptrap_command('/usr/bin/snmptrap', ['security_level' => 'authNoPriv'] + $v3, ['snmp' => ['priv_passphrase' => 'privsecret']], $payload, 'raised', 3), 'snmp_credentials_missing');
-		$this->reject(fn () => alarmmanager_snmptrap_command('/usr/bin/snmptrap', $v3, ['snmp' => ['auth_passphrase' => 'authsecret']], $payload, 'raised', 3), 'snmp_credentials_missing');
-		$this->reject(fn () => alarmmanager_snmptrap_command('/usr/bin/snmptrap', $settings, ['snmp' => ['community' => 'c']], (object) ['url' => 'x'], 'raised', 3), 'invalid_snmp_mapping');
-		$this->reject(fn () => alarmmanager_snmptrap_command('/usr/bin/snmptrap', $settings, ['snmp' => ['community' => 'c']], (object) ['amSummary' => ['list']], 'raised', 3), 'invalid_snmp_mapping');
-		$this->reject(fn () => alarmmanager_snmptrap_command('/usr/bin/snmptrap', $settings, ['snmp' => ['community' => 'c']], (object) ['amDeviceId' => -1], 'raised', 3), 'mapping_type');
-		[$argv] = alarmmanager_snmptrap_command('/usr/bin/snmptrap', $settings, ['snmp' => ['community' => 'c']], (object) ['amMetric' => true], 'raised', 3);
-		$this->assertSame('true', end($argv));
+		$this->reject(fn () => alarmmanager_snmptrap_command('/usr/bin/snmptrap', $settings, [], 'x', 3), 'snmp_credentials_missing');
+		$this->reject(fn () => alarmmanager_snmptrap_command('/usr/bin/snmptrap', ['security_level' => 'authNoPriv'] + $v3, ['snmp' => ['priv_passphrase' => 'privsecret']], 'x', 3), 'snmp_credentials_missing');
+		$this->reject(fn () => alarmmanager_snmptrap_command('/usr/bin/snmptrap', $v3, ['snmp' => ['auth_passphrase' => 'authsecret']], 'x', 3), 'snmp_credentials_missing');
 	}
 
 	public function testTrapTransportSendsThroughNetSnmpAndCleansUp(): void {
@@ -177,8 +176,11 @@ final class SnmpSyslogTest extends AlarmManagerTestCase {
 		$packet = stream_socket_recvfrom($server, 65535);
 		fclose($server);
 		$this->assertStringContainsString('trap-community', $packet, 'community comes from the private config file');
-		$this->assertStringContainsString('Sample device down', $packet);
-		$this->assertStringContainsString('router.example.test', $packet);
+		$this->assertStringContainsString('MAJOR raised router.example.test: Sample device down | key=device:42:reachability', $packet);
+		$this->assertStringContainsString(hex2bin('2b0601040181ba75030201'), $packet, 'cactiNotify OID 1.3.6.1.4.1.23925.3.2.1');
+
+		$this->storeEndpoint('snmptrap', $this->template('snmptrap', ['host' => '127.0.0.1', 'port' => $port, 'mapping' => ['default' => [['to' => 'message', 'source' => 'context.rule_name']]]]), alarmmanager_encrypt_credential(['snmp' => ['community' => 'trap-community']], 5, $key), $key);
+		$this->reject(fn () => alarmmanager_snmptrap_transport($event, $endpoint, 'key'), 'snmp_message_required');
 
 		$this->storeEndpoint('snmptrap', $this->template('snmptrap', ['host' => '127.0.0.1', 'port' => $port]), null);
 		$this->reject(fn () => alarmmanager_snmptrap_transport($event, $endpoint, 'key'), 'snmp_credentials_missing');
@@ -351,7 +353,7 @@ final class SnmpSyslogTest extends AlarmManagerTestCase {
 			}
 		}
 		$trap = alarmmanager_admin_transport_fields('snmptrap', ['base_oid' => '1.3.6.1.4.1.9', 'url' => 'https://dropped'], ['endpoint_fields' => 'yes', 'snmp_host' => 'nms.example', 'snmp_port' => '1162', 'snmp_version' => '3', 'snmp_transport' => 'tcp', 'snmp_notification' => 'inform', 'snmp_security_name' => 'nms', 'snmp_security_level' => 'authNoPriv', 'snmp_auth_protocol' => 'SHA-512', 'snmp_priv_protocol' => 'AES', 'snmp_engine_id' => '', 'snmp_community' => 'ignored']);
-		$this->assertSame(['base_oid' => '1.3.6.1.4.1.9', 'host' => 'nms.example', 'port' => 1162, 'version' => '3', 'transport' => 'tcp', 'notification' => 'inform', 'security_name' => 'nms', 'security_level' => 'authNoPriv', 'auth_protocol' => 'SHA-512', 'priv_protocol' => 'AES'], $trap);
+		$this->assertSame(['host' => 'nms.example', 'port' => 1162, 'version' => '3', 'transport' => 'tcp', 'notification' => 'inform', 'security_name' => 'nms', 'security_level' => 'authNoPriv', 'auth_protocol' => 'SHA-512', 'priv_protocol' => 'AES'], $trap);
 		$this->assertArrayNotHasKey('security_name', alarmmanager_admin_transport_fields('snmptrap', [], ['endpoint_fields' => 'yes', 'snmp_version' => '2c', 'snmp_security_name' => 'x', 'snmp_engine_id' => '0x80001f8880aa']));
 		$this->assertSame('0x80001f8880aa', alarmmanager_admin_transport_fields('snmptrap', [], ['endpoint_fields' => 'yes', 'snmp_version' => '3', 'snmp_engine_id' => '0x80001f8880aa'])['engine_id']);
 		$syslog = alarmmanager_admin_transport_fields('syslog', ['host' => 'dropped'], ['endpoint_fields' => 'yes', 'syslog_host' => 'log.example', 'syslog_port' => '6514', 'syslog_protocol' => 'tls', 'syslog_format' => 'rfc5424', 'syslog_facility' => 'local3', 'syslog_app_name' => 'cacti', 'syslog_ca_bundle' => '/etc/ca.pem']);
@@ -367,6 +369,8 @@ final class SnmpSyslogTest extends AlarmManagerTestCase {
 			ob_end_clean();
 		}
 		$this->assertStringContainsString('<option value="snmptrap" selected>', $html);
+		$this->assertStringContainsString('<label hidden data-fixed-type>Send using', $html, 'SNMP trap destinations keep a fixed type');
+		$this->assertStringContainsString('<label hidden>Integration provider', $html, 'HTTP provider presets do not apply');
 		$this->assertStringContainsString('<option value="3" selected>', $html);
 		$this->assertStringContainsString('<option value="AES-256" selected>', $html);
 		$this->assertStringContainsString('name="snmp_community" type="password" value=""', $html);
@@ -454,6 +458,6 @@ final class SnmpSyslogTest extends AlarmManagerTestCase {
 		$GLOBALS['alarmmanager_test_query_handler'] = static fn ($sql) => str_contains($sql, 'SELECT definition') ? [['definition' => $definition]] : [];
 		$preview                                    = alarmmanager_delivery_preview($this->sampleEvent(), ['id' => 2, 'type' => 'snmptrap']);
 		$this->assertSame('[REDACTED]', $preview['credentials'], 'preview never decrypts SNMP secrets');
-		$this->assertSame('sample-outage-0001', $preview['payload']->amEpisodeId);
+		$this->assertSame('Sample device down', $preview['payload']->message);
 	}
 }

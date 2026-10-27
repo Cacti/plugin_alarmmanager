@@ -56,7 +56,7 @@ function alarmmanager_admin_transport_fields(string $type, array $transport, arr
 		'restapi', 'webhook' => ['provider', 'twilio_whatsapp', 'body_encoding', 'teams_workflow', 'url', 'method', 'ca_bundle', 'credential', 'allow_http', 'success_codes', 'response_match', 'connect_timeout_seconds', 'response_reference', 'transition_overrides'],
 		'email'              => ['to', 'from', 'html', 'attachments'],
 		'script'             => ['executable', 'arguments', 'compatibility', 'retry_exit_codes', 'response_reference'],
-		'snmptrap'           => ['base_oid'],
+		'snmptrap'           => [],
 		'syslog'             => [],
 		default              => []
 	};
@@ -791,7 +791,7 @@ function alarmmanager_admin_error_message(Throwable $error): string {
 		'invalid_transport_host'         => 'Enter the receiver as a hostname or IP address without a scheme or port.',
 		'invalid_snmp_settings'          => 'Choose a supported SNMP version, transport and notification type. SNMPv3 needs a security name of up to 32 printable characters; an engine ID is 0x followed by 10–64 hexadecimal digits.',
 		'invalid_snmp_credentials'       => 'Enter SNMP secrets as printable characters without spaces, quotes, backslashes or #. SNMPv3 passphrases need at least 8 characters.',
-		'invalid_snmp_mapping'           => 'SNMP trap message fields must be CACTI-ALARMMANAGER-MIB object names such as amSummary. Start from the SNMP trap template.',
+		'invalid_snmp_mapping'           => 'SNMP traps send one field named message, carried in CACTI-MIB cactiEventDescription. Start from the SNMP trap template.',
 		'invalid_syslog_settings'        => 'Choose a supported syslog protocol, format and facility. The application name is 1–48 printable characters without spaces.',
 		'invalid_syslog_mapping'         => 'Syslog sends one field named message. Start from the Syslog template.',
 		'invalid_ca_bundle'              => 'Enter an absolute PEM file path for the certificate authority. Syslog uses it only with TLS.',

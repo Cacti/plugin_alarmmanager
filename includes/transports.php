@@ -273,14 +273,32 @@ function alarmmanager_script_transport(array $event, array $endpoint, string $id
 	return alarmmanager_transport_reference_result(['outcome' => $exit === 0 ? 'success' : (in_array($exit, $settings['retry_exit_codes'], true) ? 'retry' : 'failure'), 'code' => $exit === 0 ? 'script_completed' : 'script_exit_failed'], $result['stdout'], $settings);
 }
 
+/** Collapse a multi-line message to one line without control characters, for syslog and SNMP receivers. */
+function alarmmanager_one_line(string $text): string {
+	return trim(preg_replace('/[\x00-\x09\x0b\x0c\x0e-\x1f\x7f]/', ' ', preg_replace('/\s*[\r\n]+\s*/', ' | ', trim($text))));
+}
 /**
- * Build snmptrap argv plus the private snmp.conf body. Community and passphrases are only ever
- * written to that file (SNMPCONFPATH), never to argv where other local users could read them.
+ * CACTI-MIB cactiEventDescription text: severity, state and message, then the identifiers a
+ * receiver needs to pair a raise with its recovery. The message is shortened, never the identifiers.
+ * @param array<string, mixed> $event
+ */
+function alarmmanager_snmptrap_description(array $event, string $message): string {
+	$host   = $event['device']['hostname'] ?? null;
+	$prefix = strtoupper($event['severity']) . ' ' . $event['transition'] . ' ' . ($host === null || $host === '' ? '' : $host . ': ');
+	$suffix = ' | key=' . $event['alarm_key'] . ' episode=' . $event['episode_id'] . ' source=' . $event['source'] . ' event=' . $event['event_id'];
+
+	// cactiEventDescription is a DisplayString of at most 1000 octets.
+	return $prefix . mb_strcut(alarmmanager_one_line($message), 0, max(0, 1000 - strlen($prefix) - strlen($suffix)), 'UTF-8') . $suffix;
+}
+/**
+ * Build snmptrap argv for CACTI-MIB cactiNotify plus the private snmp.conf body. Community and
+ * passphrases are only ever written to that file (SNMPCONFPATH), never to argv where other local
+ * users could read them.
  * @param  array<string, mixed>              $settings
  * @param  array<string, mixed>              $credential
  * @return array{0: list<string>, 1: string}
  */
-function alarmmanager_snmptrap_command(string $binary, array $settings, #[\SensitiveParameter] array $credential, stdClass $payload, string $transition, int $timeout): array {
+function alarmmanager_snmptrap_command(string $binary, array $settings, #[\SensitiveParameter] array $credential, string $description, int $timeout): array {
 	$secrets = $credential['snmp'] ?? [];
 	$argv    = [$binary, '-v', $settings['version'], '-m', '', '-M', '/nonexistent'];
 	$conf    = [];
@@ -316,32 +334,9 @@ function alarmmanager_snmptrap_command(string $binary, array $settings, #[\Sensi
 		$host      = '[' . $host . ']';
 		$transport = str_ends_with($transport, '6') ? $transport : $transport . '6';
 	}
-	// Empty uptime lets snmptrap supply sysUpTime; "--" keeps varbind values from parsing as options.
-	$argv    = [...$argv, '--', $transport . ':' . $host . ':' . $settings['port'], '', $settings['base_oid'] . '.0.' . ($transition === 'recovered' ? 2 : 1)];
-	$objects = alarmmanager_snmp_objects();
-
-	foreach (get_object_vars($payload) as $name => $value) {
-		if (!isset($objects[$name]) || (!is_scalar($value) && $value !== null)) {
-			throw new InvalidArgumentException('invalid_snmp_mapping');
-		}
-
-		if ($value === null) {
-			continue;
-		}
-		[$column, $type] = $objects[$name];
-
-		if ($type === 's') {
-			// Match the MIB SIZE limits: 1024 octets for summary/details, DisplayString elsewhere.
-			$value = mb_strcut(is_bool($value) ? ($value ? 'true' : 'false') : (string) $value, 0, in_array($name, ['amSummary', 'amDetails'], true) ? 1024 : 255, 'UTF-8');
-		} else {
-			$value = filter_var($value, FILTER_VALIDATE_INT, ['options' => ['min_range' => $type === 'u' ? 0 : -2147483648, 'max_range' => $type === 'u' ? 4294967295 : 2147483647]]);
-
-			if ($value === false) {
-				throw new InvalidArgumentException('mapping_type');
-			}
-		}
-		$argv = [...$argv, $settings['base_oid'] . '.1.' . $column . '.0', $type, (string) $value];
-	}
+	// Same OIDs as Cacti's own SNMP agent: cactiNotify carrying cactiEventDescription.0. An empty
+	// uptime lets snmptrap supply sysUpTime; "--" keeps the description from parsing as an option.
+	$argv = [...$argv, '--', $transport . ':' . $host . ':' . $settings['port'], '', '.1.3.6.1.4.1.23925.3.2.1', '.1.3.6.1.4.1.23925.3.1.1.0', 's', $description];
 
 	return [$argv, $conf ? implode("\n", $conf) . "\n" : ''];
 }
@@ -369,7 +364,12 @@ function alarmmanager_snmptrap_transport(array $event, array $endpoint, string $
 	}
 	// Stay inside the worker's SIGALRM deadline so a slow INFORM reports its own result.
 	$timeout       = max(1, (int) $endpoint['timeout_seconds'] - 1);
-	[$argv, $conf] = alarmmanager_snmptrap_command($binary, $settings, $credential, alarmmanager_notification_payload($settings, $event), $event['transition'], max(1, $timeout - 1));
+	$payload       = alarmmanager_notification_payload($settings, $event);
+
+	if (!is_string($payload->message ?? null) || trim($payload->message) === '') {
+		throw new InvalidArgumentException('snmp_message_required');
+	}
+	[$argv, $conf] = alarmmanager_snmptrap_command($binary, $settings, $credential, alarmmanager_snmptrap_description($event, $payload->message), max(1, $timeout - 1));
 	$directory     = sys_get_temp_dir() . '/alarmmanager-snmp-' . bin2hex(random_bytes(12));
 	$result        = ['code' => 'config_failed'];
 
@@ -402,7 +402,7 @@ function alarmmanager_snmptrap_transport(array $event, array $endpoint, string $
 function alarmmanager_syslog_message(array $settings, array $event, string $text, string $hostname): string {
 	$severity = ['critical' => 2, 'major' => 3, 'minor' => 4, 'warning' => 4, 'info' => 6, 'clear' => 5][$event['severity']];
 	$priority = '<' . (alarmmanager_syslog_facilities()[$settings['facility']] * 8 + $severity) . '>';
-	$text     = trim(preg_replace('/[\x00-\x09\x0b\x0c\x0e-\x1f\x7f]/', ' ', preg_replace('/\s*[\r\n]+\s*/', ' | ', trim($text))));
+	$text     = alarmmanager_one_line($text);
 	$hostname = substr(preg_replace('/[^\x21-\x7e]/', '', $hostname), 0, 255);
 	$hostname = $hostname === '' ? '-' : $hostname;
 

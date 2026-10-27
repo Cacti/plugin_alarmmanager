@@ -54,13 +54,6 @@ function alarmmanager_transport_url_validate(string $url, bool $allow_http): str
 
 	return $url;
 }
-/**
- * CACTI-ALARMMANAGER-MIB notification objects: name => [column under amObjects, snmptrap value type].
- * @return array<string, array{0: int, 1: string}>
- */
-function alarmmanager_snmp_objects(): array {
-	return ['amAlarmKey' => [1, 's'], 'amEpisodeId' => [2, 's'], 'amEventId' => [3, 's'], 'amTransition' => [4, 'i'], 'amSeverity' => [5, 'i'], 'amSource' => [6, 's'], 'amDeviceHostname' => [7, 's'], 'amDeviceDescription' => [8, 's'], 'amDeviceId' => [9, 'u'], 'amSummary' => [10, 's'], 'amDetails' => [11, 's'], 'amOccurredAt' => [12, 's'], 'amRuleName' => [13, 's'], 'amMetric' => [14, 's'], 'amMetricValue' => [15, 's'], 'amThreshold' => [16, 's']];
-}
 /** @return array<string, int> RFC 5424 facility codes offered for syslog destinations. */
 function alarmmanager_syslog_facilities(): array {
 	return ['user' => 1, 'daemon' => 3, 'local0' => 16, 'local1' => 17, 'local2' => 18, 'local3' => 19, 'local4' => 20, 'local5' => 21, 'local6' => 22, 'local7' => 23];
@@ -95,7 +88,7 @@ function alarmmanager_transport_configuration(string $type, $settings): array {
 		'restapi', 'webhook' => ['provider', 'mapping', 'twilio_whatsapp', 'body_encoding', 'teams_workflow', 'url', 'method', 'credential', 'success_codes', 'response_match', 'connect_timeout_seconds', 'allow_http', 'ca_bundle', 'response_reference', 'transition_overrides'],
 		'email'              => ['mapping', 'to', 'from', 'html', 'attachments'],
 		'script'             => ['mapping', 'executable', 'arguments', 'retry_exit_codes', 'compatibility', 'response_reference'],
-		'snmptrap'           => ['mapping', 'credential', 'version', 'host', 'port', 'transport', 'notification', 'security_name', 'security_level', 'auth_protocol', 'priv_protocol', 'engine_id', 'base_oid'],
+		'snmptrap'           => ['mapping', 'credential', 'version', 'host', 'port', 'transport', 'notification', 'security_name', 'security_level', 'auth_protocol', 'priv_protocol', 'engine_id'],
 		'syslog'             => ['mapping', 'host', 'port', 'protocol', 'format', 'facility', 'app_name', 'ca_bundle'],
 		default              => throw new InvalidArgumentException('unsupported_transport')
 	};
@@ -287,12 +280,7 @@ function alarmmanager_transport_configuration(string $type, $settings): array {
 			'host'                  => alarmmanager_transport_host($settings['host'] ?? null),
 			'port'                  => alarmmanager_config_int($settings['port'] ?? 162, 1, 65535),
 			'transport'             => alarmmanager_transport_choice($settings['transport'] ?? 'udp', ['udp', 'tcp', 'udp6', 'tcp6'], 'invalid_snmp_settings'),
-			'notification'          => alarmmanager_transport_choice($settings['notification'] ?? 'trap', ['trap', 'inform'], 'invalid_snmp_settings'),
-			'base_oid'              => $settings['base_oid'] ?? '1.3.6.1.4.1.23925.6'];
-
-		if (!is_string($result['base_oid']) || !preg_match('/\A[0-2](?:\.[0-9]{1,10}){1,100}\z/D', $result['base_oid'])) {
-			throw new InvalidArgumentException('invalid_snmp_settings');
-		}
+			'notification'          => alarmmanager_transport_choice($settings['notification'] ?? 'trap', ['trap', 'inform'], 'invalid_snmp_settings')];
 
 		if ($result['version'] === '3') {
 			$result += ['security_name' => $settings['security_name'] ?? null,
@@ -305,13 +293,11 @@ function alarmmanager_transport_configuration(string $type, $settings): array {
 				throw new InvalidArgumentException('invalid_snmp_settings');
 			}
 		}
-		$objects = alarmmanager_snmp_objects();
 
+		// cactiNotify carries one text varbind, so the mapping supplies only the message.
 		foreach ($result['mapping'] as $items) {
-			foreach ($items as $item) {
-				if (!isset($objects[$item['to']])) {
-					throw new InvalidArgumentException('invalid_snmp_mapping');
-				}
+			if (array_diff(array_column($items, 'to'), ['message'])) {
+				throw new InvalidArgumentException('invalid_snmp_mapping');
 			}
 		}
 	} elseif ($type === 'syslog') {

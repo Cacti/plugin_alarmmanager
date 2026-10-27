@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Alarm Manager 0.12.0\n"
 "Report-Msgid-Bugs-To: https://github.com/bmfmancini/plugin_alarmmanager/issues\n"
-"POT-Creation-Date: 2026-10-26 20:35-0400\n"
+"POT-Creation-Date: 2026-10-26 21:01-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alarm Manager Developers <https://github.com/bmfmancini/plugin_alarmmanager>\n"
 "Language-Team: Alarm Manager Developers <https://github.com/bmfmancini/plugin_alarmmanager>\n"
@@ -250,7 +250,7 @@ msgid "Saved community and passphrases are encrypted and never displayed. Leave 
 msgstr ""
 
 #: includes/admin_view.php:247
-msgid "Traps are sent with the snmptrap binary from Cacti Settings > Paths on every delivering poller. Install CACTI-ALARMMANAGER-MIB from the plugin mibs folder on the receiving manager."
+msgid "Traps are sent as Cacti's CACTI-MIB cactiNotify with the snmptrap binary from Cacti Settings > Paths on every delivering poller. Add one destination per receiver."
 msgstr ""
 
 #: includes/admin_view.php:248

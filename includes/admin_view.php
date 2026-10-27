@@ -84,7 +84,9 @@ function alarmmanager_endpoint_editor(array $endpoint, int $revision, bool $new 
 	$transport = $endpoint['transport'] ?? [];
 	$provider  = $transport['provider'] ?? ($endpoint['integration_provider'] ?? '');
 	$providers = alarmmanager_provider_definitions();
-	print '<label>' . __esc('Integration provider', 'alarmmanager') . ' <select name="provider" data-provider-definitions="' . html_escape(json_encode($providers, JSON_THROW_ON_ERROR)) . '" data-provider-templates="' . html_escape(json_encode(alarmmanager_integration_templates(), JSON_THROW_ON_ERROR)) . '"><option value="">' . __esc('Custom integration', 'alarmmanager') . '</option>';
+	// SNMP trap and syslog destinations have one fixed type and no HTTP provider presets.
+	$fixed = in_array($endpoint['type'], ['snmptrap', 'syslog'], true);
+	print '<label' . ($fixed ? ' hidden' : '') . '>' . __esc('Integration provider', 'alarmmanager') . ' <select name="provider" data-provider-definitions="' . html_escape(json_encode($providers, JSON_THROW_ON_ERROR)) . '" data-provider-templates="' . html_escape(json_encode(alarmmanager_integration_templates(), JSON_THROW_ON_ERROR)) . '"><option value="">' . __esc('Custom integration', 'alarmmanager') . '</option>';
 
 	foreach ($providers as $key => $definition) {
 		print '<option value="' . $key . '" ' . ($provider === $key ? 'selected' : '') . '>' . __esc($definition['name'], 'alarmmanager') . '</option>';
@@ -97,7 +99,7 @@ function alarmmanager_endpoint_editor(array $endpoint, int $revision, bool $new 
 		print '</div>';
 	}
 	print '<div data-providers="twilio twilio_whatsapp"><label>' . __esc('Twilio credentials', 'alarmmanager') . ' <select name="twilio_auth_mode"><option value="api_key">' . __esc('API Key SID and Secret (recommended)', 'alarmmanager') . '</option><option value="account">' . __esc('Account SID and Auth Token', 'alarmmanager') . '</option></select></label></div></div>';
-	print '<label>' . __esc('Send using', 'alarmmanager') . ' <select name="type">';
+	print '<label' . ($fixed ? ' hidden data-fixed-type' : '') . '>' . __esc('Send using', 'alarmmanager') . ' <select name="type">';
 
 	foreach ([($endpoint['type'] === 'webhook' ? 'webhook' : 'restapi') => 'Webhook / REST API', 'email' => 'Email', 'script' => 'Script', 'snmptrap' => 'SNMP trap', 'syslog' => 'Syslog'] + ($endpoint['type'] === 'websocket' ? ['websocket' => 'WebSocket (unsupported, saved)'] : []) as $type => $label) {
 		print '<option value="' . $type . '" ' . ($endpoint['type'] === $type ? 'selected' : '') . '>' . __esc($label, 'alarmmanager') . '</option>';
@@ -244,7 +246,7 @@ function alarmmanager_trap_syslog_editor(array $transport): void {
 	alarmmanager_input('snmp_priv_passphrase', 'Privacy passphrase', '', 'password', 'autocomplete="new-password" maxlength="256"');
 	alarmmanager_input('snmp_engine_id', 'Engine ID for traps (blank uses the local engine)', $transport['engine_id'] ?? '', 'text', 'maxlength="66" placeholder="0x80001f8880…"');
 	print '</div><p>' . __esc('Saved community and passphrases are encrypted and never displayed. Leave them blank to keep the saved values; entering any value replaces all saved SNMP secrets.', 'alarmmanager') . '</p>';
-	print '<p>' . __esc('Traps are sent with the snmptrap binary from Cacti Settings > Paths on every delivering poller. Install CACTI-ALARMMANAGER-MIB from the plugin mibs folder on the receiving manager.', 'alarmmanager') . '</p></fieldset>';
+	print '<p>' . __esc('Traps are sent as Cacti\'s CACTI-MIB cactiNotify with the snmptrap binary from Cacti Settings > Paths on every delivering poller. Add one destination per receiver.', 'alarmmanager') . '</p></fieldset>';
 	print '<fieldset class="alarmmanagerFullWidth" data-endpoint-types="syslog"><legend>' . __esc('Syslog settings', 'alarmmanager') . '</legend>';
 	alarmmanager_input('syslog_host', 'Receiver hostname or IP address', $transport['host'] ?? '', 'text', 'maxlength="253"');
 	alarmmanager_input('syslog_port', 'Port', $transport['port'] ?? 514, 'number', 'min="1" max="65535"');
