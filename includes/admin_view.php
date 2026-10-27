@@ -29,7 +29,7 @@ require_once(__DIR__ . '/workers.php');
 require_once(__DIR__ . '/integrations.php');
 
 function alarmmanager_form_start(string $action, int $revision, array $hidden = []): void {
-	print '<form method="post" action="alarmmanager_admin.php"' . ($action === 'configuration_save' ? ' enctype="multipart/form-data"' : '') . ' class="alarmmanagerEditor' . ($action === 'endpoint_save' ? ' alarmmanagerEndpointEditor' : ($action === 'endpoint_delete' ? ' alarmmanagerEndpointDelete' : '')) . '">';
+	print '<form method="post" action="alarmmanager_admin.php"' . ($action === 'configuration_save' ? ' enctype="multipart/form-data"' : '') . ' class="alarmmanagerEditor' . (['endpoint_save' => ' alarmmanagerEndpointEditor', 'endpoint_delete' => ' alarmmanagerEndpointDelete', 'queue_clear' => ' alarmmanagerConfirm'][$action] ?? '') . '">';
 	alarmmanager_csrf_field();
 	print '<input type="hidden" name="action" value="' . html_escape($action) . '"><input type="hidden" name="revision" value="' . $revision . '">';
 
@@ -408,38 +408,49 @@ function alarmmanager_admin_markup(array $state, string $section): void {
 
 	if ($section === 'queue') {
 		$paused = alarmmanager_notifications_paused();
-		$count  = alarmmanager_db_row("SELECT COUNT(*) AS waiting FROM plugin_alarmmanager_deliveries AS d
+		$count  = alarmmanager_db_row("SELECT COUNT(*) AS waiting, MIN(d.created_at) AS oldest FROM plugin_alarmmanager_deliveries AS d
 			INNER JOIN plugin_alarmmanager_events AS e ON e.id = d.event_row_id
 			WHERE d.status = 'pending' AND e.processing_poller_id = ?", [alarmmanager_local_poller()]);
-		// Div mode: forms printed directly inside a table are split by the HTML parser, leaving the buttons outside their forms.
-		html_start_box(__esc('Alarm Queue', 'alarmmanager'), '100%', true, 3, 'center', '');
-		print '<p>' . ($paused ? __esc('Notification delivery is paused.', 'alarmmanager') : __esc('Notification delivery is running.', 'alarmmanager')) . ' ' . __esc('Waiting messages', 'alarmmanager') . ': ' . (int) ($count['waiting'] ?? 0) . '</p>';
-		print '<p>' . __esc('Controls apply to this poller. Alarms continue to be received and processed while delivery is paused. Messages already being sent may finish. Resume sends the waiting notifications.', 'alarmmanager') . '</p>';
-		alarmmanager_form_start($paused ? 'queue_resume' : 'queue_pause', $revision);
-		print '<button type="submit">' . ($paused ? __esc('Resume delivery', 'alarmmanager') : __esc('Pause delivery', 'alarmmanager')) . '</button></form>';
-		alarmmanager_form_start('queue_clear', $revision);
-		print '<p>' . __esc('Clear discards all waiting notifications on this poller, including retries. They remain in delivery history as failed with reason queue_cleared. Running messages and alarm state are preserved. Pause delivery before clearing during maintenance.', 'alarmmanager') . '</p><label><input type="checkbox" name="confirmed" value="yes" required> ' . __esc('Discard all waiting notifications', 'alarmmanager') . '</label><button type="submit">' . __esc('Clear queue', 'alarmmanager') . '</button></form>';
-		html_end_box(true, true);
-		$rows = alarmmanager_db_rows("SELECT d.id, ep.name AS endpoint, JSON_UNQUOTE(JSON_EXTRACT(e.payload, '$.summary')) AS summary, d.created_at, d.attempts, d.available_at
-			FROM plugin_alarmmanager_deliveries AS d INNER JOIN plugin_alarmmanager_events AS e ON e.id = d.event_row_id
-			LEFT JOIN plugin_alarmmanager_endpoints AS ep ON ep.id = d.endpoint_id
-			WHERE d.status = 'pending' AND e.processing_poller_id = ? ORDER BY d.id LIMIT 100", [alarmmanager_local_poller()]);
-		html_start_box(__esc('Waiting messages (first 100)', 'alarmmanager'), '100%', false, 3, 'center', '');
-		html_header([__esc('ID', 'alarmmanager'), __esc('Endpoint', 'alarmmanager'), __esc('Message', 'alarmmanager'), __esc('Queued at (UTC)', 'alarmmanager'), __esc('Attempts', 'alarmmanager'), __esc('Available at (UTC)', 'alarmmanager')], 1);
+		$waiting = (int) ($count['waiting'] ?? 0);
+		print '<section class="alarmmanagerSettingsCard alarmmanagerQueueBar"><header>';
+		print '<span class="alarmmanagerBadge" data-state="' . ($paused ? 'paused' : 'running') . '">' . ($paused ? __esc('Paused', 'alarmmanager') : __esc('Running', 'alarmmanager')) . '</span></header>';
+		print '<div class="alarmmanagerQueueCounter"><strong>' . $waiting . '</strong><div><span>' . __esc('waiting messages', 'alarmmanager') . '</span><small>' . ($waiting ? __esc('oldest queued %s UTC', substr((string) $count['oldest'], 0, 16), 'alarmmanager') : __esc('everything has been delivered', 'alarmmanager')) . '</small></div>';
 
-		foreach ($rows as $row) {
-			form_alternate_row();
+		if ($waiting) {
+			print '<button type="button" class="alarmmanagerQueueToggle" aria-expanded="false" aria-controls="alarmmanager_queue_messages" data-show="' . __esc('View messages', 'alarmmanager') . '" data-hide="' . __esc('Hide messages', 'alarmmanager') . '">' . __esc('View messages', 'alarmmanager') . '</button>';
+		}
+		print '</div>';
 
-			foreach ($row as $value) {
-				form_selectable_cell(html_escape((string) $value), (int) $row['id'], '', 'left');
+		if ($waiting) {
+			$rows = alarmmanager_db_rows("SELECT d.id, ep.name AS endpoint, JSON_UNQUOTE(JSON_EXTRACT(e.payload, '$.summary')) AS summary, d.created_at, d.attempts, d.available_at
+				FROM plugin_alarmmanager_deliveries AS d INNER JOIN plugin_alarmmanager_events AS e ON e.id = d.event_row_id
+				LEFT JOIN plugin_alarmmanager_endpoints AS ep ON ep.id = d.endpoint_id
+				WHERE d.status = 'pending' AND e.processing_poller_id = ? ORDER BY d.id LIMIT 100", [alarmmanager_local_poller()]);
+			print '<div id="alarmmanager_queue_messages" class="alarmmanagerQueueMessages" hidden><table class="cactiTable">';
+			html_header([__esc('ID', 'alarmmanager'), __esc('Endpoint', 'alarmmanager'), __esc('Message', 'alarmmanager'), __esc('Queued', 'alarmmanager'), __esc('Tries', 'alarmmanager'), __esc('Next try', 'alarmmanager')], 1);
+
+			foreach ($rows as $row) {
+				form_alternate_row();
+
+				foreach ($row as $value) {
+					form_selectable_cell(html_escape((string) $value), (int) $row['id'], '', 'left');
+				}
+				print '</tr>';
 			}
-			print '</tr>';
+			print '</table><p class="alarmmanagerHint">' . __esc('Times in UTC · first 100 shown', 'alarmmanager') . '</p></div>';
 		}
-
-		if (!$rows) {
-			print '<tr><td colspan="6">' . __esc('No waiting messages.', 'alarmmanager') . '</td></tr>';
-		}
-		html_end_box();
+		print '<div class="alarmmanagerQueueActions">';
+		alarmmanager_form_start($paused ? 'queue_resume' : 'queue_pause', $revision);
+		print '<button type="submit"' . ($paused ? ' class="alarmmanagerPrimaryAction">' . __esc('Resume delivery', 'alarmmanager') : '>' . __esc('Pause delivery', 'alarmmanager')) . '</button></form>';
+		alarmmanager_form_start('queue_clear', $revision);
+		// The dialog adds confirmed=yes; without it the server rejects the clear.
+		print '<div class="alarmmanagerConfirmDialog" hidden title="' . __esc('Clear queue', 'alarmmanager') . '" data-confirm="' . __esc('Clear queue', 'alarmmanager') . '" data-cancel="' . __esc('Cancel', 'alarmmanager') . '">';
+		print '<p><strong>' . __esc('Discard all %d waiting notifications on this poller?', $waiting, 'alarmmanager') . '</strong></p><ul>';
+		print '<li>' . __esc('Includes retries. They stay in delivery history as failed, reason queue_cleared.', 'alarmmanager') . '</li>';
+		print '<li>' . __esc('Messages already sending and alarm state are kept.', 'alarmmanager') . '</li>';
+		print '<li>' . __esc('Tip: pause delivery first during maintenance.', 'alarmmanager') . '</li></ul></div>';
+		print '<button type="submit" class="alarmmanagerDangerAction"' . ($waiting ? '' : ' disabled') . '>' . __esc('Clear queue…', 'alarmmanager') . '</button></form>';
+		print '</div><p class="alarmmanagerHint">' . __esc('Controls apply to this poller. While paused, alarms are still received and queued; Resume sends them.', 'alarmmanager') . '</p></section>';
 	} elseif ($section === 'endpoints') {
 		if (isset($_SESSION['alarmmanager_test_result'])) {
 			print '<p role="status">' . html_escape($_SESSION['alarmmanager_test_result']) . '</p><p><a href="alarmmanager.php?tab=events&amp;job=delivery">' . __esc('View delivery results', 'alarmmanager') . '</a></p>';

@@ -1462,6 +1462,73 @@
 			}
 		);
 	}
+	/** Ask before submitting destructive forms; only a confirmed dialog adds confirmed=yes. */
+	function initConfirmDialogs(app) {
+		app.querySelectorAll('form.alarmmanagerConfirm').forEach(
+			/** Hold one form's submission until its dialog is confirmed. */
+			(form) => {
+				const message = form.querySelector('.alarmmanagerConfirmDialog');
+				if (!message || !window.jQuery?.fn?.dialog) return;
+				form.addEventListener('submit', (event) => {
+					if (form.querySelector('[name=confirmed]')) return;
+					event.preventDefault();
+					event.stopImmediatePropagation();
+					const holder = message.cloneNode(true);
+					holder.hidden = false;
+					window.jQuery(holder).dialog({
+						modal: true,
+						resizable: false,
+						width: 'auto',
+						close: () => window.jQuery(holder).dialog('destroy').remove(),
+						buttons: [
+							{ text: message.dataset.cancel, click: () => window.jQuery(holder).dialog('close') },
+							{
+								text: message.dataset.confirm,
+								class: 'alarmmanagerDialogDanger',
+								click: () => {
+									const confirmed = node('input');
+									confirmed.type = 'hidden';
+									confirmed.name = 'confirmed';
+									confirmed.value = 'yes';
+									form.append(confirmed);
+									window.jQuery(holder).dialog('close');
+									form.requestSubmit();
+								}
+							}
+						]
+					});
+				});
+			}
+		);
+	}
+	/** Show or hide the waiting-message table; the choice is remembered per browser. */
+	function initQueueToggle(app) {
+		const button = app.querySelector('.alarmmanagerQueueToggle'),
+			table = button && document.getElementById(button.getAttribute('aria-controls'));
+		if (!table) return;
+		const key = 'alarmmanager_queue_messages_open';
+		const show =
+			/** Apply one open/closed state to the table and button. */
+			(open) => {
+				table.hidden = !open;
+				button.setAttribute('aria-expanded', String(open));
+				button.textContent = open ? button.dataset.hide : button.dataset.show;
+			};
+		try {
+			show(window.localStorage.getItem(key) === '1');
+		} catch {
+			show(false);
+		}
+		button.addEventListener('click', () => {
+			const open = table.hidden;
+			show(open);
+			try {
+				window.localStorage.setItem(key, open ? '1' : '0');
+			} catch {
+				// Storage can be blocked; the toggle still works for this page view.
+			}
+		});
+	}
 	function initReportQuery(app) {
 		app.querySelectorAll('.alarmmanagerQueryBuilder').forEach(
 			/** Build an editor for one serialized query document. */
@@ -1857,6 +1924,8 @@
 		initServiceNow(app);
 		initProviders(app);
 		initPayloadPopups(app);
+		initConfirmDialogs(app);
+		initQueueToggle(app);
 		app.querySelectorAll('.alarmmanagerEndpointEditor').forEach(
 			/** Bind endpoint submissions to preserve explicit test-send intent. */
 			(form) => {
