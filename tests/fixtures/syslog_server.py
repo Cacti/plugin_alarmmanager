@@ -7,6 +7,7 @@ import ssl
 import sys
 
 context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+context.minimum_version = ssl.TLSVersion.TLSv1_2
 context.load_cert_chain(sys.argv[1], sys.argv[2])
 listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 listener.bind(('127.0.0.1', 0))

@@ -97,7 +97,7 @@ final class ProducerTest extends AlarmManagerTestCase {
 			$this->assertSame(str_repeat('é', 255), AlarmManagerProducerBridge::text(str_repeat('é', 300), 511), 'UTF-8 truncation retains complete characters');
 			$this->assertTrue(plugin_alarmmanager_install(), 'install');
 			$this->assertTrue(plugin_alarmmanager_install(), 'repeat install');
-			$this->assertSame(13, (int) db_fetch_cell_prepared('SELECT version FROM plugin_alarmmanager_schema'), 'schema v13');
+			$this->assertSame(14, (int) db_fetch_cell_prepared('SELECT version FROM plugin_alarmmanager_schema'), 'schema v14');
 			$this->assertTrue($this->producer_publish('local-default')['owned'], 'Local delivery is the default without a mode policy.');
 			$this->assertSame(1, (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_alarmmanager_events'));
 			$this->producer_policy('thold', 'default', 0, 'observe');

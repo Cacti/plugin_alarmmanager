@@ -33,6 +33,7 @@ final class TwilioRecipientsTest extends AlarmManagerTestCase {
 			$this->assertTrue(alarmmanager_schema_recipients());
 			$this->assertTrue(alarmmanager_schema_recipients(), 'Migration repeats safely');
 			$this->assertSame('', db_fetch_cell_prepared('SELECT recipient FROM plugin_alarmmanager_deliveries WHERE id=?', [$old_id]));
+			$this->assertTrue(alarmmanager_schema_retired());
 			$this->assertTrue(alarmmanager_schema_ready());
 			$numbers   = ['+15551234567', '+15557654321'];
 			$transport = alarmmanager_integration_templates()['twilio']['transport'] + ['provider' => 'twilio'];
