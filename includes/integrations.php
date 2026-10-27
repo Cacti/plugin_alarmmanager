@@ -64,9 +64,19 @@ function alarmmanager_integration_templates(): array {
 	];
 
 	return [
-		'webhook' => ['name' => 'Generic webhook', 'type' => 'webhook', 'transport' => $http],
-		'restapi' => ['name' => 'Generic REST API', 'type' => 'restapi', 'transport' => $http],
-		'script'  => ['name' => 'JSON script', 'type' => 'script', 'transport' => ['executable' => '/usr/local/bin/process_alarm.py', 'arguments' => [], 'compatibility' => 'json', 'retry_exit_codes' => [75], 'mapping' => $mapping]],
+		'webhook'  => ['name' => 'Generic webhook', 'type' => 'webhook', 'transport' => $http],
+		'restapi'  => ['name' => 'Generic REST API', 'type' => 'restapi', 'transport' => $http],
+		'script'   => ['name' => 'JSON script', 'type' => 'script', 'transport' => ['executable' => '/usr/local/bin/process_alarm.py', 'arguments' => [], 'compatibility' => 'json', 'retry_exit_codes' => [75], 'mapping' => $mapping]],
+		'snmptrap' => ['name' => 'SNMP trap', 'type' => 'snmptrap',
+			'hint'               => 'Replace the receiver host and enter the community or SNMPv3 passphrases. Traps use Cacti\'s CACTI-MIB cactiNotify notification; its cactiEventDescription starts with the severity and state and ends with the alarm key, so the receiver can pair a raise with its recovery. Add one destination per receiver. A trap is confirmed only as sent; choose INFORM for receiver acknowledgement.',
+			'transport'          => ['host' => 'trap-receiver.example.invalid', 'version' => '2c', 'mapping' => ['default' => [
+				['to' => 'message', 'source' => 'alarm.summary', 'type' => 'string', 'required' => true]
+			]]]],
+		'syslog' => ['name' => 'Syslog', 'type' => 'syslog',
+			'hint'             => 'Replace the receiver host. RFC 5424 adds structured data [alarm@23925 key=… severity=…] so the receiver can correlate raise and recovery; RFC 3164 sends the message text only. Use TLS on port 6514 where the receiver supports it. UDP messages are confirmed only as sent.',
+			'transport'        => ['host' => 'syslog-receiver.example.invalid', 'protocol' => 'udp', 'format' => 'rfc5424', 'mapping' => ['default' => [
+				['to' => 'message', 'template' => alarmmanager_message_template(), 'type' => 'string', 'required' => true]
+			]]]],
 		'slack'   => ['name' => 'Slack message', 'type' => 'webhook', 'auth' => 'bearer',
 			'hint'              => 'Enter the bot token under Authentication and replace the channel constant before enabling the endpoint.',
 			'transport'         => ['url' => 'https://slack.com/api/chat.postMessage', 'method' => 'POST', 'credential' => true, 'response_match' => ['path' => 'ok', 'equals' => true], 'mapping' => ['default' => [

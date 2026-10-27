@@ -89,6 +89,6 @@ try {
 top_header();
 
 alarmmanager_web_assets();
-alarmmanager_web_open(['admin' => true], 'admin');
+alarmmanager_web_open(['admin' => true], 'admin', false);
 alarmmanager_admin_markup($state, $section);
 bottom_footer();

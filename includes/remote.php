@@ -357,7 +357,7 @@ function alarmmanager_remote_provision(#[\SensitiveParameter] array $bundle): vo
 		alarmmanager_event_keys($row, ['endpoint_id', 'record']);
 		$id = $row['endpoint_id'] ?? null;
 
-		if (!is_int($id) || $id < 1 || isset($secrets[$id]) || !isset($settings['endpoints'][$id]) || !in_array($settings['endpoints'][$id]['type'], ['restapi', 'webhook'], true)) {
+		if (!is_int($id) || $id < 1 || isset($secrets[$id]) || !isset($settings['endpoints'][$id]) || !in_array($settings['endpoints'][$id]['type'], alarmmanager_credential_types(), true)) {
 			throw new InvalidArgumentException('provision_credential_invalid');
 		}
 		$secrets[$id] = alarmmanager_credential_validate($row['record']);

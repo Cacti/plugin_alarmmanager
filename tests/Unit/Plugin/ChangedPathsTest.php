@@ -18,12 +18,23 @@ final class ChangedPathsTest extends AlarmManagerTestCase {
 				return [['id' => '42', 'status' => 'pending', 'suppressed' => 0]];
 			}
 
+			if (str_contains($sql, 'FROM plugin_alarmmanager_decisions')) {
+				$this->assertSame([42], $params, 'Routing looks up only local event rows.');
+
+				return [['event_row_id' => '42', 'endpoint_id' => '7', 'reason' => 'queued']];
+			}
+
+			if (str_contains($sql, 'FROM plugin_alarmmanager_endpoints')) {
+				return [['id' => '7', 'name' => 'Slack']];
+			}
+
 			return [['id' => '42'], ['id' => null]];
 		};
 		$rows = alarmmanager_report_list('events', ['device_sql' => 'e.device_id = 42'], alarmmanager_report_filters([]))['rows'];
 		$this->assertSame('Pending processing', $rows[0]['integration_status']);
 		$this->assertSame('Remote history', $rows[1]['integration_status']);
-		$this->assertCount(3, $queries);
+		$this->assertSame(['Queued → Slack', '—'], array_column($rows, 'routing'));
+		$this->assertCount(5, $queries);
 	}
 
 	public function testRemoteEventAndConditionQueriesKeepScopeAndCollector(): void {

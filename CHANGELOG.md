@@ -1,5 +1,11 @@
 ## ChangeLog
 
+* Events: merge the Routing decisions tab into Events. Each event shows a Routing column, for example "Queued → Slack", "Cooldown → 2 destinations" or "No matching rule", including decisions mirrored from remote collectors. Routing decision, rule ID and destination ID are Events search conditions, dashboard suppression links open Events filtered by reason, and old `tab=decisions` links redirect to Events. VERIFIED locally with unit tests (`EventRoutingTest`, `ChangedPathsTest`); the browser lane remains UNVERIFIED.
+
+* Schema 14: drop tables left behind by retired features, `plugin_alarmmanager_api_clients`, `plugin_alarmmanager_audit` and `plugin_alarmmanager_sync_batches`, which no current code reads or writes. VERIFIED locally with unit tests; the upgrade test in `SchemaIdentityTest` remains UNVERIFIED without a test database.
+
+* Add SNMP trap and syslog destinations. SNMP traps (v2c and v3, trap or INFORM) are sent with Cacti's configured `snmptrap` as Cacti's own CACTI-MIB `cactiNotify`, so receivers need no additional MIB. Its `cactiEventDescription` reads "SEVERITY state host: message | key=… episode=… source=… event=…" so a receiver can pair a raise with its recovery. Each destination is one receiver with its own encrypted community or SNMPv3 passphrases, which reach `snmptrap` only through a private temporary `snmp.conf`. Syslog sends RFC 5424 with `[alarm@23925 …]` structured data, or RFC 3164, over UDP, TCP or certificate-verified TLS. VERIFIED locally: `SnmpSyslogTest` passed against real net-snmp 5.9.4 `snmptrap` (the captured packet carries the cactiNotify OID; the community comes from the config file and is absent from argv), UDP and TCP sockets and a Python TLS listener. Integration-lane and live deployment remain UNVERIFIED.
+
 * Require an enabled matching Alarm Rule for notifications. Remove automatic routing to all integrations when no rules exist, and recheck queued alarms before delivery. Unrouted alarms remain captured with a no-route decision.
 
 * Alarm Rules: use the shared AND/OR/NOT/group condition builder for Match alarms, with named source, severity, alarm change, device and collector choices, summary text and exact device tags. Applies to all alarm sources hides the builder and clears alarm conditions on save.

@@ -48,7 +48,7 @@ final class IntegrationTemplateTest extends AlarmManagerTestCase {
 			$this->assertArrayNotHasKey('id', $template);
 			$this->assertArrayNotHasKey('enabled', $template);
 			$transport = alarmmanager_transport_configuration($template['type'], $template['transport']);
-			$this->assertSame(in_array($key, ['slack', 'teams', 'twilio', 'twilio_whatsapp', 'servicenow', 'servicenow_events'], true), (bool) ($transport['credential'] ?? false));
+			$this->assertSame(in_array($key, ['slack', 'teams', 'twilio', 'twilio_whatsapp', 'servicenow', 'servicenow_events', 'snmptrap'], true), (bool) ($transport['credential'] ?? false));
 			$this->assertArrayNotHasKey('headers', $template['transport']);
 			$this->assertArrayNotHasKey('basic', $template['transport']);
 

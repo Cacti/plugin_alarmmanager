@@ -113,11 +113,11 @@ function alarmmanager_schema_install(): bool {
 		return false;
 	}
 
-	return alarmmanager_schema_remote() && alarmmanager_schema_record_ids() && alarmmanager_schema_integrations() && alarmmanager_schema_device_status() && alarmmanager_schema_sync() && alarmmanager_schema_direct_routes() && alarmmanager_schema_recipients();
+	return alarmmanager_schema_remote() && alarmmanager_schema_record_ids() && alarmmanager_schema_integrations() && alarmmanager_schema_device_status() && alarmmanager_schema_sync() && alarmmanager_schema_direct_routes() && alarmmanager_schema_recipients() && alarmmanager_schema_retired();
 }
 
 function alarmmanager_schema_ready(): bool {
-	return (int) db_fetch_cell_prepared('SELECT version FROM plugin_alarmmanager_schema WHERE id = 1', [], '', false) === 13;
+	return (int) db_fetch_cell_prepared('SELECT version FROM plugin_alarmmanager_schema WHERE id = 1', [], '', false) === 14;
 }
 
 /** Self-healing gate for runtime lanes. Full replication carries settings and
@@ -185,7 +185,7 @@ function alarmmanager_schema_runtime(): bool {
 	try {
 		$version = db_fetch_cell_prepared('SELECT version FROM plugin_alarmmanager_schema WHERE id = 1', [], '', false);
 
-		if ($version === false || (int) $version > 13) {
+		if ($version === false || (int) $version > 14) {
 			return false;
 		}
 		alarmmanager_schema_column('plugin_alarmmanager_schema', 'config_revision', 'BIGINT UNSIGNED NOT NULL DEFAULT 0');
@@ -498,6 +498,18 @@ function alarmmanager_schema_recipients(): bool {
 			}
 		}
 		alarmmanager_db_write('UPDATE plugin_alarmmanager_schema SET version = 13 WHERE id = 1');
+
+		return true;
+	} catch (Throwable $error) {
+		return false;
+	}
+}
+
+/** v14: drop tables left behind by retired features (API clients, duplicate audit log, HTTP sync batches). */
+function alarmmanager_schema_retired(): bool {
+	try {
+		alarmmanager_db_write('DROP TABLE IF EXISTS plugin_alarmmanager_api_clients, plugin_alarmmanager_audit, plugin_alarmmanager_sync_batches');
+		alarmmanager_db_write('UPDATE plugin_alarmmanager_schema SET version = 14 WHERE id = 1');
 
 		return true;
 	} catch (Throwable $error) {
