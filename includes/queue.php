@@ -98,7 +98,7 @@ function alarmmanager_claim_processing(int $lease_seconds = 180): ?array {
 	});
 }
 function alarmmanager_claim_delivery(array $supported_types, int $lease_seconds = 180): ?array {
-	$types = array_values(array_intersect(['restapi', 'webhook', 'email', 'script', 'websocket'], $supported_types));
+	$types = array_values(array_intersect(['restapi', 'webhook', 'email', 'script', 'snmptrap', 'syslog', 'websocket'], $supported_types));
 
 	if (!$types || !alarmmanager_runtime_enabled() || alarmmanager_notifications_paused()) {
 		return null;

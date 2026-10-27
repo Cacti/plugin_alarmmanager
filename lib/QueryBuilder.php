@@ -146,8 +146,25 @@ class QueryBuilder {
 			throw new InvalidArgumentException('The selected field requires a nonnegative integer.');
 		}
 
-		$column = $definition['column'];
+		$sql = self::compileComparison($definition['column'], $operator, $value, $params);
 
+		// A related-row field ("FROM … WHERE correlation") matches when any related row satisfies the comparison.
+		return isset($definition['exists']) ? "EXISTS (SELECT 1 FROM {$definition['exists']} AND $sql)" : $sql;
+	}
+
+	/**
+	 * Compile one column comparison into a parameterized SQL fragment.
+	 *
+	 * @param string             $column   Trusted column expression.
+	 * @param string             $operator Allowed operator for the field.
+	 * @param string             $value    Validated filter value.
+	 * @param array<int, string> $params   The bound parameters, accumulated by reference.
+	 *
+	 * @return string The compiled SQL fragment.
+	 *
+	 * @throws InvalidArgumentException When the operator is not supported.
+	 */
+	private static function compileComparison(string $column, string $operator, string $value, array &$params): string {
 		switch ($operator) {
 			case 'has':
 				$params[] = $value;

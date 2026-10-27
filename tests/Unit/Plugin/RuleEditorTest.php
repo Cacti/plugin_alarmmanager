@@ -57,7 +57,7 @@ final class RuleEditorTest extends AlarmManagerTestCase {
 		alarmmanager_admin_supervisor_settings(['processing_workers' => '65', 'delivery_workers' => '4']);
 	}
 
-	public function testConfigurationHasOneSettingsFormAndFileImport(): void {
+	public function testConfigurationCardsSaveIndependentlyWithFileImport(): void {
 		self::alarmmanager_test_load('includes/admin_view.php');
 
 		if (!function_exists('csrf_get_tokens')) {
@@ -74,14 +74,25 @@ final class RuleEditorTest extends AlarmManagerTestCase {
 			ob_end_clean();
 		}
 		$document = new DOMDocument();
-		@$document->loadHTML($html);
+		// libxml's HTML4 parser reports HTML5 elements such as <section>; collect those instead of raising warnings.
+		$errors = libxml_use_internal_errors(true);
+		$document->loadHTML($html);
+		libxml_clear_errors();
+		libxml_use_internal_errors($errors);
 		$xpath = new DOMXPath($document);
-		$this->assertSame(1, $xpath->query('//form[input[@name="action" and @value="settings_save"]]')->length);
-		$this->assertSame(1, $xpath->query('//form[input[@value="settings_save"]]//button[@type="submit"]')->length);
 
-		foreach (['offline_summary', 'recovering_summary', 'online_summary', 'daemon_enabled', 'processing_workers', 'delivery_workers'] as $field) {
-			$this->assertSame(1, $xpath->query('//form[input[@value="settings_save"]]//input[@name="' . $field . '"]')->length);
+		// Each card saves independently: summaries replicate, worker settings stay on this poller.
+		foreach (['device_summaries_save' => ['offline_summary', 'recovering_summary', 'online_summary'], 'daemon_save' => ['daemon_enabled', 'processing_workers', 'delivery_workers']] as $action => $fields) {
+			$this->assertSame(1, $xpath->query('//section[@class="alarmmanagerSettingsCard"]//form[input[@name="action" and @value="' . $action . '"]]//button[@type="submit"]')->length);
+
+			foreach ($fields as $field) {
+				$this->assertSame(1, $xpath->query('//form[input[@value="' . $action . '"]]//input[@name="' . $field . '"]')->length);
+			}
 		}
+		$this->assertSame(0, $xpath->query('//form[input[@value="settings_save"]]')->length);
+		$this->assertSame(1, $xpath->query('//input[@name="daemon_enabled" and @disabled]')->length, 'Workers cannot be switched on while the service is not running');
+		$this->assertStringContainsString('data-state="stopped">Not running</span>', $html);
+		$this->assertSame(3, $xpath->query('//section[@class="alarmmanagerSettingsCard"]')->length);
 		$this->assertStringNotContainsString('section=daemon', $html);
 		$this->assertStringNotContainsString('Administration sections', $html);
 		$this->assertStringNotContainsString('class="tabs"', $html);

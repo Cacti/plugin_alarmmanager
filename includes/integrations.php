@@ -64,9 +64,34 @@ function alarmmanager_integration_templates(): array {
 	];
 
 	return [
-		'webhook' => ['name' => 'Generic webhook', 'type' => 'webhook', 'transport' => $http],
-		'restapi' => ['name' => 'Generic REST API', 'type' => 'restapi', 'transport' => $http],
-		'script'  => ['name' => 'JSON script', 'type' => 'script', 'transport' => ['executable' => '/usr/local/bin/process_alarm.py', 'arguments' => [], 'compatibility' => 'json', 'retry_exit_codes' => [75], 'mapping' => $mapping]],
+		'webhook'  => ['name' => 'Generic webhook', 'type' => 'webhook', 'transport' => $http],
+		'restapi'  => ['name' => 'Generic REST API', 'type' => 'restapi', 'transport' => $http],
+		'script'   => ['name' => 'JSON script', 'type' => 'script', 'transport' => ['executable' => '/usr/local/bin/process_alarm.py', 'arguments' => [], 'compatibility' => 'json', 'retry_exit_codes' => [75], 'mapping' => $mapping]],
+		'snmptrap' => ['name' => 'SNMP trap', 'type' => 'snmptrap',
+			'hint'               => 'Replace the receiver host and enter the community or SNMPv3 passphrases. Load CACTI-ALARMMANAGER-MIB from the plugin mibs folder on the receiving manager; raise and clear notifications share amAlarmKey. A UDP trap is confirmed only as sent; choose INFORM for receiver acknowledgement.',
+			'transport'          => ['host' => 'trap-receiver.example.invalid', 'version' => '2c', 'mapping' => ['default' => [
+				['to' => 'amAlarmKey', 'source' => 'alarm.key', 'type' => 'string', 'required' => true],
+				['to' => 'amEpisodeId', 'source' => 'alarm.episode_id', 'type' => 'string', 'required' => true],
+				['to' => 'amEventId', 'source' => 'event.id', 'type' => 'string', 'required' => true],
+				['to' => 'amTransition', 'source' => 'alarm.transition', 'type' => 'integer', 'values' => ['raised' => 1, 'updated' => 2, 'reminder' => 3, 'recovered' => 4, 'occurrence' => 5], 'required' => true],
+				['to' => 'amSeverity', 'source' => 'alarm.severity', 'type' => 'integer', 'values' => ['critical' => 1, 'major' => 2, 'minor' => 3, 'warning' => 4, 'info' => 5, 'clear' => 6], 'required' => true],
+				['to' => 'amSource', 'source' => 'event.source', 'type' => 'string'],
+				['to' => 'amDeviceHostname', 'source' => 'device.hostname', 'type' => 'string'],
+				['to' => 'amDeviceDescription', 'source' => 'device.description', 'type' => 'string'],
+				['to' => 'amDeviceId', 'source' => 'device.id', 'type' => 'integer'],
+				['to' => 'amSummary', 'source' => 'alarm.summary', 'type' => 'string'],
+				['to' => 'amDetails', 'source' => 'alarm.details', 'type' => 'string'],
+				['to' => 'amOccurredAt', 'source' => 'event.occurred_at', 'type' => 'string'],
+				['to' => 'amRuleName', 'source' => 'context.rule_name', 'type' => 'string'],
+				['to' => 'amMetric', 'source' => 'context.metric', 'type' => 'string'],
+				['to' => 'amMetricValue', 'source' => 'context.metric_value', 'type' => 'string'],
+				['to' => 'amThreshold', 'source' => 'context.threshold', 'type' => 'string']
+			]]]],
+		'syslog' => ['name' => 'Syslog', 'type' => 'syslog',
+			'hint'             => 'Replace the receiver host. RFC 5424 adds structured data [alarm@23925 key=… severity=…] so the receiver can correlate raise and recovery; RFC 3164 sends the message text only. Use TLS on port 6514 where the receiver supports it. UDP messages are confirmed only as sent.',
+			'transport'        => ['host' => 'syslog-receiver.example.invalid', 'protocol' => 'udp', 'format' => 'rfc5424', 'mapping' => ['default' => [
+				['to' => 'message', 'template' => alarmmanager_message_template(), 'type' => 'string', 'required' => true]
+			]]]],
 		'slack'   => ['name' => 'Slack message', 'type' => 'webhook', 'auth' => 'bearer',
 			'hint'              => 'Enter the bot token under Authentication and replace the channel constant before enabling the endpoint.',
 			'transport'         => ['url' => 'https://slack.com/api/chat.postMessage', 'method' => 'POST', 'credential' => true, 'response_match' => ['path' => 'ok', 'equals' => true], 'mapping' => ['default' => [

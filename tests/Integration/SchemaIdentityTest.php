@@ -52,13 +52,17 @@ final class SchemaIdentityTest extends AlarmManagerTestCase {
 				$db->exec("ALTER TABLE plugin_alarmmanager_$section MODIFY id INT UNSIGNED NOT NULL");
 			}
 			$db->exec('CREATE TABLE plugin_alarmmanager_profiles (id INT PRIMARY KEY)');
+
+			foreach (['api_clients', 'audit', 'sync_batches'] as $retired) {
+				$db->exec("CREATE TABLE plugin_alarmmanager_$retired (id INT PRIMARY KEY)");
+			}
 			$db->exec('ALTER TABLE plugin_alarmmanager_rules ADD COLUMN profile_id INT');
 			$db->exec('ALTER TABLE plugin_alarmmanager_device_owners ADD COLUMN profile_id INT');
 			$db->exec('UPDATE plugin_alarmmanager_schema SET version = 6 WHERE id = 1');
 			$this->assertTrue(alarmmanager_schema_install(), 'Upgrade from schema v6');
 			$this->assertTrue(alarmmanager_schema_install(), 'Repeated upgrade');
 			$this->assertTrue(alarmmanager_schema_ready());
-			$this->assertSame(0, (int) db_fetch_cell_prepared("SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'plugin_alarmmanager_profiles'"));
+			$this->assertSame(0, (int) db_fetch_cell_prepared("SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME IN ('plugin_alarmmanager_profiles', 'plugin_alarmmanager_api_clients', 'plugin_alarmmanager_audit', 'plugin_alarmmanager_sync_batches')"), 'Retired tables are dropped');
 			$this->assertSame(0, (int) db_fetch_cell_prepared("SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME IN ('plugin_alarmmanager_rules', 'plugin_alarmmanager_device_owners') AND COLUMN_NAME = 'profile_id'"));
 			$this->assertSame('[37]', db_fetch_cell_prepared('SELECT endpoints_json FROM plugin_alarmmanager_rules WHERE id = 53'));
 

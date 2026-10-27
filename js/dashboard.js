@@ -1166,11 +1166,63 @@
 							);
 						}
 					);
+					const version = form.querySelector('[name=snmp_version]');
+					form.querySelectorAll('[data-snmp-versions]').forEach(
+						/** Show only the credentials used by the selected SNMP version. */
+						(group) => {
+							const active =
+								select.value === 'snmptrap' &&
+								group.dataset.snmpVersions === version.value;
+							group.hidden = !active;
+							group.querySelectorAll('input,select').forEach(
+								/** Keep inactive SNMP version fields out of the submission. */
+								(input) => {
+									input.disabled = !active;
+								}
+							);
+						}
+					);
 					if (['restapi', 'webhook'].includes(select.value))
 						initAuthentication(form);
 				}
-				jQuery(form).on('change', '[name=type]', update);
+				jQuery(form).on('change', '[name=type],[name=snmp_version]', update);
 				update();
+			}
+		);
+	}
+	/** Filter the integration template gallery as the administrator types. */
+	function initTemplateGallery(app) {
+		app.querySelectorAll('.alarmmanagerTemplateGallery').forEach(
+			/** Bind the search box of one template gallery. */
+			(gallery) => {
+				const search = gallery.querySelector('[data-template-search]'),
+					empty = gallery.querySelector('.alarmmanagerTemplateEmpty');
+				search.hidden = false;
+				search.addEventListener('input', () => {
+					const terms = search.value.toLowerCase().trim().split(/\s+/).filter(Boolean);
+					let shown = 0;
+					gallery.querySelectorAll('.alarmmanagerTemplateGroup').forEach(
+						/** Hide non-matching cards and groups left without cards. */
+						(group) => {
+							const heading = group.querySelector('h4').textContent.toLowerCase();
+							let visible = 0;
+							group.querySelectorAll('li').forEach(
+								/** Match every search term against the card text or its group heading. */
+								(item) => {
+									const text = heading + ' ' + item.textContent.toLowerCase();
+									item.hidden = !terms.every((term) => text.includes(term));
+									visible += item.hidden ? 0 : 1;
+								}
+							);
+							group.hidden = !visible;
+							shown += visible;
+						}
+					);
+					empty.hidden = shown > 0;
+				});
+				gallery.addEventListener('toggle', () => {
+					if (gallery.open) search.focus();
+				});
 			}
 		);
 	}
@@ -1797,6 +1849,7 @@
 		initDeliveryIntervals(app);
 		initAuthentication(app);
 		initEndpointTypes(app);
+		initTemplateGallery(app);
 		initServiceNow(app);
 		initProviders(app);
 		initPayloadPopups(app);
@@ -2009,7 +2062,7 @@
 				['source', 'events', 'source'],
 				['deliveries', 'deliveries', 'status'],
 				['attempts', 'attempts', 'status'],
-				['suppression', 'decisions', 'reason']
+				['suppression', 'events', 'reason']
 			].forEach(
 				/** Refresh a panel's legend and donut chart. */
 				([panel, tab, field]) => {

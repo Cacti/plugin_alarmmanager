@@ -39,6 +39,11 @@ try {
 	}
 
 	$filters = alarmmanager_view_filters();
+
+	// Routing decisions are part of Events; keep old links and bookmarks working.
+	if (get_nfilter_request_var('tab') === 'decisions') {
+		cacti_redirect(alarmmanager_report_url($filters, 'events'));
+	}
 	$tab     = alarmmanager_view_tab();
 	$data    = $tab === 'dashboard' ? null : alarmmanager_report_list($tab, $scope, $filters);
 	$detail  = $tab === 'events' ? alarmmanager_event_detail($scope, $filters) : null;

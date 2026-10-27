@@ -43,7 +43,7 @@ final class SetupTest extends AlarmManagerTestCase {
 		self::alarmmanager_test_load('setup.php');
 		$this->assertTrue(plugin_alarmmanager_install());
 		$GLOBALS['alarmmanager_test_version'] = plugin_alarmmanager_version()['version'];
-		$GLOBALS['alarmmanager_test_schema']  = 13;
+		$GLOBALS['alarmmanager_test_schema']  = 14;
 		$key                                  = $GLOBALS['alarmmanager_test_store']['1:alarmmanager_key'];
 		$GLOBALS['alarmmanager_test_hooks']   = array_values(array_diff($GLOBALS['alarmmanager_test_hooks'], ['admin_alert']));
 		$this->assertTrue(plugin_alarmmanager_upgrade());
@@ -61,7 +61,7 @@ final class SetupTest extends AlarmManagerTestCase {
 		$GLOBALS['alarmmanager_test_version'] = plugin_alarmmanager_version()['version'];
 		$GLOBALS['alarmmanager_test_schema']  = 6;
 		$this->assertTrue(plugin_alarmmanager_upgrade());
-		$this->assertSame(13, $GLOBALS['alarmmanager_test_schema']);
+		$this->assertSame(14, $GLOBALS['alarmmanager_test_schema']);
 		$this->assertSame($key, $GLOBALS['alarmmanager_test_store']['1:alarmmanager_key']);
 	}
 
@@ -186,7 +186,7 @@ final class SetupTest extends AlarmManagerTestCase {
 			alarmmanager_web_open(['admin' => $admin], 'dashboard');
 			$html = ob_get_clean();
 			$this->assertStringNotContainsString('href="alarmmanager_admin.php"', $html);
-			$this->assertSame(4, substr_count($html, 'href="alarmmanager.php?tab='));
+			$this->assertSame(3, substr_count($html, 'href="alarmmanager.php?tab='), 'Routing decisions are part of Events');
 		}
 		ob_start();
 		alarmmanager_web_open(['admin' => true], 'admin');

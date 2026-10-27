@@ -29,7 +29,7 @@ require_once(__DIR__ . '/workers.php');
 require_once(__DIR__ . '/integrations.php');
 
 function alarmmanager_form_start(string $action, int $revision, array $hidden = []): void {
-	print '<form method="post" action="alarmmanager_admin.php"' . ($action === 'configuration_save' ? ' enctype="multipart/form-data"' : '') . ' class="alarmmanagerEditor' . ($action === 'endpoint_save' ? ' alarmmanagerEndpointEditor' : ($action === 'endpoint_delete' ? ' alarmmanagerEndpointDelete' : '')) . ($action === 'settings_save' ? ' alarmmanagerSummaryEditor' : '') . '">';
+	print '<form method="post" action="alarmmanager_admin.php"' . ($action === 'configuration_save' ? ' enctype="multipart/form-data"' : '') . ' class="alarmmanagerEditor' . ($action === 'endpoint_save' ? ' alarmmanagerEndpointEditor' : ($action === 'endpoint_delete' ? ' alarmmanagerEndpointDelete' : '')) . '">';
 	alarmmanager_csrf_field();
 	print '<input type="hidden" name="action" value="' . html_escape($action) . '"><input type="hidden" name="revision" value="' . $revision . '">';
 
@@ -42,6 +42,16 @@ function alarmmanager_input(string $key, string $label, $value = '', string $typ
 }
 function alarmmanager_checkbox(string $key, string $label, bool $checked = false): void {
 	print '<label><input type="checkbox" name="' . $key . '" value="yes" ' . ($checked ? 'checked' : '') . '> ' . __esc($label, 'alarmmanager') . '</label>';
+}
+/** @param array<int|string, string> $options value => untranslated label */
+function alarmmanager_select(string $key, string $label, array $options, string $selected): void {
+	print '<label>' . __esc($label, 'alarmmanager') . ' <select name="' . $key . '">';
+
+	foreach ($options as $value => $text) {
+		// Numeric-string keys such as SNMP version "3" arrive as integers.
+		print '<option value="' . html_escape((string) $value) . '"' . ($selected === (string) $value ? ' selected' : '') . '>' . __esc($text, 'alarmmanager') . '</option>';
+	}
+	print '</select></label>';
 }
 function alarmmanager_textarea(string $key, string $label, string $value, int $limit = 131072, string $extra = ''): void {
 	print '<label class="alarmmanagerFullWidth">' . __esc($label, 'alarmmanager') . '<textarea name="' . $key . '" rows="8" maxlength="' . $limit . '" spellcheck="false"' . ($extra === '' ? '' : ' ' . $extra) . '>' . html_escape($value) . '</textarea></label>';
@@ -89,7 +99,7 @@ function alarmmanager_endpoint_editor(array $endpoint, int $revision, bool $new 
 	print '<div data-providers="twilio twilio_whatsapp"><label>' . __esc('Twilio credentials', 'alarmmanager') . ' <select name="twilio_auth_mode"><option value="api_key">' . __esc('API Key SID and Secret (recommended)', 'alarmmanager') . '</option><option value="account">' . __esc('Account SID and Auth Token', 'alarmmanager') . '</option></select></label></div></div>';
 	print '<label>' . __esc('Send using', 'alarmmanager') . ' <select name="type">';
 
-	foreach ([($endpoint['type'] === 'webhook' ? 'webhook' : 'restapi') => 'Webhook / REST API', 'email' => 'Email', 'script' => 'Script'] + ($endpoint['type'] === 'websocket' ? ['websocket' => 'WebSocket (unsupported, saved)'] : []) as $type => $label) {
+	foreach ([($endpoint['type'] === 'webhook' ? 'webhook' : 'restapi') => 'Webhook / REST API', 'email' => 'Email', 'script' => 'Script', 'snmptrap' => 'SNMP trap', 'syslog' => 'Syslog'] + ($endpoint['type'] === 'websocket' ? ['websocket' => 'WebSocket (unsupported, saved)'] : []) as $type => $label) {
 		print '<option value="' . $type . '" ' . ($endpoint['type'] === $type ? 'selected' : '') . '>' . __esc($label, 'alarmmanager') . '</option>';
 	} print '</select></label>';
 
@@ -142,6 +152,7 @@ function alarmmanager_endpoint_editor(array $endpoint, int $revision, bool $new 
 	alarmmanager_textarea('script_arguments', 'Arguments', json_encode($transport['arguments'] ?? [], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR));
 	print '</div>';
 	print '<p>' . __esc('JSON output is sent to the script on standard input.', 'alarmmanager') . '</p><p>' . __esc('The executable must exist and be executable by the worker on every delivering poller. Arguments are passed directly without a shell.', 'alarmmanager') . '</p></fieldset>';
+	alarmmanager_trap_syslog_editor($transport);
 	print '<p class="alarmmanagerFullWidth" data-endpoint-types="websocket">' . __esc('WebSocket delivery is not implemented.', 'alarmmanager') . '</p>';
 	alarmmanager_mapping_editor($mapping, $summaries);
 	print '<details class="alarmmanagerFullWidth alarmmanagerAdvanced"><summary>' . __esc('Advanced delivery settings', 'alarmmanager') . '</summary>';
@@ -170,6 +181,79 @@ function alarmmanager_endpoint_editor(array $endpoint, int $revision, bool $new 
 		print '<h3>' . __esc('Delete endpoint', 'alarmmanager') . '</h3><p>' . __esc('Deleting stops future delivery and removes the saved settings and credentials. Remove notification rule references and resolve queued or running deliveries first. Completed and failed delivery history is preserved.', 'alarmmanager') . '</p><label><input type="checkbox" name="confirmed" value="yes" required> ' . __esc('Delete this endpoint, its delivery settings and saved credentials', 'alarmmanager') . '</label><button type="submit">' . __esc('Delete endpoint', 'alarmmanager') . '</button></form>';
 	}
 	print '</details>';
+}
+/**
+ * Integration templates as a searchable card gallery. Cards are plain links so Cacti's
+ * jQuery UI select and button widgets never restyle them, and they work without JavaScript.
+ * @param array<string, array<string, mixed>> $templates
+ */
+function alarmmanager_template_gallery(array $templates, bool $open): void {
+	$groups = [
+		'messaging' => [__('Chat and messaging', 'alarmmanager'), [
+			'slack'           => __('Post alarms to a Slack channel.', 'alarmmanager'),
+			'teams'           => __('Post alarm cards through a Teams Workflow.', 'alarmmanager'),
+			'telegram'        => __('Send alarms from a Telegram bot.', 'alarmmanager'),
+			'twilio'          => __('Text alarms to phone numbers.', 'alarmmanager'),
+			'twilio_whatsapp' => __('Send approved WhatsApp templates.', 'alarmmanager')]],
+		'incident' => [__('Incident management', 'alarmmanager'), [
+			'pagerduty'  => __('Trigger and resolve PagerDuty incidents.', 'alarmmanager'),
+			'servicenow' => __('Open and resolve ServiceNow incidents or events.', 'alarmmanager')]],
+		'network' => [__('Network management', 'alarmmanager'), [
+			'snmptrap' => __('Send SNMPv2c or SNMPv3 traps and INFORMs.', 'alarmmanager'),
+			'syslog'   => __('Forward RFC 5424 or RFC 3164 messages over UDP, TCP or TLS.', 'alarmmanager')]],
+		'custom' => [__('Custom', 'alarmmanager'), [
+			''        => __('Start from an empty endpoint.', 'alarmmanager'),
+			'webhook' => __('POST alarm JSON to any HTTPS endpoint.', 'alarmmanager'),
+			'restapi' => __('Call an API with your own method, authentication and response checks.', 'alarmmanager'),
+			'script'  => __('Run a local executable with the alarm as JSON input.', 'alarmmanager')]]
+	];
+	// Inline 24px stroke icons per category; currentColor follows the Cacti theme.
+	$svg   = static fn (string $path): string => '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' . $path . '</svg>';
+	$icons = ['messaging' => $svg('<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/>'), 'incident' => $svg('<path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 21h4"/>'),
+		'network'            => $svg('<rect x="9" y="3" width="6" height="5" rx="1"/><rect x="3" y="16" width="6" height="5" rx="1"/><rect x="15" y="16" width="6" height="5" rx="1"/><path d="M12 8v4M6 16v-4h12v4"/>'), 'custom' => $svg('<path d="M8 7l-5 5 5 5M16 7l5 5-5 5"/>'), 'blank' => $svg('<path d="M12 5v14M5 12h14"/>')];
+	print '<details class="alarmmanagerTemplateGallery"' . ($open ? ' open' : '') . '><summary>' . __esc('Add integration', 'alarmmanager') . '</summary>';
+	print '<div class="alarmmanagerGalleryHead"><p>' . __esc('Choose a template. It opens as a disabled draft; nothing is sent until you enable it.', 'alarmmanager') . '</p><input type="search" data-template-search hidden placeholder="' . __esc('Search integrations', 'alarmmanager') . '" aria-label="' . __esc('Search integrations', 'alarmmanager') . '"></div>';
+
+	foreach ($groups as $category => [$heading, $cards]) {
+		print '<section class="alarmmanagerTemplateGroup"><h4>' . html_escape($heading) . '</h4><ul>';
+
+		foreach ($cards as $key => $description) {
+			$name = $key === '' ? __('Blank endpoint', 'alarmmanager') : ($key === 'servicenow' ? 'ServiceNow' : __($templates[$key]['name'], 'alarmmanager'));
+			print '<li><a class="alarmmanagerTemplateCard" data-category="' . $category . '" href="alarmmanager_admin.php?section=endpoints&amp;add=1' . ($key === '' ? '' : '&amp;integration_template=' . $key) . '"><span class="alarmmanagerTemplateIcon" aria-hidden="true">' . $icons[$key === '' ? 'blank' : $category] . '</span><span><strong>' . html_escape($name) . '</strong><span>' . html_escape($description) . '</span></span></a></li>';
+		}
+		print '</ul></section>';
+	}
+	print '<p class="alarmmanagerTemplateEmpty" hidden>' . __esc('No integrations match your search.', 'alarmmanager') . '</p></details>';
+}
+/** @param array<string, mixed> $transport */
+function alarmmanager_trap_syslog_editor(array $transport): void {
+	print '<fieldset class="alarmmanagerFullWidth alarmmanagerSnmp" data-endpoint-types="snmptrap"><legend>' . __esc('SNMP trap settings', 'alarmmanager') . '</legend>';
+	alarmmanager_input('snmp_host', 'Receiver hostname or IP address', $transport['host'] ?? '', 'text', 'maxlength="253"');
+	alarmmanager_input('snmp_port', 'Port', $transport['port'] ?? 162, 'number', 'min="1" max="65535"');
+	alarmmanager_select('snmp_transport', 'Transport', ['udp' => 'UDP', 'tcp' => 'TCP', 'udp6' => 'UDP over IPv6', 'tcp6' => 'TCP over IPv6'], $transport['transport'] ?? 'udp');
+	alarmmanager_select('snmp_notification', 'Notification', ['trap' => 'Trap (unacknowledged)', 'inform' => 'INFORM (acknowledged by the receiver)'], $transport['notification'] ?? 'trap');
+	alarmmanager_select('snmp_version', 'SNMP version', ['2c' => 'SNMPv2c', '3' => 'SNMPv3'], $transport['version'] ?? '2c');
+	print '<div data-snmp-versions="2c">';
+	alarmmanager_input('snmp_community', 'Community (secret)', '', 'password', 'autocomplete="new-password" maxlength="256"');
+	print '</div><div class="alarmmanagerFullWidth" data-snmp-versions="3">';
+	alarmmanager_input('snmp_security_name', 'Security name', $transport['security_name'] ?? '', 'text', 'maxlength="32" autocomplete="off"');
+	alarmmanager_select('snmp_security_level', 'Security level', ['authPriv' => 'Authentication and privacy', 'authNoPriv' => 'Authentication only', 'noAuthNoPriv' => 'No authentication'], $transport['security_level'] ?? 'authPriv');
+	alarmmanager_select('snmp_auth_protocol', 'Authentication protocol', ['SHA' => 'SHA-1', 'SHA-224' => 'SHA-224', 'SHA-256' => 'SHA-256', 'SHA-384' => 'SHA-384', 'SHA-512' => 'SHA-512'], $transport['auth_protocol'] ?? 'SHA');
+	alarmmanager_input('snmp_auth_passphrase', 'Authentication passphrase', '', 'password', 'autocomplete="new-password" maxlength="256"');
+	alarmmanager_select('snmp_priv_protocol', 'Privacy protocol', ['AES' => 'AES-128', 'AES-192' => 'AES-192', 'AES-256' => 'AES-256'], $transport['priv_protocol'] ?? 'AES');
+	alarmmanager_input('snmp_priv_passphrase', 'Privacy passphrase', '', 'password', 'autocomplete="new-password" maxlength="256"');
+	alarmmanager_input('snmp_engine_id', 'Engine ID for traps (blank uses the local engine)', $transport['engine_id'] ?? '', 'text', 'maxlength="66" placeholder="0x80001f8880…"');
+	print '</div><p>' . __esc('Saved community and passphrases are encrypted and never displayed. Leave them blank to keep the saved values; entering any value replaces all saved SNMP secrets.', 'alarmmanager') . '</p>';
+	print '<p>' . __esc('Traps are sent with the snmptrap binary from Cacti Settings > Paths on every delivering poller. Install CACTI-ALARMMANAGER-MIB from the plugin mibs folder on the receiving manager.', 'alarmmanager') . '</p></fieldset>';
+	print '<fieldset class="alarmmanagerFullWidth" data-endpoint-types="syslog"><legend>' . __esc('Syslog settings', 'alarmmanager') . '</legend>';
+	alarmmanager_input('syslog_host', 'Receiver hostname or IP address', $transport['host'] ?? '', 'text', 'maxlength="253"');
+	alarmmanager_input('syslog_port', 'Port', $transport['port'] ?? 514, 'number', 'min="1" max="65535"');
+	alarmmanager_select('syslog_protocol', 'Protocol', ['udp' => 'UDP', 'tcp' => 'TCP', 'tls' => 'TLS'], $transport['protocol'] ?? 'udp');
+	alarmmanager_select('syslog_format', 'Format', ['rfc5424' => 'RFC 5424 with structured data', 'rfc3164' => 'RFC 3164 (legacy BSD)'], $transport['format'] ?? 'rfc5424');
+	alarmmanager_select('syslog_facility', 'Facility', array_combine(array_keys(alarmmanager_syslog_facilities()), array_keys(alarmmanager_syslog_facilities())), $transport['facility'] ?? 'local0');
+	alarmmanager_input('syslog_app_name', 'Application name', $transport['app_name'] ?? 'cacti-alarmmanager', 'text', 'maxlength="48"');
+	alarmmanager_input('syslog_ca_bundle', 'Custom certificate authority for TLS (PEM file path)', $transport['ca_bundle'] ?? '', 'text', 'maxlength="1024" placeholder="/etc/cacti/alarmmanager/syslog-ca.pem"');
+	print '<p>' . __esc('TLS verifies the receiver certificate and hostname. Use port 6514 for TLS. UDP and TCP are unencrypted, and a UDP message is confirmed only as sent.', 'alarmmanager') . '</p></fieldset>';
 }
 /**
  * @param array<string, mixed>|null $schedule
@@ -314,22 +398,26 @@ function alarmmanager_rule_editor(array $item, int $revision, array $configurati
 function alarmmanager_admin_markup(array $state, string $section): void {
 	$config   = $state['configuration'];
 	$revision = $state['revision'];
-	print '<h2>' . __esc(alarmmanager_admin_sections()[$section] ?? 'Configuration', 'alarmmanager') . '</h2><p>' . __esc('Local configuration revision', 'alarmmanager') . ': ' . $revision . '</p>';
+
+	// Rules print their own heading and introduction.
+	if ($section !== 'rules') {
+		print '<h2>' . __esc(alarmmanager_admin_sections()[$section] ?? 'Configuration', 'alarmmanager') . '</h2>';
+	}
 
 	if ($section === 'queue') {
 		$paused = alarmmanager_notifications_paused();
 		$count  = alarmmanager_db_row("SELECT COUNT(*) AS waiting FROM plugin_alarmmanager_deliveries AS d
 			INNER JOIN plugin_alarmmanager_events AS e ON e.id = d.event_row_id
 			WHERE d.status = 'pending' AND e.processing_poller_id = ?", [alarmmanager_local_poller()]);
-		html_start_box(__esc('Alarm Queue', 'alarmmanager'), '100%', false, 3, 'center', '');
+		// Div mode: forms printed directly inside a table are split by the HTML parser, leaving the buttons outside their forms.
+		html_start_box(__esc('Alarm Queue', 'alarmmanager'), '100%', true, 3, 'center', '');
 		print '<p>' . ($paused ? __esc('Notification delivery is paused.', 'alarmmanager') : __esc('Notification delivery is running.', 'alarmmanager')) . ' ' . __esc('Waiting messages', 'alarmmanager') . ': ' . (int) ($count['waiting'] ?? 0) . '</p>';
 		print '<p>' . __esc('Controls apply to this poller. Alarms continue to be received and processed while delivery is paused. Messages already being sent may finish. Resume sends the waiting notifications.', 'alarmmanager') . '</p>';
 		alarmmanager_form_start($paused ? 'queue_resume' : 'queue_pause', $revision);
 		print '<button type="submit">' . ($paused ? __esc('Resume delivery', 'alarmmanager') : __esc('Pause delivery', 'alarmmanager')) . '</button></form>';
-		print '<p><a href="alarmmanager.php?tab=events&amp;job=delivery&amp;status=pending&amp;current=1">' . __esc('View waiting messages', 'alarmmanager') . '</a> | <a href="alarmmanager.php?tab=events&amp;job=delivery&amp;status=leased&amp;current=1">' . __esc('View messages being sent', 'alarmmanager') . '</a></p>';
 		alarmmanager_form_start('queue_clear', $revision);
 		print '<p>' . __esc('Clear discards all waiting notifications on this poller, including retries. They remain in delivery history as failed with reason queue_cleared. Running messages and alarm state are preserved. Pause delivery before clearing during maintenance.', 'alarmmanager') . '</p><label><input type="checkbox" name="confirmed" value="yes" required> ' . __esc('Discard all waiting notifications', 'alarmmanager') . '</label><button type="submit">' . __esc('Clear queue', 'alarmmanager') . '</button></form>';
-		html_end_box();
+		html_end_box(true, true);
 		$rows = alarmmanager_db_rows("SELECT d.id, ep.name AS endpoint, JSON_UNQUOTE(JSON_EXTRACT(e.payload, '$.summary')) AS summary, d.created_at, d.attempts, d.available_at
 			FROM plugin_alarmmanager_deliveries AS d INNER JOIN plugin_alarmmanager_events AS e ON e.id = d.event_row_id
 			LEFT JOIN plugin_alarmmanager_endpoints AS ep ON ep.id = d.endpoint_id
@@ -356,19 +444,16 @@ function alarmmanager_admin_markup(array $state, string $section): void {
 			unset($_SESSION['alarmmanager_test_result']);
 		}
 		print '<p>' . __esc('Create an integration, configure its destination and credentials, test a sample alarm here, then select it directly in a rule.', 'alarmmanager') . '</p>';
-		print '<form method="get" action="alarmmanager_admin.php" class="alarmmanagerTemplatePicker"><input type="hidden" name="section" value="endpoints"><input type="hidden" name="add" value="1"><label>' . __esc('Start a new integration from a template', 'alarmmanager') . '<select name="integration_template"><option value="">' . __esc('Blank endpoint', 'alarmmanager') . '</option>';
 		$templates = alarmmanager_integration_templates();
 		$providers = alarmmanager_provider_definitions();
 		$selected  = (string) get_filter_request_var('integration_template', FILTER_CALLBACK, ['options' => static fn ($value) => is_string($value) && isset($templates[$value]) ? $value : false, 'default' => '']);
 		$adding    = $selected !== '' || (string) get_filter_request_var('add', FILTER_CALLBACK, ['options' => static fn ($value) => $value === '1' ? '1' : false, 'default' => '']) === '1';
+		alarmmanager_template_gallery($templates, !$adding && !$config['endpoints']);
+		print '<h3 class="alarmmanagerSectionDivider">' . __esc('Configured integrations', 'alarmmanager') . ' <span class="alarmmanagerBadge">' . count($config['endpoints']) . '</span></h3>';
 
-		foreach ($templates as $key => $template) {
-			if ($key === 'servicenow_events') {
-				continue;
-			}
-			print '<option value="' . $key . '" ' . ($selected === $key ? 'selected' : '') . '>' . __esc($key === 'servicenow' ? 'ServiceNow' : $template['name'], 'alarmmanager') . '</option>';
+		if (!$config['endpoints'] && !$adding) {
+			print '<p class="alarmmanagerHint">' . __esc('No integrations yet. Choose a template above to create one.', 'alarmmanager') . '</p>';
 		}
-		print '</select></label><button type="submit">' . __esc('Add Integration', 'alarmmanager') . '</button></form><p>' . __esc('Templates fill a new disabled draft only. Replace the example destination or executable before saving; existing endpoints and credentials are preserved.', 'alarmmanager') . '</p>';
 
 		foreach ($config['endpoints'] as $item) {
 			alarmmanager_endpoint_editor($item, $revision, false, $config['device_summaries'] ?? []);
@@ -409,7 +494,7 @@ function alarmmanager_admin_markup(array $state, string $section): void {
 			}
 		}
 		print '<p class="alarmmanagerHint">' . __esc('Alarm notifications require an enabled matching Alarm Rule. Without one, alarms remain in history but no notifications are sent.', 'alarmmanager') . '</p>';
-		print '<p><a href="#alarmmanager_new_rule">' . __esc('Create a rule', 'alarmmanager') . '</a></p>';
+		print '<p><a class="alarmmanagerPrimaryAction" data-icon="add" href="#alarmmanager_new_rule">' . __esc('Create a rule', 'alarmmanager') . '</a></p>';
 
 		if (!$config['rules']) {
 			print '<p class="alarmmanagerHint">' . __esc('No rules yet. Create a rule below to start routing alarms to your notification destinations.', 'alarmmanager') . '</p>';
@@ -440,31 +525,41 @@ function alarmmanager_admin_markup(array $state, string $section): void {
 		print '<button type="submit">' . __esc('Rotate local key', 'alarmmanager') . '</button></form>';
 	} elseif ($section === 'configuration') {
 		$summaries = $config['device_summaries'] ?? ['offline' => 'Device Offline', 'recovering' => 'Device Recovering', 'online' => 'Device Online'];
-		alarmmanager_form_start('settings_save', $revision);
-		print '<h2>' . __esc('Device alarm summaries', 'alarmmanager') . '</h2>';
-		alarmmanager_input('offline_summary', 'Offline summary', $summaries['offline'], 'text', 'maxlength="512" required');
-		alarmmanager_input('recovering_summary', 'Recovering summary', $summaries['recovering'] ?? 'Device Recovering', 'text', 'maxlength="512" required');
-		alarmmanager_input('online_summary', 'Online summary', $summaries['online'], 'text', 'maxlength="512" required');
-		print '<p>' . __esc('Applies to new device alarms and recoveries. Existing history retains its original summary. These settings synchronize to collectors.', 'alarmmanager') . '</p>';
+		print '<section class="alarmmanagerSettingsCard"><header><h3>' . __esc('Device alarm summaries', 'alarmmanager') . '</h3></header><p class="alarmmanagerHint">' . __esc('Summary text for new device-down and recovery alarms.', 'alarmmanager') . '</p>';
+		alarmmanager_form_start('device_summaries_save', $revision);
+		print '<div class="alarmmanagerSettingsGrid">';
+		alarmmanager_input('offline_summary', 'Offline', $summaries['offline'], 'text', 'maxlength="512" required');
+		alarmmanager_input('recovering_summary', 'Recovering', $summaries['recovering'] ?? 'Device Recovering', 'text', 'maxlength="512" required');
+		alarmmanager_input('online_summary', 'Online', $summaries['online'], 'text', 'maxlength="512" required');
+		print '</div><p class="alarmmanagerHint">' . __esc('Existing history keeps its original text. Synchronized to all pollers.', 'alarmmanager') . '</p>';
+		print '<div class="alarmmanagerSettingsActions"><button type="submit" class="alarmmanagerPrimaryAction">' . __esc('Save summaries', 'alarmmanager') . '</button></div></form></section>';
+
 		$settings = alarmmanager_supervisor_options();
 		$status   = alarmmanager_daemon_status();
-		print '<h2>' . __esc('Daemon', 'alarmmanager') . '</h2><p>' . __esc('Supervisor', 'alarmmanager') . ': ' . __esc($status ? 'Running' : 'Not running', 'alarmmanager') . '</p>';
+		// Workers can always be switched off; switching them on needs the running service.
+		$locked = !$status && !$settings['enabled'];
+		print '<section class="alarmmanagerSettingsCard"><header><h3>' . __esc('Background workers', 'alarmmanager') . '</h3><span class="alarmmanagerBadge" data-state="' . ($status ? 'running' : 'stopped') . '">' . ($status ? __esc('Running: %d processing, %d delivery', (int) $status['processing_workers'], (int) $status['delivery_workers'], 'alarmmanager') : __esc('Not running', 'alarmmanager')) . '</span></header>';
+		print '<p class="alarmmanagerHint">' . __esc('Process and deliver alarms in the Alarm Manager service instead of at the end of each Cacti poller cycle. Applies to this poller only.', 'alarmmanager') . '</p>';
+		alarmmanager_form_start('daemon_save', $revision);
+		print '<label class="alarmmanagerSettingsToggle"><input type="checkbox" name="daemon_enabled" value="yes"' . ($settings['enabled'] ? ' checked' : '') . ($locked ? ' disabled' : '') . '> ' . __esc('Use background workers', 'alarmmanager') . '</label>';
 
-		if ($status) {
-			print '<p>' . __esc('Active processing workers', 'alarmmanager') . ': ' . (int) $status['processing_workers'] . ' / ' . __esc('Active delivery workers', 'alarmmanager') . ': ' . (int) $status['delivery_workers'] . '</p>';
-		} else {
-			print '<p>' . __esc('Install and start the Alarm Manager service on this collector before enabling daemon workers.', 'alarmmanager') . '</p>';
+		if ($locked) {
+			print '<p class="alarmmanagerHint">' . __esc('Start the Alarm Manager service on this poller to turn on background workers.', 'alarmmanager') . '</p>';
 		}
-		alarmmanager_checkbox('daemon_enabled', 'Enable daemon', $settings['enabled']);
+		print '<div class="alarmmanagerSettingsGrid alarmmanagerCompact">';
 		alarmmanager_input('processing_workers', 'Processing workers', $settings['processing_workers'], 'number', 'min="1" max="64" required');
 		alarmmanager_input('delivery_workers', 'Delivery workers', $settings['delivery_workers'], 'number', 'min="0" max="64" required');
-		print '<p class="alarmmanagerHint alarmmanagerFullWidth">' . __esc('Changes apply automatically within a few seconds. Disabling the daemon lets current jobs finish and returns processing to the Cacti poller.', 'alarmmanager') . '</p><button type="submit">' . __esc('Save settings', 'alarmmanager') . '</button></form>';
-		print '<h2>' . __esc('Export / import configuration', 'alarmmanager') . '</h2><p>' . __esc('Export endpoints, message mappings, alarm rules and device summaries as JSON. Stored credentials and daemon settings are excluded. Endpoint URLs may contain secrets; keep exported files private.', 'alarmmanager') . '</p>';
-		print '<p><a class="button" href="alarmmanager_admin.php?section=configuration&amp;download=configuration">' . __esc('Export configuration', 'alarmmanager') . '</a></p>';
+		print '</div><p class="alarmmanagerHint">' . __esc('Changes apply within a few seconds. Turning workers off lets current jobs finish, then the Cacti poller takes over.', 'alarmmanager') . '</p>';
+		print '<div class="alarmmanagerSettingsActions"><button type="submit" class="alarmmanagerPrimaryAction">' . __esc('Save workers', 'alarmmanager') . '</button></div></form></section>';
+
+		print '<section class="alarmmanagerSettingsCard"><header><h3>' . __esc('Backup and restore', 'alarmmanager') . '</h3></header><div class="alarmmanagerSettingsSplit"><div><h4>' . __esc('Export', 'alarmmanager') . '</h4>';
+		print '<p class="alarmmanagerHint">' . __esc('Endpoints, message templates, rules and device summaries as JSON. Credentials and worker settings are not included. Endpoint URLs can contain secrets, so keep the file private.', 'alarmmanager') . '</p>';
+		print '<a class="alarmmanagerPrimaryAction" href="alarmmanager_admin.php?section=configuration&amp;download=configuration">' . __esc('Export configuration', 'alarmmanager') . '</a></div><div><h4>' . __esc('Import', 'alarmmanager') . '</h4>';
 		alarmmanager_form_start('configuration_save', $revision);
 		print '<input type="hidden" name="MAX_FILE_SIZE" value="1048576">';
-		alarmmanager_input('configuration_file', 'Configuration JSON file (maximum 1 MiB)', '', 'file', 'accept=".json,application/json" required');
-		print '<p>' . __esc('Import replaces the routing configuration using the IDs in the file. Missing endpoints and rules are disabled, preserving history. Stored credentials are unchanged. Concurrent edits reject stale revisions. Main-poller settings replicate through Cacti synchronization.', 'alarmmanager') . '</p><button type="submit">' . __esc('Import configuration', 'alarmmanager') . '</button></form>';
+		alarmmanager_input('configuration_file', 'Configuration file (JSON, up to 1 MiB)', '', 'file', 'accept=".json,application/json" required');
+		print '<p class="alarmmanagerHint">' . __esc('Replaces the routing configuration using the IDs in the file. Endpoints and rules missing from the file are disabled, not deleted. Saved credentials are kept.', 'alarmmanager') . '</p>';
+		print '<button type="submit" class="alarmmanagerPrimaryAction">' . __esc('Import configuration', 'alarmmanager') . '</button></form></div></div></section>';
 	} elseif ($section === 'health') {
 		// Same shared metrics used by cli/status.php; rendered as Cacti tables.
 		$metrics = alarmmanager_metrics();

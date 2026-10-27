@@ -1,5 +1,11 @@
 ## ChangeLog
 
+* Events: merge the Routing decisions tab into Events. Each event shows a Routing column, for example "Queued → Slack", "Cooldown → 2 destinations" or "No matching rule", including decisions mirrored from remote collectors. Routing decision, rule ID and destination ID are Events search conditions, dashboard suppression links open Events filtered by reason, and old `tab=decisions` links redirect to Events. VERIFIED locally with unit tests (`EventRoutingTest`, `ChangedPathsTest`); the browser lane remains UNVERIFIED.
+
+* Schema 14: drop tables left behind by retired features, `plugin_alarmmanager_api_clients`, `plugin_alarmmanager_audit` and `plugin_alarmmanager_sync_batches`, which no current code reads or writes. VERIFIED locally with unit tests; the upgrade test in `SchemaIdentityTest` remains UNVERIFIED without a test database.
+
+* Add SNMP trap and syslog destinations. SNMP traps (v2c and v3, trap or INFORM) are sent with Cacti's configured `snmptrap`; secrets stay in encrypted credentials and reach `snmptrap` only through a private temporary `snmp.conf`. The new `CACTI-ALARMMANAGER-MIB` defines `amAlarmRaise` and `amAlarmClear` under `{ cacti 6 }` (1.3.6.1.4.1.23925.6). That sub-arc assignment still needs Cacti Group confirmation. Syslog sends RFC 5424 with `[alarm@23925 …]` structured data, or RFC 3164, over UDP, TCP or certificate-verified TLS. VERIFIED locally: `SnmpSyslogTest` passed against real net-snmp 5.9.4 `snmptrap` (v2c community taken from the config file and absent from argv), UDP/TCP sockets and a Python TLS listener, and the MIB resolved with `snmptranslate`. Integration-lane and live deployment remain UNVERIFIED.
+
 * Require an enabled matching Alarm Rule for notifications. Remove automatic routing to all integrations when no rules exist, and recheck queued alarms before delivery. Unrouted alarms remain captured with a no-route decision.
 
 * Alarm Rules: use the shared AND/OR/NOT/group condition builder for Match alarms, with named source, severity, alarm change, device and collector choices, summary text and exact device tags. Applies to all alarm sources hides the builder and clears alarm conditions on save.

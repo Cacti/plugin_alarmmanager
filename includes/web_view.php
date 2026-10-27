@@ -24,7 +24,7 @@
 
 require_once(__DIR__ . '/reports.php');
 
-const ALARMMANAGER_TABS = ['dashboard', 'conditions', 'events', 'decisions'];
+const ALARMMANAGER_TABS = ['dashboard', 'conditions', 'events'];
 
 function alarmmanager_web_assets(): void {
 	global $config;
@@ -137,8 +137,7 @@ function alarmmanager_web_open(array $scope, string $tab, bool $show_title = tru
 	foreach ([
 		'dashboard'  => 'Dashboard',
 		'conditions' => 'Active conditions',
-		'events'     => 'Events',
-		'decisions'  => 'Routing decisions'
+		'events'     => 'Events'
 	] as $key => $label) {
 		print '<li><a class="tab' . ($tab === $key ? ' selected' : '') . '" ' . ($tab === $key ? 'aria-current="page" ' : '') . 'href="' . html_escape('alarmmanager.php?tab=' . $key) . '">' . __esc($label, 'alarmmanager') . '</a></li>';
 	}

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Alarm Manager 0.12.0\n"
 "Report-Msgid-Bugs-To: https://github.com/bmfmancini/plugin_alarmmanager/issues\n"
-"POT-Creation-Date: 2026-10-26 17:56-0400\n"
+"POT-Creation-Date: 2026-10-26 20:35-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alarm Manager Developers <https://github.com/bmfmancini/plugin_alarmmanager>\n"
 "Language-Team: Alarm Manager Developers <https://github.com/bmfmancini/plugin_alarmmanager>\n"
@@ -25,681 +25,844 @@ msgstr ""
 msgid "Administration unavailable or permission denied."
 msgstr ""
 
-#: includes/admin_view.php:57
+#: includes/admin_view.php:67
 msgid "Choose the alarm information to send to any service. Use Combined text to arrange device details, or Use device message to start with a complete message. Email uses Subject and Message; API destinations use the field names required by the receiving service."
 msgstr ""
 
-#: includes/admin_view.php:58
+#: includes/admin_view.php:68
 msgid "Advanced message configuration"
 msgstr ""
 
-#: includes/admin_view.php:69
+#: includes/admin_view.php:79
 msgid "New endpoint"
 msgstr ""
 
-#: includes/admin_view.php:77
+#: includes/admin_view.php:87
 msgid "Custom integration"
 msgstr ""
 
-#: includes/admin_view.php:77
+#: includes/admin_view.php:87
 msgid "Integration provider"
 msgstr ""
 
-#: includes/admin_view.php:89
+#: includes/admin_view.php:99
 msgid "API Key SID and Secret (recommended)"
 msgstr ""
 
-#: includes/admin_view.php:89
+#: includes/admin_view.php:99
 msgid "Account SID and Auth Token"
 msgstr ""
 
-#: includes/admin_view.php:89
+#: includes/admin_view.php:99
 msgid "Twilio credentials"
 msgstr ""
 
-#: includes/admin_view.php:90
+#: includes/admin_view.php:100
 msgid "Send using"
 msgstr ""
 
-#: includes/admin_view.php:102
+#: includes/admin_view.php:112
 msgid "Event"
 msgstr ""
 
-#: includes/admin_view.php:102
+#: includes/admin_view.php:112
 msgid "Incident"
 msgstr ""
 
-#: includes/admin_view.php:102
+#: includes/admin_view.php:112
 msgid "ServiceNow record type"
 msgstr ""
 
-#: includes/admin_view.php:103
+#: includes/admin_view.php:113
 msgid "Changing the record type replaces the destination table, message fields and recovery settings with its defaults. Your instance and credentials are retained."
 msgstr ""
 
-#: includes/admin_view.php:126
+#: includes/admin_view.php:136
 msgid "Destination"
 msgstr ""
 
-#: includes/admin_view.php:131
+#: includes/admin_view.php:141
 msgid "Email settings"
 msgstr ""
 
-#: includes/admin_view.php:138
+#: includes/admin_view.php:148
 msgid "Delivery uses the Cacti mail settings. Add the people who should receive these alarms."
 msgstr ""
 
-#: includes/admin_view.php:139
+#: includes/admin_view.php:149
 msgid "Script settings"
 msgstr ""
 
-#: includes/admin_view.php:144
+#: includes/admin_view.php:154
 msgid "JSON output is sent to the script on standard input."
 msgstr ""
 
-#: includes/admin_view.php:144
+#: includes/admin_view.php:154
 msgid "The executable must exist and be executable by the worker on every delivering poller. Arguments are passed directly without a shell."
 msgstr ""
 
-#: includes/admin_view.php:145
+#: includes/admin_view.php:156
 msgid "WebSocket delivery is not implemented."
 msgstr ""
 
-#: includes/admin_view.php:147
+#: includes/admin_view.php:158
 msgid "Advanced delivery settings"
 msgstr ""
 
-#: includes/admin_view.php:152
+#: includes/admin_view.php:163
 msgid "Connection options"
 msgstr ""
 
-#: includes/admin_view.php:155
+#: includes/admin_view.php:166
 msgid "Method"
 msgstr ""
 
-#: includes/admin_view.php:162
+#: includes/admin_view.php:173
 msgid "Certificate and hostname verification remain enabled. Provision the PEM file on every poller. Saved credentials are never displayed."
 msgstr ""
 
-#: includes/admin_view.php:163
+#: includes/admin_view.php:174
 msgid "Other delivery options"
 msgstr ""
 
-#: includes/admin_view.php:165
+#: includes/admin_view.php:176
 msgid "Cancel"
 msgstr ""
 
-#: includes/admin_view.php:165
+#: includes/admin_view.php:176
 msgid "Test destination saves the current settings and queues a sample alarm for this destination. Enable the destination before testing."
 msgstr ""
 
-#: includes/admin_view.php:166
+#: includes/admin_view.php:177
 msgid "Save endpoint"
 msgstr ""
 
-#: includes/admin_view.php:166
+#: includes/admin_view.php:177
 msgid "Test destination"
 msgstr ""
 
-#: includes/admin_view.php:170
+#: includes/admin_view.php:181
 msgid "Delete endpoint"
 msgstr ""
 
-#: includes/admin_view.php:170
+#: includes/admin_view.php:181
 msgid "Delete this endpoint, its delivery settings and saved credentials"
 msgstr ""
 
-#: includes/admin_view.php:170
+#: includes/admin_view.php:181
 msgid "Deleting stops future delivery and removes the saved settings and credentials. Remove notification rule references and resolve queued or running deliveries first. Completed and failed delivery history is preserved."
 msgstr ""
 
-#: includes/admin_view.php:181
-msgid "Days"
+#: includes/admin_view.php:192
+msgid "Chat and messaging"
 msgstr ""
 
-#: includes/admin_view.php:186
-msgid "Timezone"
+#: includes/admin_view.php:193
+msgid "Post alarms to a Slack channel."
 msgstr ""
 
 #: includes/admin_view.php:194
-msgid "Times use the selected timezone and the alarm event time. An end time before the start runs overnight. Equal times cover the entire selected day."
+msgid "Post alarm cards through a Teams Workflow."
 msgstr ""
 
-#: includes/admin_view.php:235 includes/admin_view.php:412
-msgid "Create a rule"
+#: includes/admin_view.php:195
+msgid "Send alarms from a Telegram bot."
 msgstr ""
 
-#: includes/admin_view.php:235
-msgid "Enabled"
+#: includes/admin_view.php:196
+msgid "Text alarms to phone numbers."
 msgstr ""
 
-#: includes/admin_view.php:235
-msgid "Priority"
+#: includes/admin_view.php:197
+msgid "Send approved WhatsApp templates."
 msgstr ""
 
-#: includes/admin_view.php:237
-msgid "Rule and destination"
+#: includes/admin_view.php:198
+msgid "Incident management"
 msgstr ""
 
-#: includes/admin_view.php:241
-msgid "Alarm Destination"
+#: includes/admin_view.php:199
+msgid "Trigger and resolve PagerDuty incidents."
 msgstr ""
 
-#: includes/admin_view.php:244
-msgid "disabled"
+#: includes/admin_view.php:200
+msgid "Open and resolve ServiceNow incidents or events."
+msgstr ""
+
+#: includes/admin_view.php:201
+msgid "Network management"
+msgstr ""
+
+#: includes/admin_view.php:202
+msgid "Send SNMPv2c or SNMPv3 traps and INFORMs."
+msgstr ""
+
+#: includes/admin_view.php:203
+msgid "Forward RFC 5424 or RFC 3164 messages over UDP, TCP or TLS."
+msgstr ""
+
+#: includes/admin_view.php:204
+msgid "Custom"
+msgstr ""
+
+#: includes/admin_view.php:205
+msgid "Start from an empty endpoint."
+msgstr ""
+
+#: includes/admin_view.php:206
+msgid "POST alarm JSON to any HTTPS endpoint."
+msgstr ""
+
+#: includes/admin_view.php:207
+msgid "Call an API with your own method, authentication and response checks."
+msgstr ""
+
+#: includes/admin_view.php:208
+msgid "Run a local executable with the alarm as JSON input."
+msgstr ""
+
+#: includes/admin_view.php:214
+msgid "Add integration"
+msgstr ""
+
+#: includes/admin_view.php:215
+msgid "Choose a template. It opens as a disabled draft; nothing is sent until you enable it."
+msgstr ""
+
+#: includes/admin_view.php:215
+msgid "Search integrations"
+msgstr ""
+
+#: includes/admin_view.php:221
+msgid "Blank endpoint"
+msgstr ""
+
+#: includes/admin_view.php:226
+msgid "No integrations match your search."
+msgstr ""
+
+#: includes/admin_view.php:230
+msgid "SNMP trap settings"
 msgstr ""
 
 #: includes/admin_view.php:246
+msgid "Saved community and passphrases are encrypted and never displayed. Leave them blank to keep the saved values; entering any value replaces all saved SNMP secrets."
+msgstr ""
+
+#: includes/admin_view.php:247
+msgid "Traps are sent with the snmptrap binary from Cacti Settings > Paths on every delivering poller. Install CACTI-ALARMMANAGER-MIB from the plugin mibs folder on the receiving manager."
+msgstr ""
+
+#: includes/admin_view.php:248
+msgid "Syslog settings"
+msgstr ""
+
+#: includes/admin_view.php:256
+msgid "TLS verifies the receiver certificate and hostname. Use port 6514 for TLS. UDP and TCP are unencrypted, and a UDP message is confirmed only as sent."
+msgstr ""
+
+#: includes/admin_view.php:265
+msgid "Days"
+msgstr ""
+
+#: includes/admin_view.php:270
+msgid "Timezone"
+msgstr ""
+
+#: includes/admin_view.php:278
+msgid "Times use the selected timezone and the alarm event time. An end time before the start runs overnight. Equal times cover the entire selected day."
+msgstr ""
+
+#: includes/admin_view.php:319 includes/admin_view.php:497
+msgid "Create a rule"
+msgstr ""
+
+#: includes/admin_view.php:319
+msgid "Enabled"
+msgstr ""
+
+#: includes/admin_view.php:319
+msgid "Priority"
+msgstr ""
+
+#: includes/admin_view.php:321
+msgid "Rule and destination"
+msgstr ""
+
+#: includes/admin_view.php:325
+msgid "Alarm Destination"
+msgstr ""
+
+#: includes/admin_view.php:328
+msgid "disabled"
+msgstr ""
+
+#: includes/admin_view.php:330
 msgid "Select one or more alarm destinations. Disabled destinations do not send alarms."
 msgstr ""
 
-#: includes/admin_view.php:248
+#: includes/admin_view.php:332
 msgid "Message template"
 msgstr ""
 
-#: includes/admin_view.php:248
+#: includes/admin_view.php:332
 msgid "Use each destination default, or customize its message for this rule. Customization starts with a copy of the destination template and does not change other rules. If several rules match the same destination, the first matching rule in priority and ID order supplies its template."
 msgstr ""
 
-#: includes/admin_view.php:255
+#: includes/admin_view.php:339
 msgid "Custom template"
 msgstr ""
 
-#: includes/admin_view.php:258
+#: includes/admin_view.php:342
 msgid "Destination recipient"
 msgstr ""
 
-#: includes/admin_view.php:258
+#: includes/admin_view.php:342
 #, php-format
 msgid "Recipients: %d"
 msgstr ""
 
-#: includes/admin_view.php:260
+#: includes/admin_view.php:344
 msgid "Customize message for this rule"
 msgstr ""
 
-#: includes/admin_view.php:260
+#: includes/admin_view.php:344
 msgid "Unchecked: Use destination default."
 msgstr ""
 
-#: includes/admin_view.php:264
+#: includes/admin_view.php:348
 msgid "Optional: add each phone number in international format, such as +15551234567. These numbers replace the destination recipient for this rule. Leave the list empty to use the destination default. Each number has its own delivery status and retries."
 msgstr ""
 
-#: includes/admin_view.php:277
+#: includes/admin_view.php:361
 msgid "None"
 msgstr ""
 
-#: includes/admin_view.php:279
+#: includes/admin_view.php:363
 msgid "Build device conditions using AND, OR and groups. These conditions use the current Cacti device settings and must also satisfy any alarm filters below. With no device conditions, all devices can match."
 msgstr ""
 
-#: includes/admin_view.php:279
+#: includes/admin_view.php:363
 msgid "Match devices"
 msgstr ""
 
-#: includes/admin_view.php:290
+#: includes/admin_view.php:374
 msgid "Cacti_Admin_Notifications"
 msgstr ""
 
-#: includes/admin_view.php:290
+#: includes/admin_view.php:374
 msgid "Device Status"
 msgstr ""
 
-#: includes/admin_view.php:290
+#: includes/admin_view.php:374
 msgid "Syslog"
 msgstr ""
 
-#: includes/admin_view.php:290
+#: includes/admin_view.php:374
 msgid "Thold"
 msgstr ""
 
-#: includes/admin_view.php:295
+#: includes/admin_view.php:379
 msgid "Build alarm conditions using AND, OR, NOT and groups. Alarms must also match the device conditions above."
 msgstr ""
 
-#: includes/admin_view.php:295
+#: includes/admin_view.php:379
 msgid "Match alarms"
 msgstr ""
 
-#: includes/admin_view.php:298
+#: includes/admin_view.php:382
 msgid "No alarm sources detected yet. Sources appear after their first alarm."
 msgstr ""
 
-#: includes/admin_view.php:300
+#: includes/admin_view.php:384
 msgid "By default, matching alarms can notify at any time. Turn on a schedule to limit when this rule matches."
 msgstr ""
 
-#: includes/admin_view.php:300
+#: includes/admin_view.php:384
 msgid "Notification hours"
 msgstr ""
 
-#: includes/admin_view.php:302
+#: includes/admin_view.php:386
 msgid "Suppress notifications"
 msgstr ""
 
-#: includes/admin_view.php:302
+#: includes/admin_view.php:386
 msgid "Suppressed alarms remain in history. Recovery notifications bypass acknowledgment, cooldown and duplicate suppression, but still follow notification hours and maintenance windows."
 msgstr ""
 
-#: includes/admin_view.php:306
+#: includes/admin_view.php:390
 msgid "Set a duration to 0 to turn it off."
 msgstr ""
 
-#: includes/admin_view.php:308
+#: includes/admin_view.php:392
 msgid "Rule order"
 msgstr ""
 
-#: includes/admin_view.php:311
+#: includes/admin_view.php:395
 msgid "Create rule"
 msgstr ""
 
-#: includes/admin_view.php:311
+#: includes/admin_view.php:395
 msgid "Rules with equal priority run in ID order. Stopping also applies when this rule suppresses notifications."
 msgstr ""
 
-#: includes/admin_view.php:317
+#: includes/admin_view.php:404
 msgid "Configuration"
 msgstr ""
 
-#: includes/admin_view.php:317
-msgid "Local configuration revision"
-msgstr ""
-
-#: includes/admin_view.php:324
+#: includes/admin_view.php:413
 msgid "Alarm Queue"
 msgstr ""
 
-#: includes/admin_view.php:325
+#: includes/admin_view.php:414
 msgid "Notification delivery is paused."
 msgstr ""
 
-#: includes/admin_view.php:325
+#: includes/admin_view.php:414
 msgid "Notification delivery is running."
 msgstr ""
 
-#: includes/admin_view.php:325
+#: includes/admin_view.php:414
 msgid "Waiting messages"
 msgstr ""
 
-#: includes/admin_view.php:326
+#: includes/admin_view.php:415
 msgid "Controls apply to this poller. Alarms continue to be received and processed while delivery is paused. Messages already being sent may finish. Resume sends the waiting notifications."
 msgstr ""
 
-#: includes/admin_view.php:328
+#: includes/admin_view.php:417
 msgid "Pause delivery"
 msgstr ""
 
-#: includes/admin_view.php:328
+#: includes/admin_view.php:417
 msgid "Resume delivery"
 msgstr ""
 
-#: includes/admin_view.php:329
-msgid "View messages being sent"
-msgstr ""
-
-#: includes/admin_view.php:329
-msgid "View waiting messages"
-msgstr ""
-
-#: includes/admin_view.php:331
+#: includes/admin_view.php:419
 msgid "Clear discards all waiting notifications on this poller, including retries. They remain in delivery history as failed with reason queue_cleared. Running messages and alarm state are preserved. Pause delivery before clearing during maintenance."
 msgstr ""
 
-#: includes/admin_view.php:331
+#: includes/admin_view.php:419
 msgid "Clear queue"
 msgstr ""
 
-#: includes/admin_view.php:331
+#: includes/admin_view.php:419
 msgid "Discard all waiting notifications"
 msgstr ""
 
-#: includes/admin_view.php:337
+#: includes/admin_view.php:425
 msgid "Waiting messages (first 100)"
 msgstr ""
 
-#: includes/admin_view.php:338
+#: includes/admin_view.php:426
 msgid "Attempts"
 msgstr ""
 
-#: includes/admin_view.php:338
+#: includes/admin_view.php:426
 msgid "Available at (UTC)"
 msgstr ""
 
-#: includes/admin_view.php:338
+#: includes/admin_view.php:426
 msgid "Endpoint"
 msgstr ""
 
-#: includes/admin_view.php:338
+#: includes/admin_view.php:426
 msgid "ID"
 msgstr ""
 
-#: includes/admin_view.php:338
+#: includes/admin_view.php:426
 msgid "Message"
 msgstr ""
 
-#: includes/admin_view.php:338
+#: includes/admin_view.php:426
 msgid "Queued at (UTC)"
 msgstr ""
 
-#: includes/admin_view.php:350
+#: includes/admin_view.php:438
 msgid "No waiting messages."
 msgstr ""
 
-#: includes/admin_view.php:355
+#: includes/admin_view.php:443
 msgid "View delivery results"
 msgstr ""
 
-#: includes/admin_view.php:358
+#: includes/admin_view.php:446
 msgid "Create an integration, configure its destination and credentials, test a sample alarm here, then select it directly in a rule."
 msgstr ""
 
-#: includes/admin_view.php:359
-msgid "Blank endpoint"
+#: includes/admin_view.php:452
+msgid "Configured integrations"
 msgstr ""
 
-#: includes/admin_view.php:359
-msgid "Start a new integration from a template"
+#: includes/admin_view.php:455
+msgid "No integrations yet. Choose a template above to create one."
 msgstr ""
 
-#: includes/admin_view.php:369
-msgid "servicenow"
-msgstr ""
-
-#: includes/admin_view.php:371
-msgid "Add Integration"
-msgstr ""
-
-#: includes/admin_view.php:371
-msgid "Templates fill a new disabled draft only. Replace the example destination or executable before saving; existing endpoints and credentials are preserved."
-msgstr ""
-
-#: includes/admin_view.php:381
+#: includes/admin_view.php:466
 msgid "Alarm Rules"
 msgstr ""
 
-#: includes/admin_view.php:381
+#: includes/admin_view.php:466
 msgid "Choose which alarms should notify, where to send them and when to pause notifications. Rules run from lowest to highest priority."
 msgstr ""
 
-#: includes/admin_view.php:384
+#: includes/admin_view.php:469
 msgid "Create an integration before saving your first rule."
 msgstr ""
 
-#: includes/admin_view.php:384
+#: includes/admin_view.php:469
 msgid "Create integration"
 msgstr ""
 
-#: includes/admin_view.php:386
+#: includes/admin_view.php:471
 msgid "Clear"
 msgstr ""
 
-#: includes/admin_view.php:386
+#: includes/admin_view.php:471
 msgid "Critical"
 msgstr ""
 
-#: includes/admin_view.php:386
+#: includes/admin_view.php:471
 msgid "Information"
 msgstr ""
 
-#: includes/admin_view.php:386
+#: includes/admin_view.php:471
 msgid "Major"
 msgstr ""
 
-#: includes/admin_view.php:386
+#: includes/admin_view.php:471
 msgid "Minor"
 msgstr ""
 
-#: includes/admin_view.php:386
+#: includes/admin_view.php:471
 msgid "Occurrence"
 msgstr ""
 
-#: includes/admin_view.php:386
+#: includes/admin_view.php:471
 msgid "Raised"
 msgstr ""
 
-#: includes/admin_view.php:386
+#: includes/admin_view.php:471
 msgid "Recovered"
 msgstr ""
 
-#: includes/admin_view.php:386
+#: includes/admin_view.php:471
 msgid "Reminder"
 msgstr ""
 
-#: includes/admin_view.php:386
+#: includes/admin_view.php:471
 msgid "Updated"
 msgstr ""
 
-#: includes/admin_view.php:386
+#: includes/admin_view.php:471
 msgid "Warning"
 msgstr ""
 
-#: includes/admin_view.php:411
+#: includes/admin_view.php:496
 msgid "Alarm notifications require an enabled matching Alarm Rule. Without one, alarms remain in history but no notifications are sent."
 msgstr ""
 
-#: includes/admin_view.php:415
+#: includes/admin_view.php:500
 msgid "No rules yet. Create a rule below to start routing alarms to your notification destinations."
 msgstr ""
 
-#: includes/admin_view.php:424
+#: includes/admin_view.php:509
 msgid "Credential values are never loaded into this page. Saving replaces the endpoint record; blank values do not preserve an old password. Use the CLI for protected backup/restore and poller provisioning."
 msgstr ""
 
-#: includes/admin_view.php:427
+#: includes/admin_view.php:512
 msgid "Create endpoint"
 msgstr ""
 
-#: includes/admin_view.php:427
+#: includes/admin_view.php:512
 msgid "No REST API or webhook endpoints have been saved. Create an endpoint to enter its bearer token, Basic authentication username and password, or API-key headers."
 msgstr ""
 
-#: includes/admin_view.php:431
+#: includes/admin_view.php:516
 msgid "Configured"
 msgstr ""
 
-#: includes/admin_view.php:434
+#: includes/admin_view.php:519
 msgid "Replace credential"
 msgstr ""
 
-#: includes/admin_view.php:440
+#: includes/admin_view.php:525
 msgid "Rotate local key"
 msgstr ""
 
-#: includes/admin_view.php:444
+#: includes/admin_view.php:528
 msgid "Device alarm summaries"
 msgstr ""
 
-#: includes/admin_view.php:448
-msgid "Applies to new device alarms and recoveries. Existing history retains its original summary. These settings synchronize to collectors."
+#: includes/admin_view.php:528
+msgid "Summary text for new device-down and recovery alarms."
 msgstr ""
 
-#: includes/admin_view.php:451
-msgid "Daemon"
+#: includes/admin_view.php:534
+msgid "Existing history keeps its original text. Synchronized to all pollers."
 msgstr ""
 
-#: includes/admin_view.php:451
-msgid "Running"
+#: includes/admin_view.php:535
+msgid "Save summaries"
 msgstr ""
 
-#: includes/admin_view.php:451
-msgid "Supervisor"
+#: includes/admin_view.php:541
+msgid "Background workers"
 msgstr ""
 
-#: includes/admin_view.php:454
-msgid "Active delivery workers"
+#: includes/admin_view.php:541
+msgid "Not running"
 msgstr ""
 
-#: includes/admin_view.php:454
-msgid "Active processing workers"
+#: includes/admin_view.php:541
+#, php-format
+msgid "Running: %d processing, %d delivery"
 msgstr ""
 
-#: includes/admin_view.php:456
-msgid "Install and start the Alarm Manager service on this collector before enabling daemon workers."
+#: includes/admin_view.php:542
+msgid "Process and deliver alarms in the Alarm Manager service instead of at the end of each Cacti poller cycle. Applies to this poller only."
 msgstr ""
 
-#: includes/admin_view.php:461
-msgid "Changes apply automatically within a few seconds. Disabling the daemon lets current jobs finish and returns processing to the Cacti poller."
+#: includes/admin_view.php:544
+msgid "Use background workers"
 msgstr ""
 
-#: includes/admin_view.php:461
-msgid "Save settings"
+#: includes/admin_view.php:547
+msgid "Start the Alarm Manager service on this poller to turn on background workers."
 msgstr ""
 
-#: includes/admin_view.php:462
-msgid "Export / import configuration"
+#: includes/admin_view.php:552
+msgid "Changes apply within a few seconds. Turning workers off lets current jobs finish, then the Cacti poller takes over."
 msgstr ""
 
-#: includes/admin_view.php:462
-msgid "Export endpoints, message mappings, alarm rules and device summaries as JSON. Stored credentials and daemon settings are excluded. Endpoint URLs may contain secrets; keep exported files private."
+#: includes/admin_view.php:553
+msgid "Save workers"
 msgstr ""
 
-#: includes/admin_view.php:463
+#: includes/admin_view.php:555
+msgid "Backup and restore"
+msgstr ""
+
+#: includes/admin_view.php:555
+msgid "Export"
+msgstr ""
+
+#: includes/admin_view.php:556
+msgid "Endpoints, message templates, rules and device summaries as JSON. Credentials and worker settings are not included. Endpoint URLs can contain secrets, so keep the file private."
+msgstr ""
+
+#: includes/admin_view.php:557
 msgid "Export configuration"
 msgstr ""
 
-#: includes/admin_view.php:467
+#: includes/admin_view.php:557
+msgid "Import"
+msgstr ""
+
+#: includes/admin_view.php:561
+msgid "Replaces the routing configuration using the IDs in the file. Endpoints and rules missing from the file are disabled, not deleted. Saved credentials are kept."
+msgstr ""
+
+#: includes/admin_view.php:562
 msgid "Import configuration"
 msgstr ""
 
-#: includes/admin_view.php:467
-msgid "Import replaces the routing configuration using the IDs in the file. Missing endpoints and rules are disabled, preserving history. Stored credentials are unchanged. Concurrent edits reject stale revisions. Main-poller settings replicate through Cacti synchronization."
-msgstr ""
-
-#: includes/admin_view.php:471
+#: includes/admin_view.php:566
 msgid "Local queue health"
 msgstr ""
 
-#: includes/admin_view.php:472
+#: includes/admin_view.php:567
 msgid "Jobs"
 msgstr ""
 
-#: includes/admin_view.php:472
+#: includes/admin_view.php:567
 msgid "Oldest job age (seconds)"
 msgstr ""
 
-#: includes/admin_view.php:472
+#: includes/admin_view.php:567
 msgid "Queue"
 msgstr ""
 
-#: includes/admin_view.php:472
+#: includes/admin_view.php:567
 msgid "Retries"
 msgstr ""
 
-#: includes/admin_view.php:472 includes/admin_view.php:491
-#: includes/web_view.php:181
+#: includes/admin_view.php:567 includes/admin_view.php:586
+#: includes/web_view.php:180
 msgid "Status"
 msgstr ""
 
-#: includes/admin_view.php:487
+#: includes/admin_view.php:582
 msgid "No queue activity recorded."
 msgstr ""
 
-#: includes/admin_view.php:490
+#: includes/admin_view.php:585
 msgid "Local worker health"
 msgstr ""
 
-#: includes/admin_view.php:491
+#: includes/admin_view.php:586
 msgid "Current job"
 msgstr ""
 
-#: includes/admin_view.php:491
+#: includes/admin_view.php:586
 msgid "Heartbeat age (seconds)"
 msgstr ""
 
-#: includes/admin_view.php:491
+#: includes/admin_view.php:586
 msgid "PID"
 msgstr ""
 
-#: includes/admin_view.php:491
+#: includes/admin_view.php:586
 msgid "Poller"
 msgstr ""
 
-#: includes/admin_view.php:491
+#: includes/admin_view.php:586
 msgid "Role"
 msgstr ""
 
-#: includes/admin_view.php:491
+#: includes/admin_view.php:586
 msgid "Worker"
 msgstr ""
 
-#: includes/admin_view.php:506
+#: includes/admin_view.php:601
 msgid "No local worker heartbeats recorded."
 msgstr ""
 
-#: includes/admin_view.php:509
+#: includes/admin_view.php:604
 msgid "Completed delivery jobs in the last 300 seconds"
 msgstr ""
 
-#: includes/admin_view.php:509
+#: includes/admin_view.php:604
 msgid "Completed processing jobs in the last 300 seconds"
 msgstr ""
 
-#: includes/admin_view.php:509
+#: includes/admin_view.php:604
 msgid "Processing streams blocked behind a failed predecessor"
 msgstr ""
 
-#: includes/admin_view.php:512
+#: includes/admin_view.php:607
 msgid "Pending jobs for destination types without a qualified transport"
 msgstr ""
 
-#: includes/admin_view.php:519
+#: includes/admin_view.php:614
 msgid "Failed deliveries and replay"
 msgstr ""
 
-#: includes/admin_view.php:519
+#: includes/admin_view.php:614
 msgid "Failed processing jobs and replay"
 msgstr ""
 
-#: includes/admin_view.php:524
+#: includes/admin_view.php:619
 msgid "Authentication"
 msgstr ""
 
-#: includes/admin_view.php:524
+#: includes/admin_view.php:619
 msgid "Authentication type"
 msgstr ""
 
-#: includes/admin_view.php:548
+#: includes/admin_view.php:643
 msgid "Saved credentials are encrypted and never displayed. New values replace the saved credential record."
 msgstr ""
 
-#: includes/reports.php:325
+#: includes/reports.php:344
 msgid "Remote history"
 msgstr ""
 
-#: includes/reports.php:351
+#: includes/reports.php:372
+msgid "Queued"
+msgstr ""
+
+#: includes/reports.php:373
+msgid "Test send"
+msgstr ""
+
+#: includes/reports.php:374
+msgid "No matching rule"
+msgstr ""
+
+#: includes/reports.php:375
+msgid "Destination disabled"
+msgstr ""
+
+#: includes/reports.php:376
+msgid "Suppressed by source"
+msgstr ""
+
+#: includes/reports.php:377
+msgid "Maintenance window"
+msgstr ""
+
+#: includes/reports.php:378
+msgid "Acknowledged"
+msgstr ""
+
+#: includes/reports.php:379
+msgid "Cooldown"
+msgstr ""
+
+#: includes/reports.php:380
+msgid "Duplicate"
+msgstr ""
+
+#: includes/reports.php:381
+msgid "Already routed"
+msgstr ""
+
+#: includes/reports.php:382
+msgid "Out of order"
+msgstr ""
+
+#: includes/reports.php:383
+msgid "Ignored episode"
+msgstr ""
+
+#: includes/reports.php:384
+msgid "History only"
+msgstr ""
+
+#: includes/reports.php:428
+#, php-format
+msgid "Deleted destination #%d"
+msgstr ""
+
+#: includes/reports.php:429
+#, php-format
+msgid "%d destinations"
+msgstr ""
+
+#: includes/reports.php:441
 msgid "Delivered"
 msgstr ""
 
-#: includes/reports.php:351
+#: includes/reports.php:441
 msgid "Failed"
 msgstr ""
 
-#: includes/reports.php:351
+#: includes/reports.php:441
 msgid "Pending"
 msgstr ""
 
-#: includes/reports.php:351
+#: includes/reports.php:441
 msgid "Sending"
 msgstr ""
 
-#: includes/reports.php:361
+#: includes/reports.php:451
 msgid "Processing failed"
 msgstr ""
 
-#: includes/reports.php:362
+#: includes/reports.php:452
 msgid "Pending processing"
 msgstr ""
 
-#: includes/reports.php:363 includes/web_view.php:264
+#: includes/reports.php:453 includes/web_view.php:263
 msgid "Processing"
 msgstr ""
 
-#: includes/reports.php:364
+#: includes/reports.php:454
 msgid "No matching integration"
 msgstr ""
 
-#: includes/reports.php:364
+#: includes/reports.php:454
 msgid "Suppressed"
 msgstr ""
 
@@ -743,7 +906,7 @@ msgstr ""
 msgid "Alarm summary"
 msgstr ""
 
-#: includes/routing.php:121 includes/web_view.php:161
+#: includes/routing.php:121 includes/web_view.php:160
 msgid "Severity"
 msgstr ""
 
@@ -771,176 +934,176 @@ msgstr ""
 msgid "Alarm Manager pages"
 msgstr ""
 
-#: includes/web_view.php:149 includes/web_view.php:152
+#: includes/web_view.php:148 includes/web_view.php:151
 msgid "Alarm statistics"
 msgstr ""
 
-#: includes/web_view.php:149
+#: includes/web_view.php:148
 msgid "Filters"
 msgstr ""
 
-#: includes/web_view.php:152
+#: includes/web_view.php:151
 msgid "Time range"
 msgstr ""
 
-#: includes/web_view.php:158
+#: includes/web_view.php:157
 msgid "Off"
 msgstr ""
 
-#: includes/web_view.php:158
+#: includes/web_view.php:157
 msgid "Refresh"
 msgstr ""
 
-#: includes/web_view.php:160
+#: includes/web_view.php:159
 msgid "Advanced filter JSON"
 msgstr ""
 
-#: includes/web_view.php:160
+#: includes/web_view.php:159
 msgid "Filter document"
 msgstr ""
 
-#: includes/web_view.php:160
+#: includes/web_view.php:159
 msgid "Quick filters"
 msgstr ""
 
-#: includes/web_view.php:160
+#: includes/web_view.php:159
 msgid "Search conditions"
 msgstr ""
 
-#: includes/web_view.php:161 includes/web_view.php:181
+#: includes/web_view.php:160 includes/web_view.php:180
 msgid "All"
 msgstr ""
 
-#: includes/web_view.php:161
+#: includes/web_view.php:160
 msgid "Source"
 msgstr ""
 
-#: includes/web_view.php:168
+#: includes/web_view.php:167
 msgid "Device ID"
 msgstr ""
 
-#: includes/web_view.php:171
+#: includes/web_view.php:170
 msgid "Status type"
 msgstr ""
 
-#: includes/web_view.php:190
+#: includes/web_view.php:189
 msgid "event_id"
 msgstr ""
 
-#: includes/web_view.php:195
+#: includes/web_view.php:194
 msgid "Collector ID"
 msgstr ""
 
-#: includes/web_view.php:195
+#: includes/web_view.php:194
 msgid "Local and mirrored collectors"
 msgstr ""
 
-#: includes/web_view.php:198
+#: includes/web_view.php:197
 msgid "mirrored"
 msgstr ""
 
-#: includes/web_view.php:203
+#: includes/web_view.php:202
 msgid "Mirrored events carry no Record ID and no detail view."
 msgstr ""
 
-#: includes/web_view.php:205
+#: includes/web_view.php:204
 msgid "Mirrored collector events are always included here unless you narrow by a specific remote Collector ID."
 msgstr ""
 
-#: includes/web_view.php:211
+#: includes/web_view.php:210
 msgid "Apply"
 msgstr ""
 
-#: includes/web_view.php:211
+#: includes/web_view.php:210
 msgid "Reset"
 msgstr ""
 
-#: includes/web_view.php:213
+#: includes/web_view.php:212
 msgid "Historical window uses UTC. Current conditions and queues ignore the time window."
 msgstr ""
 
-#: includes/web_view.php:235
+#: includes/web_view.php:234
 msgid "Loading statistics…"
 msgstr ""
 
-#: includes/web_view.php:248
+#: includes/web_view.php:247
 msgid "Collapse"
 msgstr ""
 
-#: includes/web_view.php:261
+#: includes/web_view.php:260
 msgid "Integration results"
 msgstr ""
 
-#: includes/web_view.php:262
+#: includes/web_view.php:261
 msgid "Delivery attempts"
 msgstr ""
 
-#: includes/web_view.php:263
+#: includes/web_view.php:262
 msgid "Routing decisions"
 msgstr ""
 
-#: includes/web_view.php:265
+#: includes/web_view.php:264
 msgid "conditions"
 msgstr ""
 
-#: includes/web_view.php:270
+#: includes/web_view.php:269
 msgid "No matching records."
 msgstr ""
 
-#: includes/web_view.php:290
+#: includes/web_view.php:289
 msgid "Integration status"
 msgstr ""
 
-#: includes/web_view.php:291
+#: includes/web_view.php:290
 msgid "Collector Name"
 msgstr ""
 
-#: includes/web_view.php:292
+#: includes/web_view.php:291
 msgid "Attempts in current retry cycle"
 msgstr ""
 
-#: includes/web_view.php:298
+#: includes/web_view.php:297
 msgid "Action"
 msgstr ""
 
-#: includes/web_view.php:314
+#: includes/web_view.php:313
 msgid "Display"
 msgstr ""
 
-#: includes/web_view.php:349
+#: includes/web_view.php:348
 msgid "Latest 100 records for this event."
 msgstr ""
 
-#: includes/web_view.php:354
+#: includes/web_view.php:353
 msgid "Showing at most 50 records per page."
 msgstr ""
 
-#: includes/web_view.php:355
+#: includes/web_view.php:354
 msgid "Pages"
 msgstr ""
 
-#: includes/web_view.php:358
+#: includes/web_view.php:357
 msgid "Previous"
 msgstr ""
 
-#: includes/web_view.php:361
+#: includes/web_view.php:360
 #, php-format
 msgid "Page %d"
 msgstr ""
 
-#: includes/web_view.php:364
+#: includes/web_view.php:363
 msgid "Next"
 msgstr ""
 
-#: includes/web_view.php:371
+#: includes/web_view.php:370
 msgid "Selected event details"
 msgstr ""
 
-#: includes/web_view.php:378
+#: includes/web_view.php:377
 msgid "Show metadata"
 msgstr ""
 
-#: includes/web_view.php:400
+#: includes/web_view.php:399
 msgid "Confirm replay may repeat an external effect"
 msgstr ""
 

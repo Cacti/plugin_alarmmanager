@@ -54,6 +54,35 @@ function alarmmanager_transport_url_validate(string $url, bool $allow_http): str
 
 	return $url;
 }
+/**
+ * CACTI-ALARMMANAGER-MIB notification objects: name => [column under amObjects, snmptrap value type].
+ * @return array<string, array{0: int, 1: string}>
+ */
+function alarmmanager_snmp_objects(): array {
+	return ['amAlarmKey' => [1, 's'], 'amEpisodeId' => [2, 's'], 'amEventId' => [3, 's'], 'amTransition' => [4, 'i'], 'amSeverity' => [5, 'i'], 'amSource' => [6, 's'], 'amDeviceHostname' => [7, 's'], 'amDeviceDescription' => [8, 's'], 'amDeviceId' => [9, 'u'], 'amSummary' => [10, 's'], 'amDetails' => [11, 's'], 'amOccurredAt' => [12, 's'], 'amRuleName' => [13, 's'], 'amMetric' => [14, 's'], 'amMetricValue' => [15, 's'], 'amThreshold' => [16, 's']];
+}
+/** @return array<string, int> RFC 5424 facility codes offered for syslog destinations. */
+function alarmmanager_syslog_facilities(): array {
+	return ['user' => 1, 'daemon' => 3, 'local0' => 16, 'local1' => 17, 'local2' => 18, 'local3' => 19, 'local4' => 20, 'local5' => 21, 'local6' => 22, 'local7' => 23];
+}
+/** Hostname or IP literal for an SNMP or syslog receiver; never a URL or port. */
+function alarmmanager_transport_host(mixed $value): string {
+	$host = alarmmanager_transport_text($value ?? null, 253);
+
+	if (filter_var($host, FILTER_VALIDATE_IP) === false && !preg_match('/\A[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)*\z/D', $host)) {
+		throw new InvalidArgumentException('invalid_transport_host');
+	}
+
+	return $host;
+}
+/** @param list<string> $choices */
+function alarmmanager_transport_choice(mixed $value, array $choices, string $code): string {
+	if (!is_string($value) || !in_array($value, $choices, true)) {
+		throw new InvalidArgumentException($code);
+	}
+
+	return $value;
+}
 function alarmmanager_transport_configuration(string $type, $settings): array {
 	if (!is_array($settings)) {
 		throw new InvalidArgumentException('invalid_transport');
@@ -66,6 +95,8 @@ function alarmmanager_transport_configuration(string $type, $settings): array {
 		'restapi', 'webhook' => ['provider', 'mapping', 'twilio_whatsapp', 'body_encoding', 'teams_workflow', 'url', 'method', 'credential', 'success_codes', 'response_match', 'connect_timeout_seconds', 'allow_http', 'ca_bundle', 'response_reference', 'transition_overrides'],
 		'email'              => ['mapping', 'to', 'from', 'html', 'attachments'],
 		'script'             => ['mapping', 'executable', 'arguments', 'retry_exit_codes', 'compatibility', 'response_reference'],
+		'snmptrap'           => ['mapping', 'credential', 'version', 'host', 'port', 'transport', 'notification', 'security_name', 'security_level', 'auth_protocol', 'priv_protocol', 'engine_id', 'base_oid'],
+		'syslog'             => ['mapping', 'host', 'port', 'protocol', 'format', 'facility', 'app_name', 'ca_bundle'],
 		default              => throw new InvalidArgumentException('unsupported_transport')
 	};
 	alarmmanager_event_keys($settings, $keys);
@@ -249,6 +280,62 @@ function alarmmanager_transport_configuration(string $type, $settings): array {
 
 		if (!in_array($result['compatibility'], ['json', 'syslog_ticket'], true)) {
 			throw new InvalidArgumentException('invalid_script_compatibility');
+		}
+	} elseif ($type === 'snmptrap') {
+		// Community and passphrases live only in the encrypted credential record.
+		$result += ['credential' => true, 'version' => alarmmanager_transport_choice($settings['version'] ?? '2c', ['2c', '3'], 'invalid_snmp_settings'),
+			'host'                  => alarmmanager_transport_host($settings['host'] ?? null),
+			'port'                  => alarmmanager_config_int($settings['port'] ?? 162, 1, 65535),
+			'transport'             => alarmmanager_transport_choice($settings['transport'] ?? 'udp', ['udp', 'tcp', 'udp6', 'tcp6'], 'invalid_snmp_settings'),
+			'notification'          => alarmmanager_transport_choice($settings['notification'] ?? 'trap', ['trap', 'inform'], 'invalid_snmp_settings'),
+			'base_oid'              => $settings['base_oid'] ?? '1.3.6.1.4.1.23925.6'];
+
+		if (!is_string($result['base_oid']) || !preg_match('/\A[0-2](?:\.[0-9]{1,10}){1,100}\z/D', $result['base_oid'])) {
+			throw new InvalidArgumentException('invalid_snmp_settings');
+		}
+
+		if ($result['version'] === '3') {
+			$result += ['security_name' => $settings['security_name'] ?? null,
+				'security_level'           => alarmmanager_transport_choice($settings['security_level'] ?? 'authPriv', ['noAuthNoPriv', 'authNoPriv', 'authPriv'], 'invalid_snmp_settings'),
+				'auth_protocol'            => alarmmanager_transport_choice($settings['auth_protocol'] ?? 'SHA', ['SHA', 'SHA-224', 'SHA-256', 'SHA-384', 'SHA-512'], 'invalid_snmp_settings'),
+				'priv_protocol'            => alarmmanager_transport_choice($settings['priv_protocol'] ?? 'AES', ['AES', 'AES-192', 'AES-256'], 'invalid_snmp_settings'),
+				'engine_id'                => $settings['engine_id'] ?? null];
+
+			if (!is_string($result['security_name']) || !preg_match('/\A[\x21-\x7e]{1,32}\z/D', $result['security_name']) || ($result['engine_id'] !== null && (!is_string($result['engine_id']) || !preg_match('/\A0x[0-9A-Fa-f]{10,64}\z/D', $result['engine_id'])))) {
+				throw new InvalidArgumentException('invalid_snmp_settings');
+			}
+		}
+		$objects = alarmmanager_snmp_objects();
+
+		foreach ($result['mapping'] as $items) {
+			foreach ($items as $item) {
+				if (!isset($objects[$item['to']])) {
+					throw new InvalidArgumentException('invalid_snmp_mapping');
+				}
+			}
+		}
+	} elseif ($type === 'syslog') {
+		$result += ['host' => alarmmanager_transport_host($settings['host'] ?? null),
+			'protocol'        => alarmmanager_transport_choice($settings['protocol'] ?? 'udp', ['udp', 'tcp', 'tls'], 'invalid_syslog_settings'),
+			'format'          => alarmmanager_transport_choice($settings['format'] ?? 'rfc5424', ['rfc5424', 'rfc3164'], 'invalid_syslog_settings'),
+			'facility'        => alarmmanager_transport_choice($settings['facility'] ?? 'local0', array_keys(alarmmanager_syslog_facilities()), 'invalid_syslog_settings'),
+			'app_name'        => $settings['app_name'] ?? 'cacti-alarmmanager',
+			'ca_bundle'       => $settings['ca_bundle'] ?? null];
+		$result['port'] = alarmmanager_config_int($settings['port'] ?? ($result['protocol'] === 'tls' ? 6514 : 514), 1, 65535);
+
+		if (!is_string($result['app_name']) || !preg_match('/\A[\x21-\x7e]{1,48}\z/D', $result['app_name'])) {
+			throw new InvalidArgumentException('invalid_syslog_settings');
+		}
+		$ca = $result['ca_bundle'];
+
+		if ($ca !== null && (!is_string($ca) || !str_starts_with($ca, '/') || strlen($ca) > 1024 || preg_match('/[\x00-\x1f]/', $ca) || $result['protocol'] !== 'tls')) {
+			throw new InvalidArgumentException('invalid_ca_bundle');
+		}
+
+		foreach ($result['mapping'] as $items) {
+			if (array_diff(array_column($items, 'to'), ['message'])) {
+				throw new InvalidArgumentException('invalid_syslog_mapping');
+			}
 		}
 	}
 

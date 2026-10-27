@@ -305,7 +305,7 @@ function alarmmanager_configuration(array $configuration): array {
 			if ($section === 'endpoints') {
 				alarmmanager_event_keys($item, ['id', 'name', 'type', 'enabled', 'max_concurrency', 'min_interval_ms', 'timeout_seconds', 'max_attempts', 'transport']);
 
-				if (!in_array($item['type'] ?? null, ['restapi', 'webhook', 'email', 'script', 'websocket'], true)) {
+				if (!in_array($item['type'] ?? null, ['restapi', 'webhook', 'email', 'script', 'snmptrap', 'syslog', 'websocket'], true)) {
 					throw new InvalidArgumentException('invalid_destination');
 				}
 				$result[$section][$id] = ['id' => $id, 'name' => $name, 'enabled' => $enabled, 'type' => $item['type'],

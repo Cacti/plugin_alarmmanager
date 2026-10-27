@@ -15,13 +15,22 @@ const assert=require('node:assert/strict');
   const draftName='Browser script draft '+Date.now();
   const initial=await page.locator('details.alarmmanagerDashboardCard').count();
   check(await page.getByText('New endpoint',{exact:true}).count()===0,'Loading the section shows no blank endpoint draft');
-  const addIntegration=page.getByRole('button',{name:'Add Integration',exact:true});
-  check(await addIntegration.count()===1,'Add Integration button sits next to the template dropdown');
-  for(const template of ['webhook','restapi','script']) {
-   await page.locator('[name=integration_template]').selectOption(template);
-   check(page.url()===admin+'?section=endpoints','Changing the template dropdown does not open the draft form');
-   await addIntegration.click();
+  const gallery=page.locator('details.alarmmanagerTemplateGallery');
+  check(await gallery.count()===1&&await page.locator('[name=integration_template]').count()===0,'Templates use the card gallery instead of a dropdown');
+  /** Open the gallery and choose a template card, as an administrator would. */
+  const chooseTemplate=async(template)=>{
+   if(!(await gallery.evaluate(el=>el.open)))await gallery.locator('summary').click();
+   await gallery.locator('a.alarmmanagerTemplateCard[href$="integration_template='+template+'"]').click();
    await page.waitForURL('**integration_template='+template,{timeout:5000});
+  };
+  await gallery.locator('summary').click();
+  await gallery.locator('[data-template-search]').fill('syslog');
+  check(await gallery.locator('a.alarmmanagerTemplateCard:visible').count()===1,'Search narrows the gallery to matching cards');
+  await gallery.locator('[data-template-search]').fill('no such integration');
+  check(await gallery.locator('.alarmmanagerTemplateEmpty').isVisible(),'Search explains when nothing matches');
+  await gallery.locator('[data-template-search]').fill('');
+  for(const template of ['webhook','restapi','script']) {
+   await chooseTemplate(template);
    const draft=page.locator('details.alarmmanagerDashboardCard').last();
    check(!(await draft.locator('[name=enabled]').isChecked()),'Template starts disabled');
    check(await page.locator('details.alarmmanagerDashboardCard').count()===initial+1,'Template selection shows exactly one draft and preserves saved integrations');
@@ -40,9 +49,7 @@ const assert=require('node:assert/strict');
   // A provider preset that preselects credential authentication saves the draft
   // before any secret exists; the credential record is attached afterwards.
   const presetName='Preset draft '+Date.now();
-  await page.locator('[name=integration_template]').selectOption('slack');
-  await addIntegration.click();
-  await page.waitForURL('**integration_template=slack',{timeout:5000});
+  await chooseTemplate('slack');
   const preset=page.locator('details.alarmmanagerDashboardCard').last();
   check((await preset.locator('[name=auth_type]').inputValue())==='bearer','Slack preset preselects bearer authentication');
   await preset.locator('[name=name]').fill(presetName);
@@ -53,9 +60,7 @@ const assert=require('node:assert/strict');
   check(!(await presetSaved.locator('[name=enabled]').isChecked()),'Preset draft stays disabled');
   // Choosing a template and then Cancel removes the unsaved draft entirely.
   const beforeCancel=await page.locator('details.alarmmanagerDashboardCard').count();
-  await page.locator('[name=integration_template]').selectOption('telegram');
-  await addIntegration.click();
-  await page.waitForURL('**integration_template=telegram',{timeout:5000});
+  await chooseTemplate('telegram');
   check(await page.locator('details.alarmmanagerDashboardCard').count()===beforeCancel+1,'Cancelled-template draft appears exactly once');
   await page.locator('details.alarmmanagerDashboardCard').last().getByRole('link',{name:'Cancel',exact:true}).click();
   await page.waitForURL(admin,{timeout:5000});
