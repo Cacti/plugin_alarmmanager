@@ -98,7 +98,7 @@ function alarmmanager_claim_processing(int $lease_seconds = 180): ?array {
 	});
 }
 function alarmmanager_claim_delivery(array $supported_types, int $lease_seconds = 180): ?array {
-	$types = array_values(array_intersect(['restapi', 'webhook', 'email', 'script', 'websocket'], $supported_types));
+	$types = array_values(array_intersect(['restapi', 'webhook', 'email', 'script', 'snmptrap', 'syslog', 'websocket'], $supported_types));
 
 	if (!$types || !alarmmanager_runtime_enabled() || alarmmanager_notifications_paused()) {
 		return null;
@@ -112,17 +112,17 @@ function alarmmanager_claim_delivery(array $supported_types, int $lease_seconds 
 			AND (SELECT COUNT(*) FROM plugin_alarmmanager_deliveries AS active WHERE active.endpoint_id = ep.id AND active.status = 'leased' AND active.lease_until > UTC_TIMESTAMP(6)) < ep.max_concurrency
 			AND EXISTS (SELECT 1 FROM plugin_alarmmanager_deliveries AS d INNER JOIN plugin_alarmmanager_events AS e ON e.id = d.event_row_id
 				WHERE d.endpoint_id = ep.id AND d.status = 'pending' AND d.attempts < ep.max_attempts AND d.available_at <= UTC_TIMESTAMP(6) AND e.processing_poller_id = ?
-				AND NOT EXISTS (SELECT 1 FROM plugin_alarmmanager_deliveries AS prior WHERE prior.endpoint_id = d.endpoint_id AND prior.stream_key = d.stream_key
+				AND NOT EXISTS (SELECT 1 FROM plugin_alarmmanager_deliveries AS prior WHERE prior.endpoint_id = d.endpoint_id AND prior.stream_key = d.stream_key AND prior.recipient = d.recipient
 					AND prior.status IN ('pending', 'leased') AND (prior.sequence < d.sequence OR (prior.sequence = d.sequence AND prior.id < d.id))))
 			ORDER BY ep.last_claim_at, ep.id LIMIT 1 FOR UPDATE SKIP LOCKED", [...$types, alarmmanager_local_poller()]);
 
 		if (!$endpoint) {
 			return null;
 		}
-		$job = alarmmanager_db_row("SELECT d.id, d.event_row_id, d.attempts, d.idempotency_key FROM plugin_alarmmanager_deliveries AS d
+		$job = alarmmanager_db_row("SELECT d.id, d.event_row_id, d.attempts, d.idempotency_key, d.recipient FROM plugin_alarmmanager_deliveries AS d
 			INNER JOIN plugin_alarmmanager_events AS e ON e.id = d.event_row_id
 			WHERE d.endpoint_id = ? AND d.status = 'pending' AND d.attempts < ? AND d.available_at <= UTC_TIMESTAMP(6) AND e.processing_poller_id = ?
-			AND NOT EXISTS (SELECT 1 FROM plugin_alarmmanager_deliveries AS prior WHERE prior.endpoint_id = d.endpoint_id AND prior.stream_key = d.stream_key
+			AND NOT EXISTS (SELECT 1 FROM plugin_alarmmanager_deliveries AS prior WHERE prior.endpoint_id = d.endpoint_id AND prior.stream_key = d.stream_key AND prior.recipient = d.recipient
 				AND prior.status IN ('pending', 'leased') AND (prior.sequence < d.sequence OR (prior.sequence = d.sequence AND prior.id < d.id)))
 			ORDER BY (d.priority + FLOOR(TIMESTAMPDIFF(SECOND, d.created_at, UTC_TIMESTAMP()) / 30)) DESC, d.id LIMIT 1 FOR UPDATE SKIP LOCKED", [$endpoint['id'], (int) $endpoint['max_attempts'], alarmmanager_local_poller()]);
 
@@ -137,7 +137,7 @@ function alarmmanager_claim_delivery(array $supported_types, int $lease_seconds 
 		alarmmanager_db_write('INSERT INTO plugin_alarmmanager_attempts (delivery_id, attempt_number, lease_token, started_at) VALUES (?, ?, ?, UTC_TIMESTAMP(6))', [$job['id'], (int) $next_attempt['number'], $token]);
 
 		return ['id' => (int) $job['id'], 'event_row_id' => (int) $job['event_row_id'], 'lease_token' => $token,
-			'attempts'  => (int) $job['attempts'] + 1, 'idempotency_key' => $job['idempotency_key'], 'endpoint' => $endpoint];
+			'recipient' => $job['recipient'] ?? '', 'attempts'  => (int) $job['attempts'] + 1, 'idempotency_key' => $job['idempotency_key'], 'endpoint' => $endpoint];
 	});
 }
 function alarmmanager_retry_delay(int $attempt): int {

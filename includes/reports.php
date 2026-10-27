@@ -62,6 +62,16 @@ function alarmmanager_report_query_fields(string $kind = 'dashboard', string $se
 		$fields[$key] = ['label' => $label, 'column' => $column, 'type' => $type, 'operators' => $type === 'integer' ? $number : $text];
 	}
 
+	if ($kind === 'events') {
+		// Routing decisions are matched per event: any decision for the event may satisfy the condition.
+		$decision = 'plugin_alarmmanager_decisions AS r WHERE r.event_row_id = e.id';
+		$fields += [
+			'decision_reason' => ['label' => 'Routing decision', 'column' => 'r.reason', 'exists' => $decision, 'operators' => ['='], 'choices' => array_keys(alarmmanager_decision_labels())],
+			'rule_id'         => ['label' => 'Rule ID', 'column' => 'r.rule_id', 'exists' => $decision, 'operators' => ['='], 'type' => 'integer'],
+			'destination_id'  => ['label' => 'Destination ID', 'column' => 'r.endpoint_id', 'exists' => $decision, 'operators' => ['='], 'type' => 'integer']
+		];
+	}
+
 	return $fields;
 }
 
@@ -182,13 +192,13 @@ function alarmmanager_report_list(string $kind, array $scope, array $filters): a
 
 			break;
 		case 'deliveries': $base = 'plugin_alarmmanager_deliveries AS d INNER JOIN plugin_alarmmanager_events AS e ON e.id = d.event_row_id LEFT JOIN plugin_alarmmanager_endpoints AS ep ON ep.id = d.endpoint_id';
-			$columns                = 'd.id, d.event_row_id, d.created_at, d.updated_at, d.endpoint_id, COALESCE(ep.name, CONCAT(\'Deleted endpoint #\', d.endpoint_id)) AS endpoint, d.status, d.attempts, d.last_error, JSON_UNQUOTE(JSON_EXTRACT(d.external_reference, \'$.id\')) AS external_id, JSON_UNQUOTE(JSON_EXTRACT(d.external_reference, \'$.url\')) AS external_url, JSON_UNQUOTE(JSON_EXTRACT(e.payload, \'$.summary\')) AS summary, e.device_id';
+			$columns                = 'd.id, d.recipient, d.event_row_id, d.created_at, d.updated_at, d.endpoint_id, COALESCE(ep.name, CONCAT(\'Deleted endpoint #\', d.endpoint_id)) AS endpoint, d.status, d.attempts, d.last_error, JSON_UNQUOTE(JSON_EXTRACT(d.external_reference, \'$.id\')) AS external_id, JSON_UNQUOTE(JSON_EXTRACT(d.external_reference, \'$.url\')) AS external_url, JSON_UNQUOTE(JSON_EXTRACT(e.payload, \'$.summary\')) AS summary, e.device_id';
 			$order                  = 'd.id';
 			$time                   = 'd.created_at';
 
 			break;
 		case 'attempts': $base = 'plugin_alarmmanager_attempts AS a INNER JOIN plugin_alarmmanager_deliveries AS d ON d.id = a.delivery_id INNER JOIN plugin_alarmmanager_events AS e ON e.id = d.event_row_id';
-			$columns              = 'a.id, a.delivery_id, a.attempt_number, a.outcome, a.code, a.started_at, a.duration_ms, d.endpoint_id, e.id AS event_row_id, e.device_id';
+			$columns              = 'a.id, a.delivery_id, d.recipient, a.attempt_number, a.outcome, a.code, a.started_at, a.duration_ms, d.endpoint_id, e.id AS event_row_id, e.device_id';
 			$order                = 'a.id';
 			$time                 = 'a.started_at';
 
@@ -268,6 +278,11 @@ function alarmmanager_report_list(string $kind, array $scope, array $filters): a
 		$where .= ' AND r.reason = ?';
 		$params[] = $filters['reason'];
 	}
+
+	if ($filters['reason'] !== '' && $kind === 'events') {
+		$where .= ' AND EXISTS (SELECT 1 FROM plugin_alarmmanager_decisions AS r WHERE r.event_row_id = e.id AND r.reason = ?)';
+		$params[] = $filters['reason'];
+	}
 	$base .= ' LEFT JOIN poller AS collector ON collector.id = e.collector_id';
 	$columns .= ", e.collector_id, COALESCE(NULLIF(collector.name, ''), CONCAT('Poller #', e.collector_id)) AS collector_name";
 	$offset = ($filters['page'] - 1) * 50;
@@ -286,8 +301,9 @@ function alarmmanager_report_list(string $kind, array $scope, array $filters): a
 				. "JSON_UNQUOTE(JSON_EXTRACT(h.definition, '\$.event_id')) AS event_id, "
 				. "JSON_UNQUOTE(JSON_EXTRACT($payload, '\$.summary')) AS `summary`, "
 				. "$payload AS payload, "
-				. "h.poller_id AS collector_id, COALESCE(NULLIF(remote_poller.name, ''), CONCAT('Poller #', h.poller_id)) AS collector_name";
-			$sql = "SELECT * FROM ((SELECT $columns FROM $base WHERE $where)"
+				. "h.poller_id AS collector_id, COALESCE(NULLIF(remote_poller.name, ''), CONCAT('Poller #', h.poller_id)) AS collector_name, "
+				. 'h.entity_id AS remote_entity_id, h.instance_uuid AS remote_instance_uuid';
+			$sql = "SELECT * FROM ((SELECT $columns, NULL AS remote_entity_id, NULL AS remote_instance_uuid FROM $base WHERE $where)"
 				. " UNION ALL (SELECT $remote_columns FROM plugin_alarmmanager_remote_history AS h LEFT JOIN poller AS remote_poller ON remote_poller.id = h.poller_id WHERE h.entity = 'event'$remote_gate AND h.received_at >= ? AND h.received_at < ?)) AS report"
 				. ' ORDER BY report.received_at DESC, report.collector_id DESC, report.id DESC LIMIT 51 OFFSET ' . $offset;
 		} elseif ($kind === 'conditions') {
@@ -321,8 +337,12 @@ function alarmmanager_report_list(string $kind, array $scope, array $filters): a
 		// PDO can return BIGINT identifiers as strings; NULL identifies remote history.
 		$ids = array_values(array_filter(array_map('intval', array_column($rows, 'id'))));
 
-		foreach ($rows as &$row) {
+		$routing = alarmmanager_report_routing($rows, $ids);
+
+		foreach ($rows as $index => &$row) {
+			$row['routing']            = $routing[$index];
 			$row['integration_status'] = $row['id'] === null ? __('Remote history', 'alarmmanager') : '';
+			unset($row['remote_entity_id'], $row['remote_instance_uuid']);
 		}
 		unset($row);
 
@@ -345,6 +365,76 @@ function alarmmanager_report_list(string $kind, array $scope, array $filters): a
 	}
 
 	return ['rows' => $rows, 'more' => $more, 'page' => $filters['page']];
+}
+/** @return array<string, string> Decision reason => short label for the Events Routing column. */
+function alarmmanager_decision_labels(): array {
+	return [
+		'queued'             => __('Queued', 'alarmmanager'),
+		'explicit_test_send' => __('Test send', 'alarmmanager'),
+		'no_route'           => __('No matching rule', 'alarmmanager'),
+		'endpoint_disabled'  => __('Destination disabled', 'alarmmanager'),
+		'source_suppressed'  => __('Suppressed by source', 'alarmmanager'),
+		'maintenance'        => __('Maintenance window', 'alarmmanager'),
+		'acknowledged'       => __('Acknowledged', 'alarmmanager'),
+		'cooldown'           => __('Cooldown', 'alarmmanager'),
+		'duplicate'          => __('Duplicate', 'alarmmanager'),
+		'duplicate_route'    => __('Already routed', 'alarmmanager'),
+		'stale'              => __('Out of order', 'alarmmanager'),
+		'ignored_episode'    => __('Ignored episode', 'alarmmanager'),
+		'historical_only'    => __('History only', 'alarmmanager')
+	];
+}
+/**
+ * One routing summary per report row, from local decisions or a collector's mirrored decisions.
+ * @param  list<array<string, mixed>> $rows
+ * @param  list<int>                  $ids  Local event row IDs on this page.
+ * @return list<string>
+ */
+function alarmmanager_report_routing(array $rows, array $ids): array {
+	$decisions = [];
+
+	if ($ids) {
+		foreach (alarmmanager_report_rows('SELECT event_row_id, endpoint_id, reason FROM plugin_alarmmanager_decisions WHERE event_row_id IN (' . implode(',', array_fill(0, count($ids), '?')) . ') ORDER BY id', $ids) as $decision) {
+			$decisions['local:' . $decision['event_row_id']][] = $decision;
+		}
+	}
+	$remote = array_filter($rows, static fn (array $row): bool => isset($row['remote_entity_id']));
+
+	if ($remote) {
+		// Mirrored decisions arrive in the same sync batches as their events; the time bound keeps the scan on remote_recent.
+		$params = [min(array_column($remote, 'received_at')), ...array_values(array_unique(array_map('intval', array_column($remote, 'collector_id'))))];
+
+		foreach (alarmmanager_report_rows("SELECT poller_id, instance_uuid, JSON_UNQUOTE(JSON_EXTRACT(definition, '$.event_row_id')) AS event_row_id, JSON_UNQUOTE(JSON_EXTRACT(definition, '$.endpoint_id')) AS endpoint_id, JSON_UNQUOTE(JSON_EXTRACT(definition, '$.reason')) AS reason FROM plugin_alarmmanager_remote_history WHERE entity = 'decision' AND received_at >= ? - INTERVAL 1 HOUR AND poller_id IN (" . implode(',', array_fill(0, count($params) - 1, '?')) . ') ORDER BY entity_id', $params) as $decision) {
+			$decisions['remote:' . $decision['poller_id'] . ':' . $decision['instance_uuid'] . ':' . $decision['event_row_id']][] = $decision;
+		}
+	}
+	$names  = array_column(alarmmanager_report_rows('SELECT id, name FROM plugin_alarmmanager_endpoints'), 'name', 'id');
+	$labels = alarmmanager_decision_labels();
+	$result = [];
+
+	foreach ($rows as $row) {
+		$key   = isset($row['remote_entity_id']) ? 'remote:' . $row['collector_id'] . ':' . $row['remote_instance_uuid'] . ':' . $row['remote_entity_id'] : 'local:' . $row['id'];
+		$parts = [];
+
+		// Group destinations by reason: "Queued → Slack" or "Cooldown → 2 destinations".
+		foreach ($decisions[$key] ?? [] as $decision) {
+			$parts[$decision['reason']][] = (int) $decision['endpoint_id'];
+		}
+
+		foreach ($parts as $reason => &$endpoints) {
+			$endpoints = array_values(array_filter(array_unique($endpoints)));
+			$target    = match (count($endpoints)) {
+				0       => '',
+				1       => ' → ' . ($names[$endpoints[0]] ?? __('Deleted destination #%d', $endpoints[0], 'alarmmanager')),
+				default => ' → ' . __('%d destinations', count($endpoints), 'alarmmanager')
+			};
+			$endpoints = ($labels[$reason] ?? $reason) . $target;
+		}
+		unset($endpoints);
+		$result[] = $parts ? implode(' · ', $parts) : '—';
+	}
+
+	return $result;
 }
 /** @param array<string, int> $counts */
 function alarmmanager_integration_status(array $counts, string $processing, bool $suppressed): string {
@@ -384,8 +474,8 @@ function alarmmanager_event_detail(array $scope, array $filters): ?array {
 	$event['_row_id']   = $id;
 	$event['_workflow'] = [
 		'processing' => alarmmanager_report_rows('SELECT id, status, attempts, last_error, created_at, available_at FROM plugin_alarmmanager_jobs WHERE event_row_id = ? LIMIT 1', [$id]),
-		'deliveries' => alarmmanager_report_rows("SELECT d.id, COALESCE(ep.name, CONCAT('Deleted endpoint #', d.endpoint_id)) AS integration, d.status, d.attempts, d.last_error, JSON_UNQUOTE(JSON_EXTRACT(d.external_reference, '$.id')) AS external_id, JSON_UNQUOTE(JSON_EXTRACT(d.external_reference, '$.url')) AS external_url, d.updated_at FROM plugin_alarmmanager_deliveries AS d LEFT JOIN plugin_alarmmanager_endpoints AS ep ON ep.id = d.endpoint_id WHERE d.event_row_id = ? ORDER BY d.id DESC LIMIT 100", [$id]),
-		'attempts'   => alarmmanager_report_rows("SELECT a.id, a.delivery_id, COALESCE(ep.name, CONCAT('Deleted endpoint #', d.endpoint_id)) AS integration, a.attempt_number, a.outcome, a.code, a.duration_ms, a.started_at FROM plugin_alarmmanager_attempts AS a INNER JOIN plugin_alarmmanager_deliveries AS d ON d.id = a.delivery_id LEFT JOIN plugin_alarmmanager_endpoints AS ep ON ep.id = d.endpoint_id WHERE d.event_row_id = ? ORDER BY a.id DESC LIMIT 100", [$id]),
+		'deliveries' => alarmmanager_report_rows("SELECT d.id, d.recipient, COALESCE(ep.name, CONCAT('Deleted endpoint #', d.endpoint_id)) AS integration, d.status, d.attempts, d.last_error, JSON_UNQUOTE(JSON_EXTRACT(d.external_reference, '$.id')) AS external_id, JSON_UNQUOTE(JSON_EXTRACT(d.external_reference, '$.url')) AS external_url, d.updated_at FROM plugin_alarmmanager_deliveries AS d LEFT JOIN plugin_alarmmanager_endpoints AS ep ON ep.id = d.endpoint_id WHERE d.event_row_id = ? ORDER BY d.id DESC LIMIT 100", [$id]),
+		'attempts'   => alarmmanager_report_rows("SELECT a.id, a.delivery_id, d.recipient, COALESCE(ep.name, CONCAT('Deleted endpoint #', d.endpoint_id)) AS integration, a.attempt_number, a.outcome, a.code, a.duration_ms, a.started_at FROM plugin_alarmmanager_attempts AS a INNER JOIN plugin_alarmmanager_deliveries AS d ON d.id = a.delivery_id LEFT JOIN plugin_alarmmanager_endpoints AS ep ON ep.id = d.endpoint_id WHERE d.event_row_id = ? ORDER BY a.id DESC LIMIT 100", [$id]),
 		'decisions'  => alarmmanager_report_rows('SELECT rule_id, endpoint_id, reason, created_at FROM plugin_alarmmanager_decisions WHERE event_row_id = ? ORDER BY id DESC LIMIT 100', [$id])
 	];
 

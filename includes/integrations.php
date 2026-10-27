@@ -64,9 +64,19 @@ function alarmmanager_integration_templates(): array {
 	];
 
 	return [
-		'webhook' => ['name' => 'Generic webhook', 'type' => 'webhook', 'transport' => $http],
-		'restapi' => ['name' => 'Generic REST API', 'type' => 'restapi', 'transport' => $http],
-		'script'  => ['name' => 'JSON script', 'type' => 'script', 'transport' => ['executable' => '/usr/local/bin/process_alarm.py', 'arguments' => [], 'compatibility' => 'json', 'retry_exit_codes' => [75], 'mapping' => $mapping]],
+		'webhook'  => ['name' => 'Generic webhook', 'type' => 'webhook', 'transport' => $http],
+		'restapi'  => ['name' => 'Generic REST API', 'type' => 'restapi', 'transport' => $http],
+		'script'   => ['name' => 'JSON script', 'type' => 'script', 'transport' => ['executable' => '/usr/local/bin/process_alarm.py', 'arguments' => [], 'compatibility' => 'json', 'retry_exit_codes' => [75], 'mapping' => $mapping]],
+		'snmptrap' => ['name' => 'SNMP trap', 'type' => 'snmptrap',
+			'hint'               => 'Replace the receiver host and enter the community or SNMPv3 passphrases. Traps use Cacti\'s CACTI-MIB cactiNotify notification; its cactiEventDescription starts with the severity and state and ends with the alarm key, so the receiver can pair a raise with its recovery. Add one destination per receiver. A trap is confirmed only as sent; choose INFORM for receiver acknowledgement.',
+			'transport'          => ['host' => 'trap-receiver.example.invalid', 'version' => '2c', 'mapping' => ['default' => [
+				['to' => 'message', 'source' => 'alarm.summary', 'type' => 'string', 'required' => true]
+			]]]],
+		'syslog' => ['name' => 'Syslog', 'type' => 'syslog',
+			'hint'             => 'Replace the receiver host. RFC 5424 adds structured data [alarm@23925 key=… severity=…] so the receiver can correlate raise and recovery; RFC 3164 sends the message text only. Use TLS on port 6514 where the receiver supports it. UDP messages are confirmed only as sent.',
+			'transport'        => ['host' => 'syslog-receiver.example.invalid', 'protocol' => 'udp', 'format' => 'rfc5424', 'mapping' => ['default' => [
+				['to' => 'message', 'template' => alarmmanager_message_template(), 'type' => 'string', 'required' => true]
+			]]]],
 		'slack'   => ['name' => 'Slack message', 'type' => 'webhook', 'auth' => 'bearer',
 			'hint'              => 'Enter the bot token under Authentication and replace the channel constant before enabling the endpoint.',
 			'transport'         => ['url' => 'https://slack.com/api/chat.postMessage', 'method' => 'POST', 'credential' => true, 'response_match' => ['path' => 'ok', 'equals' => true], 'mapping' => ['default' => [
@@ -77,6 +87,22 @@ function alarmmanager_integration_templates(): array {
 			'hint'            => 'In Teams Workflows, create Send webhook alerts to a channel with Anyone authentication. Sign in, select the channel, and add a co-owner. Paste the generated URL under Authentication. Save the disabled draft, review Preview, then enable and Test destination. Check workflow run history and the channel: HTTP acceptance does not confirm a Teams post. Tenant-authenticated triggers are not supported.',
 			'transport'       => ['url' => 'https://teams.workflow.invalid', 'method' => 'POST', 'credential' => true, 'teams_workflow' => true, 'mapping' => ['default' => [
 				['to' => 'text', 'template' => alarmmanager_message_template() . "\nSource: {{event.source}}\nCollector: {{event.collector_id}} {{device.collector_name}}\nEpisode: {{alarm.episode_id}}\nAlarm key: {{alarm.key}}", 'type' => 'string', 'required' => true]
+			]]]],
+		'twilio' => ['name' => 'Twilio SMS', 'type' => 'restapi', 'auth' => 'basic',
+			'hint'             => 'Replace REPLACE-WITH-ACCOUNT-SID in the URL with your AC Account SID. Under Basic authentication, use an API Key SID and secret (recommended), or the Account SID and Auth Token. Set From to your Twilio sender and To to the recipient in E.164 format. Keep Body within 1,600 characters; long SMS messages incur multiple segment charges. HTTP 201 means Twilio accepted the message, not handset delivery. Check Twilio Messaging logs. Retries after an uncertain response can send duplicates.',
+			'transport'        => ['url' => 'https://api.twilio.com/2010-04-01/Accounts/REPLACE-WITH-ACCOUNT-SID/Messages.json', 'method' => 'POST', 'body_encoding' => 'form', 'credential' => true, 'success_codes' => [201], 'response_reference' => ['id' => 'sid'], 'mapping' => ['default' => [
+				['to' => 'From', 'constant' => 'REPLACE-WITH-TWILIO-NUMBER', 'type' => 'string', 'required' => true],
+				['to' => 'To', 'constant' => 'REPLACE-WITH-RECIPIENT-NUMBER', 'type' => 'string', 'required' => true],
+				['to' => 'Body', 'template' => '{{device.hostname}}: {{alarm.summary}} ({{alarm.severity}}, {{alarm.transition}})', 'type' => 'string', 'required' => true]
+			]]]],
+		'twilio_whatsapp' => ['name' => 'Twilio WhatsApp', 'type' => 'restapi', 'auth' => 'basic',
+			'hint'                      => 'Use your Account SID in the URL and API Key SID/secret under Basic authentication. Set From and To to whatsapp:+E.164 addresses, MessagingServiceSid to your MG service, and ContentSid to an approved HX template such as Cacti alarm: {{1}}. The Combined text field supplies template variable 1. Recipients must opt in. HTTP 201 confirms acceptance only; check Twilio Messaging logs. Retries can send duplicates.',
+			'transport'                 => ['url' => 'https://api.twilio.com/2010-04-01/Accounts/REPLACE-WITH-ACCOUNT-SID/Messages.json', 'method' => 'POST', 'body_encoding' => 'form', 'twilio_whatsapp' => true, 'credential' => true, 'success_codes' => [201], 'response_reference' => ['id' => 'sid'], 'mapping' => ['default' => [
+				['to' => 'From', 'constant' => 'whatsapp:REPLACE-WITH-TWILIO-NUMBER', 'type' => 'string', 'required' => true],
+				['to' => 'To', 'constant' => 'whatsapp:REPLACE-WITH-RECIPIENT-NUMBER', 'type' => 'string', 'required' => true],
+				['to' => 'MessagingServiceSid', 'constant' => 'REPLACE-WITH-MESSAGING-SERVICE-SID', 'type' => 'string', 'required' => true],
+				['to' => 'ContentSid', 'constant' => 'REPLACE-WITH-CONTENT-SID', 'type' => 'string', 'required' => true],
+				['to' => 'text', 'template' => '{{device.hostname}}: {{alarm.summary}} ({{alarm.severity}}, {{alarm.transition}})', 'type' => 'string', 'required' => true]
 			]]]],
 		'telegram' => ['name' => 'Telegram bot', 'type' => 'webhook',
 			'hint'               => 'Replace the bot token in the URL and the chat ID constant before enabling; no credential record is used.',
@@ -256,6 +282,20 @@ function alarmmanager_delivery_reference(array $event, int $endpoint_id, ?array 
  */
 function alarmmanager_notification_payload(array $settings, array $event, array $reference = []): stdClass {
 	$payload = alarmmanager_map_payload($settings['mapping'], $event, $reference);
+
+	if (($settings['provider'] ?? '') === 'pagerduty') {
+		$payload->routing_key = '[REDACTED]';
+	}
+
+	if (!empty($settings['twilio_whatsapp'])) {
+		if (!is_string($payload->text ?? null) || trim($payload->text) === '' || isset($payload->Body) || isset($payload->ContentVariables)) {
+			throw new InvalidArgumentException('invalid_twilio_message');
+		}
+		// shortcut: WhatsApp uses variable 1; extend when multi-variable templates are needed.
+		// WhatsApp template variables cannot contain line breaks or tabs.
+		$payload->ContentVariables = json_encode(['1' => preg_replace('/\s+/u', ' ', trim($payload->text))], JSON_THROW_ON_ERROR);
+		unset($payload->text);
+	}
 
 	if (!empty($settings['teams_workflow'])) {
 		if (!is_string($payload->text ?? null) || $payload->text === '') {

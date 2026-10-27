@@ -53,9 +53,11 @@ function alarmmanager_admin_transport_fields(string $type, array $transport, arr
 		return $transport;
 	}
 	$keys = match ($type) {
-		'restapi', 'webhook' => ['teams_workflow', 'url', 'method', 'ca_bundle', 'credential', 'allow_http', 'success_codes', 'response_match', 'connect_timeout_seconds', 'response_reference', 'transition_overrides'],
+		'restapi', 'webhook' => ['provider', 'twilio_whatsapp', 'body_encoding', 'teams_workflow', 'url', 'method', 'ca_bundle', 'credential', 'allow_http', 'success_codes', 'response_match', 'connect_timeout_seconds', 'response_reference', 'transition_overrides'],
 		'email'              => ['to', 'from', 'html', 'attachments'],
 		'script'             => ['executable', 'arguments', 'compatibility', 'retry_exit_codes', 'response_reference'],
+		'snmptrap'           => [],
+		'syslog'             => [],
 		default              => []
 	};
 	$transport = array_intersect_key($transport, array_flip($keys));
@@ -85,6 +87,31 @@ function alarmmanager_admin_transport_fields(string $type, array $transport, arr
 		$transport['executable']    = $input['script_executable'] ?? '';
 		$transport['arguments']     = alarmmanager_admin_json($input['script_arguments'] ?? '[]');
 		$transport['compatibility'] = 'json';
+	} elseif ($type === 'snmptrap') {
+		$transport += ['host' => $input['snmp_host'] ?? '', 'port' => alarmmanager_admin_int($input['snmp_port'] ?? 162, 1, 65535)];
+
+		foreach (['version', 'transport', 'notification'] as $key) {
+			$transport[$key] = $input['snmp_' . $key] ?? '';
+		}
+
+		if ($transport['version'] === '3') {
+			foreach (['security_name', 'security_level', 'auth_protocol', 'priv_protocol'] as $key) {
+				$transport[$key] = $input['snmp_' . $key] ?? '';
+			}
+
+			if (($input['snmp_engine_id'] ?? '') !== '') {
+				$transport['engine_id'] = $input['snmp_engine_id'];
+			}
+		}
+	} elseif ($type === 'syslog') {
+		foreach (['host', 'protocol', 'format', 'facility', 'app_name'] as $key) {
+			$transport[$key] = $input['syslog_' . $key] ?? '';
+		}
+		$transport['port'] = alarmmanager_admin_int($input['syslog_port'] ?? 514, 1, 65535);
+
+		if (($input['syslog_ca_bundle'] ?? '') !== '') {
+			$transport['ca_bundle'] = $input['syslog_ca_bundle'];
+		}
 	}
 
 	return $transport;
@@ -195,6 +222,32 @@ function alarmmanager_admin_rule_policy(array $input): array {
 		$policy[$field] = alarmmanager_admin_int($input[$field] ?? 0, 0, 86400);
 	}
 
+	$recipients = $input['recipient_numbers'] ?? [];
+
+	if (!is_array($recipients) || count($recipients) > 32) {
+		throw new InvalidArgumentException('invalid_twilio_recipients');
+	}
+	$destinations = $input['endpoints'] ?? [];
+
+	if (!is_array($destinations) || !array_is_list($destinations) || count($destinations) > 32) {
+		throw new InvalidArgumentException('invalid_twilio_recipients');
+	}
+	$destinations = array_map(static fn ($id) => alarmmanager_admin_int($id), $destinations);
+
+	foreach ($recipients as $id => $text) {
+		if (!is_string($text) || strlen($text) > 2048) {
+			throw new InvalidArgumentException('invalid_twilio_recipients');
+		}
+
+		if (!in_array(alarmmanager_admin_int($id), $destinations, true)) {
+			continue;
+		}
+		$numbers = alarmmanager_twilio_recipients(preg_split('/[\s,;]+/', trim($text), -1, PREG_SPLIT_NO_EMPTY));
+
+		if ($numbers) {
+			$policy['recipient_overrides'][alarmmanager_admin_int($id)] = $numbers;
+		}
+	}
 	$enabled_templates = $input['template_enabled'] ?? [];
 	$templates         = $input['template_mapping'] ?? [];
 
@@ -402,6 +455,7 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 	$supervisor_saved    = false;
 	$settings            = $state['configuration'];
 	$credential          = null;
+	$provider_changed    = false;
 	$create_section      = null;
 	$id                  = 0;
 
@@ -429,10 +483,37 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 			if (!is_string($type)) {
 				throw new InvalidArgumentException('invalid_action');
 			}
-			$item['type'] = $type;
-			$credential   = isset($input['endpoint_fields']) && !in_array($type, ['restapi', 'webhook'], true) ? null : alarmmanager_admin_credential($input, $id === 0);
+			$previous = array_column($settings['endpoints'], null, 'id')[$id] ?? [];
+			$provider = $input['provider'] ?? ($previous['transport']['provider'] ?? '');
 
-			if ($credential !== null && !in_array($type, ['restapi', 'webhook'], true)) {
+			if (!is_string($provider) || ($provider !== '' && !isset(alarmmanager_provider_definitions()[$provider]))) {
+				throw new InvalidArgumentException('invalid_provider');
+			}
+			$provider_changed = $provider !== ($previous['transport']['provider'] ?? '');
+
+			if ($id > 0 && $provider_changed && empty($input['provider_reset'])) {
+				throw new InvalidArgumentException('confirmation_required');
+			}
+
+			if ($provider_changed && ($input['auth_type'] ?? '') === 'keep') {
+				throw new InvalidArgumentException('provider_credentials_required');
+			}
+
+			if ($provider !== '') {
+				$type = alarmmanager_integration_templates()[$provider]['type'];
+
+				if (str_starts_with($provider, 'twilio') && ($input['twilio_auth_mode'] ?? '') === 'account') {
+					$input['basic_username'] = $input['provider_account_sid'] ?? '';
+				}
+			}
+			$item['type'] = $type;
+			$credential   = match (true) {
+				$type === 'snmptrap'                                                                => alarmmanager_admin_snmp_credential($input),
+				isset($input['endpoint_fields']) && !in_array($type, ['restapi', 'webhook'], true)  => null,
+				default                                                                             => alarmmanager_admin_credential($input, $id === 0 || ($provider !== '' && !$item['enabled']))
+			};
+
+			if ($credential !== null && !in_array($type, alarmmanager_credential_types(), true)) {
 				throw new InvalidArgumentException('credential_endpoint_invalid');
 			}
 
@@ -468,6 +549,21 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 				alarmmanager_teams_webhook_url($saved);
 			}
 			$transport['mapping'] = alarmmanager_admin_json($input['mapping_json'] ?? '{}');
+
+			if ($provider !== '') {
+				$transport = alarmmanager_provider_transport($provider, $transport, $input, $item['enabled']);
+
+				if ($item['enabled']) {
+					$saved = $credential;
+
+					if ($saved === null && $id > 0 && !$provider_changed) {
+						$saved = alarmmanager_load_credential($id);
+					}
+					alarmmanager_provider_credentials($provider, $saved);
+				}
+			} else {
+				unset($transport['provider']);
+			}
 			$item['transport']    = $transport;
 		} else {
 			$list = $input['endpoints'] ?? [];
@@ -503,7 +599,7 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 	}
 
 	try {
-		alarmmanager_transaction(function () use ($settings, $revision, $credential, $create_section, &$id, $supervisor, &$supervisor_saved): void {
+		alarmmanager_transaction(function () use ($settings, $revision, $credential, $create_section, &$id, $supervisor, &$supervisor_saved, $provider_changed): void {
 			if ($create_section !== null) {
 				$index          = array_key_last($settings[$create_section]);
 				$item           = $settings[$create_section][$index];
@@ -517,6 +613,10 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 			}
 			$settings = alarmmanager_configuration($settings);
 			alarmmanager_write_configuration($settings, $revision);
+
+			if ($provider_changed) {
+				alarmmanager_db_write('DELETE FROM plugin_alarmmanager_credentials WHERE endpoint_id = ?', [$id]);
+			}
 
 			if ($credential !== null) {
 				alarmmanager_write_credential($id, $credential);
@@ -552,6 +652,28 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 }
 
 /**
+ * Blank SNMP secret fields keep the saved record; any entered value replaces the whole record.
+ * @param  array<string, mixed>      $input
+ * @return array<string, mixed>|null
+ */
+function alarmmanager_admin_snmp_credential(#[\SensitiveParameter] array $input): ?array {
+	$snmp = [];
+
+	foreach (['community', 'auth_passphrase', 'priv_passphrase'] as $key) {
+		$value = $input['snmp_' . $key] ?? '';
+
+		if (!is_string($value)) {
+			throw new InvalidArgumentException('invalid_snmp_credentials');
+		}
+
+		if ($value !== '') {
+			$snmp[$key] = $value;
+		}
+	}
+
+	return $snmp ? alarmmanager_credential_validate(['snmp' => $snmp]) : null;
+}
+/**
  * @param  array<string, mixed>      $input
  * @return array<string, mixed>|null
  */
@@ -559,12 +681,18 @@ function alarmmanager_admin_credential(#[\SensitiveParameter] array $input, bool
 	$type = $input['auth_type'] ?? null;
 
 	if ($type !== null) {
-		if (!in_array($type, ['none', 'keep', 'bearer', 'basic', 'headers', 'teams'], true)) {
+		if (!in_array($type, ['none', 'keep', 'bearer', 'basic', 'headers', 'teams', 'provider_token'], true)) {
 			throw new InvalidArgumentException('invalid_credentials');
 		}
 
 		if ($type === 'none' || $type === 'keep') {
 			return null;
+		}
+
+		if ($type === 'provider_token') {
+			$token = $input['provider_token'] ?? '';
+
+			return $allow_unfilled && $token === '' ? null : alarmmanager_credential_validate(['provider_token' => $token]);
 		}
 
 		if ($type === 'teams') {
@@ -631,9 +759,19 @@ function alarmmanager_admin_error_message(Throwable $error): string {
 		'invalid_configuration_upload'   => 'Choose a readable JSON configuration file no larger than 1 MiB. Check the server upload limit if uploading fails.',
 		'configuration_changed'          => 'Configuration changed. Reload before applying your edits.',
 		'permission_denied'              => 'Action failed. Administrator access, POST and a valid CSRF token are required.',
+		'invalid_provider'               => 'Choose a supported integration provider.',
+		'invalid_twilio_recipients'      => 'Enter up to 50 phone numbers in international format, such as +15551234567, separated by commas or new lines.',
+		'recipient_destination_invalid'  => 'Rule recipient lists require a selected Twilio SMS or WhatsApp destination.',
+		'invalid_twilio_account'         => 'Enter your Twilio Account SID: AC followed by 32 hexadecimal characters.',
+		'invalid_twilio_credentials'     => 'Enter an API Key SID (SK…) or Account SID (AC…) with its matching secret.',
+		'invalid_provider_instance'      => 'Enter the HTTPS ServiceNow instance URL without an API path.',
+		'provider_credentials_required'  => 'Enter credentials for this integration before enabling it. Credentials from another provider cannot be reused.',
 		'invalid_transport'              => 'Action failed. Transport settings do not match the endpoint type.',
 		'invalid_teams_webhook_url'      => 'Paste the complete signed HTTPS Teams Workflow URL from Microsoft. Legacy connector URLs and tenant-authenticated triggers are not supported.',
 		'teams_webhook_missing'          => 'Save a Teams Workflow URL under Authentication before enabling this endpoint.',
+		'invalid_twilio_message'         => 'Map nonempty Combined text to text for WhatsApp template variable 1; remove Body and ContentVariables mappings.',
+		'invalid_twilio_transport'       => 'Twilio WhatsApp requires POST, form encoding, encrypted authentication and TLS.',
+		'invalid_body_encoding'          => 'Use json or form for HTTP body_encoding; Teams Workflows require json.',
 		'invalid_teams_workflow'         => 'Teams Workflows require the preset destination, POST, encrypted authentication and TLS. Restore the Teams preset delivery options.',
 		'teams_message_too_large'        => 'Shorten the Teams Combined text mapping: the encoded card exceeds 28,000 bytes.',
 		'teams_message_required'         => 'Map a nonempty Combined text message to the text field.',
@@ -650,6 +788,13 @@ function alarmmanager_admin_error_message(Throwable $error): string {
 		'invalid_transport_method'       => 'Choose POST, PUT or PATCH for the delivery method.',
 		'invalid_recipients'             => 'Enter valid email recipients and sender settings.',
 		'invalid_executable'             => 'Enter an absolute executable path for script delivery.',
+		'invalid_transport_host'         => 'Enter the receiver as a hostname or IP address without a scheme or port.',
+		'invalid_snmp_settings'          => 'Choose a supported SNMP version, transport and notification type. SNMPv3 needs a security name of up to 32 printable characters; an engine ID is 0x followed by 10–64 hexadecimal digits.',
+		'invalid_snmp_credentials'       => 'Enter SNMP secrets as printable characters without spaces, quotes, backslashes or #. SNMPv3 passphrases need at least 8 characters.',
+		'invalid_snmp_mapping'           => 'SNMP traps send one field named message, carried in CACTI-MIB cactiEventDescription. Start from the SNMP trap template.',
+		'invalid_syslog_settings'        => 'Choose a supported syslog protocol, format and facility. The application name is 1–48 printable characters without spaces.',
+		'invalid_syslog_mapping'         => 'Syslog sends one field named message. Start from the Syslog template.',
+		'invalid_ca_bundle'              => 'Enter an absolute PEM file path for the certificate authority. Syslog uses it only with TLS.',
 		'invalid_mapping'                => 'Action failed. Each mapping transition must contain a list of fields.',
 		'invalid_action'                 => 'Action failed. A required field is missing or outside its allowed range.',
 		'invalid_rule_filters'           => 'Choose up to 32 values for each enabled alarm filter.',

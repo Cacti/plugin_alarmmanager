@@ -4,7 +4,7 @@ Alarm Manager is a Cacti plugin for routing alarms to notification services and 
 
 ## Features
 
-- **Notification integrations:** REST APIs, webhooks, Cacti email, and executable scripts, with presets for Slack, Microsoft Teams Workflows, Telegram, PagerDuty, and ServiceNow incidents and events.
+- **Notification integrations:** REST APIs, webhooks, Cacti email, and executable scripts, with presets for Slack, Microsoft Teams Workflows, Telegram, Twilio SMS and WhatsApp, PagerDuty, and ServiceNow incidents and events.
 - **Alarm rules:** Route alarms to multiple destinations using device, collector, source, severity, and other alarm filters. Notification hours, maintenance windows, acknowledgments, cooldowns, and duplicate controls help manage repeated notifications.
 - **Custom messages:** Combine text with alarm and device fields, configure messages for different alarm states, and override destination templates for individual rules.
 - **Queued delivery:** Independent destination queues with retries, ordered alarm processing, and configurable processing and delivery workers.
@@ -51,5 +51,44 @@ For custom source-plugin integrations, see the [sample event](examples/event.jso
 By default, Alarm Manager processes bounded batches at the end of each Cacti poller cycle; no separate cron job is needed. For resident workers, install the supplied [systemd service](service/alarmmanager.service), adjusting its user, group, Cacti path, and PHP executable for your installation. Configure worker enablement and pool sizes under **Administration → Configuration**.
 
 For distributed installations, deploy the plugin files on the main poller and collectors, and enable the plugin through the main poller's Plugin Management page. Manage destinations, rules, credentials, worker settings, and delivery pause/resume on poller 1. Cacti synchronizes the configuration to remote collectors. Install the systemd service on each machine that will run resident workers, and ensure configured script executables and custom CA files exist at the same paths on the relevant collectors.
+
+### Provider setup
+
+Selecting an integration opens its provider-specific fields and standard payload. Slack asks for a bot token, channel ID, and message. Twilio asks for account credentials, sender, recipient, and message. Telegram and PagerDuty keys use encrypted credentials rather than exported URLs or mappings. The selected provider is preserved through save/reopen, export/import, and collector synchronization.
+
+Existing destinations remain custom integrations until explicitly converted. Changing providers asks before replacing message fields, disables the destination, and requires credentials for the new provider. Advanced message mappings remain available. Deploy matching plugin files to every delivering collector before using the new provider configuration.
+
+### Twilio SMS
+
+Choose the **Twilio SMS** destination preset. Enter your `AC...` **Account SID**. Choose **API Key SID and Secret** and enter the `SK...` key and secret, or choose **Account SID and Auth Token** and enter the Auth Token. The URL and Basic authentication header are generated automatically. Credentials use the existing encrypted storage and collector synchronization.
+
+Set **Sender phone number** to your SMS-capable Twilio number and **Recipient phone number** to the recipient, both in E.164 format (for example, `+15551234567`). Edit **Message** for the alarm text, keeping it within 1,600 characters. Each destination sends to one recipient; use additional destinations for other recipients. Save the disabled draft, then enable it and use **Test destination**. Trial accounts require verified recipients, and sender registration and geographic permissions must allow the message.
+
+The preset posts form-encoded fields and records Twilio's returned Message SID in delivery history. HTTP 201 confirms API acceptance; check Twilio Messaging logs for actual delivery. No delivery-status callback is installed. Long messages can incur multiple SMS segment charges. An uncertain response followed by a retry can send a duplicate SMS; the worker's idempotency header does not guarantee Twilio deduplication.
+
+See the [Twilio Messages API](https://www.twilio.com/docs/messaging/api/message-resource) and [API key documentation](https://www.twilio.com/docs/iam/api-keys).
+
+### Twilio recipients in alarm rules
+
+In an alarm rule, select a Twilio destination and expand its destination section under **Message template**. Enter **Twilio recipients for this rule** as international numbers, one per line or separated by commas (up to 50). For example:
+
+```text
++15551234567
++15557654321
+```
+
+The list replaces that destination's default recipient for this rule. Leave it blank to use the destination default. SMS and WhatsApp share the same number-list format; the WhatsApp prefix is applied automatically. Duplicate numbers are removed. Message customization is independent of the recipient list. If several rules match the same destination, the first matching rule by priority and ID supplies both the recipients and the message.
+
+Each recipient has its own durable delivery record, retry status, and idempotency key. Successful recipients are not resent when a sibling fails. Removing a recipient from the matching rule cancels its queued send before transport execution. History shows the recipient alongside delivery results. An uncertain provider response can still cause a duplicate message to that recipient on retry.
+
+Version 0.12.0 upgrades the delivery table to schema 13 without deleting history. Update all delivering collectors before using recipient lists. **Test destination** continues to use the destination default recipient; it does not evaluate a rule's recipient list.
+
+### Twilio WhatsApp
+
+Choose **Twilio WhatsApp** and enter the same Account SID and credential fields as SMS. Set **WhatsApp sender** to your approved WhatsApp sender and **WhatsApp recipient** to an opted-in recipient using `whatsapp:+15551234567` addresses. Set **Messaging Service SID** to the `MG...` service containing that sender and **Approved Template SID** to your approved `HX...` template.
+
+Use a template such as `Cacti alarm: {{1}}.` with one variable. The **Combined text** mapping (`text`) fills variable `1`; JSON escaping is automatic and whitespace is collapsed to fit WhatsApp template-variable requirements. Do not add `Body` or `ContentVariables` mappings. Recovery events fill the same variable with the recovered alarm state. This template preset supports proactive alarms outside the 24-hour customer service window.
+
+Save the disabled draft, enable it, then use **Test destination**. As with SMS, acceptance is not delivery confirmation; check Twilio Messaging logs. See [Twilio WhatsApp template setup](https://www.twilio.com/docs/whatsapp/tutorial/send-whatsapp-notification-messages-templates).
 
 GPL-2.0-or-later. See [LICENSE](LICENSE) and [attribution](NOTICE.md).

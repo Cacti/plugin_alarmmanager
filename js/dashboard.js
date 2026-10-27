@@ -425,6 +425,8 @@
 				/** Render the selected state's mapping fields and email-specific controls. */
 				function render() {
 					rows.replaceChildren();
+					const providerSelect = form.querySelector('[name=provider]');
+					const providerDefinition = providerSelect ? JSON.parse(providerSelect.dataset.providerDefinitions)[providerSelect.value] : null;
 					const selected = selectedState(),
 						email = endpointType.value === 'email';
 					add.hidden = email;
@@ -452,7 +454,13 @@
 									node('strong', item.to === 'subject' ? 'Subject' : 'Message')
 								);
 							}
+							const providerLabel = providerDefinition?.labels[item.to];
+							if (providerLabel) {
+								path.parentElement.hidden = true;
+								row.append(node('strong', providerLabel));
+							}
 							const source = control('Cacti Value', node('select'));
+							if (providerLabel) source.parentElement.hidden = true;
 							source.setAttribute('aria-label', 'Cacti Value');
 							['constant', 'template', ...sourceFields].forEach(
 								/** Add an available source field to the mapping selector. */
@@ -472,7 +480,7 @@
 							source.value =
 								'template' in item ? 'template' : item.source || 'constant';
 							const constant = control(
-								email && item.to === 'body' ? 'Message text' : 'Custom value',
+								providerLabel || (email && item.to === 'body' ? 'Message text' : 'Custom value'),
 								node(email && item.to === 'body' ? 'textarea' : 'input')
 							);
 							constant.value =
@@ -494,6 +502,7 @@
 							row.append(templateGroup);
 							const deviceMessage = node('button', 'Use device message');
 							deviceMessage.type = 'button';
+							deviceMessage.hidden = !!providerLabel && source.value !== 'template';
 							row.append(deviceMessage);
 							deviceMessage.addEventListener(
 								'click',
@@ -744,18 +753,151 @@
 							'"]'
 					),
 					toggle = section.querySelector('[name="template_enabled[]"]'),
-					fields = section.querySelector('.alarmmanagerMapping');
+					fields = section.querySelector('.alarmmanagerMapping'),
+					state = section.querySelector('[data-template-state]'),
+					count = section.querySelector('[data-recipient-count]'),
+					recipients = section.querySelector('[name^="recipient_numbers["]');
 				const update =
-					/** Update template visibility and editability from the selected destination. */
+					/** Update template visibility, editability, and summary badges from the selected destination. */
 					() => {
 						section.hidden = !destination.checked;
 						toggle.disabled = !destination.checked;
+						section
+							.querySelectorAll('[name^="recipient_numbers["], .alarmmanagerPhoneList')
+							.forEach(
+								/** Match recipient editability to the destination selection. */
+								(input) => {
+									input.disabled = !destination.checked;
+								}
+							);
 						fields.disabled = !destination.checked || !toggle.checked;
 						fields.inert = fields.disabled;
+						state.dataset.templateState = toggle.checked ? 'custom' : 'default';
+						state.textContent = toggle.checked
+							? 'Custom template'
+							: 'Default template';
+						if (count && recipients) {
+							const total = recipients.value
+								.split(/[\s,;]+/)
+								.filter(Boolean).length;
+							count.textContent = total
+								? 'Recipients: ' + total
+								: 'Destination recipient';
+						}
 					};
 				destination.addEventListener('change', update);
 				toggle.addEventListener('change', update);
+				recipients?.addEventListener('input', update);
 				update();
+			}
+		);
+	}
+	/** Replace phone-number textareas with add and remove controls. */
+	function initPhoneLists(app) {
+		app.querySelectorAll('textarea[data-phone-list]').forEach(
+			/** Build a phone list editor backed by one textarea. */
+			(textarea) => {
+				const label = textarea.closest('label'),
+					container = node('fieldset', undefined, 'alarmmanagerPhoneList'),
+					list = node('ul'),
+					entry = node('div', undefined, 'alarmmanagerPhoneEntry'),
+					input = node('input'),
+					add = node('button', 'Add number'),
+					message = node('p', undefined, 'alarmmanagerPhoneError'),
+					numbers = textarea.value.split(/[\s,;]+/).filter(Boolean);
+				input.type = 'tel';
+				input.placeholder = '+15551234567';
+				input.autocomplete = 'off';
+				input.setAttribute('aria-label', 'Phone number to add');
+				add.type = 'button';
+				message.setAttribute('aria-live', 'polite');
+				entry.append(input, add);
+				label.before(container);
+				container.append(
+					node('legend', label.firstChild.textContent.trim()),
+					list,
+					entry,
+					message,
+					textarea
+				);
+				label.remove();
+				textarea.hidden = true;
+				/** Save the numbers in the backing textarea, one per line. */
+				function save() {
+					textarea.value = numbers.join('\n');
+					textarea.dispatchEvent(new Event('input', { bubbles: true }));
+				}
+				/** Show or clear the validation message for the entry field. */
+				function report(error) {
+					message.textContent = error;
+					message.hidden = !error;
+					input.setAttribute('aria-invalid', error ? 'true' : 'false');
+				}
+				/** Render one removable chip per number. */
+				function render() {
+					list.replaceChildren(
+						...numbers.map(
+							/** Create the chip and remove control for one number. */
+							(number, index) => {
+								const item = node('li'),
+									remove = node('button', '×');
+								remove.type = 'button';
+								remove.setAttribute('aria-label', 'Remove ' + number);
+								remove.addEventListener('click', () => {
+									numbers.splice(index, 1);
+									save();
+									render();
+									input.focus();
+								});
+								item.append(node('span', number), remove);
+								return item;
+							}
+						)
+					);
+					list.hidden = !numbers.length;
+				}
+				/** Validate the entered number and add it to the list. */
+				function addNumber() {
+					const value = input.value.replace(/[\s().-]/g, '').replace(/^whatsapp:/, '');
+					const error = !/^\+[1-9][0-9]{1,14}$/.test(value)
+						? 'Enter the number in international format, such as +15551234567.'
+						: numbers.includes(value)
+							? 'This number is already in the list.'
+							: numbers.length >= 50
+								? 'A rule can have up to 50 recipients.'
+								: '';
+					report(error);
+					if (error) return false;
+					numbers.push(value);
+					input.value = '';
+					save();
+					render();
+					return true;
+				}
+				add.addEventListener('click', () => {
+					addNumber();
+					input.focus();
+				});
+				input.addEventListener('keydown', (event) => {
+					if (event.key !== 'Enter') return;
+					event.preventDefault();
+					addNumber();
+				});
+				input.addEventListener('input', () => report(''));
+				textarea.form?.addEventListener(
+					'submit',
+					/** Keep a typed number that was not added yet instead of silently dropping it. */
+					(event) => {
+						if (!container.disabled && input.value.trim() && !addNumber()) {
+							event.preventDefault();
+							event.stopImmediatePropagation();
+							input.focus();
+						}
+					},
+					true
+				);
+				report('');
+				render();
 			}
 		);
 	}
@@ -1024,13 +1166,153 @@
 							);
 						}
 					);
+					const version = form.querySelector('[name=snmp_version]');
+					form.querySelectorAll('[data-snmp-versions]').forEach(
+						/** Show only the credentials used by the selected SNMP version. */
+						(group) => {
+							const active =
+								select.value === 'snmptrap' &&
+								group.dataset.snmpVersions === version.value;
+							group.hidden = !active;
+							group.querySelectorAll('input,select').forEach(
+								/** Keep inactive SNMP version fields out of the submission. */
+								(input) => {
+									input.disabled = !active;
+								}
+							);
+						}
+					);
 					if (['restapi', 'webhook'].includes(select.value))
 						initAuthentication(form);
 				}
-				jQuery(form).on('change', '[name=type]', update);
+				jQuery(form).on('change', '[name=type],[name=snmp_version]', update);
 				update();
 			}
 		);
+	}
+	/** Filter the integration template gallery as the administrator types. */
+	function initTemplateGallery(app) {
+		app.querySelectorAll('.alarmmanagerTemplateGallery').forEach(
+			/** Bind the search box of one template gallery. */
+			(gallery) => {
+				const search = gallery.querySelector('[data-template-search]'),
+					empty = gallery.querySelector('.alarmmanagerTemplateEmpty');
+				search.hidden = false;
+				search.addEventListener('input', () => {
+					const terms = search.value.toLowerCase().trim().split(/\s+/).filter(Boolean);
+					let shown = 0;
+					gallery.querySelectorAll('.alarmmanagerTemplateGroup').forEach(
+						/** Hide non-matching cards and groups left without cards. */
+						(group) => {
+							const heading = group.querySelector('h4').textContent.toLowerCase();
+							let visible = 0;
+							group.querySelectorAll('li').forEach(
+								/** Match every search term against the card text or its group heading. */
+								(item) => {
+									const text = heading + ' ' + item.textContent.toLowerCase();
+									item.hidden = !terms.every((term) => text.includes(term));
+									visible += item.hidden ? 0 : 1;
+								}
+							);
+							group.hidden = !visible;
+							shown += visible;
+						}
+					);
+					empty.hidden = shown > 0;
+				});
+				gallery.addEventListener('toggle', () => {
+					if (gallery.open) search.focus();
+				});
+			}
+		);
+	}
+	/** Keep provider setup fields and payload mappings together in the existing endpoint form. */
+	function initProviders(app) {
+		app.querySelectorAll('.alarmmanagerEndpointEditor').forEach((form) => {
+			const select = form.querySelector('[name=provider]');
+			if (!select) return;
+			const definitions = JSON.parse(select.dataset.providerDefinitions),
+				templates = JSON.parse(select.dataset.providerTemplates),
+				auth = form.querySelector('[name=auth_type]'),
+				mapping = form.querySelector('[name=mapping_json]'),
+				raw = form.querySelector('[name=transport_json]');
+			let previous = select.value;
+			const label = (name, text) => {
+				const input = form.querySelector(`[name=${name}]`);
+				if (input?.parentElement.firstChild?.nodeType === Node.TEXT_NODE)
+					input.parentElement.firstChild.textContent = text + ' ';
+			};
+			function update() {
+				const provider = select.value, definition = definitions[provider],
+					type = form.querySelector('[name=type]'),
+					http = ['restapi', 'webhook'].includes(type.value);
+				// Providers and the URL apply to HTTP destinations only; SNMP trap and syslog keep a fixed type.
+				type.parentElement.hidden = !!definition || 'fixedType' in type.parentElement.dataset;
+				select.parentElement.hidden = !http;
+				form.querySelector('.alarmmanagerDestination').hidden = !!definition || !http;
+				form.querySelector('[name=http_method]').parentElement.hidden = !!definition;
+				form.querySelector('[name=allow_http]').parentElement.hidden = !!definition;
+				form.querySelectorAll('[data-providers]').forEach((group) => {
+					const active = group.dataset.providers.split(' ').includes(provider);
+					group.hidden = !active;
+					group.querySelectorAll('input,select').forEach((input) => { input.disabled = !active; });
+				});
+				Array.from(auth.options).forEach((option) => {
+					option.disabled = !!definition && ![definition.auth, 'keep'].includes(option.value);
+					option.hidden = option.disabled;
+				});
+				if (definition && ![definition.auth, 'keep'].includes(auth.value)) auth.value = definition.auth;
+				label('bearer_token', provider === 'slack' ? 'Slack bot token' : 'Bearer token');
+				label('provider_token', definition?.token_label || 'Provider token');
+				const twilio = provider.startsWith('twilio'), account = form.querySelector('[name=twilio_auth_mode]').value === 'account';
+				label('basic_username', twilio ? (account ? 'Account SID (from above)' : 'API Key SID (SK…)') : 'Username');
+				label('basic_password', twilio ? (account ? 'Auth Token' : 'API Key Secret') : 'Password');
+				const username = form.querySelector('[name=basic_username]');
+				username.readOnly = twilio && account;
+				if (twilio && account) username.value = form.querySelector('[name=provider_account_sid]').value;
+				if (definition) {
+					Array.from(auth.options).forEach((option) => {
+						if (option.value === definition.auth) option.textContent = twilio ? 'Enter Twilio credentials' : (definition.token_label || (provider === 'slack' ? 'Slack bot token' : provider === 'teams' ? 'Workflow URL' : 'Username and password'));
+					});
+				}
+				initAuthentication(form);
+			}
+			jQuery(form).on('change', '[name=provider]', () => {
+				if (select.value === previous) return;
+				if (!window.confirm('Changing integration provider replaces the message fields and connection settings. Saved credentials will not be reused. Continue?')) {
+					select.value = previous;
+					return;
+				}
+				const provider = select.value, preset = templates[provider || 'webhook'];
+				const transport = structuredClone(preset.transport);
+				if (provider === 'pagerduty') Object.values(transport.mapping).forEach((items) => {
+					for (let i = items.length - 1; i >= 0; i--) if (items[i].to === 'routing_key') items.splice(i, 1);
+				});
+				mapping.value = JSON.stringify(transport.mapping, null, 2);
+				delete transport.mapping;
+				raw.value = JSON.stringify(transport, null, 2);
+				form.querySelector('[name=type]').value = preset.type;
+				if (!form.querySelector('[name=type]').value) form.querySelector('[name=type]').value = 'restapi';
+				form.querySelector('[name=url]').value = transport.url;
+				form.querySelector('[name=http_method]').value = transport.method || 'POST';
+				form.querySelector('[name=allow_http]').checked = false;
+				form.querySelector('[name=enabled]').checked = false;
+				form.querySelector('[name=provider_reset]').value = 'yes';
+				form.querySelectorAll('.alarmmanagerAuth input,.alarmmanagerAuth textarea').forEach((input) => { input.value = input.name === 'headers' ? '{}' : ''; });
+				auth.querySelector('[value=keep]')?.remove();
+				auth.value = definitions[provider]?.auth || 'none';
+				form.querySelectorAll('.alarmmanagerProviderSettings input').forEach((input) => { input.value = ''; });
+				const hint = form.querySelector('[data-integration-hint]');
+				if (hint) hint.textContent = '';
+				previous = provider;
+				jQuery(form.querySelector('[name=type]')).trigger('change');
+				mapping.dispatchEvent(new Event('input', { bubbles: true }));
+				update();
+			});
+			jQuery(form).on('change', '[name=twilio_auth_mode],[name=auth_type],[name=type]', update);
+			form.querySelector('[name=provider_account_sid]').addEventListener('input', update);
+			update();
+		});
 	}
 	/** Initialize ServiceNow incident and event preset switching. */
 	function initServiceNow(app) {
@@ -1098,6 +1380,88 @@
 	}
 	// The Syslog version-1 document keeps grouped AND/OR/NOT conditions parameterized on the server.
 	/** Initialize grouped report and rule query builders. */
+	/** Show report payloads in a hover dialog, matching the plugin_audit event details popup. */
+	function initPayloadPopups(app) {
+		const links = app.querySelectorAll('.alarmmanagerPayloadLink');
+		if (!links.length || !window.jQuery?.fn?.dialog) return;
+		let timer = null;
+		const close =
+			/** Remove any open payload dialog. */
+			() => {
+				const dialog = window.jQuery('#alarmmanager_payload');
+				if (!dialog.length) return;
+				if (dialog.hasClass('ui-dialog-content')) dialog.dialog('close');
+				dialog.remove();
+			};
+		const open =
+			/** Render one payload as an attribute/value table beside its link. */
+			(link) => {
+				let data;
+				try {
+					data = JSON.parse(link.dataset.payload);
+				} catch {
+					data = { payload: link.dataset.payload };
+				}
+				const table = node('table');
+				table.className = 'cactiTable alarmmanagerPayloadTable';
+				const head = table.createTHead().insertRow();
+				head.className = 'tableHeader';
+				['Attrib', 'Value'].forEach(
+					/** Add one header cell. */
+					(label) => {
+						const th = node('th');
+						th.className = 'tableSubHeaderColumn';
+						th.textContent = label;
+						head.append(th);
+					}
+				);
+				const body = table.createTBody();
+				Object.entries(data && typeof data === 'object' ? data : { payload: data }).forEach(
+					/** Add one top-level attribute; nested values are pretty-printed. */
+					([key, value]) => {
+						const row = body.insertRow(),
+							name = row.insertCell(),
+							cell = row.insertCell();
+						name.className = 'alarmmanagerPayloadKey';
+						name.textContent = key;
+						if (value !== null && typeof value === 'object') {
+							const pre = node('pre');
+							pre.textContent = JSON.stringify(value, null, 2);
+							cell.append(pre);
+						} else cell.textContent = value === null ? '—' : String(value);
+					}
+				);
+				const holder = node('div');
+				holder.id = 'alarmmanager_payload';
+				holder.title = 'Event Payload';
+				holder.append(table);
+				document.body.append(holder);
+				const dialog = window.jQuery(holder).dialog({
+					minWidth: 600,
+					maxHeight: Math.max(300, window.innerHeight - 80),
+					position: { my: 'left', at: 'right', of: link, collision: 'fit' },
+					close: () => holder.remove()
+				});
+				dialog.closest('.ui-dialog').on('mouseenter', () => clearTimeout(timer)).on('mouseleave', () => {
+					timer = setTimeout(close, 400);
+				});
+			};
+		links.forEach(
+			/** Bind hover open/close with the same 400 ms delay plugin_audit uses. */
+			(link) => {
+				link.addEventListener('click', (event) => event.preventDefault());
+				link.addEventListener('mouseenter', () => {
+					clearTimeout(timer);
+					close();
+					timer = setTimeout(() => open(link), 400);
+				});
+				link.addEventListener('mouseleave', () => {
+					clearTimeout(timer);
+					timer = setTimeout(close, 400);
+				});
+			}
+		);
+	}
 	function initReportQuery(app) {
 		app.querySelectorAll('.alarmmanagerQueryBuilder').forEach(
 			/** Build an editor for one serialized query document. */
@@ -1483,12 +1847,16 @@
 		initRuleEditors(app);
 		initReportQuery(app);
 		initMappings(app);
+		initPhoneLists(app);
 		initRuleTemplates(app);
 		initLists(app);
 		initDeliveryIntervals(app);
 		initAuthentication(app);
 		initEndpointTypes(app);
+		initTemplateGallery(app);
 		initServiceNow(app);
+		initProviders(app);
+		initPayloadPopups(app);
 		app.querySelectorAll('.alarmmanagerEndpointEditor').forEach(
 			/** Bind endpoint submissions to preserve explicit test-send intent. */
 			(form) => {
@@ -1698,7 +2066,7 @@
 				['source', 'events', 'source'],
 				['deliveries', 'deliveries', 'status'],
 				['attempts', 'attempts', 'status'],
-				['suppression', 'decisions', 'reason']
+				['suppression', 'events', 'reason']
 			].forEach(
 				/** Refresh a panel's legend and donut chart. */
 				([panel, tab, field]) => {

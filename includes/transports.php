@@ -115,8 +115,18 @@ function alarmmanager_http_transport(array $event, array $endpoint, string $idem
 	if ($target === null) {
 		return ['outcome' => 'retry', 'code' => 'integration_reference_missing'];
 	}
-	$payload = json_encode(alarmmanager_notification_payload($settings, $event, $reference), JSON_THROW_ON_ERROR);
-	$headers = ['Content-Type: application/json', 'Idempotency-Key: ' . $idempotency, 'Expect:'];
+	$form    = ($settings['body_encoding'] ?? 'json') === 'form';
+	$payload = alarmmanager_notification_payload($settings, $event, $reference);
+
+	if (isset($endpoint['recipient'])) {
+		if (!in_array($settings['provider'] ?? '', ['twilio', 'twilio_whatsapp'], true)) {
+			throw new InvalidArgumentException('recipient_destination_invalid');
+		}
+		$numbers     = alarmmanager_twilio_recipients([$endpoint['recipient']]);
+		$payload->To = (($settings['provider'] === 'twilio_whatsapp') ? 'whatsapp:' : '') . $numbers[0];
+	}
+
+	$headers = ['Content-Type: ' . ($form ? 'application/x-www-form-urlencoded' : 'application/json'), 'Idempotency-Key: ' . $idempotency, 'Expect:'];
 
 	if ($settings['credential']) {
 		$credential = alarmmanager_load_credential((int) $endpoint['id']);
@@ -124,6 +134,8 @@ function alarmmanager_http_transport(array $event, array $endpoint, string $idem
 		if (!empty($settings['teams_workflow'])) {
 			$target['url'] = alarmmanager_teams_webhook_url($credential);
 		}
+
+		[$target, $payload] = alarmmanager_provider_request($settings, $target, $payload, $credential);
 
 		foreach ($credential['headers'] as $name => $value) {
 			$headers[] = $name . ': ' . $value;
@@ -133,6 +145,7 @@ function alarmmanager_http_transport(array $event, array $endpoint, string $idem
 			$headers[] = 'Authorization: Basic ' . base64_encode($credential['basic']['username'] . ':' . $credential['basic']['password']);
 		}
 	}
+	$payload      = $form ? http_build_query($payload, '', '&', PHP_QUERY_RFC3986) : json_encode($payload, JSON_THROW_ON_ERROR);
 	$curl         = curl_init();
 	$body         = '';
 	$header_bytes = 0;
@@ -260,6 +273,208 @@ function alarmmanager_script_transport(array $event, array $endpoint, string $id
 	return alarmmanager_transport_reference_result(['outcome' => $exit === 0 ? 'success' : (in_array($exit, $settings['retry_exit_codes'], true) ? 'retry' : 'failure'), 'code' => $exit === 0 ? 'script_completed' : 'script_exit_failed'], $result['stdout'], $settings);
 }
 
+/** Collapse a multi-line message to one line without control characters, for syslog and SNMP receivers. */
+function alarmmanager_one_line(string $text): string {
+	return trim(preg_replace('/[\x00-\x09\x0b\x0c\x0e-\x1f\x7f]/', ' ', preg_replace('/\s*[\r\n]+\s*/', ' | ', trim($text))));
+}
+/**
+ * CACTI-MIB cactiEventDescription text: severity, state and message, then the identifiers a
+ * receiver needs to pair a raise with its recovery. The message is shortened, never the identifiers.
+ * @param array<string, mixed> $event
+ */
+function alarmmanager_snmptrap_description(array $event, string $message): string {
+	$host   = $event['device']['hostname'] ?? null;
+	$prefix = strtoupper($event['severity']) . ' ' . $event['transition'] . ' ' . ($host === null || $host === '' ? '' : $host . ': ');
+	$suffix = ' | key=' . $event['alarm_key'] . ' episode=' . $event['episode_id'] . ' source=' . $event['source'] . ' event=' . $event['event_id'];
+
+	// cactiEventDescription is a DisplayString of at most 1000 octets.
+	return $prefix . mb_strcut(alarmmanager_one_line($message), 0, max(0, 1000 - strlen($prefix) - strlen($suffix)), 'UTF-8') . $suffix;
+}
+/**
+ * Build snmptrap argv for CACTI-MIB cactiNotify plus the private snmp.conf body. Community and
+ * passphrases are only ever written to that file (SNMPCONFPATH), never to argv where other local
+ * users could read them.
+ * @param  array<string, mixed>              $settings
+ * @param  array<string, mixed>              $credential
+ * @return array{0: list<string>, 1: string}
+ */
+function alarmmanager_snmptrap_command(string $binary, array $settings, #[\SensitiveParameter] array $credential, string $description, int $timeout): array {
+	$secrets = $credential['snmp'] ?? [];
+	$argv    = [$binary, '-v', $settings['version'], '-m', '', '-M', '/nonexistent'];
+	$conf    = [];
+
+	if ($settings['version'] === '2c') {
+		$conf[] = 'defCommunity ' . ($secrets['community'] ?? throw new InvalidArgumentException('snmp_credentials_missing'));
+	} else {
+		$argv = [...$argv, '-u', $settings['security_name'], '-l', $settings['security_level']];
+
+		if ($settings['security_level'] !== 'noAuthNoPriv') {
+			$argv   = [...$argv, '-a', $settings['auth_protocol']];
+			$conf[] = 'defAuthPassphrase ' . ($secrets['auth_passphrase'] ?? throw new InvalidArgumentException('snmp_credentials_missing'));
+		}
+
+		if ($settings['security_level'] === 'authPriv') {
+			$argv   = [...$argv, '-x', $settings['priv_protocol']];
+			$conf[] = 'defPrivPassphrase ' . ($secrets['priv_passphrase'] ?? throw new InvalidArgumentException('snmp_credentials_missing'));
+		}
+
+		if ($settings['engine_id'] !== null && $settings['notification'] === 'trap') {
+			$argv = [...$argv, '-e', $settings['engine_id']];
+		}
+	}
+
+	// The delivery queue owns retries, so an INFORM gets one bounded attempt.
+	if ($settings['notification'] === 'inform') {
+		$argv = [...$argv, '-Ci', '-r', '0', '-t', (string) max(1, $timeout)];
+	}
+	$host      = $settings['host'];
+	$transport = $settings['transport'];
+
+	if (str_contains($host, ':')) {
+		$host      = '[' . $host . ']';
+		$transport = str_ends_with($transport, '6') ? $transport : $transport . '6';
+	}
+	// Same OIDs as Cacti's own SNMP agent: cactiNotify carrying cactiEventDescription.0. An empty
+	// uptime lets snmptrap supply sysUpTime; "--" keeps the description from parsing as an option.
+	$argv = [...$argv, '--', $transport . ':' . $host . ':' . $settings['port'], '', '.1.3.6.1.4.1.23925.3.2.1', '.1.3.6.1.4.1.23925.3.1.1.0', 's', $description];
+
+	return [$argv, $conf ? implode("\n", $conf) . "\n" : ''];
+}
+/**
+ * @param  array<string, mixed> $event
+ * @param  array<string, mixed> $endpoint
+ * @return array<string, mixed>
+ */
+function alarmmanager_snmptrap_transport(array $event, array $endpoint, string $idempotency): array {
+	$settings = alarmmanager_endpoint_transport($endpoint);
+	$binary   = (string) read_config_option('path_snmptrap');
+
+	if (!str_starts_with($binary, '/') || !is_file($binary) || !is_executable($binary) || !function_exists('posix_kill') || !is_executable('/usr/bin/setsid')) {
+		return ['outcome' => 'failure', 'code' => 'snmptrap_unavailable'];
+	}
+
+	try {
+		$credential = alarmmanager_load_credential((int) $endpoint['id']);
+	} catch (RuntimeException $error) {
+		// SNMPv3 noAuthNoPriv needs no secrets; missing ones are reported by the command builder.
+		if ($error->getMessage() !== 'credential_missing') {
+			throw $error;
+		}
+		$credential = [];
+	}
+	// Stay inside the worker's SIGALRM deadline so a slow INFORM reports its own result.
+	$timeout       = max(1, (int) $endpoint['timeout_seconds'] - 1);
+	$payload       = alarmmanager_notification_payload($settings, $event);
+
+	if (!is_string($payload->message ?? null) || trim($payload->message) === '') {
+		throw new InvalidArgumentException('snmp_message_required');
+	}
+	[$argv, $conf] = alarmmanager_snmptrap_command($binary, $settings, $credential, alarmmanager_snmptrap_description($event, $payload->message), max(1, $timeout - 1));
+	$directory     = sys_get_temp_dir() . '/alarmmanager-snmp-' . bin2hex(random_bytes(12));
+	$result        = ['code' => 'config_failed'];
+
+	try {
+		// This private directory holds the only on-disk copy of the secrets, for the life of one send.
+		if (@mkdir($directory, 0700) && file_put_contents($directory . '/snmp.conf', $conf) === strlen($conf) && chmod($directory . '/snmp.conf', 0600)) {
+			$result = alarmmanager_transport_process($argv, '', $timeout, ['SNMPCONFPATH' => $directory, 'SNMP_PERSISTENT_DIR' => $directory, 'MIBS' => '']);
+		}
+	} finally {
+		if (is_dir($directory)) {
+			// net-snmp may create cache directories under the persistent directory.
+			foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directory, FilesystemIterator::SKIP_DOTS), RecursiveIteratorIterator::CHILD_FIRST) as $path) {
+				$path->isDir() && !$path->isLink() ? @rmdir($path->getPathname()) : @unlink($path->getPathname());
+			}
+			@rmdir($directory);
+		}
+	}
+
+	if ($result['code'] !== 'exited') {
+		return ['outcome' => in_array($result['code'], ['timeout', 'config_failed'], true) ? 'retry' : 'failure', 'code' => 'snmptrap_' . $result['code']];
+	}
+
+	return $result['exit_code'] === 0 ? ['outcome' => 'success', 'code' => $settings['notification'] === 'inform' ? 'snmp_inform_acknowledged' : 'snmp_trap_sent'] : ['outcome' => 'retry', 'code' => 'snmptrap_failed'];
+}
+/**
+ * One RFC 5424 or RFC 3164 line; machine-readable alarm identity travels in structured data.
+ * @param array<string, mixed> $settings
+ * @param array<string, mixed> $event
+ */
+function alarmmanager_syslog_message(array $settings, array $event, string $text, string $hostname): string {
+	$severity = ['critical' => 2, 'major' => 3, 'minor' => 4, 'warning' => 4, 'info' => 6, 'clear' => 5][$event['severity']];
+	$priority = '<' . (alarmmanager_syslog_facilities()[$settings['facility']] * 8 + $severity) . '>';
+	$text     = alarmmanager_one_line($text);
+	$hostname = substr(preg_replace('/[^\x21-\x7e]/', '', $hostname), 0, 255);
+	$hostname = $hostname === '' ? '-' : $hostname;
+
+	if ($settings['format'] === 'rfc3164') {
+		$time = new DateTimeImmutable($event['occurred_at']);
+		$tag  = substr(preg_replace('/[^A-Za-z0-9_.-]/', '', $settings['app_name']), 0, 32);
+
+		return $priority . $time->format('M') . ' ' . str_pad($time->format('j'), 2, ' ', STR_PAD_LEFT) . $time->format(' H:i:s') . ' ' . $hostname . ' ' . ($tag === '' ? 'alarmmanager' : $tag) . ': ' . $text;
+	}
+	$data = '[alarm@23925';
+
+	foreach (['key' => $event['alarm_key'], 'episode' => $event['episode_id'], 'event' => $event['event_id'], 'severity' => $event['severity'], 'transition' => $event['transition'], 'source' => $event['source'], 'device' => $event['device']['hostname'] ?? null] as $name => $value) {
+		if ($value !== null) {
+			$data .= ' ' . $name . '="' . addcslashes((string) $value, '"\]') . '"';
+		}
+	}
+
+	return $priority . '1 ' . $event['occurred_at'] . ' ' . $hostname . ' ' . $settings['app_name'] . ' - ' . $event['transition'] . ' ' . $data . '] ' . $text;
+}
+/**
+ * @param  array<string, mixed> $settings
+ * @return array<string, mixed>
+ */
+function alarmmanager_syslog_send(array $settings, string $message, int $timeout): array {
+	// UDP receivers must accept 2048 octets; stream transports use RFC 6587 octet counting.
+	$message = $settings['protocol'] === 'udp' ? mb_strcut($message, 0, 2048, 'UTF-8') : strlen($message) . ' ' . $message;
+	$host    = str_contains($settings['host'], ':') ? '[' . $settings['host'] . ']' : $settings['host'];
+	$context = stream_context_create(['ssl' => ['verify_peer' => true, 'verify_peer_name' => true, 'peer_name' => $settings['host'], 'allow_self_signed' => false, 'SNI_enabled' => true,
+		'crypto_method'                                          => STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT | STREAM_CRYPTO_METHOD_TLSv1_3_CLIENT] + ($settings['ca_bundle'] !== null ? ['cafile' => $settings['ca_bundle']] : [])]);
+	// A refused or failed connection is an expected retry outcome, not a PHP warning for the Cacti log.
+	set_error_handler(static fn (): bool => true);
+
+	try {
+		$socket = stream_socket_client($settings['protocol'] . '://' . $host . ':' . $settings['port'], $errno, $error, $timeout, STREAM_CLIENT_CONNECT, $context);
+	} finally {
+		restore_error_handler();
+	}
+
+	if ($socket === false) {
+		return ['outcome' => 'retry', 'code' => 'syslog_connect_failed'];
+	}
+
+	try {
+		stream_set_timeout($socket, $timeout);
+		$offset = 0;
+
+		// fwrite() returns false or 0 once the receiver stops accepting data.
+		do {
+			$written = (int) @fwrite($socket, substr($message, $offset));
+			$offset += $written;
+		} while ($written > 0 && $offset < strlen($message));
+	} finally {
+		fclose($socket);
+	}
+
+	return $offset === strlen($message) ? ['outcome' => 'success', 'code' => 'syslog_sent'] : ['outcome' => 'retry', 'code' => 'syslog_write_failed'];
+}
+/**
+ * @param  array<string, mixed> $event
+ * @param  array<string, mixed> $endpoint
+ * @return array<string, mixed>
+ */
+function alarmmanager_syslog_transport(array $event, array $endpoint, string $idempotency): array {
+	$settings = alarmmanager_endpoint_transport($endpoint);
+	$payload  = alarmmanager_notification_payload($settings, $event);
+
+	if (!is_string($payload->message ?? null) || trim($payload->message) === '') {
+		throw new InvalidArgumentException('syslog_message_required');
+	}
+
+	return alarmmanager_syslog_send($settings, alarmmanager_syslog_message($settings, $event, $payload->message, (string) gethostname()), max(1, (int) $endpoint['timeout_seconds'] - 1));
+}
 /** Fresh child, no shell, clean environment, bounded pipes/runtime and group cleanup. */
 function alarmmanager_transport_process(array $arguments, string $input, int $timeout, array $environment = []): array {
 	if (!function_exists('posix_kill') || !is_executable('/usr/bin/setsid')) {

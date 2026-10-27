@@ -88,7 +88,7 @@ function alarmmanager_replication_configuration(): array {
 		foreach (alarmmanager_db_rows('SELECT endpoint_id, ciphertext FROM plugin_alarmmanager_credentials ORDER BY endpoint_id LIMIT 1001') as $credential) {
 			$id = (int) $credential['endpoint_id'];
 
-			if (isset($settings['endpoints'][$id]) && in_array($settings['endpoints'][$id]['type'], ['restapi', 'webhook'], true)) {
+			if (isset($settings['endpoints'][$id]) && in_array($settings['endpoints'][$id]['type'], alarmmanager_credential_types(), true)) {
 				$credentials[$id] = alarmmanager_decrypt_credential($credential['ciphertext'], $id, $key);
 			}
 		}

@@ -172,8 +172,6 @@
 .alarmmanagerEditor fieldset { box-sizing:border-box; border:1px solid var(--search-border); padding:12px; }
 .alarmmanagerDashboardCard > summary { cursor:pointer; padding:12px; font-weight:bold; background:var(--search-tint); overflow-wrap:anywhere; }
 .alarmmanagerDashboardCard details, .alarmmanagerDashboardCard form { border:0; }
-.alarmmanagerTemplatePicker { display:flex; flex-wrap:wrap; align-items:center; gap:16px; }
-.alarmmanagerTemplatePicker label { min-width:140px; }
 .alarmmanagerMappingBuilder { display:grid; gap:8px; }
 .alarmmanagerMappingRow { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(160px,100%),1fr)); gap:8px; padding:8px; border:1px solid var(--search-border); }
 .alarmmanagerMappingRow label { min-width:0; display:flex !important; flex-direction:column; align-items:stretch !important; }
@@ -283,18 +281,93 @@
 
 .alarmmanagerQueryNot { display:block; margin-top:4px; }
 
-/* Keep the status mapping readable instead of packing it into the inline editor row. */
-#alarmmanager_app .alarmmanagerSummaryEditor { display:block; max-width:900px; box-sizing:border-box; }
-.alarmmanagerSummaryEditor h2 { margin:0 0 20px; }
-#alarmmanager_app .alarmmanagerSummaryEditor > label { display:grid; grid-template-columns:240px minmax(0,1fr); align-items:center; gap:12px; margin:0 0 14px; min-width:0; }
-#alarmmanager_app .alarmmanagerSummaryEditor input:not([type=hidden]):not([type=checkbox]) { width:100%; min-width:0; box-sizing:border-box; }
-.alarmmanagerSummaryEditor > p { max-width:70ch; margin:20px 0; line-height:1.5; }
-.alarmmanagerSummaryActions { padding-top:14px; border-top:1px solid var(--search-border); }
-@media(max-width:600px) { #alarmmanager_app .alarmmanagerSummaryEditor > label { grid-template-columns:minmax(0,1fr); gap:6px; } }
-
-#alarmmanager_app .alarmmanagerSummaryEditor > label:has(input[type=checkbox]) { display:flex; gap:8px; }
-
 #alarmmanager_app .alarmmanagerTestDestination { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
 
 .alarmmanagerEndpointActions button[name=test_destination] { order:1; }
 .alarmmanagerEndpointActions button:not([name]) { order:2; }
+
+/* Rule template destinations render as accordion cards with live status badges. */
+#alarmmanager_app [data-rule-template] { margin:0 0 10px; padding:0 14px; border:1px solid var(--search-border); border-radius:8px; background:var(--search-card); }
+#alarmmanager_app [data-rule-template][open] { padding-bottom:14px; }
+#alarmmanager_app [data-rule-template][hidden] { display:none; }
+#alarmmanager_app [data-rule-template] > summary { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:0 -14px; padding:12px 14px; border-radius:8px; cursor:pointer; list-style:none; font-weight:bold; overflow-wrap:anywhere; }
+#alarmmanager_app [data-rule-template] > summary::-webkit-details-marker { display:none; }
+#alarmmanager_app [data-rule-template] > summary::after { content:''; flex:none; width:7px; height:7px; margin:0 4px 4px auto; border-right:2px solid var(--search-muted); border-bottom:2px solid var(--search-muted); transform:rotate(45deg); transition:transform .15s; }
+#alarmmanager_app [data-rule-template][open] > summary::after { margin-bottom:-4px; transform:rotate(-135deg); }
+#alarmmanager_app [data-rule-template] > summary:hover { background:var(--search-tint); }
+#alarmmanager_app [data-rule-template][open] > summary { margin-bottom:14px; border-bottom:1px solid var(--search-border); border-radius:8px 8px 0 0; background:var(--search-tint); }
+.alarmmanagerBadge { padding:2px 9px; border:1px solid var(--search-border); border-radius:999px; background:var(--search-card); color:var(--search-muted); font-size:.85em; font-weight:normal; white-space:nowrap; }
+.alarmmanagerBadge[data-template-state="custom"] { border-color:var(--search-accent); color:var(--search-accent); }
+
+/* Twilio rule recipients are added one at a time and shown as removable chips. */
+#alarmmanager_app .alarmmanagerPhoneList { margin:0 0 8px; padding:12px; min-width:0; border:1px solid var(--search-border); border-radius:6px; }
+#alarmmanager_app .alarmmanagerPhoneList > legend { font-weight:bold; padding:0 6px; }
+#alarmmanager_app .alarmmanagerPhoneList ul { display:flex; flex-wrap:wrap; gap:6px; margin:0 0 10px; padding:0; list-style:none; }
+#alarmmanager_app .alarmmanagerPhoneList ul[hidden] { display:none; }
+#alarmmanager_app .alarmmanagerPhoneList li { display:inline-flex; align-items:center; gap:4px; padding:2px 2px 2px 10px; border:1px solid var(--search-border); border-radius:999px; background:var(--search-tint); font-family:monospace; }
+#alarmmanager_app .alarmmanagerPhoneList li button { padding:0 7px; border:0; border-radius:999px; background:transparent; font-size:1.1em; line-height:1.4; }
+#alarmmanager_app .alarmmanagerPhoneList li button:hover { background:var(--search-card); }
+#alarmmanager_app .alarmmanagerPhoneEntry { display:flex; gap:8px; max-width:600px; }
+#alarmmanager_app .alarmmanagerPhoneEntry input { flex:1 1 auto; min-width:0; }
+#alarmmanager_app .alarmmanagerPhoneEntry button { flex:none; }
+#alarmmanager_app .alarmmanagerPhoneList [aria-invalid="true"] { border-color:#c0392b; }
+.alarmmanagerPhoneError { margin:6px 0 0; color:#c0392b; }
+#alarmmanager_app[data-theme="dark"] .alarmmanagerPhoneError, #alarmmanager_app[data-theme="midwinter"] .alarmmanagerPhoneError, #alarmmanager_app[data-theme="deepness"] .alarmmanagerPhoneError { color:#ff8a80; }
+.alarmmanagerPayloadTable { width:100%; border-collapse:collapse; }
+.alarmmanagerPayloadTable td { padding:2px 6px; vertical-align:top; overflow-wrap:anywhere; }
+.alarmmanagerPayloadTable pre { margin:0; white-space:pre-wrap; overflow-wrap:anywhere; }
+.alarmmanagerPayloadKey { font-weight:bold; white-space:nowrap; }
+
+/* Integration templates: "Add integration" opens a searchable, grouped card gallery. */
+#alarmmanager_app .alarmmanagerTemplateGallery { margin:0 0 18px; }
+/* Primary page actions (Add integration, Create a rule) share one filled pill style. */
+#alarmmanager_app .alarmmanagerTemplateGallery > summary, #alarmmanager_app .alarmmanagerPrimaryAction { display:inline-flex; align-items:center; gap:8px; padding:8px 16px; border-radius:6px; background:var(--search-accent); color:var(--search-card); font-weight:bold; border:0; text-decoration:none; cursor:pointer; list-style:none; font-size:inherit; }
+#alarmmanager_app .alarmmanagerPrimaryAction[data-icon=add]::before { content:'+'; font-size:1.25em; line-height:1; }
+#alarmmanager_app a.alarmmanagerPrimaryAction:link, #alarmmanager_app a.alarmmanagerPrimaryAction:visited { color:var(--search-card); text-decoration:none; }
+#alarmmanager_app .alarmmanagerTemplateGallery > summary:hover, #alarmmanager_app .alarmmanagerPrimaryAction:hover { filter:brightness(1.12); }
+#alarmmanager_app .alarmmanagerTemplateGallery > summary::-webkit-details-marker { display:none; }
+#alarmmanager_app .alarmmanagerTemplateGallery > summary::before { content:'+'; font-size:1.25em; line-height:1; }
+#alarmmanager_app .alarmmanagerTemplateGallery[open] > summary::before { content:'\2212'; }
+#alarmmanager_app .alarmmanagerTemplateGallery > summary:focus-visible, #alarmmanager_app .alarmmanagerPrimaryAction:focus-visible { outline:2px solid var(--search-accent); outline-offset:2px; }
+#alarmmanager_app .alarmmanagerGalleryHead { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px 16px; margin:14px 0 4px; }
+#alarmmanager_app .alarmmanagerGalleryHead p { margin:0; color:var(--search-muted); }
+#alarmmanager_app .alarmmanagerGalleryHead input[type=search] { flex:0 1 280px; min-width:0; padding:7px 10px; border:1px solid var(--search-border); border-radius:6px; background:var(--search-card); color:var(--search-text); }
+#alarmmanager_app .alarmmanagerTemplateGroup[hidden], #alarmmanager_app .alarmmanagerTemplateGroup li[hidden] { display:none; }
+#alarmmanager_app .alarmmanagerTemplateGroup h4 { margin:16px 0 8px; color:var(--search-muted); font-size:.8em; letter-spacing:.06em; text-transform:uppercase; }
+#alarmmanager_app .alarmmanagerTemplateGroup ul { display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:10px; margin:0; padding:0; list-style:none; }
+#alarmmanager_app a.alarmmanagerTemplateCard { display:flex; align-items:flex-start; gap:12px; height:100%; box-sizing:border-box; padding:12px 14px; border:1px solid var(--search-border); border-radius:8px; background:var(--search-card); color:var(--search-text); text-decoration:none; transition:border-color .15s, box-shadow .15s, transform .15s; }
+#alarmmanager_app a.alarmmanagerTemplateCard:hover, #alarmmanager_app a.alarmmanagerTemplateCard:focus-visible { border-color:var(--search-accent); box-shadow:0 2px 10px rgba(0,0,0,.08); transform:translateY(-1px); outline:none; }
+#alarmmanager_app a.alarmmanagerTemplateCard strong { display:block; margin-bottom:2px; }
+#alarmmanager_app a.alarmmanagerTemplateCard strong + span { display:block; color:var(--search-muted); font-size:.9em; line-height:1.35; }
+#alarmmanager_app .alarmmanagerTemplateIcon { flex:none; display:grid; place-items:center; width:38px; height:38px; border-radius:8px; background:var(--search-tint); color:var(--search-accent); }
+#alarmmanager_app .alarmmanagerTemplateEmpty { color:var(--search-muted); }
+#alarmmanager_app .alarmmanagerSectionDivider { display:flex; align-items:center; gap:8px; margin:24px 0 12px; padding-top:18px; border-top:1px solid var(--search-border); }
+@media (max-width:600px) {
+	#alarmmanager_app .alarmmanagerTemplateGroup ul { grid-template-columns:1fr; }
+	#alarmmanager_app .alarmmanagerGalleryHead input[type=search] { flex-basis:100%; }
+}
+@media (prefers-reduced-motion:reduce) { #alarmmanager_app a.alarmmanagerTemplateCard { transition:none; } #alarmmanager_app a.alarmmanagerTemplateCard:hover { transform:none; } }
+
+/* Configuration: one card per concern, each with its own save action. */
+#alarmmanager_app .alarmmanagerSettingsCard { max-width:960px; box-sizing:border-box; margin:0 0 16px; padding:16px 18px; border:1px solid var(--search-border); border-radius:8px; background:var(--search-card); }
+#alarmmanager_app .alarmmanagerSettingsCard > header { display:flex; flex-wrap:wrap; align-items:center; gap:8px 12px; }
+#alarmmanager_app .alarmmanagerSettingsCard h3 { margin:0; font-size:1.15em; }
+#alarmmanager_app .alarmmanagerSettingsCard h4 { margin:0 0 6px; }
+#alarmmanager_app .alarmmanagerSettingsCard p.alarmmanagerHint { margin:6px 0 14px; }
+#alarmmanager_app .alarmmanagerSettingsCard form.alarmmanagerEditor { display:block; margin:0; padding:0; border:0; background:none; }
+#alarmmanager_app .alarmmanagerSettingsGrid { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:12px 16px; }
+#alarmmanager_app .alarmmanagerSettingsGrid.alarmmanagerCompact { grid-template-columns:repeat(auto-fill, minmax(150px, 200px)); }
+#alarmmanager_app .alarmmanagerSettingsCard label { display:flex; flex-direction:column; align-items:stretch; gap:4px; min-width:0; text-align:left; }
+#alarmmanager_app .alarmmanagerSettingsCard input:not([type=checkbox]):not([type=hidden]) { width:100%; min-width:0; box-sizing:border-box; }
+#alarmmanager_app .alarmmanagerSettingsCard label.alarmmanagerSettingsToggle { flex-direction:row; align-items:center; gap:8px; margin:0 0 4px; }
+#alarmmanager_app .alarmmanagerSettingsToggle:has(input:disabled) { opacity:.6; }
+#alarmmanager_app .alarmmanagerSettingsActions { display:flex; justify-content:flex-end; margin-top:4px; }
+#alarmmanager_app .alarmmanagerSettingsSplit { display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:16px 24px; margin-top:12px; }
+#alarmmanager_app .alarmmanagerSettingsSplit > div + div { padding-left:24px; border-left:1px solid var(--search-border); }
+#alarmmanager_app .alarmmanagerSettingsSplit label { margin:0 0 4px; }
+.alarmmanagerBadge[data-state="running"] { border-color:var(--search-accent); color:var(--search-accent); }
+@media(max-width:600px) {
+	#alarmmanager_app .alarmmanagerSettingsCard { padding:14px; }
+	#alarmmanager_app .alarmmanagerSettingsSplit > div + div { padding:16px 0 0; border-left:0; border-top:1px solid var(--search-border); }
+	#alarmmanager_app .alarmmanagerSettingsCard .alarmmanagerPrimaryAction { width:100%; box-sizing:border-box; justify-content:center; }
+}

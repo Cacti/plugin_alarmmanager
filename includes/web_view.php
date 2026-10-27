@@ -24,7 +24,7 @@
 
 require_once(__DIR__ . '/reports.php');
 
-const ALARMMANAGER_TABS = ['dashboard', 'conditions', 'events', 'decisions'];
+const ALARMMANAGER_TABS = ['dashboard', 'conditions', 'events'];
 
 function alarmmanager_web_assets(): void {
 	global $config;
@@ -137,8 +137,7 @@ function alarmmanager_web_open(array $scope, string $tab, bool $show_title = tru
 	foreach ([
 		'dashboard'  => 'Dashboard',
 		'conditions' => 'Active conditions',
-		'events'     => 'Events',
-		'decisions'  => 'Routing decisions'
+		'events'     => 'Events'
 	] as $key => $label) {
 		print '<li><a class="tab' . ($tab === $key ? ' selected' : '') . '" ' . ($tab === $key ? 'aria-current="page" ' : '') . 'href="' . html_escape('alarmmanager.php?tab=' . $key) . '">' . __esc($label, 'alarmmanager') . '</a></li>';
 	}
@@ -306,10 +305,12 @@ function alarmmanager_report_table(string $kind, array $result, array $scope, ar
 		foreach ($headers as $key) {
 			$value = html_escape((string) ($row[$key] ?? '—'));
 
-			$is_mirror = $row['id'] === null;
+			$is_mirror = !isset($row['id']);
 
 			if (($key === 'event_row_id' || ($key === 'id' && in_array($kind, ['events', 'conditions'], true))) && !$is_mirror) {
 				$link = '<a class="linkOverDark" href="' . html_escape(alarmmanager_report_url($filters, 'events', ['event_id' => $row[$key]])) . '">' . html_escape((string) $row[$key]) . '</a>';
+			} elseif ($key === 'payload' && !empty($row[$key])) {
+				$link = '<a class="linkOverDark alarmmanagerPayloadLink" href="#" data-payload="' . $value . '">' . __esc('Display', 'alarmmanager') . '</a>';
 			} elseif ($key === 'external_url' && !empty($row['external_id']) && !empty($row[$key])) {
 				require_once(__DIR__ . '/integrations.php');
 
