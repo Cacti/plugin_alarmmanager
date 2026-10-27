@@ -124,6 +124,13 @@ function alarmmanager_admin_sections(): array {
 function alarmmanager_config_arrays(): void {
 	global $menu, $menu_glyphs;
 
+	// Cacti core deliberately never disables the config_arrays hook itself
+	// (so a disabled plugin can still reach its settings); gate the menu
+	// here instead, or it stays visible for a plugin that can't run.
+	if (!api_plugin_is_enabled('alarmmanager')) {
+		return;
+	}
+
 	// Like the syslog plugin's Syslog Settings group, administration lives in
 	// its own console group instead of under the view page in Management.
 	$extended = [];

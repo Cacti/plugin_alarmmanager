@@ -81,7 +81,7 @@ function alarmmanager_poller_bottom(array $args = []): void {
 		foreach (['processing', 'delivery'] as $role) {
 			$counts[$role] = alarmmanager_worker_loop($role, alarmmanager_poller_budget() + ['once' => true, 'worker_id' => alarmmanager_poller_worker_id($role)], static fn (): bool => false);
 		}
-		cacti_log(sprintf('ALARMMANAGER STATS: Time:%.4f Mode:poller Processing:%d Delivery:%d Devices:%d', microtime(true) - $started, $counts['processing'], $counts['delivery'], $devices), false, 'SYSTEM');
+		cacti_log(sprintf('ALARMMANAGER STATS: Time:%.4f Mode:poller Processing:%d Delivery:%d Devices:%d Queued:%d', microtime(true) - $started, $counts['processing'], $counts['delivery'], $devices, alarmmanager_queue_waiting_count()), false, 'SYSTEM');
 	} catch (Throwable $error) {
 		if ($error instanceof \AlarmManager\MissingTableException && alarmmanager_schema_ensure()) {
 			alarmmanager_log('missing plugin tables recreated; processing resumes next cycle');

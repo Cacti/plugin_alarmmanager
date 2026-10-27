@@ -1096,6 +1096,32 @@
 			}
 		);
 	}
+	/** Show the log file path and rotation size only when writing to an external file. */
+	function initEventLogFields(app) {
+		const select = app.querySelector('[name=event_log_target]');
+		if (!select) return;
+		const form = select.closest('form');
+		/** Refresh the file-only field group for the selected target. */
+		function update() {
+			form.querySelectorAll('[data-event-log-targets]').forEach(
+				/** Show the group when its target list includes the selected one. */
+				(group) => {
+					const active = group.dataset.eventLogTargets
+						.split(' ')
+						.includes(select.value);
+					group.hidden = !active;
+					group.querySelectorAll('input,select').forEach(
+						/** Disable inputs in a hidden group so they are not submitted. */
+						(input) => {
+							input.disabled = !active;
+						}
+					);
+				}
+			);
+		}
+		jQuery(form).on('change', '[name=event_log_target]', update);
+		update();
+	}
 	// The Syslog version-1 document keeps grouped AND/OR/NOT conditions parameterized on the server.
 	/** Initialize grouped report and rule query builders. */
 	function initReportQuery(app) {
@@ -1489,6 +1515,7 @@
 		initAuthentication(app);
 		initEndpointTypes(app);
 		initServiceNow(app);
+		initEventLogFields(app);
 		app.querySelectorAll('.alarmmanagerEndpointEditor').forEach(
 			/** Bind endpoint submissions to preserve explicit test-send intent. */
 			(form) => {

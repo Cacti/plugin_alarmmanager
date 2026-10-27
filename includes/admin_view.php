@@ -279,11 +279,8 @@ function alarmmanager_admin_markup(array $state, string $section): void {
 
 	if ($section === 'queue') {
 		$paused = alarmmanager_notifications_paused();
-		$count  = alarmmanager_db_row("SELECT COUNT(*) AS waiting FROM plugin_alarmmanager_deliveries AS d
-			INNER JOIN plugin_alarmmanager_events AS e ON e.id = d.event_row_id
-			WHERE d.status = 'pending' AND e.processing_poller_id = ?", [alarmmanager_local_poller()]);
 		html_start_box(__esc('Alarm Queue', 'alarmmanager'), '100%', false, 3, 'center', '');
-		print '<p>' . ($paused ? __esc('Notification delivery is paused.', 'alarmmanager') : __esc('Notification delivery is running.', 'alarmmanager')) . ' ' . __esc('Waiting messages', 'alarmmanager') . ': ' . (int) ($count['waiting'] ?? 0) . '</p>';
+		print '<p>' . ($paused ? __esc('Notification delivery is paused.', 'alarmmanager') : __esc('Notification delivery is running.', 'alarmmanager')) . ' ' . __esc('Waiting messages', 'alarmmanager') . ': ' . alarmmanager_queue_waiting_count() . '</p>';
 		print '<p>' . __esc('Controls apply to this poller. Alarms continue to be received and processed while delivery is paused. Messages already being sent may finish. Resume sends the waiting notifications.', 'alarmmanager') . '</p>';
 		alarmmanager_form_start($paused ? 'queue_resume' : 'queue_pause', $revision);
 		print '<button type="submit">' . ($paused ? __esc('Resume delivery', 'alarmmanager') : __esc('Pause delivery', 'alarmmanager')) . '</button></form>';
@@ -419,6 +416,15 @@ function alarmmanager_admin_markup(array $state, string $section): void {
 		alarmmanager_input('processing_workers', 'Processing workers', $settings['processing_workers'], 'number', 'min="1" max="64" required');
 		alarmmanager_input('delivery_workers', 'Delivery workers', $settings['delivery_workers'], 'number', 'min="0" max="64" required');
 		print '<p class="alarmmanagerHint alarmmanagerFullWidth">' . __esc('Changes apply automatically within a few seconds. Disabling the daemon lets current jobs finish and returns processing to the Cacti poller.', 'alarmmanager') . '</p><button type="submit">' . __esc('Save settings', 'alarmmanager') . '</button></form>';
+		$event_log = $config['event_log'] ?? ['enabled' => false, 'target' => 'cacti_log', 'path' => null, 'max_bytes' => 52428800];
+		alarmmanager_form_start('event_log_save', $revision);
+		print '<fieldset class="alarmmanagerFullWidth alarmmanagerEventLog"><legend>' . __esc('Event log', 'alarmmanager') . '</legend><p>' . __esc('Writes every event as it is processed, independent of which rules match or whether any destination is notified — a complete audit trail for external analysis, for example with Splunk.', 'alarmmanager') . '</p>';
+		alarmmanager_checkbox('event_log_enabled', 'Enable event logging', $event_log['enabled']);
+		print '<label>' . __esc('Write to', 'alarmmanager') . ' <select name="event_log_target" class="alarmmanagerEventLogTarget"><option value="cacti_log"' . ($event_log['target'] === 'cacti_log' ? ' selected' : '') . '>' . __esc('Cacti log', 'alarmmanager') . '</option><option value="file"' . ($event_log['target'] === 'file' ? ' selected' : '') . '>' . __esc('External file', 'alarmmanager') . '</option></select></label>';
+		print '<div data-event-log-targets="file">';
+		alarmmanager_input('event_log_path', 'Log file path', $event_log['path'] ?? '', 'text', 'maxlength="1024" placeholder="/var/log/alarmmanager/events.jsonl"');
+		alarmmanager_input('event_log_max_mb', 'Rotate past (MB)', (string) max(1, intdiv((int) $event_log['max_bytes'], 1048576)), 'number', 'min="1" max="500" required');
+		print '</div><p class="alarmmanagerHint">' . __esc('One JSON object per line (occurred_at, transition, severity, device, alarm key…). The path must already exist, outside the plugin directory and Cacti\'s web root. Past the size limit, the file rotates to one .1 backup.', 'alarmmanager') . '</p></fieldset><button type="submit">' . __esc('Save event log settings', 'alarmmanager') . '</button></form>';
 		print '<h2>' . __esc('Export / import configuration', 'alarmmanager') . '</h2><p>' . __esc('Export endpoints, message mappings, alarm rules and device summaries as JSON. Stored credentials and daemon settings are excluded. Endpoint URLs may contain secrets; keep exported files private.', 'alarmmanager') . '</p>';
 		print '<p><a class="button" href="alarmmanager_admin.php?section=configuration&amp;download=configuration">' . __esc('Export configuration', 'alarmmanager') . '</a></p>';
 		alarmmanager_form_start('configuration_save', $revision);

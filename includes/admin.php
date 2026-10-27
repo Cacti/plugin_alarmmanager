@@ -242,7 +242,7 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 			alarmmanager_db_write("REPLACE INTO settings (name, value) VALUES ('alarmmanager_notifications_paused', ?)", [$action === 'queue_pause' ? '1' : '0']);
 			alarmmanager_request_configuration_replication();
 		});
-		alarmmanager_log('Alarm Queue ' . ($action === 'queue_pause' ? 'paused' : 'resumed') . ' by user ' . alarmmanager_web_user());
+		alarmmanager_log(($action === 'queue_pause' ? 'WARNING: Alarm Queue paused' : 'Alarm Queue resumed') . ' by user ' . alarmmanager_web_user());
 
 		return 'Alarm Queue updated.';
 	}
@@ -343,7 +343,7 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 		return 'Test queued for delivery workers; event row ' . $id . '.';
 	}
 
-	if (!in_array($action, ['configuration_save', 'settings_save', 'device_summaries_save', 'endpoint_save', 'endpoint_delete', 'rule_save'], true)) {
+	if (!in_array($action, ['configuration_save', 'settings_save', 'device_summaries_save', 'event_log_save', 'endpoint_save', 'endpoint_delete', 'rule_save'], true)) {
 		throw new InvalidArgumentException('invalid_action');
 	}
 	$test_destination = $action === 'endpoint_save' && ($input['test_destination'] ?? '') === 'yes';
@@ -411,6 +411,8 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 			: alarmmanager_admin_json($input['configuration_json'] ?? '', 1048576);
 	} elseif (in_array($action, ['settings_save', 'device_summaries_save'], true)) {
 		$settings['device_summaries'] = ['offline' => $input['offline_summary'] ?? '', 'recovering' => $input['recovering_summary'] ?? '', 'online' => $input['online_summary'] ?? ''];
+	} elseif ($action === 'event_log_save') {
+		$settings['event_log'] = ['enabled' => isset($input['event_log_enabled']), 'target' => $input['event_log_target'] ?? 'cacti_log', 'path' => $input['event_log_path'] ?? null, 'max_bytes' => alarmmanager_admin_int($input['event_log_max_mb'] ?? 50, 1, 500) * 1048576];
 	} else {
 		$id   = alarmmanager_admin_int($input['id'] ?? 0, 0);
 		$name = $input['name'] ?? '';
@@ -657,6 +659,8 @@ function alarmmanager_admin_error_message(Throwable $error): string {
 		'invalid_schedule'               => 'Choose a valid timezone and start and end times for each schedule.',
 		'invalid_device_summaries'       => 'Enter all device summaries using 1–512 bytes of text without line breaks.',
 		'invalid_configuration'          => 'Action failed. Configuration fields are invalid.',
+		'invalid_event_log'              => 'Choose Cacti log or an external file for the event log target.',
+		'invalid_event_log_path'         => 'Enter an absolute file path for the event log, outside the plugin and Cacti web root and not a symlink.',
 		default                          => 'The action could not be completed. Check the Cacti log for an internal error. Submitted credential values were cleared.'
 	};
 }
