@@ -109,6 +109,14 @@ final class RuleEditorTest extends AlarmManagerTestCase {
 		}
 	}
 
+	public function testImportIgnoresDeviceSummariesFromOlderBackups(): void {
+		self::alarmmanager_test_load('includes/admin.php');
+		$backup = ['version' => 1, 'device_summaries' => ['offline' => 'Device is Offline', 'recovering' => 'Recovering', 'online' => 'Online'], 'endpoints' => [], 'rules' => []];
+
+		$this->assertSame(['version' => 1, 'endpoints' => [], 'rules' => []], alarmmanager_configuration(alarmmanager_admin_configuration_import($backup)), 'An older backup must import without its retired device summaries.');
+		$this->assertSame(['version' => 1], alarmmanager_admin_configuration_import(['version' => 1]), 'A current backup passes through unchanged.');
+	}
+
 	public function testDeviceSummariesComeFromCactiSettings(): void {
 		self::alarmmanager_test_load('includes/routing.php');
 		$before = $GLOBALS['alarmmanager_test_config_options'];

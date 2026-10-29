@@ -152,7 +152,19 @@ function alarmmanager_admin_configuration_upload(array $file): array {
 		throw new InvalidArgumentException('invalid_configuration_upload');
 	}
 
-	return alarmmanager_admin_json($json, 1048576);
+	return alarmmanager_admin_configuration_import(alarmmanager_admin_json($json, 1048576));
+}
+
+/**
+ * Backups made before device summaries moved to Cacti Settings still carry them; the summaries are now edited
+ * under Settings > Alarm Manager, so the retired key is dropped rather than failing the whole import.
+ * @param  array<string, mixed> $configuration
+ * @return array<string, mixed>
+ */
+function alarmmanager_admin_configuration_import(array $configuration): array {
+	unset($configuration['device_summaries']);
+
+	return $configuration;
 }
 function alarmmanager_admin_replay(string $queue, int $id): void {
 	$table = match ($queue) {
