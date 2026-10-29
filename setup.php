@@ -126,7 +126,7 @@ function alarmmanager_config_settings(): void {
 	global $tabs, $settings;
 
 	$tabs['alarmmanager'] = __('Alarm Manager', 'alarmmanager');
-	$workers              = static fn (int $from): array => array_combine(range($from, 64), range($from, 64));
+	$workers              = static fn (int $from): array => array_combine(range($from, 16), range($from, 16));
 
 	$settings['alarmmanager'] = [
 		'alarmmanager_summary_header' => [

@@ -141,7 +141,8 @@ final class RetentionTest extends AlarmManagerTestCase {
 			$this->assertContains($field, $fields, "$field must appear on the Settings tab.");
 		}
 		$this->assertSame(['days', 'weeks', 'months', 'forever'], array_keys($settings['alarmmanager']['alarmmanager_retention_unit']['array']), 'Retention offers days, weeks, months or indefinitely.');
-		$this->assertSame(64, max(array_keys($settings['alarmmanager']['alarmmanager_daemon_processing_workers']['array'])));
+		$this->assertSame(16, max(array_keys($settings['alarmmanager']['alarmmanager_daemon_processing_workers']['array'])));
+		$this->assertSame(16, max(array_keys($settings['alarmmanager']['alarmmanager_daemon_delivery_workers']['array'])));
 		$this->assertSame(0, min(array_keys($settings['alarmmanager']['alarmmanager_daemon_delivery_workers']['array'])));
 	}
 
