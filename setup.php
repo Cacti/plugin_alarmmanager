@@ -126,7 +126,15 @@ function alarmmanager_config_settings(): void {
 	global $tabs, $settings;
 
 	$tabs['alarmmanager'] = __('Alarm Manager', 'alarmmanager');
-	$workers              = static fn (int $from): array => array_combine(range($from, 16), range($from, 16));
+	$workers              = static function (bool $none): array {
+		$choices = $none ? [0 => __('0 Worker Processes', 'alarmmanager'), 1 => __('1 Worker Process', 'alarmmanager')] : [1 => __('1 Worker Process', 'alarmmanager')];
+
+		foreach ([2, 4, 6, 8, 16] as $count) {
+			$choices[$count] = __('%d Worker Processes', $count, 'alarmmanager');
+		}
+
+		return $choices;
+	};
 
 	$settings['alarmmanager'] = [
 		'alarmmanager_summary_header' => [
@@ -194,14 +202,14 @@ function alarmmanager_config_settings(): void {
 			'description'   => __('Number of daemon workers that evaluate rules.', 'alarmmanager'),
 			'method'        => 'drop_array',
 			'default'       => '2',
-			'array'         => $workers(1)
+			'array'         => $workers(false)
 		],
 		'alarmmanager_daemon_delivery_workers' => [
 			'friendly_name' => __('Delivery Workers', 'alarmmanager'),
 			'description'   => __('Number of daemon workers that deliver notifications.', 'alarmmanager'),
 			'method'        => 'drop_array',
 			'default'       => '4',
-			'array'         => $workers(0)
+			'array'         => $workers(true)
 		]
 	];
 }
