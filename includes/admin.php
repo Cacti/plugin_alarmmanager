@@ -290,7 +290,7 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 			alarmmanager_db_write("REPLACE INTO settings (name, value) VALUES ('alarmmanager_notifications_paused', ?)", [$action === 'queue_pause' ? '1' : '0']);
 			alarmmanager_request_configuration_replication();
 		});
-		alarmmanager_log('Alarm Queue ' . ($action === 'queue_pause' ? 'paused' : 'resumed') . ' by user ' . alarmmanager_web_user());
+		alarmmanager_log('Alarm Queue ' . ($action === 'queue_pause' ? 'paused' : 'resumed') . ' by user ' . alarmmanager_web_username());
 
 		return 'Alarm Queue updated.';
 	}
@@ -303,7 +303,7 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 			INNER JOIN plugin_alarmmanager_events AS e ON e.id = d.event_row_id
 			SET d.status = 'failed', d.last_error = 'queue_cleared', d.updated_at = UTC_TIMESTAMP(6)
 			WHERE d.status = 'pending' AND e.processing_poller_id = ?", [alarmmanager_local_poller()]);
-		alarmmanager_log('Waiting notifications cleared by user ' . alarmmanager_web_user());
+		alarmmanager_log('Waiting notifications cleared by user ' . alarmmanager_web_username());
 
 		return 'Waiting notifications cleared. History preserved.';
 	}

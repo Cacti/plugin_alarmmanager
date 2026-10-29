@@ -32,6 +32,10 @@ function alarmmanager_web_user(): int {
 
 	return $id;
 }
+/** Login name of the signed-in user, for log lines that should read as a person rather than an ID. */
+function alarmmanager_web_username(): string {
+	return (string) get_username(alarmmanager_web_user());
+}
 function alarmmanager_web_realm(string $display): bool {
 	$file = match ($display) {
 		'Alarm Manager View' => 'alarmmanager.php', 'Alarm Manager Administration' => 'alarmmanager_admin.php', default => throw new InvalidArgumentException('invalid_realm')

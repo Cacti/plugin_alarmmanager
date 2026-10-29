@@ -109,6 +109,25 @@ final class RuleEditorTest extends AlarmManagerTestCase {
 		}
 	}
 
+	public function testLogLinesNameTheUserNotTheId(): void {
+		self::alarmmanager_test_load('includes/admin.php');
+
+		if (!function_exists('get_username')) {
+			function get_username($user_id) {
+				return $user_id === 7 ? 'sean' : '';
+			}
+		}
+		$before                = $_SESSION['sess_user_id'] ?? null;
+		$_SESSION['sess_user_id'] = 7;
+
+		try {
+			$this->assertSame('sean', alarmmanager_web_username(), 'Logs must name the signed-in user.');
+		} finally {
+			$_SESSION['sess_user_id'] = $before;
+		}
+		$this->assertStringNotContainsString('alarmmanager_web_user()', self::alarmmanager_test_read_source('includes/admin.php'), 'No log line may print the numeric user ID.');
+	}
+
 	public function testImportIgnoresDeviceSummariesFromOlderBackups(): void {
 		self::alarmmanager_test_load('includes/admin.php');
 		$backup = ['version' => 1, 'device_summaries' => ['offline' => 'Device is Offline', 'recovering' => 'Recovering', 'online' => 'Online'], 'endpoints' => [], 'rules' => []];
