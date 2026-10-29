@@ -103,7 +103,7 @@ function alarmmanager_replication_configuration(): array {
 		}
 		unset($producer);
 
-		return ['settings' => $settings, 'credentials' => $credentials, 'producers' => $producers, 'daemon' => alarmmanager_supervisor_options(), 'paused' => alarmmanager_notifications_paused()];
+		return ['settings' => $settings, 'credentials' => $credentials, 'producers' => $producers, 'paused' => alarmmanager_notifications_paused()];
 	});
 }
 
@@ -111,7 +111,6 @@ function alarmmanager_replication_configuration(): array {
 function alarmmanager_replication_state(PDO $connection): string {
 	return hash('sha256', json_encode([
 		alarmmanager_db_row('SELECT config_revision FROM plugin_alarmmanager_schema WHERE id = 1', [], $connection),
-		alarmmanager_db_rows("SELECT name, value FROM settings_user WHERE user_id = 1 AND name = 'alarmmanager_daemon_configuration'", [], $connection),
 		alarmmanager_db_rows("SELECT value FROM settings WHERE name = 'alarmmanager_notifications_paused'", [], $connection),
 		alarmmanager_db_rows('SELECT endpoint_id, ciphertext FROM plugin_alarmmanager_credentials ORDER BY endpoint_id', [], $connection),
 		alarmmanager_db_rows('SELECT source, scope, resource_id, definition FROM plugin_alarmmanager_producer_config ORDER BY source, scope, resource_id', [], $connection)
@@ -154,7 +153,6 @@ function alarmmanager_replicate_configuration(PDO $connection, int $poller): voi
 		foreach ($bundle['credentials'] as $id => $record) {
 			alarmmanager_db_write('INSERT INTO plugin_alarmmanager_credentials (endpoint_id, ciphertext, updated_at) VALUES (?, ?, UTC_TIMESTAMP(6))', [$id, alarmmanager_encrypt_credential($record, $id, $key)], $connection);
 		}
-		alarmmanager_db_write('REPLACE INTO settings_user (user_id, name, value) VALUES (?, ?, ?)', [1, 'alarmmanager_daemon_configuration', json_encode($bundle['daemon'], JSON_THROW_ON_ERROR)], $connection);
 		alarmmanager_db_write("REPLACE INTO settings (name, value) VALUES ('alarmmanager_notifications_paused', ?)", [$bundle['paused'] ? '1' : '0'], $connection);
 		$marker = json_encode(['digest' => $digest, 'state' => alarmmanager_replication_state($connection)], JSON_THROW_ON_ERROR);
 		alarmmanager_db_write('REPLACE INTO settings_user (user_id, name, value) VALUES (?, ?, ?)', [1, 'alarmmanager_replicated_configuration', $marker], $connection);

@@ -70,7 +70,7 @@ final class ConfigurationReplicationTest extends AlarmManagerTestCase {
 			$GLOBALS['alarmmanager_test_db'] = $connections[1];
 			$localHook                       = ['class' => 'all', 'remote_poller_id' => 1, 'rcnn_id' => false];
 			$this->assertSame($localHook, alarmmanager_replicate_out($localHook), 'Native device replication for main-poller devices is a no-op.');
-			$routes                          = ['version' => 1, 'device_summaries' => ['offline' => 'Device is Offline', 'recovering' => 'Device is Recovering', 'online' => 'Device is Online'], 'endpoints' => [
+			$routes                          = ['version' => 1, 'endpoints' => [
 				['id' => 1, 'name' => 'Slack webhook', 'type' => 'webhook', 'transport' => ['url' => 'https://hooks.slack.com/services/fixture-token', 'mapping' => ['default' => [['to' => 'text', 'source' => 'alarm.summary']]]]],
 				['id' => 2, 'name' => 'Generic REST', 'type' => 'restapi', 'transport' => ['url' => 'https://api.example.test/alarms', 'credential' => true]],
 				['id' => 3, 'name' => 'Script', 'type' => 'script', 'transport' => ['executable' => PHP_BINARY]],
@@ -86,8 +86,14 @@ final class ConfigurationReplicationTest extends AlarmManagerTestCase {
 			$this->assertSame('on', $connections[1]->query('SELECT requires_sync FROM poller WHERE id=2')->fetchColumn(), 'Main saves schedule native Cacti replication.');
 			alarmmanager_save_credential(2, ['headers' => ['Authorization' => 'Bearer generic-fixture']]);
 			alarmmanager_save_credential(5, ['teams_webhook_url' => $teamsUrl]);
-			$daemon = array_replace(alarmmanager_supervisor_options(), ['enabled' => true, 'processing_workers' => 3, 'delivery_workers' => 7]);
-			alarmmanager_save_supervisor_options($daemon);
+			// Cacti's native settings replication carries the daemon choices to collectors.
+			$daemon = array_replace(alarmmanager_supervisor_defaults(), ['enabled' => true, 'processing_workers' => 3, 'delivery_workers' => 7]);
+
+			foreach ([1, 2, 3] as $node) {
+				foreach (['alarmmanager_daemon_enabled' => 'on', 'alarmmanager_daemon_processing_workers' => '3', 'alarmmanager_daemon_delivery_workers' => '7'] as $name => $value) {
+					$connections[$node]->prepare('REPLACE INTO settings (name, value) VALUES (?, ?)')->execute([$name, $value]);
+				}
+			}
 			alarmmanager_db_write("REPLACE INTO settings VALUES ('alarmmanager_notifications_paused', '1')");
 			alarmmanager_db_write('INSERT INTO plugin_alarmmanager_producer_config (source,scope,resource_id,definition) VALUES (?, ?, ?, ?)', ['syslog', 'default', 0, json_encode(['profile_id' => 7, 'channels' => ['script']])]);
 			$sourceCipher = $connections[1]->query('SELECT ciphertext FROM plugin_alarmmanager_credentials WHERE endpoint_id=2')->fetchColumn();
@@ -109,7 +115,6 @@ final class ConfigurationReplicationTest extends AlarmManagerTestCase {
 				$this->assertSame('Bearer generic-fixture', alarmmanager_decrypt_credential($cipher, 2, $keys[$poller])['headers']['Authorization']);
 				$this->assertSame('1', $db->query("SELECT value FROM settings WHERE name='alarmmanager_notifications_paused'")->fetchColumn());
 				$definition = json_decode($db->query('SELECT definition FROM plugin_alarmmanager_configuration_history ORDER BY revision DESC LIMIT 1')->fetchColumn(), true, 24, JSON_THROW_ON_ERROR);
-				$this->assertSame($routes['device_summaries'], $definition['device_summaries'], 'Device summary settings synchronize to each collector.');
 				$this->assertSame($alarmQuery, $definition['rules'][0]['policy']['alarm_query'], 'Alarm conditions synchronize to collectors.');
 				$this->assertSame(alarmmanager_mapping_validate($routes['rules'][0]['policy']['template_overrides'][1]), $definition['rules'][0]['policy']['template_overrides'][1], 'Rule message templates synchronize with the rule.');
 				$revision = $db->query('SELECT config_revision FROM plugin_alarmmanager_schema')->fetchColumn();
@@ -147,7 +152,7 @@ final class ConfigurationReplicationTest extends AlarmManagerTestCase {
 			alarmmanager_save_credential(2, ['basic' => ['username' => 'service', 'password' => 'changed-password']]);
 			alarmmanager_db_write("UPDATE settings SET value='0' WHERE name='alarmmanager_notifications_paused'");
 			$daemon['delivery_workers'] = 2;
-			alarmmanager_save_supervisor_options($daemon);
+			$connections[2]->exec("UPDATE settings SET value = '2' WHERE name = 'alarmmanager_daemon_delivery_workers'");
 			$data           = ['class' => 'all', 'remote_poller_id' => 2, 'rcnn_id' => $connections[2]];
 			$beforeRevision = $connections[2]->query('SELECT config_revision FROM plugin_alarmmanager_schema')->fetchColumn();
 			$connections[2]->exec("CREATE TRIGGER fail_credentials BEFORE INSERT ON plugin_alarmmanager_credentials FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='fixture_failure'");
@@ -165,8 +170,8 @@ final class ConfigurationReplicationTest extends AlarmManagerTestCase {
 			$GLOBALS['alarmmanager_test_db'] = $connections[2];
 			$this->assertSame('changed-password', alarmmanager_load_credential(2)['basic']['password']);
 			$this->assertFalse(alarmmanager_notifications_paused());
-			alarmmanager_apply_replicated_daemon();
-			$this->assertSame($daemon, alarmmanager_supervisor_options(), 'Collector writes main daemon settings to its local worker configuration.');
+			alarmmanager_daemon_sync();
+			$this->assertSame($daemon, alarmmanager_supervisor_options(), 'Collector writes the replicated daemon settings to its local worker configuration.');
 			$this->assertFileExists($root . '/2/cache/alarmmanager/workers.json');
 			$GLOBALS['config']               = ['poller_id' => 1, 'base_path' => $root . '/1'];
 			$GLOBALS['alarmmanager_test_db'] = $connections[1];
