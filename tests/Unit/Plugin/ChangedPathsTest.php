@@ -117,10 +117,7 @@ final class ChangedPathsTest extends AlarmManagerTestCase {
 		};
 
 		try {
-			$this->assertSame('Configuration saved.', alarmmanager_admin_action(['action' => 'settings_save', 'revision' => 1,
-				'offline_summary'                                                            => 'Offline', 'recovering_summary' => 'Recovering', 'online_summary' => 'Online',
-				'processing_workers'                                                         => 3, 'delivery_workers' => 2]));
-			$this->assertSame(3, alarmmanager_supervisor_options()['processing_workers']);
+			$this->assertSame('Configuration saved.', alarmmanager_admin_action(['action' => 'configuration_save', 'revision' => 1, 'configuration_json' => '{"version":1}']));
 			$teams                                      = alarmmanager_integration_templates()['teams']['transport'];
 			$url                                        = 'https://prod.logic.azure.com/workflows/fixture?sig=fixture';
 			$key                                        = random_bytes(32);

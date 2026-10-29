@@ -81,18 +81,13 @@ final class RuleEditorTest extends AlarmManagerTestCase {
 		libxml_use_internal_errors($errors);
 		$xpath = new DOMXPath($document);
 
-		// Each card saves independently: summaries replicate, worker settings stay on this poller.
-		foreach (['device_summaries_save' => ['offline_summary', 'recovering_summary', 'online_summary'], 'daemon_save' => ['daemon_enabled', 'processing_workers', 'delivery_workers']] as $action => $fields) {
-			$this->assertSame(1, $xpath->query('//section[@class="alarmmanagerSettingsCard"]//form[input[@name="action" and @value="' . $action . '"]]//button[@type="submit"]')->length);
+		$this->assertSame(0, $xpath->query('//form[input[@value="settings_save"]]')->length, 'Settings moved to Cacti Settings.');
 
-			foreach ($fields as $field) {
-				$this->assertSame(1, $xpath->query('//form[input[@value="' . $action . '"]]//input[@name="' . $field . '"]')->length);
-			}
+		foreach (['offline_summary', 'recovering_summary', 'online_summary', 'daemon_enabled', 'processing_workers', 'delivery_workers'] as $field) {
+			$this->assertSame(0, $xpath->query('//input[@name="' . $field . '"]')->length, "$field belongs on the Cacti Settings tab.");
 		}
-		$this->assertSame(0, $xpath->query('//form[input[@value="settings_save"]]')->length);
-		$this->assertSame(1, $xpath->query('//input[@name="daemon_enabled" and @disabled]')->length, 'Workers cannot be switched on while the service is not running');
-		$this->assertStringContainsString('data-state="stopped">Not running</span>', $html);
-		$this->assertSame(3, $xpath->query('//section[@class="alarmmanagerSettingsCard"]')->length);
+		$this->assertStringContainsString('settings.php?tab=alarmmanager', $html);
+		$this->assertSame(2, $xpath->query('//section[@class="alarmmanagerSettingsCard"]')->length, 'Settings pointer and backup cards.');
 		$this->assertStringNotContainsString('section=daemon', $html);
 		$this->assertStringNotContainsString('Administration sections', $html);
 		$this->assertStringNotContainsString('class="tabs"', $html);
@@ -114,19 +109,20 @@ final class RuleEditorTest extends AlarmManagerTestCase {
 		}
 	}
 
-	public function testDeviceSummaryConfiguration(): void {
+	public function testDeviceSummariesComeFromCactiSettings(): void {
 		self::alarmmanager_test_load('includes/routing.php');
-		$this->assertSame(['offline' => 'Device Offline', 'recovering' => 'Device Recovering', 'online' => 'Device Online'], alarmmanager_configuration(['version' => 1])['device_summaries']);
-		$this->assertSame(['offline' => 'Device is Offline', 'recovering' => 'Device is Recovering', 'online' => 'Device is Online'], alarmmanager_configuration(['version' => 1, 'device_summaries' => ['offline' => ' Device is Offline ', 'recovering' => 'Device is Recovering', 'online' => 'Device is Online']])['device_summaries']);
+		$before = $GLOBALS['alarmmanager_test_config_options'];
 
-		foreach (['', '  ', str_repeat('x', 513), "line\nbreak", ['invalid']] as $invalid) {
-			try {
-				alarmmanager_configuration(['version' => 1, 'device_summaries' => ['offline' => 'Device Offline', 'recovering' => $invalid, 'online' => 'Device Online']]);
-				$this->fail('Invalid summary accepted');
-			} catch (InvalidArgumentException $error) {
-				$this->assertSame('invalid_device_summaries', $error->getMessage());
-			}
+		try {
+			$GLOBALS['alarmmanager_test_config_options'] = [];
+			$this->assertSame(['offline' => 'Device Offline', 'recovering' => 'Device Recovering', 'online' => 'Device Online'], alarmmanager_device_summaries());
+			$GLOBALS['alarmmanager_test_config_options'] = ['alarmmanager_summary_offline' => ' Device is Offline ', 'alarmmanager_summary_recovering' => "line\nbreak", 'alarmmanager_summary_online' => str_repeat('x', 513)];
+			$this->assertSame(['offline' => 'Device is Offline', 'recovering' => 'Device Recovering', 'online' => 'Device Online'], alarmmanager_device_summaries(), 'Invalid summaries fall back to defaults.');
+		} finally {
+			$GLOBALS['alarmmanager_test_config_options'] = $before;
 		}
+		$this->expectException(InvalidArgumentException::class);
+		alarmmanager_configuration(['version' => 1, 'device_summaries' => ['offline' => 'x']]);
 	}
 
 	public function testGuidedFieldsProduceTheExistingRulePolicy(): void {

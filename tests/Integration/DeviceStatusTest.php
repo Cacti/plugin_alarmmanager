@@ -71,7 +71,10 @@ final class DeviceStatusTest extends AlarmManagerTestCase {
 			}
 			self::assertSame(3, (int) $db->query('SELECT COUNT(*) FROM plugin_alarmmanager_deliveries')->fetchColumn(), 'All three transitions route');
 			// Saved wording applies to subsequent events without rewriting history.
-			alarmmanager_apply_configuration(['version' => 1, 'device_summaries' => ['offline' => 'Device is Offline', 'recovering' => 'Device is Recovering', 'online' => 'Device is Online'], 'endpoints' => [['id' => 1, 'name' => 'Fixture', 'type' => 'webhook', 'transport' => ['url' => 'https://example.test']]], 'rules' => [['id' => 1, 'name' => 'Device alarms', 'endpoints' => [1], 'policy' => []]]]);
+			foreach (['offline' => 'Device is Offline', 'recovering' => 'Device is Recovering', 'online' => 'Device is Online'] as $state => $text) {
+				$db->prepare('REPLACE INTO settings (name, value) VALUES (?, ?)')->execute(['alarmmanager_summary_' . $state, $text]);
+			}
+			alarmmanager_apply_configuration(['version' => 1, 'endpoints' => [['id' => 1, 'name' => 'Fixture', 'type' => 'webhook', 'transport' => ['url' => 'https://example.test']]], 'rules' => [['id' => 1, 'name' => 'Device alarms', 'endpoints' => [1], 'policy' => []]]]);
 			// Existing PHP integration remains synchronous and comparison reuses its receipt.
 			$fail += 20;
 			$host  = ['id' => 42, 'hostname' => 'fixture.test', 'description' => 'Fixture', 'status' => 1, 'status_fail_date' => $fail, 'status_rec_date' => time()];
@@ -85,7 +88,7 @@ final class DeviceStatusTest extends AlarmManagerTestCase {
 			// Device comparison also runs before daemon mode returns from poller hook.
 			$root = sys_get_temp_dir() . '/alarmmanager_status_' . bin2hex(random_bytes(5));
 			mkdir($root . '/cache/alarmmanager', 0700, true);
-			file_put_contents($root . '/cache/alarmmanager/workers.json', '{"enabled":true}');
+			$db->exec("REPLACE INTO settings (name, value) VALUES ('alarmmanager_daemon_enabled', 'on')");
 			$GLOBALS['config']['base_path'] = $root;
 
 			try {
