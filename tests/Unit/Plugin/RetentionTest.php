@@ -140,9 +140,34 @@ final class RetentionTest extends AlarmManagerTestCase {
 		foreach (['alarmmanager_summary_offline', 'alarmmanager_summary_recovering', 'alarmmanager_summary_online', 'alarmmanager_retention_unit', 'alarmmanager_retention_value', 'alarmmanager_daemon_enabled', 'alarmmanager_daemon_processing_workers', 'alarmmanager_daemon_delivery_workers'] as $field) {
 			$this->assertContains($field, $fields, "$field must appear on the Settings tab.");
 		}
-		$this->assertSame(['forever', 'days', 'weeks', 'months'], array_keys($settings['alarmmanager']['alarmmanager_retention_unit']['array']), 'Retention offers indefinite, days, weeks and months.');
+		$this->assertSame(['days', 'weeks', 'months', 'forever'], array_keys($settings['alarmmanager']['alarmmanager_retention_unit']['array']), 'Retention offers days, weeks, months or indefinitely.');
 		$this->assertSame(64, max(array_keys($settings['alarmmanager']['alarmmanager_daemon_processing_workers']['array'])));
 		$this->assertSame(0, min(array_keys($settings['alarmmanager']['alarmmanager_daemon_delivery_workers']['array'])));
+	}
+
+	public function testRetentionNumberPrecedesUnitAndJoinsOneLine(): void {
+		self::alarmmanager_test_load('setup.php');
+		global $settings;
+		alarmmanager_config_settings();
+		$fields = array_keys($settings['alarmmanager']);
+
+		$this->assertLessThan(array_search('alarmmanager_retention_unit', $fields, true), array_search('alarmmanager_retention_value', $fields, true), 'The number row comes first.');
+		$this->assertSame('textbox', $settings['alarmmanager']['alarmmanager_retention_value']['method']);
+		$this->assertSame(['days', 'weeks', 'months', 'forever'], array_keys($settings['alarmmanager']['alarmmanager_retention_unit']['array']));
+
+		$GLOBALS['alarmmanager_test_request'] = ['tab' => 'general'];
+		ob_start();
+		alarmmanager_settings_bottom();
+		$other = ob_get_clean();
+		$GLOBALS['alarmmanager_test_request'] = ['tab' => 'alarmmanager'];
+		ob_start();
+		alarmmanager_settings_bottom();
+		$script = ob_get_clean();
+		unset($GLOBALS['alarmmanager_test_request']);
+
+		$this->assertSame('', $other, 'Other tabs get no script.');
+		$this->assertStringContainsString('row_alarmmanager_retention_value', $script);
+		$this->assertStringContainsString('row_alarmmanager_retention_unit', $script);
 	}
 
 	public function testDaemonSyncWritesWorkerFileFromSettings(): void {

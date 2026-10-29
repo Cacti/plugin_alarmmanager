@@ -33,8 +33,8 @@ final class SetupTest extends AlarmManagerTestCase {
 		$this->assertSame($key, $GLOBALS['alarmmanager_test_store']['1:alarmmanager_key'], 'Repeat install changed the key.');
 		$this->assertTrue(plugin_alarmmanager_upgrade(), 'Upgrade readiness failed.');
 		$this->assertSame($key, $GLOBALS['alarmmanager_test_store']['1:alarmmanager_key'], 'Upgrade changed the key.');
-		$this->assertSame([], array_diff($GLOBALS['alarmmanager_test_hooks'], ['config_arrays', 'config_settings', 'global_settings_update', 'draw_navigation_text', 'alarmmanager_submit', 'admin_alert', 'poller_bottom', 'replicate_out', 'top_header_tabs', 'top_graph_header_tabs']), 'Unexpected producer/poller hook.');
-		$this->assertCount(10, array_unique($GLOBALS['alarmmanager_test_hooks']));
+		$this->assertSame([], array_diff($GLOBALS['alarmmanager_test_hooks'], ['config_arrays', 'config_settings', 'settings_bottom', 'global_settings_update', 'draw_navigation_text', 'alarmmanager_submit', 'admin_alert', 'poller_bottom', 'replicate_out', 'top_header_tabs', 'top_graph_header_tabs']), 'Unexpected producer/poller hook.');
+		$this->assertCount(11, array_unique($GLOBALS['alarmmanager_test_hooks']));
 		plugin_alarmmanager_uninstall();
 		$this->assertSame($key, $GLOBALS['alarmmanager_test_store']['1:alarmmanager_key'], 'Uninstall removed the key.');
 	}
