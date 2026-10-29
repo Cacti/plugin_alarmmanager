@@ -157,12 +157,13 @@ function alarmmanager_admin_configuration_upload(array $file): array {
 
 /**
  * Backups made before device summaries moved to Cacti Settings still carry them; the summaries are now edited
- * under Settings > Alarm Manager, so the retired key is dropped rather than failing the whole import.
+ * under Settings > Alarm Manager. Builds that add an event log destination export its settings as event_log,
+ * which this version has no consumer for. Both keys are dropped rather than failing the whole import.
  * @param  array<string, mixed> $configuration
  * @return array<string, mixed>
  */
 function alarmmanager_admin_configuration_import(array $configuration): array {
-	unset($configuration['device_summaries']);
+	unset($configuration['device_summaries'], $configuration['event_log']);
 
 	return $configuration;
 }
@@ -711,6 +712,7 @@ function alarmmanager_admin_error_message(Throwable $error): string {
 	}
 
 	return match ($error->getMessage()) {
+		'Unknown event fields.'          => 'Import failed. The file contains fields this version of Alarm Manager does not recognize. Export a fresh backup from this version and import that.',
 		'endpoint_in_rule'               => 'Remove this integration from notification rules before deleting.',
 		'endpoint_has_active_deliveries' => 'This endpoint has queued or running deliveries. Resolve them before deleting.',
 		'test_endpoint_unavailable'      => 'Enable the destination before testing it.',
