@@ -403,7 +403,7 @@ function alarmmanager_admin_markup(array $state, string $section): void {
 
 	// Rules print their own heading and introduction.
 	if ($section !== 'rules') {
-		print '<h2>' . __esc(alarmmanager_admin_sections()[$section] ?? 'Configuration', 'alarmmanager') . '</h2>';
+		print '<h2>' . __esc(alarmmanager_admin_sections()[$section] ?? 'Configuration Backup/Restore', 'alarmmanager') . '</h2>';
 	}
 
 	if ($section === 'queue') {
@@ -537,7 +537,6 @@ function alarmmanager_admin_markup(array $state, string $section): void {
 		alarmmanager_checkbox('confirmed', 'Confirm local key rotation; create a protected backup before and after');
 		print '<button type="submit">' . __esc('Rotate local key', 'alarmmanager') . '</button></form>';
 	} elseif ($section === 'configuration') {
-		print '<section class="alarmmanagerSettingsCard"><header><h3>' . __esc('Alarm Manager settings', 'alarmmanager') . '</h3></header><p class="alarmmanagerHint">' . __esc('Device alarm summaries, alert history retention and background workers are configured under Console > Configuration > Settings > Alarm Manager.', 'alarmmanager') . '</p><div class="alarmmanagerSettingsActions"><a class="alarmmanagerPrimaryAction" href="' . html_escape($GLOBALS['config']['url_path'] . 'settings.php?tab=alarmmanager') . '">' . __esc('Open Alarm Manager settings', 'alarmmanager') . '</a></div></section>';
 
 		print '<section class="alarmmanagerSettingsCard"><header><h3>' . __esc('Backup and restore', 'alarmmanager') . '</h3></header><div class="alarmmanagerSettingsSplit"><div><h4>' . __esc('Export', 'alarmmanager') . '</h4>';
 		print '<p class="alarmmanagerHint">' . __esc('Endpoints, message templates, and rules as JSON. Credentials and settings are not included. Endpoint URLs can contain secrets, so keep the file private.', 'alarmmanager') . '</p>';

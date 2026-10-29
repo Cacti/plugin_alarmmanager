@@ -118,7 +118,7 @@ function plugin_alarmmanager_uninstall(): void {
  * @return array<string, string>
  */
 function alarmmanager_admin_sections(): array {
-	return ['endpoints' => 'Alarm Destinations', 'rules' => 'Alarm Rules', 'credentials' => 'Credentials', 'configuration' => 'Configuration', 'queue' => 'Alarm Queue', 'health' => 'Workers and failed processing'];
+	return ['endpoints' => 'Alarm Destinations', 'rules' => 'Alarm Rules', 'credentials' => 'Credentials', 'configuration' => 'Configuration Backup/Restore', 'queue' => 'Alarm Queue', 'health' => 'Workers and failed processing'];
 }
 
 /** Cacti Settings tab: device alarm summaries, alert history retention and daemon workers. */

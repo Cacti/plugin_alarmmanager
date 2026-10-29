@@ -86,8 +86,8 @@ final class RuleEditorTest extends AlarmManagerTestCase {
 		foreach (['offline_summary', 'recovering_summary', 'online_summary', 'daemon_enabled', 'processing_workers', 'delivery_workers'] as $field) {
 			$this->assertSame(0, $xpath->query('//input[@name="' . $field . '"]')->length, "$field belongs on the Cacti Settings tab.");
 		}
-		$this->assertStringContainsString('settings.php?tab=alarmmanager', $html);
-		$this->assertSame(2, $xpath->query('//section[@class="alarmmanagerSettingsCard"]')->length, 'Settings pointer and backup cards.');
+		$this->assertStringNotContainsString('settings.php?tab=alarmmanager', $html, 'The configuration screen no longer points at Settings.');
+		$this->assertSame(1, $xpath->query('//section[@class="alarmmanagerSettingsCard"]')->length, 'Only the backup and restore card remains.');
 		$this->assertStringNotContainsString('section=daemon', $html);
 		$this->assertStringNotContainsString('Administration sections', $html);
 		$this->assertStringNotContainsString('class="tabs"', $html);
