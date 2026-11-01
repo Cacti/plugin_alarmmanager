@@ -14,7 +14,7 @@ const assert=require('node:assert/strict');
   await page.locator('[name=offline_summary]').fill('Device is Offline');
   await page.locator('[name=recovering_summary]').fill('Device is Recovering');
   await page.locator('[name=online_summary]').fill('Device is Online');
-  await page.getByRole('button',{name:'Save settings',exact:true}).click();
+  await page.getByRole('button',{name:'Save summaries',exact:true}).click();
   await page.waitForURL('**/alarmmanager_admin.php?section=configuration');
   assert.equal(await page.locator('[name=offline_summary]').inputValue(),'Device is Offline');
   assert.equal(await page.locator('[name=online_summary]').inputValue(),'Device is Online');

@@ -23,6 +23,7 @@
 const {chromium}=require(process.env.ALARMMANAGER_PLAYWRIGHT_MODULE||'playwright');
 const {execFileSync}=require('node:child_process');
 const path=require('node:path'),assert=require('node:assert/strict');
+const fs=require('node:fs'),os=require('node:os'),shots=fs.mkdtempSync(path.join(os.tmpdir(),'alarmmanager-'));
 const root=path.resolve(__dirname,'../..'),fixture=path.join(root,'tests/fixtures/rule_editor.php');
 const env={...process.env,CACTI_TEST_BOOTSTRAP:'1'},cacti=process.env.CACTI_PATH;
 if(!cacti)throw Error('CACTI_PATH required for the Cacti jQuery and Select2 assets');
@@ -55,11 +56,11 @@ const render=()=>execFileSync('php',[fixture],{env,encoding:'utf8'});
   check(!(await form.evaluate(f=>f.checkValidity())),'Clearing all destinations prevents submission');
   await form.getByLabel('Operations webhook',{exact:true}).check();
   check(await form.evaluate(f=>f.checkValidity()),'Default rule can be created without optional settings');
-  check(await form.getByLabel('Applies to all alarm types',{exact:true}).isChecked(),'New rules match all alarm types');
+  check(await form.getByLabel('Applies to all alarm sources',{exact:true}).isChecked(),'New rules match all alarm sources');
   const alarm=form.locator('.alarmmanagerQueryBuilder').filter({has:page.locator('[name=alarm_query]')});
   check(await alarm.isHidden(),'All alarm types hides the builder');
-  await form.getByLabel('Applies to all alarm types',{exact:true}).uncheck();
-  check(await alarm.isVisible(),'Alarm conditions appear when all alarm types is unchecked');
+  await form.getByLabel('Applies to all alarm sources',{exact:true}).uncheck();
+  check(await alarm.isVisible(),'Alarm conditions appear when all alarm sources is unchecked');
   await alarm.getByLabel('Search value').selectOption('syslog',{force:true});
   await alarm.getByRole('button',{name:'Add AND',exact:true}).click();
   await alarm.getByLabel('Search field').nth(1).selectOption('severity',{force:true});
@@ -84,11 +85,11 @@ const render=()=>execFileSync('php',[fixture],{env,encoding:'utf8'});
   check(conditions[0].value==='syslog'&&conditions[1].field==='severity'&&conditions[1].value==='critical'&&conditions[2].field==='device_id'&&conditions[2].value==='42','Alarm builder round trips through PHP validation');
   check(policy.schedule.timezone==='America/Toronto'&&policy.schedule.start==='22:00'&&policy.schedule.end==='06:00','Notification schedule round trips');
   check(policy.maintenance_schedule.days[0]===7&&policy.cooldown_seconds===60&&policy.duplicate_seconds===120,'Suppression controls round trip');
-  await form.getByLabel('Applies to all alarm types',{exact:true}).check();
+  await form.getByLabel('Applies to all alarm sources',{exact:true}).check();
   await form.getByLabel('Only notify during these hours',{exact:true}).uncheck();
   const off=JSON.parse(execFileSync('php',[fixture,'--parse'],{input:await form.evaluate(f=>new URLSearchParams(new FormData(f)).toString()),env,encoding:'utf8'}));
   check(off.alarm_query===''&&off.schedule===null,'Turning off a filter or schedule clears the restriction');
-  await form.getByLabel('Applies to all alarm types',{exact:true}).uncheck();
+  await form.getByLabel('Applies to all alarm sources',{exact:true}).uncheck();
   const saved=page.locator('.alarmmanagerRule').nth(1);await saved.locator('summary').first().click();
   check((await saved.locator('[name=alarm_query]').inputValue()).includes('retired_source'),'Saved source remains selectable after its history is gone');
   check((await saved.locator('[name=alarm_query]').inputValue()).includes('999'),'Saved devices outside the picker remain selected');
@@ -97,17 +98,17 @@ const render=()=>execFileSync('php',[fixture],{env,encoding:'utf8'});
    await page.locator('#alarmmanager_app').evaluate((app,value)=>app.dataset.theme=value,theme);
    for(const width of [1280,390]){
     await page.setViewportSize({width,height:1000});
-    if(!(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1))){console.log(await page.evaluate(()=>({width:innerWidth,scroll:document.documentElement.scrollWidth,nodes:[...document.querySelectorAll('*')].filter(e=>e.getBoundingClientRect().right>innerWidth+1).slice(0,12).map(e=>({tag:e.tagName,cls:e.className,width:e.getBoundingClientRect().width,right:e.getBoundingClientRect().right}))})));await page.screenshot({path:'/tmp/am-rule-overflow.png',fullPage:true});}
+    if(!(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1))){console.log(await page.evaluate(()=>({width:innerWidth,scroll:document.documentElement.scrollWidth,nodes:[...document.querySelectorAll('*')].filter(e=>e.getBoundingClientRect().right>innerWidth+1).slice(0,12).map(e=>({tag:e.tagName,cls:e.className,width:e.getBoundingClientRect().width,right:e.getBoundingClientRect().right}))})));await page.screenshot({path:path.join(shots,'am-rule-overflow.png'),fullPage:true});}
     check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),theme+' fits '+width+'px');
    }
   }
   await saved.locator('summary').first().click();
   await page.evaluate(()=>window.scrollTo(0,0));
-  await page.screenshot({path:'/tmp/alarmmanager-rule-editor-mobile.png',fullPage:true});
+  await page.screenshot({path:path.join(shots,'alarmmanager-rule-editor-mobile.png'),fullPage:true});
   await page.setViewportSize({width:1280,height:1000});
   await page.locator('#alarmmanager_app').evaluate(app=>app.dataset.theme='modern');
   await page.evaluate(()=>window.scrollTo(0,0));
-  await page.screenshot({path:'/tmp/alarmmanager-rule-editor-desktop.png',fullPage:true});
+  await page.screenshot({path:path.join(shots,'alarmmanager-rule-editor-desktop.png'),fullPage:true});
   await page.setContent('<main id="alarmmanager_app">'+execFileSync('php',[fixture,'--empty'],{env,encoding:'utf8'})+'</main>');
   check(await page.getByText('No alarm sources detected yet. Sources appear after their first alarm.',{exact:true}).count()===1,'Empty history explains why no source choices are available');
   check(await page.getByRole('link',{name:'Create integration',exact:true}).count()===1,'Empty rules page points to the missing prerequisite');

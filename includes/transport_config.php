@@ -22,6 +22,7 @@
  +-------------------------------------------------------------------------+
 */
 require_once(__DIR__ . '/mapping.php');
+require_once(__DIR__ . '/providers.php');
 
 function alarmmanager_transport_text($value, int $limit): string {
 	$value = alarmmanager_event_text($value, $limit);
@@ -53,6 +54,28 @@ function alarmmanager_transport_url_validate(string $url, bool $allow_http): str
 
 	return $url;
 }
+/** @return array<string, int> RFC 5424 facility codes offered for syslog destinations. */
+function alarmmanager_syslog_facilities(): array {
+	return ['user' => 1, 'daemon' => 3, 'local0' => 16, 'local1' => 17, 'local2' => 18, 'local3' => 19, 'local4' => 20, 'local5' => 21, 'local6' => 22, 'local7' => 23];
+}
+/** Hostname or IP literal for an SNMP or syslog receiver; never a URL or port. */
+function alarmmanager_transport_host(mixed $value): string {
+	$host = alarmmanager_transport_text($value ?? null, 253);
+
+	if (filter_var($host, FILTER_VALIDATE_IP) === false && !preg_match('/\A[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)*\z/D', $host)) {
+		throw new InvalidArgumentException('invalid_transport_host');
+	}
+
+	return $host;
+}
+/** @param list<string> $choices */
+function alarmmanager_transport_choice(mixed $value, array $choices, string $code): string {
+	if (!is_string($value) || !in_array($value, $choices, true)) {
+		throw new InvalidArgumentException($code);
+	}
+
+	return $value;
+}
 function alarmmanager_transport_configuration(string $type, $settings): array {
 	if (!is_array($settings)) {
 		throw new InvalidArgumentException('invalid_transport');
@@ -62,13 +85,22 @@ function alarmmanager_transport_configuration(string $type, $settings): array {
 		return [];
 	} // Old endpoint rows remain configurable but cannot send.
 	$keys = match ($type) {
-		'restapi', 'webhook' => ['mapping', 'teams_workflow', 'url', 'method', 'credential', 'success_codes', 'response_match', 'connect_timeout_seconds', 'allow_http', 'ca_bundle', 'response_reference', 'transition_overrides'],
+		'restapi', 'webhook' => ['provider', 'mapping', 'twilio_whatsapp', 'body_encoding', 'teams_workflow', 'url', 'method', 'credential', 'success_codes', 'response_match', 'connect_timeout_seconds', 'allow_http', 'ca_bundle', 'response_reference', 'transition_overrides'],
 		'email'              => ['mapping', 'to', 'from', 'html', 'attachments'],
 		'script'             => ['mapping', 'executable', 'arguments', 'retry_exit_codes', 'compatibility', 'response_reference'],
+		'snmptrap'           => ['mapping', 'credential', 'version', 'host', 'port', 'transport', 'notification', 'security_name', 'security_level', 'auth_protocol', 'priv_protocol', 'engine_id'],
+		'syslog'             => ['mapping', 'host', 'port', 'protocol', 'format', 'facility', 'app_name', 'ca_bundle'],
 		default              => throw new InvalidArgumentException('unsupported_transport')
 	};
 	alarmmanager_event_keys($settings, $keys);
 	$result = ['mapping' => alarmmanager_mapping_validate($settings['mapping'] ?? [])];
+
+	if (array_key_exists('provider', $settings)) {
+		if (!is_string($settings['provider']) || !isset(alarmmanager_provider_definitions()[$settings['provider']])) {
+			throw new InvalidArgumentException('invalid_provider');
+		}
+		$result['provider'] = $settings['provider'];
+	}
 
 	if (in_array($type, ['restapi', 'webhook'], true)) {
 		$allow_http = alarmmanager_config_bool($settings['allow_http'] ?? false);
@@ -105,11 +137,25 @@ function alarmmanager_transport_configuration(string $type, $settings): array {
 		}
 		$result += ['url' => $url, 'method' => $method, 'allow_http' => $allow_http, 'credential' => alarmmanager_config_bool($settings['credential'] ?? false), 'success_codes' => array_values(array_unique($codes)), 'response_match' => $match, 'connect_timeout_seconds' => alarmmanager_config_int($settings['connect_timeout_seconds'] ?? 5, 1, 30)];
 
+		if (isset($settings['body_encoding'])) {
+			if (!in_array($settings['body_encoding'], ['json', 'form'], true) || (!empty($settings['teams_workflow']) && $settings['body_encoding'] !== 'json')) {
+				throw new InvalidArgumentException('invalid_body_encoding');
+			}
+			$result['body_encoding'] = $settings['body_encoding'];
+		}
+
 		if (alarmmanager_config_bool($settings['teams_workflow'] ?? false)) {
 			if ($type !== 'webhook' || $url !== 'https://teams.workflow.invalid' || $method !== 'POST' || $allow_http || !$result['credential'] || !empty($settings['transition_overrides']) || $match !== null || !empty($settings['response_reference'])) {
 				throw new InvalidArgumentException('invalid_teams_workflow');
 			}
 			$result['teams_workflow'] = true;
+		}
+
+		if (alarmmanager_config_bool($settings['twilio_whatsapp'] ?? false)) {
+			if (($result['body_encoding'] ?? 'json') !== 'form' || $method !== 'POST' || $allow_http || !$result['credential'] || !empty($settings['teams_workflow'])) {
+				throw new InvalidArgumentException('invalid_twilio_transport');
+			}
+			$result['twilio_whatsapp'] = true;
 		}
 		$ca = $settings['ca_bundle'] ?? null;
 
@@ -227,6 +273,55 @@ function alarmmanager_transport_configuration(string $type, $settings): array {
 
 		if (!in_array($result['compatibility'], ['json', 'syslog_ticket'], true)) {
 			throw new InvalidArgumentException('invalid_script_compatibility');
+		}
+	} elseif ($type === 'snmptrap') {
+		// Community and passphrases live only in the encrypted credential record.
+		$result += ['credential' => true, 'version' => alarmmanager_transport_choice($settings['version'] ?? '2c', ['2c', '3'], 'invalid_snmp_settings'),
+			'host'                  => alarmmanager_transport_host($settings['host'] ?? null),
+			'port'                  => alarmmanager_config_int($settings['port'] ?? 162, 1, 65535),
+			'transport'             => alarmmanager_transport_choice($settings['transport'] ?? 'udp', ['udp', 'tcp', 'udp6', 'tcp6'], 'invalid_snmp_settings'),
+			'notification'          => alarmmanager_transport_choice($settings['notification'] ?? 'trap', ['trap', 'inform'], 'invalid_snmp_settings')];
+
+		if ($result['version'] === '3') {
+			$result += ['security_name' => $settings['security_name'] ?? null,
+				'security_level'           => alarmmanager_transport_choice($settings['security_level'] ?? 'authPriv', ['noAuthNoPriv', 'authNoPriv', 'authPriv'], 'invalid_snmp_settings'),
+				'auth_protocol'            => alarmmanager_transport_choice($settings['auth_protocol'] ?? 'SHA', ['SHA', 'SHA-224', 'SHA-256', 'SHA-384', 'SHA-512'], 'invalid_snmp_settings'),
+				'priv_protocol'            => alarmmanager_transport_choice($settings['priv_protocol'] ?? 'AES', ['AES', 'AES-192', 'AES-256'], 'invalid_snmp_settings'),
+				'engine_id'                => $settings['engine_id'] ?? null];
+
+			if (!is_string($result['security_name']) || !preg_match('/\A[\x21-\x7e]{1,32}\z/D', $result['security_name']) || ($result['engine_id'] !== null && (!is_string($result['engine_id']) || !preg_match('/\A0x[0-9A-Fa-f]{10,64}\z/D', $result['engine_id'])))) {
+				throw new InvalidArgumentException('invalid_snmp_settings');
+			}
+		}
+
+		// cactiNotify carries one text varbind, so the mapping supplies only the message.
+		foreach ($result['mapping'] as $items) {
+			if (array_diff(array_column($items, 'to'), ['message'])) {
+				throw new InvalidArgumentException('invalid_snmp_mapping');
+			}
+		}
+	} elseif ($type === 'syslog') {
+		$result += ['host' => alarmmanager_transport_host($settings['host'] ?? null),
+			'protocol'        => alarmmanager_transport_choice($settings['protocol'] ?? 'udp', ['udp', 'tcp', 'tls'], 'invalid_syslog_settings'),
+			'format'          => alarmmanager_transport_choice($settings['format'] ?? 'rfc5424', ['rfc5424', 'rfc3164'], 'invalid_syslog_settings'),
+			'facility'        => alarmmanager_transport_choice($settings['facility'] ?? 'local0', array_keys(alarmmanager_syslog_facilities()), 'invalid_syslog_settings'),
+			'app_name'        => $settings['app_name'] ?? 'cacti-alarmmanager',
+			'ca_bundle'       => $settings['ca_bundle'] ?? null];
+		$result['port'] = alarmmanager_config_int($settings['port'] ?? ($result['protocol'] === 'tls' ? 6514 : 514), 1, 65535);
+
+		if (!is_string($result['app_name']) || !preg_match('/\A[\x21-\x7e]{1,48}\z/D', $result['app_name'])) {
+			throw new InvalidArgumentException('invalid_syslog_settings');
+		}
+		$ca = $result['ca_bundle'];
+
+		if ($ca !== null && (!is_string($ca) || !str_starts_with($ca, '/') || strlen($ca) > 1024 || preg_match('/[\x00-\x1f]/', $ca) || $result['protocol'] !== 'tls')) {
+			throw new InvalidArgumentException('invalid_ca_bundle');
+		}
+
+		foreach ($result['mapping'] as $items) {
+			if (array_diff(array_column($items, 'to'), ['message'])) {
+				throw new InvalidArgumentException('invalid_syslog_mapping');
+			}
 		}
 	}
 
