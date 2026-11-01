@@ -252,36 +252,42 @@ function alarmmanager_rule_matches(array $rule, array $event): bool {
 
 	return alarmmanager_schedule_matches($rule['schedule'], $event['occurred_at']);
 }
+/** Maximum history age per unit, keeping the interval within what MariaDB date arithmetic accepts. */
+const ALARMMANAGER_RETENTION_LIMITS = ['days' => 3650, 'weeks' => 520, 'months' => 120];
+
 /** @return array{offline: string, recovering: string, online: string} */
 function alarmmanager_device_summaries(): array {
-	$row           = alarmmanager_db_row('SELECT h.definition FROM plugin_alarmmanager_configuration_history AS h JOIN plugin_alarmmanager_schema AS s ON s.config_revision = h.revision WHERE s.id = 1');
-	$configuration = $row ? json_decode($row['definition'], true, 24, JSON_THROW_ON_ERROR) : [];
+	$summaries = [];
 
-	return ($configuration['device_summaries'] ?? []) + ['offline' => 'Device Offline', 'recovering' => 'Device Recovering', 'online' => 'Device Online'];
+	foreach (['offline' => 'Device Offline', 'recovering' => 'Device Recovering', 'online' => 'Device Online'] as $state => $default) {
+		$text              = trim((string) read_config_option('alarmmanager_summary_' . $state, true));
+		$summaries[$state] = $text === '' || strlen($text) > 512 || preg_match('/[\x00-\x1f\x7f]/', $text) ? $default : $text;
+	}
+
+	return $summaries;
+}
+
+/** Alert history retention from Cacti Settings; an unset or invalid choice keeps history indefinitely.
+ * @return array{unit: string, value: int}
+ */
+function alarmmanager_retention(): array {
+	$unit = (string) read_config_option('alarmmanager_retention_unit', true);
+
+	if (!isset(ALARMMANAGER_RETENTION_LIMITS[$unit])) {
+		return ['unit' => 'forever', 'value' => 0];
+	}
+	$value = filter_var(read_config_option('alarmmanager_retention_value', true), FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+
+	return $value === false ? ['unit' => 'forever', 'value' => 0] : ['unit' => $unit, 'value' => min($value, ALARMMANAGER_RETENTION_LIMITS[$unit])];
 }
 
 function alarmmanager_configuration(array $configuration): array {
-	alarmmanager_event_keys($configuration, ['version', 'endpoints', 'rules', 'device_summaries']);
+	alarmmanager_event_keys($configuration, ['version', 'endpoints', 'rules']);
 
 	if (($configuration['version'] ?? null) !== 1) {
 		throw new InvalidArgumentException('invalid_configuration');
 	}
-	$result    = ['version' => 1, 'endpoints' => [], 'rules' => []];
-	$summaries = $configuration['device_summaries'] ?? ['offline' => 'Device Offline', 'recovering' => 'Device Recovering', 'online' => 'Device Online'];
-
-	if (!is_array($summaries)) {
-		throw new InvalidArgumentException('invalid_device_summaries');
-	}
-	alarmmanager_event_keys($summaries, ['offline', 'recovering', 'online']);
-
-	foreach (['offline', 'recovering', 'online'] as $state) {
-		$text = $summaries[$state] ?? ($state === 'recovering' ? 'Device Recovering' : null);
-
-		if (!is_string($text) || trim($text) === '' || strlen($text) > 512 || preg_match('/[\x00-\x1f\x7f]/', $text)) {
-			throw new InvalidArgumentException('invalid_device_summaries');
-		}
-		$result['device_summaries'][$state] = trim($text);
-	}
+	$result = ['version' => 1, 'endpoints' => [], 'rules' => []];
 
 	foreach (['endpoints', 'rules'] as $section) {
 		$items = alarmmanager_config_list($configuration[$section] ?? [], 200);

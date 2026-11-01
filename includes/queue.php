@@ -30,6 +30,51 @@ function alarmmanager_notifications_paused(): bool {
 	return ($row['value'] ?? '0') === '1';
 }
 
+/**
+ * Purge alert history older than the configured retention, one bounded batch per call.
+ * Events with active, queued, leased or failed work are kept, as are events backing a current condition.
+ * @return int Number of events removed; 0 when retention is indefinite or nothing has aged out.
+ */
+function alarmmanager_history_purge(int $limit = 1000): int {
+	$retention = alarmmanager_retention();
+
+	if ($retention['unit'] === 'forever') {
+		return 0;
+	}
+	$interval = (int) $retention['value'] . ' ' . match ($retention['unit']) {
+		'days' => 'DAY', 'weeks' => 'WEEK', 'months' => 'MONTH'
+	};
+	$cutoff = "DATE_SUB(UTC_TIMESTAMP(6), INTERVAL $interval)";
+	$limit  = max(1, min(10000, $limit));
+
+	return alarmmanager_transaction(function () use ($cutoff, $limit): int {
+		alarmmanager_db_write("DELETE FROM plugin_alarmmanager_states WHERE active = 0 AND updated_at < $cutoff LIMIT $limit");
+		alarmmanager_db_write("DELETE FROM plugin_alarmmanager_episodes WHERE status <> 'active' AND ended_at IS NOT NULL AND ended_at < $cutoff LIMIT $limit");
+		alarmmanager_db_write("DELETE FROM plugin_alarmmanager_remote_history WHERE received_at < $cutoff LIMIT $limit");
+		$ids = array_map('intval', array_column(alarmmanager_db_rows("SELECT e.id FROM plugin_alarmmanager_events AS e
+			WHERE e.received_at < $cutoff
+				AND NOT EXISTS (SELECT 1 FROM plugin_alarmmanager_jobs AS j WHERE j.event_row_id = e.id AND j.status IN ('pending', 'leased', 'failed'))
+				AND NOT EXISTS (SELECT 1 FROM plugin_alarmmanager_deliveries AS d WHERE d.event_row_id = e.id AND d.status IN ('pending', 'leased', 'failed'))
+				AND NOT EXISTS (SELECT 1 FROM plugin_alarmmanager_states AS s WHERE s.last_event_id = e.id)
+			ORDER BY e.id LIMIT $limit"), 'id'));
+
+		if (!$ids) {
+			return 0;
+		}
+		$in = implode(',', $ids);
+		alarmmanager_db_write("DELETE a FROM plugin_alarmmanager_attempts AS a INNER JOIN plugin_alarmmanager_deliveries AS d ON d.id = a.delivery_id WHERE d.event_row_id IN ($in)");
+		alarmmanager_db_write("DELETE f FROM plugin_alarmmanager_failed_jobs AS f INNER JOIN plugin_alarmmanager_jobs AS j ON f.queue = 'processing' AND f.job_id = j.id WHERE j.event_row_id IN ($in)");
+		alarmmanager_db_write("DELETE f FROM plugin_alarmmanager_failed_jobs AS f INNER JOIN plugin_alarmmanager_deliveries AS d ON f.queue = 'delivery' AND f.job_id = d.id WHERE d.event_row_id IN ($in)");
+
+		foreach (['deliveries', 'decisions', 'jobs', 'device_receipts', 'producer_receipts'] as $table) {
+			alarmmanager_db_write("DELETE FROM plugin_alarmmanager_$table WHERE event_row_id IN ($in)");
+		}
+		alarmmanager_db_write("DELETE FROM plugin_alarmmanager_events WHERE id IN ($in)");
+
+		return count($ids);
+	});
+}
+
 function alarmmanager_queue_table(string $queue): string {
 	return match ($queue) {
 		'processing' => 'plugin_alarmmanager_jobs', 'delivery' => 'plugin_alarmmanager_deliveries', default => throw new InvalidArgumentException('invalid_queue')

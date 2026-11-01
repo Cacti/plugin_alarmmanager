@@ -62,15 +62,19 @@ function alarmmanager_poller_bottom(array $args = []): void {
 			return;
 		}
 
-		if (alarmmanager_local_poller() > 1) {
-			try {
-				alarmmanager_apply_replicated_daemon();
-			} catch (Throwable $error) {
-				alarmmanager_log('replicated daemon settings could not be applied; previous local settings retained');
-			}
+		try {
+			alarmmanager_daemon_sync();
+		} catch (Throwable $error) {
+			alarmmanager_log('daemon settings could not be applied; previous local settings retained');
 		}
 		$started = microtime(true);
 		$devices = alarmmanager_device_status_check();
+
+		try {
+			alarmmanager_history_purge();
+		} catch (Throwable $error) {
+			alarmmanager_log('history purge failed; aged history retained');
+		}
 
 		if (alarmmanager_supervisor_options()['enabled'] && (alarmmanager_local_poller() === 1 || alarmmanager_daemon_status())) {
 			return;
@@ -101,21 +105,49 @@ function alarmmanager_poller_bottom(array $args = []): void {
 	}
 }
 
-/** Apply the desired main-poller daemon configuration on the collector's own filesystem. */
-function alarmmanager_apply_replicated_daemon(): void {
-	$row = alarmmanager_db_row('SELECT value FROM settings_user WHERE user_id = ? AND name = ?', [1, 'alarmmanager_daemon_configuration']);
+/** A worker count setting; an unset option keeps the current value, and 0 is a valid delivery count. */
+function alarmmanager_daemon_workers(string $name, int $current): int {
+	$value = read_config_option($name, true);
 
-	if (!$row) {
+	return is_numeric($value) ? (int) $value : $current;
+}
+
+/**
+ * Write the daemon's workers.json from the Cacti settings (replicated natively to collectors) when they differ.
+ * The daemon never bootstraps Cacti, so the file stays its only input; tuning values already in it are kept.
+ */
+function alarmmanager_daemon_sync(): void {
+	try {
+		$current = alarmmanager_supervisor_options();
+	} catch (Throwable $error) {
+		$current = alarmmanager_supervisor_defaults();
+	}
+	$desired = array_replace($current, [
+		'enabled'            => read_config_option('alarmmanager_daemon_enabled', true) === 'on',
+		'processing_workers' => alarmmanager_daemon_workers('alarmmanager_daemon_processing_workers', $current['processing_workers']),
+		'delivery_workers'   => alarmmanager_daemon_workers('alarmmanager_daemon_delivery_workers', $current['delivery_workers'])
+	]);
+
+	if (is_file(alarmmanager_daemon_config_path()) ? $desired !== $current : $desired['enabled']) {
+		alarmmanager_save_supervisor_options($desired);
+	}
+}
+
+/** Cacti global_settings_update hook: apply Alarm Manager daemon settings after the Settings tab is saved. */
+function alarmmanager_settings_update(): void {
+	if (get_nfilter_request_var('tab') !== 'alarmmanager') {
 		return;
 	}
-	$settings = json_decode($row['value'], true, 8, JSON_THROW_ON_ERROR);
 
-	if (!is_array($settings)) {
-		throw new RuntimeException('invalid_supervisor_config');
+	if (read_config_option('alarmmanager_daemon_enabled', true) === 'on' && !alarmmanager_daemon_status()) {
+		set_config_option('alarmmanager_daemon_enabled', '');
+		raise_message('alarmmanager_daemon', __('Start the Alarm Manager service on this collector before enabling daemon workers.', 'alarmmanager'), MESSAGE_LEVEL_ERROR);
 	}
-	alarmmanager_supervisor_validate($settings);
 
-	if (alarmmanager_supervisor_options() !== $settings) {
-		alarmmanager_save_supervisor_options($settings);
+	try {
+		alarmmanager_daemon_sync();
+	} catch (Throwable $error) {
+		alarmmanager_log('daemon settings could not be applied');
+		raise_message('alarmmanager_daemon', __('Daemon settings could not be saved. Check the Cacti cache directory permissions.', 'alarmmanager'), MESSAGE_LEVEL_ERROR);
 	}
 }

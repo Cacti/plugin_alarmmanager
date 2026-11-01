@@ -95,7 +95,7 @@ function plugin_alarmmanager_upgrade(): bool {
 function alarmmanager_registration_setup(bool $enable = false): bool {
 	// Cacti registration helpers return void: register everything, then verify
 	// the persisted metadata once instead of after every individual call.
-	foreach ([['config_arrays', 'alarmmanager_config_arrays', 'setup.php'], ['draw_navigation_text', 'alarmmanager_draw_navigation_text', 'setup.php'], ['alarmmanager_submit', 'alarmmanager_submit', 'includes/ingestion.php'], ['admin_alert', 'alarmmanager_admin_alert', 'includes/admin_alert.php'], ['poller_bottom', 'alarmmanager_poller_bottom', 'includes/polling.php'], ['replicate_out', 'alarmmanager_replicate_out', 'includes/replication.php'], ['top_header_tabs', 'alarmmanager_show_tab', 'setup.php'], ['top_graph_header_tabs', 'alarmmanager_show_tab', 'setup.php']] as [$hook, $callback, $file]) {
+	foreach ([['config_arrays', 'alarmmanager_config_arrays', 'setup.php'], ['config_settings', 'alarmmanager_config_settings', 'setup.php'], ['settings_bottom', 'alarmmanager_settings_bottom', 'setup.php'], ['global_settings_update', 'alarmmanager_settings_update', 'includes/polling.php'], ['draw_navigation_text', 'alarmmanager_draw_navigation_text', 'setup.php'], ['alarmmanager_submit', 'alarmmanager_submit', 'includes/ingestion.php'], ['admin_alert', 'alarmmanager_admin_alert', 'includes/admin_alert.php'], ['poller_bottom', 'alarmmanager_poller_bottom', 'includes/polling.php'], ['replicate_out', 'alarmmanager_replicate_out', 'includes/replication.php'], ['top_header_tabs', 'alarmmanager_show_tab', 'setup.php'], ['top_graph_header_tabs', 'alarmmanager_show_tab', 'setup.php']] as [$hook, $callback, $file]) {
 		api_plugin_register_hook('alarmmanager', $hook, $callback, $file, $enable);
 	}
 
@@ -105,7 +105,7 @@ function alarmmanager_registration_setup(bool $enable = false): bool {
 	$hooks  = (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_hooks WHERE name = ?', ['alarmmanager'], '', false);
 	$realms = (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_realms WHERE plugin = ?', ['alarmmanager'], '', false);
 
-	return $hooks === 8 && $realms === 2;
+	return $hooks === 11 && $realms === 2;
 }
 
 function plugin_alarmmanager_uninstall(): void {
@@ -118,7 +118,120 @@ function plugin_alarmmanager_uninstall(): void {
  * @return array<string, string>
  */
 function alarmmanager_admin_sections(): array {
-	return ['endpoints' => 'Alarm Destinations', 'rules' => 'Alarm Rules', 'credentials' => 'Credentials', 'configuration' => 'Configuration', 'queue' => 'Alarm Queue', 'health' => 'Workers and failed processing'];
+	return ['endpoints' => 'Alarm Destinations', 'rules' => 'Alarm Rules', 'credentials' => 'Credentials', 'configuration' => 'Configuration Backup/Restore', 'queue' => 'Alarm Queue', 'health' => 'Workers and failed processing'];
+}
+
+/** Cacti Settings tab: device alarm summaries, alert history retention and daemon workers. */
+function alarmmanager_config_settings(): void {
+	global $tabs, $settings;
+
+	$tabs['alarmmanager'] = __('Alarm Manager', 'alarmmanager');
+	$workers              = static function (bool $none): array {
+		$choices = $none ? [0 => __('0 Worker Processes', 'alarmmanager'), 1 => __('1 Worker Process', 'alarmmanager')] : [1 => __('1 Worker Process', 'alarmmanager')];
+
+		foreach ([2, 4, 6, 8, 16] as $count) {
+			$choices[$count] = __('%d Worker Processes', $count, 'alarmmanager');
+		}
+
+		return $choices;
+	};
+
+	$settings['alarmmanager'] = [
+		'alarmmanager_summary_header' => [
+			'friendly_name' => __('Device Alarm Summaries', 'alarmmanager'),
+			'method'        => 'spacer'
+		],
+		'alarmmanager_summary_offline' => [
+			'friendly_name' => __('Offline Summary', 'alarmmanager'),
+			'description'   => __('Summary for new Cacti device down alarms. Existing history retains its original summary.', 'alarmmanager'),
+			'method'        => 'textbox',
+			'default'       => 'Device Offline',
+			'max_length'    => 512,
+			'size'          => 60
+		],
+		'alarmmanager_summary_recovering' => [
+			'friendly_name' => __('Recovering Summary', 'alarmmanager'),
+			'description'   => __('Summary for device recovering updates within the same outage.', 'alarmmanager'),
+			'method'        => 'textbox',
+			'default'       => 'Device Recovering',
+			'max_length'    => 512,
+			'size'          => 60
+		],
+		'alarmmanager_summary_online' => [
+			'friendly_name' => __('Online Summary', 'alarmmanager'),
+			'description'   => __('Summary for device recovery alarms once Cacti confirms the device is up.', 'alarmmanager'),
+			'method'        => 'textbox',
+			'default'       => 'Device Online',
+			'max_length'    => 512,
+			'size'          => 60
+		],
+		'alarmmanager_retention_header' => [
+			'friendly_name' => __('Alert History Retention', 'alarmmanager'),
+			'method'        => 'spacer'
+		],
+		// Cacti draws one control per row; alarmmanager_settings_bottom() joins these two onto one line.
+		'alarmmanager_retention_value' => [
+			'friendly_name' => __('Keep Alert History For', 'alarmmanager'),
+			'description'   => __('Enter how many days, weeks or months to keep alert history, or choose Indefinitely to keep everything (the number is then ignored). Maximum 3650 days, 520 weeks or 120 months. A purge job runs with the Cacti poller and removes aged events with their decisions, deliveries and attempts. Active conditions and queued or failed work are never purged. Each collector purges its own history.', 'alarmmanager'),
+			'method'        => 'textbox',
+			'default'       => '90',
+			'max_length'    => 4,
+			'size'          => 6,
+			'filter'        => FILTER_VALIDATE_INT,
+			'options'       => ['options' => ['min_range' => 1, 'max_range' => 3650]]
+		],
+		'alarmmanager_retention_unit' => [
+			'friendly_name' => __('Retention Unit', 'alarmmanager'),
+			'description'   => __('The unit for the retention period.', 'alarmmanager'),
+			'method'        => 'drop_array',
+			'default'       => 'forever',
+			'array'         => ['days' => __('Days', 'alarmmanager'), 'weeks' => __('Weeks', 'alarmmanager'), 'months' => __('Months', 'alarmmanager'), 'forever' => __('Indefinitely', 'alarmmanager')]
+		],
+		'alarmmanager_daemon_header' => [
+			'friendly_name' => __('Daemon', 'alarmmanager'),
+			'method'        => 'spacer'
+		],
+		'alarmmanager_daemon_enabled' => [
+			'friendly_name' => __('Enable Daemon', 'alarmmanager'),
+			'description'   => __('Run processing and delivery workers in the resident Alarm Manager service instead of the Cacti poller. The service must be installed and running; disabling it lets current jobs finish and returns processing to the poller. Changes apply within a few seconds and synchronize to collectors.', 'alarmmanager'),
+			'method'        => 'checkbox',
+			'default'       => ''
+		],
+		'alarmmanager_daemon_processing_workers' => [
+			'friendly_name' => __('Processing Workers', 'alarmmanager'),
+			'description'   => __('Number of daemon workers that evaluate rules.', 'alarmmanager'),
+			'method'        => 'drop_array',
+			'default'       => '2',
+			'array'         => $workers(false)
+		],
+		'alarmmanager_daemon_delivery_workers' => [
+			'friendly_name' => __('Delivery Workers', 'alarmmanager'),
+			'description'   => __('Number of daemon workers that deliver notifications.', 'alarmmanager'),
+			'method'        => 'drop_array',
+			'default'       => '4',
+			'array'         => $workers(true)
+		]
+	];
+}
+
+/** Cacti settings_bottom hook: show the retention number and unit on one line, as "90 [Days]". */
+function alarmmanager_settings_bottom(): void {
+	if (get_nfilter_request_var('tab') !== 'alarmmanager') {
+		return;
+	}
+	?>
+	<script type='text/javascript'>
+	$(function() {
+		var $unit = $('#row_alarmmanager_retention_unit');
+		var $data = $('#row_alarmmanager_retention_value .formData');
+
+		if ($unit.length && $data.length) {
+			$data.append(' ').append($unit.find('.formData').children());
+			$unit.hide();
+		}
+	});
+	</script>
+	<?php
 }
 
 function alarmmanager_config_arrays(): void {

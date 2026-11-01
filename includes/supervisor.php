@@ -28,9 +28,14 @@ function alarmmanager_daemon_config_path(): string {
 	return ($config['base_path'] ?? (getenv('CACTI_PATH') ?: dirname(__DIR__, 3))) . '/cache/alarmmanager/workers.json';
 }
 
+/** @return array<string, mixed> */
+function alarmmanager_supervisor_defaults(): array {
+	return ['enabled' => false, 'processing_workers' => 2, 'delivery_workers' => 4, 'lease_seconds' => 180, 'idle_ms' => 250, 'shutdown_seconds' => 180, 'respawn_base_ms' => 1000];
+}
+
 function alarmmanager_supervisor_options(?string $path = null): array {
 	$path ??= alarmmanager_daemon_config_path();
-	$settings = ['enabled' => false, 'processing_workers' => 2, 'delivery_workers' => 4, 'lease_seconds' => 180, 'idle_ms' => 250, 'shutdown_seconds' => 180, 'respawn_base_ms' => 1000];
+	$settings = alarmmanager_supervisor_defaults();
 
 	if (is_file($path) || $path !== alarmmanager_daemon_config_path()) {
 		$data = @file_get_contents($path, false, null, 0, 65537);

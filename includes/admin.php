@@ -152,7 +152,20 @@ function alarmmanager_admin_configuration_upload(array $file): array {
 		throw new InvalidArgumentException('invalid_configuration_upload');
 	}
 
-	return alarmmanager_admin_json($json, 1048576);
+	return alarmmanager_admin_configuration_import(alarmmanager_admin_json($json, 1048576));
+}
+
+/**
+ * Backups made before device summaries moved to Cacti Settings still carry them; the summaries are now edited
+ * under Settings > Alarm Manager. Builds that add an event log destination export its settings as event_log,
+ * which this version has no consumer for. Both keys are dropped rather than failing the whole import.
+ * @param  array<string, mixed> $configuration
+ * @return array<string, mixed>
+ */
+function alarmmanager_admin_configuration_import(array $configuration): array {
+	unset($configuration['device_summaries'], $configuration['event_log']);
+
+	return $configuration;
 }
 function alarmmanager_admin_replay(string $queue, int $id): void {
 	$table = match ($queue) {
@@ -263,24 +276,6 @@ function alarmmanager_admin_rule_policy(array $input): array {
 	return alarmmanager_validate_rule_definition($policy);
 }
 
-/**
- * Validate all daemon fields before any settings are written.
- * @param  array<string, mixed> $input
- * @return array<string, mixed>
- */
-function alarmmanager_admin_supervisor_settings(array $input): array {
-	$settings                       = alarmmanager_supervisor_options();
-	$settings['enabled']            = isset($input['daemon_enabled']);
-	$settings['processing_workers'] = alarmmanager_admin_int($input['processing_workers'] ?? null, 1, 64);
-	$settings['delivery_workers']   = alarmmanager_admin_int($input['delivery_workers'] ?? null, 0, 64);
-
-	if ($settings['enabled'] && !alarmmanager_daemon_status()) {
-		throw new RuntimeException('daemon_not_running');
-	}
-
-	return $settings;
-}
-
 /** This is the sole browser mutation dispatcher; secrets are never returned. */
 function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string {
 	alarmmanager_web_mutation_guard();
@@ -295,7 +290,7 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 			alarmmanager_db_write("REPLACE INTO settings (name, value) VALUES ('alarmmanager_notifications_paused', ?)", [$action === 'queue_pause' ? '1' : '0']);
 			alarmmanager_request_configuration_replication();
 		});
-		alarmmanager_log('Alarm Queue ' . ($action === 'queue_pause' ? 'paused' : 'resumed') . ' by user ' . alarmmanager_web_user());
+		alarmmanager_log('Alarm Queue ' . ($action === 'queue_pause' ? 'paused' : 'resumed') . ' by user ' . alarmmanager_web_username());
 
 		return 'Alarm Queue updated.';
 	}
@@ -308,17 +303,9 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 			INNER JOIN plugin_alarmmanager_events AS e ON e.id = d.event_row_id
 			SET d.status = 'failed', d.last_error = 'queue_cleared', d.updated_at = UTC_TIMESTAMP(6)
 			WHERE d.status = 'pending' AND e.processing_poller_id = ?", [alarmmanager_local_poller()]);
-		alarmmanager_log('Waiting notifications cleared by user ' . alarmmanager_web_user());
+		alarmmanager_log('Waiting notifications cleared by user ' . alarmmanager_web_username());
 
 		return 'Waiting notifications cleared. History preserved.';
-	}
-
-	if ($action === 'daemon_save') {
-		$settings = alarmmanager_admin_supervisor_settings($input);
-		alarmmanager_save_supervisor_options($settings);
-		alarmmanager_request_configuration_replication();
-
-		return 'Daemon settings saved.';
 	}
 
 	if ($action === 'credential_save') {
@@ -396,7 +383,7 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 		return 'Test queued for delivery workers; event row ' . $id . '.';
 	}
 
-	if (!in_array($action, ['configuration_save', 'settings_save', 'device_summaries_save', 'endpoint_save', 'endpoint_delete', 'rule_save'], true)) {
+	if (!in_array($action, ['configuration_save', 'endpoint_save', 'endpoint_delete', 'rule_save'], true)) {
 		throw new InvalidArgumentException('invalid_action');
 	}
 	$test_destination = $action === 'endpoint_save' && ($input['test_destination'] ?? '') === 'yes';
@@ -450,9 +437,6 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 
 		return 'Endpoint deleted.';
 	}
-	$supervisor          = null;
-	$previous_supervisor = null;
-	$supervisor_saved    = false;
 	$settings            = $state['configuration'];
 	$credential          = null;
 	$provider_changed    = false;
@@ -463,8 +447,6 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 		$settings = isset($_FILES['configuration_file'])
 			? alarmmanager_admin_configuration_upload($_FILES['configuration_file'])
 			: alarmmanager_admin_json($input['configuration_json'] ?? '', 1048576);
-	} elseif (in_array($action, ['settings_save', 'device_summaries_save'], true)) {
-		$settings['device_summaries'] = ['offline' => $input['offline_summary'] ?? '', 'recovering' => $input['recovering_summary'] ?? '', 'online' => $input['online_summary'] ?? ''];
 	} else {
 		$id   = alarmmanager_admin_int($input['id'] ?? 0, 0);
 		$name = $input['name'] ?? '';
@@ -593,47 +575,29 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 		}
 	}
 
-	if ($action === 'settings_save') {
-		$previous_supervisor = alarmmanager_supervisor_options();
-		$supervisor          = alarmmanager_admin_supervisor_settings($input);
-	}
+	alarmmanager_transaction(function () use ($settings, $revision, $credential, $create_section, &$id, $provider_changed): void {
+		if ($create_section !== null) {
+			$index          = array_key_last($settings[$create_section]);
+			$item           = $settings[$create_section][$index];
+			[$sql, $params] = match ($create_section) {
+				'endpoints' => ['INSERT INTO plugin_alarmmanager_endpoints (name, type) VALUES (?, ?)', [$item['name'], $item['type']]],
+				'rules'     => ['INSERT INTO plugin_alarmmanager_rules (name, priority, endpoints_json, definition) VALUES (?, ?, ?, ?)', [$item['name'], $item['priority'], json_encode($item['endpoints'], JSON_THROW_ON_ERROR), json_encode($item['policy'], JSON_THROW_ON_ERROR)]]
+			};
+			alarmmanager_db_write($sql, $params);
+			$id                                      = alarmmanager_config_int(db_fetch_cell_prepared('SELECT LAST_INSERT_ID()', [], '', false), 1, 2147483647);
+			$settings[$create_section][$index]['id'] = $id;
+		}
+		$settings = alarmmanager_configuration($settings);
+		alarmmanager_write_configuration($settings, $revision);
 
-	try {
-		alarmmanager_transaction(function () use ($settings, $revision, $credential, $create_section, &$id, $supervisor, &$supervisor_saved, $provider_changed): void {
-			if ($create_section !== null) {
-				$index          = array_key_last($settings[$create_section]);
-				$item           = $settings[$create_section][$index];
-				[$sql, $params] = match ($create_section) {
-					'endpoints' => ['INSERT INTO plugin_alarmmanager_endpoints (name, type) VALUES (?, ?)', [$item['name'], $item['type']]],
-					'rules'     => ['INSERT INTO plugin_alarmmanager_rules (name, priority, endpoints_json, definition) VALUES (?, ?, ?, ?)', [$item['name'], $item['priority'], json_encode($item['endpoints'], JSON_THROW_ON_ERROR), json_encode($item['policy'], JSON_THROW_ON_ERROR)]]
-				};
-				alarmmanager_db_write($sql, $params);
-				$id                                      = alarmmanager_config_int(db_fetch_cell_prepared('SELECT LAST_INSERT_ID()', [], '', false), 1, 2147483647);
-				$settings[$create_section][$index]['id'] = $id;
-			}
-			$settings = alarmmanager_configuration($settings);
-			alarmmanager_write_configuration($settings, $revision);
-
-			if ($provider_changed) {
-				alarmmanager_db_write('DELETE FROM plugin_alarmmanager_credentials WHERE endpoint_id = ?', [$id]);
-			}
-
-			if ($credential !== null) {
-				alarmmanager_write_credential($id, $credential);
-			}
-
-			if ($supervisor !== null) {
-				alarmmanager_save_supervisor_options($supervisor);
-				$supervisor_saved = true;
-			}
-		});
-	} catch (Throwable $error) {
-		if ($supervisor_saved) {
-			alarmmanager_save_supervisor_options($previous_supervisor);
+		if ($provider_changed) {
+			alarmmanager_db_write('DELETE FROM plugin_alarmmanager_credentials WHERE endpoint_id = ?', [$id]);
 		}
 
-		throw $error;
-	}
+		if ($credential !== null) {
+			alarmmanager_write_credential($id, $credential);
+		}
+	});
 	unset($GLOBALS['alarmmanager_route_cache']);
 
 	if ($test_destination) {
@@ -748,8 +712,7 @@ function alarmmanager_admin_error_message(Throwable $error): string {
 	}
 
 	return match ($error->getMessage()) {
-		'daemon_not_running'             => 'Start the Alarm Manager service on this collector before enabling daemon workers.',
-		'daemon_config_write_failed'     => 'Daemon settings could not be saved. Check the Cacti cache directory permissions.',
+		'Unknown event fields.'          => 'Import failed. The file contains fields this version of Alarm Manager does not recognize. Export a fresh backup from this version and import that.',
 		'endpoint_in_rule'               => 'Remove this integration from notification rules before deleting.',
 		'endpoint_has_active_deliveries' => 'This endpoint has queued or running deliveries. Resolve them before deleting.',
 		'test_endpoint_unavailable'      => 'Enable the destination before testing it.',
@@ -800,7 +763,6 @@ function alarmmanager_admin_error_message(Throwable $error): string {
 		'invalid_rule_filters'           => 'Choose up to 32 values for each enabled alarm filter.',
 		'invalid_rule_schedule'          => 'Choose at least one day for each enabled schedule.',
 		'invalid_schedule'               => 'Choose a valid timezone and start and end times for each schedule.',
-		'invalid_device_summaries'       => 'Enter all device summaries using 1–512 bytes of text without line breaks.',
 		'invalid_configuration'          => 'Action failed. Configuration fields are invalid.',
 		default                          => 'The action could not be completed. Check the Cacti log for an internal error. Submitted credential values were cleared.'
 	};
