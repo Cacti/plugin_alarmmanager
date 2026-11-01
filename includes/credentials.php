@@ -103,8 +103,12 @@ function alarmmanager_secret_key(bool $lock = false): string {
 
 	return alarmmanager_decode_key(db_fetch_cell_prepared('SELECT value FROM settings_user WHERE user_id = ? AND name = ?' . ($lock ? ' FOR UPDATE' : ''), [1, 'alarmmanager_key'], '', false));
 }
+/** @return list<string> Endpoint types that may hold an encrypted credential record. */
+function alarmmanager_credential_types(): array {
+	return ['restapi', 'webhook', 'snmptrap'];
+}
 function alarmmanager_credential_validate(#[\SensitiveParameter] array $record): array {
-	alarmmanager_event_keys($record, ['headers', 'basic', 'teams_webhook_url']);
+	alarmmanager_event_keys($record, ['headers', 'basic', 'teams_webhook_url', 'provider_token', 'snmp']);
 	$headers = $record['headers'] ?? [];
 
 	if (!is_array($headers) || count($headers) > 32) {
@@ -142,6 +146,32 @@ function alarmmanager_credential_validate(#[\SensitiveParameter] array $record):
 			throw new InvalidArgumentException('invalid_credentials');
 		}
 		$result['basic'] = $basic;
+	}
+
+	if (array_key_exists('provider_token', $record)) {
+		$token = $record['provider_token'];
+
+		if (!is_string($token) || $token === '' || strlen($token) > 4096 || preg_match('/[\x00-\x20\x7f]/', $token) || $headers || isset($record['basic']) || isset($record['teams_webhook_url'])) {
+			throw new InvalidArgumentException('invalid_credentials');
+		}
+		$result['provider_token'] = $token;
+	}
+
+	if (isset($record['snmp'])) {
+		$snmp = $record['snmp'];
+
+		if (!is_array($snmp) || !$snmp || $headers || isset($record['basic']) || isset($record['provider_token']) || isset($record['teams_webhook_url'])) {
+			throw new InvalidArgumentException('invalid_snmp_credentials');
+		}
+		alarmmanager_event_keys($snmp, ['community', 'auth_passphrase', 'priv_passphrase']);
+
+		// snmp.conf tokens: printable ASCII without spaces, quotes, backslashes or comment marks.
+		foreach ($snmp as $key => $value) {
+			if (!is_string($value) || !preg_match('/\A[\x21-\x7e]{1,256}\z/D', $value) || strpbrk($value, '"\'\\#') !== false || ($key !== 'community' && strlen($value) < 8)) {
+				throw new InvalidArgumentException('invalid_snmp_credentials');
+			}
+		}
+		$result['snmp'] = $snmp;
 	}
 
 	if (isset($record['teams_webhook_url'])) {
@@ -229,7 +259,7 @@ function alarmmanager_write_credential(int $endpoint_id, #[\SensitiveParameter] 
 	alarmmanager_secret_guard();
 	$key = alarmmanager_secret_key(true);
 
-	if (!alarmmanager_db_row("SELECT id FROM plugin_alarmmanager_endpoints WHERE id = ? AND type IN ('restapi', 'webhook')", [$endpoint_id])) {
+	if (!alarmmanager_db_row('SELECT id FROM plugin_alarmmanager_endpoints WHERE id = ? AND type IN (' . implode(', ', array_fill(0, count(alarmmanager_credential_types()), '?')) . ')', [$endpoint_id, ...alarmmanager_credential_types()])) {
 		throw new InvalidArgumentException('credential_endpoint_invalid');
 	}
 	$ciphertext = alarmmanager_encrypt_credential($record, $endpoint_id, $key);
@@ -314,7 +344,7 @@ function alarmmanager_credential_restore(#[\SensitiveParameter] array $bundle, #
 		alarmmanager_db_row('SELECT value FROM settings_user WHERE user_id = ? AND name = ? FOR UPDATE', [1, 'alarmmanager_key']);
 
 		foreach ($bundle['credentials'] as $row) {
-			if (!alarmmanager_db_row("SELECT id FROM plugin_alarmmanager_endpoints WHERE id = ? AND type IN ('restapi', 'webhook')", [$row['endpoint_id']])) {
+			if (!alarmmanager_db_row('SELECT id FROM plugin_alarmmanager_endpoints WHERE id = ? AND type IN (' . implode(', ', array_fill(0, count(alarmmanager_credential_types()), '?')) . ')', [$row['endpoint_id'], ...alarmmanager_credential_types()])) {
 				throw new RuntimeException('credential_endpoint_invalid');
 			}
 		}

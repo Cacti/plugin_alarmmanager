@@ -275,8 +275,11 @@ if (!function_exists('get_current_page')) {
 }
 
 if (!function_exists('__')) {
-	function __($text, $domain = null) {
-		return $text;
+	// Like Cacti: a trailing argument is the text domain; any others are sprintf arguments.
+	function __($text, ...$args) {
+		array_pop($args);
+
+		return $args ? vsprintf($text, $args) : $text;
 	}
 }
 
@@ -299,7 +302,7 @@ if (!function_exists('html_escape')) {
 }
 
 if (!function_exists('__esc')) {
-	function __esc($text, $domain = null) {
+	function __esc($text, ...$args) {
 		return html_escape($text);
 	}
 }
@@ -320,5 +323,44 @@ if (!function_exists('get_guest_account')) {
 if (!function_exists('csrf_check')) {
 	function csrf_check($fatal = true) {
 		return !empty($GLOBALS['alarmmanager_test_csrf_valid']);
+	}
+}
+
+// Cacti table helpers emit simple table markup. Box calls are recorded so tests can
+// check the box mode: Cacti opens a <table> unless $div is true.
+if (!function_exists('html_start_box')) {
+	function html_start_box(...$args) {
+		$GLOBALS['alarmmanager_test_boxes'][] = ['html_start_box', $args];
+		print '<table>';
+	}
+}
+
+if (!function_exists('html_end_box')) {
+	function html_end_box(...$args) {
+		$GLOBALS['alarmmanager_test_boxes'][] = ['html_end_box', $args];
+		print '</table>';
+	}
+}
+
+if (!function_exists('html_header')) {
+	function html_header(...$args) {
+	}
+}
+
+if (!function_exists('form_alternate_row')) {
+	function form_alternate_row(...$args) {
+		print '<tr>';
+	}
+}
+
+if (!function_exists('form_end_row')) {
+	function form_end_row(...$args) {
+		print '</tr>';
+	}
+}
+
+if (!function_exists('form_selectable_cell')) {
+	function form_selectable_cell($value, ...$args) {
+		print '<td>' . $value . '</td>';
 	}
 }

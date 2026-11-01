@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-2.0-or-later
 """Loopback-only fixture. Never log request bodies or authentication headers."""
+import base64
+import urllib.parse
 import collections
 import http.server
 import json
@@ -42,6 +44,18 @@ class Handler(http.server.BaseHTTPRequestHandler):
             request = json.loads(data)
             body = {'ticket': {'id': request.get('external_id') or ('CASE-1' if self.path == '/ticket' else 'CASE-2'),
                                'url': 'https://tickets.example.invalid/case'}, 'request': request}
+        elif self.path == '/twilio':
+            request = urllib.parse.parse_qs(data.decode(), strict_parsing=True)
+            prefix = 'whatsapp:' if 'ContentSid' in request else ''
+            valid = (self.headers.get('Content-Type') == 'application/x-www-form-urlencoded'
+                     and self.headers.get('Authorization') == 'Basic ' + base64.b64encode(b'SKfixture:fixture-secret').decode()
+                     and request.get('To') == [prefix + '+15551234567']
+                     and request.get('From') == [prefix + '+15557654321'])
+            if 'ContentSid' in request:
+                valid = valid and request.get('MessagingServiceSid') == ['MGfixture'] and json.loads(request['ContentVariables'][0]) == {'1': 'Link "down" & café check port'} and 'Body' not in request and 'text' not in request
+            else:
+                valid = valid and request.get('Body') == ['Link "down" & café\ncheck\tport']
+            status, body = (201, {'sid': 'SMfixture', 'status': 'queued'}) if valid else (400, {})
         elif self.path == '/echo':
             body = {'accepted': True, 'request': json.loads(data), 'method': self.command,
                     'authenticated': self.headers.get('Authorization') == 'Bearer fixture-token'}

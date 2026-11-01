@@ -115,12 +115,19 @@ function alarmmanager_route_event(array $record, array $event, array $state, str
 						VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE episode_id = VALUES(episode_id), fingerprint = VALUES(fingerprint), queued_at = VALUES(queued_at)',
 					[$record['stream_key'], $endpoint_id, $event['episode_id'], $fingerprint, $now]);
 
-				$key = hash('sha256', implode('|', [$event['source'], $event['source_instance'], $event['event_id'], 'centralized', (string) $endpoint_id]));
-				alarmmanager_db_write('INSERT INTO plugin_alarmmanager_deliveries
-						(event_row_id, endpoint_id, stream_key, sequence, priority, available_at, created_at, updated_at, idempotency_key)
-						VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6), UTC_TIMESTAMP(6), ?)
+				foreach ($policy['recipient_overrides'][$endpoint_id] ?? [''] as $recipient) {
+					$identity = [$event['source'], $event['source_instance'], $event['event_id'], 'centralized', (string) $endpoint_id];
+
+					if ($recipient !== '') {
+						$identity[] = $recipient;
+					}
+					$key = hash('sha256', implode('|', $identity));
+					alarmmanager_db_write('INSERT INTO plugin_alarmmanager_deliveries
+						(event_row_id, endpoint_id, stream_key, sequence, priority, available_at, created_at, updated_at, idempotency_key, recipient)
+						VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6), UTC_TIMESTAMP(6), ?, ?)
 						ON DUPLICATE KEY UPDATE event_row_id = event_row_id',
-					[$event_id, $endpoint_id, $record['stream_key'], $event['sequence'], alarmmanager_priority($event['severity']), $key]);
+						[$event_id, $endpoint_id, $record['stream_key'], $event['sequence'], alarmmanager_priority($event['severity']), $key, $recipient]);
+				}
 			}
 			alarmmanager_decision($event_id, $rule_id, $endpoint_id, $reason, $snapshot['revision']);
 		}

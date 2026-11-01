@@ -13,7 +13,7 @@ const assert=require('node:assert/strict');
   await context.request.get(base+'/__fixture/login?user=1&theme=modern');
   await page.goto(base+'/plugins/alarmmanager/alarmmanager.php?tab=events&clear=1');
   const nav=page.getByRole('navigation',{name:'Alarm Manager pages'});
-  check(await nav.getByRole('link').count()===4,'Only Dashboard, Active conditions, Events and Routing decisions remain');
+  check(await nav.getByRole('link').count()===3,'Only Dashboard, Active conditions and Events remain; routing decisions are an Events column');
   check(await page.getByRole('columnheader',{name:'Integration status',exact:true}).count()===1,'Events has integration status column');
   check(await page.locator('.tableRow').count()===50,'Events keeps bounded pagination');
   const mixed=page.getByRole('cell',{name:'1 Delivered · 1 Failed',exact:true});

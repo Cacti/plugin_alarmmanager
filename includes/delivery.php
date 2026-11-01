@@ -28,10 +28,10 @@ require_once(__DIR__ . '/schema.php');
 
 /** Trusted code registry only; configuration cannot name/evaluate PHP callbacks. */
 function alarmmanager_delivery_handlers(): array {
-	$handlers = ($GLOBALS['alarmmanager_transport_handlers'] ?? []) + ['restapi' => 'alarmmanager_http_transport', 'webhook' => 'alarmmanager_http_transport', 'email' => 'alarmmanager_email_transport', 'script' => 'alarmmanager_script_transport'];
+	$handlers = ($GLOBALS['alarmmanager_transport_handlers'] ?? []) + ['restapi' => 'alarmmanager_http_transport', 'webhook' => 'alarmmanager_http_transport', 'email' => 'alarmmanager_email_transport', 'script' => 'alarmmanager_script_transport', 'snmptrap' => 'alarmmanager_snmptrap_transport', 'syslog' => 'alarmmanager_syslog_transport'];
 	$result   = [];
 
-	foreach (['restapi', 'webhook', 'email', 'script', 'websocket'] as $type) {
+	foreach (['restapi', 'webhook', 'email', 'script', 'snmptrap', 'syslog', 'websocket'] as $type) {
 		if (isset($handlers[$type]) && is_callable($handlers[$type])) {
 			$result[$type] = $handlers[$type];
 		}
@@ -74,7 +74,7 @@ function alarmmanager_run_delivery(array $claim): bool {
 		if (!$allowed) {
 			foreach (alarmmanager_routing_snapshot()['rules'] as $rule) {
 				if (in_array((int) $claim['endpoint']['id'], $rule['endpoints'], true) && alarmmanager_rule_matches($rule['policy'], $event)) {
-					$allowed = true;
+					$allowed = in_array($claim['recipient'] ?? '', $rule['policy']['recipient_overrides'][(int) $claim['endpoint']['id']] ?? [''], true);
 
 					if (isset($rule['policy']['template_overrides'][(int) $claim['endpoint']['id']])) {
 						$claim['endpoint']['mapping_override'] = $rule['policy']['template_overrides'][(int) $claim['endpoint']['id']];
@@ -87,6 +87,10 @@ function alarmmanager_run_delivery(array $claim): bool {
 
 		if (!$allowed) {
 			return alarmmanager_finish_delivery($claim, ['outcome' => 'failure', 'code' => 'no_matching_rule']);
+		}
+
+		if (($claim['recipient'] ?? '') !== '') {
+			$claim['endpoint']['recipient'] = $claim['recipient'];
 		}
 		$previous_handler = pcntl_signal_get_handler(SIGALRM);
 		$previous_async   = pcntl_async_signals(true);

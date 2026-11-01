@@ -109,6 +109,29 @@ final class TransportTest extends AlarmManagerTestCase {
 			$this->assertTrue(($before['counts']['/echo'] ?? 0) === ($after['counts']['/echo'] ?? 0), 'Preview sent no traffic');
 			$this->assertTrue($preview['credentials'] === '[REDACTED]' && !str_contains(json_encode($preview), 'fixture-token'), 'Preview redaction');
 			$this->assertTrue(alarmmanager_http_transport($event, $endpoint, str_repeat('a', 64))['outcome'] === 'success', 'TLS authenticated HTTP');
+
+			foreach (['twilio', 'twilio_whatsapp'] as $provider) {
+				$twilio              = alarmmanager_integration_templates()[$provider]['transport'];
+				$twilio['provider']  = $provider;
+				$twilio['url']       = $https . '/twilio';
+				$twilio['ca_bundle'] = $tmp . '/cert.pem';
+				$twilio['mapping']   = ['default' => [
+					['to' => 'From', 'constant' => '+15557654321'],
+					['to' => 'To', 'constant' => '+15550000000'],
+					['to' => $provider === 'twilio' ? 'Body' : 'text', 'constant' => "Link \"down\" & café\ncheck\tport"]
+				]];
+
+				if ($provider === 'twilio_whatsapp') {
+					$twilio['mapping']['default'][0]['constant'] = 'whatsapp:+15557654321';
+					$twilio['mapping']['default'][1]['constant'] = 'whatsapp:+15550000000';
+					$twilio['mapping']['default'][]              = ['to' => 'MessagingServiceSid', 'constant' => 'MGfixture'];
+					$twilio['mapping']['default'][]              = ['to' => 'ContentSid', 'constant' => 'HXfixture'];
+				}
+				$this->tdefinition(1, 'restapi', $twilio);
+				alarmmanager_save_credential(1, ['basic' => ['username' => 'SKfixture', 'password' => 'fixture-secret']]);
+				$this->assertSame('SMfixture', alarmmanager_http_transport($event, $endpoint + ['recipient' => '+15551234567'], str_repeat('c', 64))['external_reference']['id'], 'Form encoding, Basic auth and Twilio SID');
+			}
+			alarmmanager_save_credential(1, $credential);
 			$base['response_match'] = ['path' => 'request.hostname', 'equals' => 42];
 			$this->tdefinition(1, 'restapi', $base);
 			$this->assertTrue(alarmmanager_http_transport($event, $endpoint, str_repeat('b', 64))['outcome'] === 'success', 'Mapped device id to hostname');
