@@ -81,6 +81,106 @@ final class ChangedPathsTest extends AlarmManagerTestCase {
 		$this->assertSame([3, str_repeat('b', 32)], $writes[1][1]);
 		$this->assertSame('COMMIT', $writes[2][0]);
 	}
+	/**
+	 * Run a body as a signed-in plugin administrator with recording database doubles.
+	 * @param callable(array<int, array{string, array<mixed>}>&): void $body Receives the recorded writes by reference.
+	 */
+	private function asAdministrator(callable $body): void {
+		self::alarmmanager_test_load('includes/admin.php');
+		$before = [$GLOBALS['config'], $_SESSION ?? [], $_SERVER['REQUEST_METHOD'] ?? null,
+			$GLOBALS['alarmmanager_test_config_options'] ?? [], $GLOBALS['alarmmanager_test_allowed_realms'] ?? [], $GLOBALS['alarmmanager_test_log'] ?? []];
+		$GLOBALS['config']['poller_id']               = 1;
+		$_SESSION['sess_user_id']                     = 1;
+		$_SERVER['REQUEST_METHOD']                    = 'POST';
+		$GLOBALS['alarmmanager_test_config_options']  = ['auth_method' => 1];
+		$GLOBALS['alarmmanager_test_allowed_realms']  = [1, 101];
+		$GLOBALS['alarmmanager_test_csrf_valid']      = true;
+		$GLOBALS['alarmmanager_test_usernames']       = [1 => 'alice'];
+		$GLOBALS['alarmmanager_test_log']             = [];
+		$writes                                       = [];
+		$GLOBALS['alarmmanager_test_execute_handler'] = static function ($sql, $params) use (&$writes) {
+			$writes[] = [$sql, $params];
+
+			return true;
+		};
+		$GLOBALS['alarmmanager_test_cell_handler']  = static fn ($sql) => str_contains($sql, 'LAST_INSERT_ID') ? 9 : (str_contains($sql, 'config_revision') ? 1 : 0);
+		$GLOBALS['alarmmanager_test_query_handler'] = static function ($sql) {
+			if (str_contains($sql, 'plugin_realms')) {
+				return [['id' => 1]];
+			}
+
+			if (str_contains($sql, 'configuration_history')) {
+				return [['definition' => json_encode(['version' => 1, 'endpoints' => [['id' => 7, 'name' => 'Test', 'type' => 'webhook', 'enabled' => true, 'transport' => alarmmanager_integration_templates()['teams']['transport']]], 'rules' => []])]];
+			}
+
+			if (str_contains($sql, 'plugin_alarmmanager_schema')) {
+				return [['config_revision' => 1]];
+			}
+
+			return [];
+		};
+
+		try {
+			$body($writes);
+		} finally {
+			[$GLOBALS['config'], $_SESSION, $_SERVER['REQUEST_METHOD'], $GLOBALS['alarmmanager_test_config_options'],
+				$GLOBALS['alarmmanager_test_allowed_realms'], $GLOBALS['alarmmanager_test_log']] = $before;
+			unset($GLOBALS['alarmmanager_test_csrf_valid'], $GLOBALS['alarmmanager_test_usernames'], $GLOBALS['alarmmanager_test_cell_handler'],
+				$GLOBALS['alarmmanager_test_query_handler'], $GLOBALS['alarmmanager_test_execute_handler']);
+		}
+	}
+
+	public function testQueueActionsLogTheAdministratorByName(): void {
+		$this->asAdministrator(function (array &$writes): void {
+			$this->assertSame('Alarm Queue updated.', alarmmanager_admin_action(['action' => 'queue_pause']));
+			$this->assertSame('Alarm Queue updated.', alarmmanager_admin_action(['action' => 'queue_resume']));
+			$this->assertSame('Waiting notifications cleared. History preserved.', alarmmanager_admin_action(['action' => 'queue_clear', 'confirmed' => 'yes']));
+			$this->assertSame(
+				['Alarm Queue paused by user alice', 'Alarm Queue resumed by user alice', 'Waiting notifications cleared by user alice'],
+				array_values(array_filter($GLOBALS['alarmmanager_test_log'], static fn (string $line): bool => str_contains($line, ' by user '))),
+				'Queue actions name the person, not the user ID.'
+			);
+		});
+	}
+
+	public function testNewEndpointAndRuleAreInsertedBeforeTheConfigurationIsWritten(): void {
+		$this->asAdministrator(function (array &$writes): void {
+			$this->assertSame('Configuration saved.', alarmmanager_admin_action(['action' => 'endpoint_save', 'revision' => 1, 'id' => 0, 'name' => 'New destination',
+				'enabled'                                                                    => 'yes', 'type' => 'webhook', 'url' => 'https://example.test/alerts', 'auth_type' => 'none', 'transport_json' => '{}', 'mapping_json' => '{}']));
+			$insert = current(array_filter($writes, static fn (array $write): bool => str_contains($write[0], 'INSERT INTO plugin_alarmmanager_endpoints')));
+			$this->assertSame(['New destination', 'webhook'], $insert[1], 'The endpoint row exists first so its generated ID can be written into the configuration.');
+
+			$writes = [];
+			$this->assertSame('Configuration saved.', alarmmanager_admin_action(['action' => 'rule_save', 'revision' => 1, 'id' => 0, 'name' => 'Page the on-call',
+				'enabled'                                                                    => 'yes', 'endpoints' => [7], 'priority' => 50]));
+			$insert = current(array_filter($writes, static fn (array $write): bool => str_contains($write[0], 'INSERT INTO plugin_alarmmanager_rules')));
+			$this->assertSame(['Page the on-call', 50, '[7]'], array_slice($insert[1], 0, 3));
+		});
+	}
+
+	public function testConfigurationFileIsReadWithoutRetiredKeys(): void {
+		self::alarmmanager_test_load('includes/admin.php');
+		$path = sys_get_temp_dir() . '/alarmmanager-import-' . bin2hex(random_bytes(5)) . '.json';
+
+		try {
+			file_put_contents($path, json_encode(['version' => 1, 'endpoints' => [], 'rules' => [], 'device_summaries' => ['offline' => 'x'], 'event_log' => ['x']]));
+			$this->assertSame(['version' => 1, 'endpoints' => [], 'rules' => []], alarmmanager_admin_configuration_read($path), 'Keys from older backups are ignored.');
+
+			foreach (['', str_repeat(' ', 1048577)] as $bad) {
+				file_put_contents($path, $bad);
+
+				try {
+					alarmmanager_admin_configuration_read($path);
+					$this->fail('An empty or oversized file must be rejected.');
+				} catch (InvalidArgumentException $error) {
+					$this->assertSame('invalid_configuration_upload', $error->getMessage());
+				}
+			}
+		} finally {
+			@unlink($path);
+		}
+	}
+
 	public function testSettingsSaveAndInlineTestFailurePreserveSavedConfiguration(): void {
 		self::alarmmanager_test_load('includes/admin.php');
 		$before = [$GLOBALS['config'], $_SESSION ?? [], $_SERVER['REQUEST_METHOD'] ?? null,

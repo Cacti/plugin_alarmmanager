@@ -52,6 +52,18 @@ function alarmmanager_remote_private_read(string $path, int $limit): string {
 	return $data;
 }
 /**
+ * The open handle must be the regular, single-link file now named at the path, not something a race swapped in.
+ * @param resource $stream
+ */
+function alarmmanager_remote_private_verify($stream, string $path): void {
+	$opened = fstat($stream);
+	$named  = @lstat($path);
+
+	if (!$opened || !$named || is_link($path) || $opened['ino'] !== $named['ino'] || $opened['dev'] !== $named['dev'] || $opened['nlink'] !== 1) {
+		throw new RuntimeException('private_output_invalid');
+	}
+}
+/**
  * Create a new owner-only file holding data that includes decrypted credentials.
  * The directory must be outside the plugin tree and closed to every other account: otherwise another user could plant
  * a symlink at the final name and have the bundle created wherever it points, including inside the web-served plugin.
@@ -83,13 +95,7 @@ function alarmmanager_remote_private_write(string $path, string $data): void {
 	}
 
 	try {
-		$opened = fstat($stream);
-		$named  = @lstat($final);
-
-		// The descriptor must be the regular file now named at the requested path, not something a race swapped in.
-		if (!$opened || !$named || is_link($final) || $opened['ino'] !== $named['ino'] || $opened['dev'] !== $named['dev'] || $opened['nlink'] !== 1) {
-			throw new RuntimeException('private_output_invalid');
-		}
+		alarmmanager_remote_private_verify($stream, $final);
 
 		if (fwrite($stream, $data) !== strlen($data) || !fflush($stream) || !fsync($stream)) {
 			throw new RuntimeException('private_output_invalid');

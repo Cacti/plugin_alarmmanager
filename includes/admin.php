@@ -146,7 +146,15 @@ function alarmmanager_admin_configuration_upload(array $file): array {
 	if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK || !is_string($file['tmp_name'] ?? null) || !is_uploaded_file($file['tmp_name'])) {
 		throw new InvalidArgumentException('invalid_configuration_upload');
 	}
-	$json = file_get_contents($file['tmp_name'], false, null, 0, 1048577);
+
+	return alarmmanager_admin_configuration_read($file['tmp_name']);
+}
+/**
+ * Read a configuration file the caller has already verified to be an upload.
+ * @return array<string, mixed>
+ */
+function alarmmanager_admin_configuration_read(string $path): array {
+	$json = file_get_contents($path, false, null, 0, 1048577);
 
 	if ($json === false || $json === '' || strlen($json) > 1048576) {
 		throw new InvalidArgumentException('invalid_configuration_upload');

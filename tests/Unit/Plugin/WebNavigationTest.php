@@ -36,6 +36,24 @@ final class WebNavigationTest extends AlarmManagerTestCase {
 		alarmmanager_admin_transport_fields('script', [], ['endpoint_fields' => 'yes', 'script_arguments' => 'not JSON']);
 	}
 
+	public function testRetiredDecisionsTabMapsToEvents(): void {
+		self::alarmmanager_test_load('includes/web_view.php');
+		$tab = static function (?string $requested): string {
+			$GLOBALS['alarmmanager_test_request'] = $requested === null ? [] : ['tab' => $requested];
+
+			return alarmmanager_view_tab();
+		};
+
+		try {
+			$this->assertSame('events', $tab('decisions'), 'An old Routing decisions link lands on Events instead of failing validation.');
+			$this->assertSame('events', $tab('events'));
+			$this->assertSame('conditions', $tab('conditions'));
+			$this->assertSame('dashboard', $tab(null), 'No tab opens the dashboard.');
+		} finally {
+			unset($GLOBALS['alarmmanager_test_request']);
+		}
+	}
+
 	public function testExplicitNavigationUsesCactiRequestFilters(): void {
 		$script = <<<'PHP'
 require $argv[1] . '/include/global_constants.php';

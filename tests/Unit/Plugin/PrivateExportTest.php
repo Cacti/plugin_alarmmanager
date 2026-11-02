@@ -94,6 +94,31 @@ final class PrivateExportTest extends AlarmManagerTestCase {
 		$this->assertFileDoesNotExist($this->root . '/bundle.json');
 	}
 
+	public function testOpenHandleMustBeTheFileNamedAtThePath(): void {
+		file_put_contents($this->root . '/named.json', 'a');
+		file_put_contents($this->root . '/other.json', 'b');
+		$other = fopen($this->root . '/other.json', 'rb');
+
+		try {
+			alarmmanager_remote_private_verify($other, $this->root . '/other.json');
+			$this->addToAssertionCount(1);
+
+			foreach ([$this->root . '/named.json', $this->root . '/missing.json'] as $path) {
+				try {
+					alarmmanager_remote_private_verify($other, $path);
+					$this->fail('A handle for a different file must be refused: ' . basename($path));
+				} catch (RuntimeException $error) {
+					$this->assertSame('private_output_invalid', $error->getMessage());
+				}
+			}
+			link($this->root . '/other.json', $this->root . '/linked.json');
+			$this->expectException(RuntimeException::class);
+			alarmmanager_remote_private_verify($other, $this->root . '/other.json');
+		} finally {
+			fclose($other);
+		}
+	}
+
 	public function testRefusesRelativePathsAndThePluginTree(): void {
 		$this->reject('bundle.json', 'private_output_outside_plugin_required');
 		$this->reject(dirname(__DIR__, 3) . '/bundle.json', 'private_output_outside_plugin_required');

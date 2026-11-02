@@ -267,6 +267,24 @@ if (!function_exists('get_nfilter_request_var')) {
 	}
 }
 
+if (!function_exists('get_filter_request_var')) {
+	/** Cacti rejects an invalid value; the double falls back to the supplied default so tests can read the result. */
+	function get_filter_request_var($name, $filter = FILTER_VALIDATE_INT, $options = []) {
+		if (!isset($GLOBALS['alarmmanager_test_request'][$name])) {
+			return $options['default'] ?? null;
+		}
+		$value = filter_var($GLOBALS['alarmmanager_test_request'][$name], $filter, $options);
+
+		return $value === false ? ($options['default'] ?? null) : $value;
+	}
+}
+
+if (!function_exists('get_username')) {
+	function get_username($user_id) {
+		return $GLOBALS['alarmmanager_test_usernames'][$user_id] ?? 'user' . $user_id;
+	}
+}
+
 if (!defined('MESSAGE_LEVEL_ERROR')) {
 	define('MESSAGE_LEVEL_ERROR', 3);
 }

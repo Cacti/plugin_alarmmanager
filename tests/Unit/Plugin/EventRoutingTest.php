@@ -101,6 +101,20 @@ final class EventRoutingTest extends AlarmManagerTestCase {
 		$this->assertSame([$filters['from'], 'cooldown', $filters['from'], 'failed'], array_slice($params, -4), 'Routing parameters follow the mirrored time window.');
 	}
 
+	public function testConfigurationVersionMustBeOne(): void {
+		self::alarmmanager_test_load('includes/routing.php');
+
+		foreach ([2, 0, '1', null] as $version) {
+			try {
+				alarmmanager_configuration(['version' => $version, 'endpoints' => [], 'rules' => []]);
+				$this->fail('Unsupported configuration version accepted: ' . json_encode($version));
+			} catch (InvalidArgumentException $error) {
+				$this->assertSame('invalid_configuration', $error->getMessage());
+			}
+		}
+		$this->assertSame(['version' => 1, 'endpoints' => [], 'rules' => []], alarmmanager_configuration(['version' => 1, 'endpoints' => [], 'rules' => []]));
+	}
+
 	public function testRetiredTablesAreDroppedAtSchemaFourteen(): void {
 		self::alarmmanager_test_load('includes/schema.php');
 		$writes                                       = [];
