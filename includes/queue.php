@@ -32,7 +32,9 @@ function alarmmanager_notifications_paused(): bool {
 
 /**
  * Purge alert history older than the configured retention, one bounded batch per call.
- * Events with active, queued, leased or failed work are kept, as are events backing a current condition.
+ * Events with active, queued, leased or failed work are kept, as are events backing a current condition, the newest
+ * main-poller device event per device (ownership handoff reads it) and deliveries holding an incident reference for
+ * a still-active episode (later updates and the recovery read it).
  * Mirrored collector history keeps the latest event of every active stream and the newest device event per device,
  * which the Active conditions report and device ownership handoff read. A collector also keeps every event whose
  * history has not yet been acknowledged by the main poller, so the sync cursor can always advance.
@@ -70,6 +72,10 @@ function alarmmanager_history_purge(int $limit = 1000): int {
 				AND NOT EXISTS (SELECT 1 FROM plugin_alarmmanager_jobs AS j WHERE j.event_row_id = e.id AND j.status IN ('pending', 'leased', 'failed'))
 				AND NOT EXISTS (SELECT 1 FROM plugin_alarmmanager_deliveries AS d WHERE d.event_row_id = e.id AND d.status IN ('pending', 'leased', 'failed'))
 				AND NOT EXISTS (SELECT 1 FROM plugin_alarmmanager_states AS s WHERE s.last_event_id = e.id)
+				AND NOT (e.source = 'cacti_device' AND e.collector_id = 1 AND e.device_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM plugin_alarmmanager_events AS n
+					WHERE n.source = 'cacti_device' AND n.collector_id = 1 AND n.device_id = e.device_id AND n.sequence > e.sequence))
+				AND NOT EXISTS (SELECT 1 FROM plugin_alarmmanager_deliveries AS rd INNER JOIN plugin_alarmmanager_episodes AS ep
+					ON ep.stream_key = e.stream_key AND ep.episode_id = e.episode_id AND ep.status = 'active' WHERE rd.event_row_id = e.id AND rd.external_reference IS NOT NULL)
 			ORDER BY e.id LIMIT $limit"), 'id'));
 
 		if (!$ids) {
@@ -96,10 +102,14 @@ function alarmmanager_history_purge(int $limit = 1000): int {
  */
 function alarmmanager_purge_remote_history(string $cutoff, int $limit): void {
 	$payload = static fn (string $alias, string $field): string => "JSON_UNQUOTE(JSON_EXTRACT(JSON_UNQUOTE(JSON_EXTRACT($alias.definition, '\$.payload')), '\$.$field'))";
-	$newer   = "EXISTS (SELECT 1 FROM plugin_alarmmanager_remote_history AS n WHERE n.entity = 'event' AND n.poller_id = h.poller_id
+	$member  = static fn (string $alias, string $field): string => "JSON_UNQUOTE(JSON_EXTRACT($alias.definition, '\$.$field'))";
+	// A stream is source, source instance, alarm key and mode, as alarmmanager_stream_key() defines it.
+	$newer = "EXISTS (SELECT 1 FROM plugin_alarmmanager_remote_history AS n WHERE n.entity = 'event' AND n.poller_id = h.poller_id
 		AND (n.received_at > h.received_at OR (n.received_at = h.received_at AND n.entity_id > h.entity_id))
-		AND " . $payload('n', 'alarm_key') . ' <=> ' . $payload('h', 'alarm_key') . ')';
-	$active  = 'COALESCE(' . $payload('h', 'transition') . " NOT IN ('', 'recovered', 'clear'), 0)";
+		AND n.source <=> h.source AND " . $member('n', 'source_instance') . ' <=> ' . $member('h', 'source_instance') . ' AND ' . $member('n', 'mode') . ' <=> ' . $member('h', 'mode') . '
+		AND ' . $payload('n', 'alarm_key') . ' <=> ' . $payload('h', 'alarm_key') . ')';
+	// Occurrences notify without opening a condition, so they age out like any other history.
+	$active = 'COALESCE(' . $payload('h', 'transition') . " NOT IN ('', 'recovered', 'clear', 'occurrence'), 0)";
 	$handoff = "COALESCE(h.source = 'cacti_device' AND h.device_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM plugin_alarmmanager_remote_history AS d
 		WHERE d.entity = 'event' AND d.poller_id = h.poller_id AND d.device_id = h.device_id AND d.source = 'cacti_device' AND d.sequence > h.sequence), 0)";
 	$stale   = alarmmanager_db_rows("SELECT h.poller_id, h.instance_uuid, h.entity, h.entity_id FROM plugin_alarmmanager_remote_history AS h

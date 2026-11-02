@@ -123,7 +123,11 @@ final class RetentionTest extends AlarmManagerTestCase {
 		$sql  = implode("\n", $writes);
 		$read = implode("\n", $reads);
 		$this->assertStringContainsString('DELETE FROM plugin_alarmmanager_remote_history WHERE (poller_id = ? AND instance_uuid = ? AND entity = ? AND entity_id = ?)', $sql, 'Aged mirrored history is deleted by primary key.');
-		$this->assertStringContainsString("NOT IN ('', 'recovered', 'clear')", $read, 'The latest event of an active stream must survive the purge.');
+		$this->assertStringContainsString("NOT IN ('', 'recovered', 'clear', 'occurrence')", $read, 'The latest event of an active stream survives; occurrences open no condition and age out.');
+		$this->assertStringContainsString("n.source <=> h.source AND JSON_UNQUOTE(JSON_EXTRACT(n.definition, '$.source_instance'))", $read, 'Only a newer event of the same full stream supersedes one.');
+		$this->assertStringContainsString("JSON_UNQUOTE(JSON_EXTRACT(n.definition, '$.mode')) <=> JSON_UNQUOTE(JSON_EXTRACT(h.definition, '$.mode'))", $read);
+		$this->assertStringContainsString("n.source = 'cacti_device' AND n.collector_id = 1 AND n.device_id = e.device_id AND n.sequence > e.sequence", $read, 'The newest main-poller device event survives for ownership handoff.');
+		$this->assertStringContainsString("ep.status = 'active' WHERE rd.event_row_id = e.id AND rd.external_reference IS NOT NULL", $read, 'An incident reference an active episode still needs survives.');
 		$this->assertStringContainsString("d.source = 'cacti_device' AND d.sequence > h.sequence", $read, 'The newest device event must survive for ownership handoff.');
 		$this->assertStringNotContainsString('plugin_alarmmanager_sync_outbox', $read, 'The main poller has no outbound sync cursor to respect.');
 		$this->assertStringContainsString('INTERVAL 2 MONTH', $sql, 'Cutoff must use the configured interval.');
@@ -287,28 +291,39 @@ final class RetentionTest extends AlarmManagerTestCase {
 	public function testEnablingDaemonRequiresRunningService(): void {
 		self::alarmmanager_test_load('includes/polling.php');
 		$root                                  = sys_get_temp_dir() . '/alarmmanager_enable_' . bin2hex(random_bytes(5));
-		$before                                = $GLOBALS['config'];
-		$GLOBALS['alarmmanager_test_request']  = ['tab' => 'alarmmanager'];
+		$before                                = [$GLOBALS['config'], $_REQUEST, $_POST, $_SERVER['SCRIPT_NAME'] ?? null];
 		$GLOBALS['alarmmanager_test_messages'] = [];
+		$save                                  = ['action' => 'save', 'tab' => 'alarmmanager', 'alarmmanager_daemon_enabled' => 'on'];
 		mkdir($root . '/cache/alarmmanager', 0700, true);
 
 		try {
 			$GLOBALS['config']['base_path'] = $root;
-			$this->withOptions(['alarmmanager_daemon_enabled' => 'on'], function (): void {
-				alarmmanager_settings_update();
-				$this->assertSame('', read_config_option('alarmmanager_daemon_enabled'), 'The checkbox is cleared when no service heartbeat exists.');
-			});
+			$_SERVER['SCRIPT_NAME']         = '/cacti/settings.php';
+
+			// No heartbeat: the checkbox leaves the request before Cacti saves it locally or replicates it.
+			$_REQUEST = $_POST = $save;
+			alarmmanager_settings_validate();
+			$this->assertArrayNotHasKey('alarmmanager_daemon_enabled', $_REQUEST, 'Settings saves and replicates the checkbox as off.');
+			$this->assertArrayNotHasKey('alarmmanager_daemon_enabled', $_POST);
 			$this->assertSame(MESSAGE_LEVEL_ERROR, $GLOBALS['alarmmanager_test_messages'][0][2]);
+
+			// Other pages, tabs and actions are never touched.
+			foreach ([['/cacti/host.php', $save], ['/cacti/settings.php', ['tab' => 'general'] + $save], ['/cacti/settings.php', ['action' => ''] + $save]] as [$script, $request]) {
+				$_SERVER['SCRIPT_NAME'] = $script;
+				$_REQUEST               = $request;
+				alarmmanager_settings_validate();
+				$this->assertSame('on', $_REQUEST['alarmmanager_daemon_enabled']);
+			}
+
+			// A running service allows enabling.
+			$_SERVER['SCRIPT_NAME'] = '/cacti/settings.php';
+			$_REQUEST               = $save;
 			file_put_contents($root . '/cache/alarmmanager/status.json', json_encode(['updated_at' => time()]));
-			$this->withOptions(['alarmmanager_daemon_enabled' => 'on'], function (): void {
-				alarmmanager_settings_update();
-				$this->assertSame('on', read_config_option('alarmmanager_daemon_enabled'), 'A running service allows enabling.');
-				$this->assertTrue(alarmmanager_supervisor_options()['enabled']);
-			});
+			alarmmanager_settings_validate();
+			$this->assertSame('on', $_REQUEST['alarmmanager_daemon_enabled']);
+			$this->assertCount(1, $GLOBALS['alarmmanager_test_messages']);
 		} finally {
-			$GLOBALS['config'] = $before;
-			unset($GLOBALS['alarmmanager_test_request']);
-			@unlink($root . '/cache/alarmmanager/workers.json');
+			[$GLOBALS['config'], $_REQUEST, $_POST, $_SERVER['SCRIPT_NAME']] = $before;
 			@unlink($root . '/cache/alarmmanager/status.json');
 			@rmdir($root . '/cache/alarmmanager');
 			@rmdir($root . '/cache');

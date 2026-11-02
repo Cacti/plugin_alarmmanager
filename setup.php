@@ -125,6 +125,9 @@ function alarmmanager_admin_sections(): array {
 function alarmmanager_config_settings(): void {
 	global $tabs, $settings;
 
+	require_once(__DIR__ . '/includes/polling.php');
+	alarmmanager_settings_validate();
+
 	$tabs['alarmmanager'] = __('Alarm Manager', 'alarmmanager');
 	$workers              = static function (bool $none): array {
 		$choices = $none ? [0 => __('0 Worker Processes', 'alarmmanager'), 1 => __('1 Worker Process', 'alarmmanager')] : [1 => __('1 Worker Process', 'alarmmanager')];

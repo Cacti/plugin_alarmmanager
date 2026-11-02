@@ -28,6 +28,17 @@ require_once(__DIR__ . '/remote.php');
 require_once(__DIR__ . '/workers.php');
 require_once(__DIR__ . '/integrations.php');
 
+/**
+ * Device summaries read once per page render. The Rules page draws one mapping editor per destination per rule,
+ * and each fresh read is a settings query; workers keep calling alarmmanager_device_summaries() for current text.
+ * @return array{offline: string, recovering: string, online: string}
+ */
+function alarmmanager_view_device_summaries(): array {
+	static $summaries = null;
+
+	return $summaries ??= alarmmanager_device_summaries();
+}
+
 function alarmmanager_form_start(string $action, int $revision, array $hidden = []): void {
 	print '<form method="post" action="alarmmanager_admin.php"' . ($action === 'configuration_save' ? ' enctype="multipart/form-data"' : '') . ' class="alarmmanagerEditor' . (['endpoint_save' => ' alarmmanagerEndpointEditor', 'endpoint_delete' => ' alarmmanagerEndpointDelete', 'queue_clear' => ' alarmmanagerConfirm'][$action] ?? '') . '">';
 	alarmmanager_csrf_field();
@@ -349,7 +360,7 @@ function alarmmanager_rule_editor(array $item, int $revision, array $configurati
 			alarmmanager_textarea('recipient_numbers[' . $id . ']', 'Twilio recipients for this rule', implode("\n", $recipients), 2048, 'data-phone-list');
 			print '<p class="alarmmanagerHint">' . __esc('Optional: add each phone number in international format, such as +15551234567. These numbers replace the destination recipient for this rule. Leave the list empty to use the destination default. Each number has its own delivery status and retries.', 'alarmmanager') . '</p>';
 		}
-		alarmmanager_mapping_editor($policy['template_overrides'][$id] ?? $endpoint['transport']['mapping'] ?? [], alarmmanager_device_summaries(), 'template_mapping[' . $id . ']', $endpoint['type'], 'Rule message template');
+		alarmmanager_mapping_editor($policy['template_overrides'][$id] ?? $endpoint['transport']['mapping'] ?? [], alarmmanager_view_device_summaries(), 'template_mapping[' . $id . ']', $endpoint['type'], 'Rule message template');
 		print '</details>';
 	}
 	print '</fieldset>';
@@ -469,11 +480,11 @@ function alarmmanager_admin_markup(array $state, string $section): void {
 		}
 
 		foreach ($config['endpoints'] as $item) {
-			alarmmanager_endpoint_editor($item, $revision, false, alarmmanager_device_summaries());
+			alarmmanager_endpoint_editor($item, $revision, false, alarmmanager_view_device_summaries());
 		}
 
 		if ($adding) {
-			alarmmanager_endpoint_editor(['id' => 0, 'enabled' => false, 'integration_provider' => isset($providers[$selected]) ? $selected : ''] + ($templates[$selected] ?? ['name' => '', 'type' => 'restapi']), $revision, true, alarmmanager_device_summaries());
+			alarmmanager_endpoint_editor(['id' => 0, 'enabled' => false, 'integration_provider' => isset($providers[$selected]) ? $selected : ''] + ($templates[$selected] ?? ['name' => '', 'type' => 'restapi']), $revision, true, alarmmanager_view_device_summaries());
 		}
 	} elseif ($section === 'rules') {
 		print '<h2>' . __esc('Alarm Rules', 'alarmmanager') . '</h2><p>' . __esc('Choose which alarms should notify, where to send them and when to pause notifications. Rules run from lowest to highest priority.', 'alarmmanager') . '</p>';

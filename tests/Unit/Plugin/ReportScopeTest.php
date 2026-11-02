@@ -66,6 +66,19 @@ final class ReportScopeTest extends AlarmManagerTestCase {
 		}
 	}
 
+	public function testAcknowledgedFilterAppliesToMirroredConditions(): void {
+		self::alarmmanager_test_load('includes/reports.php');
+
+		foreach (['1' => 1, '0' => 0] as $acknowledged => $bound) {
+			[$sql, $params] = $this->unionQuery('conditions', $this->viewer(), ['acknowledged' => (string) $acknowledged]);
+			$this->assertStringContainsString(' AND 0 = ?', explode(' UNION ALL ', $sql, 2)[1], 'Mirrored conditions, never acknowledged, follow the filter.');
+			$this->assertSame($bound, $params[array_key_last($params)]);
+			$this->assertSame(substr_count($sql, '?'), count($params));
+		}
+		[$sql] = $this->unionQuery('conditions', $this->viewer(), []);
+		$this->assertStringNotContainsString(' AND 0 = ?', $sql);
+	}
+
 	public function testAdministratorsStayUnrestrictedOnMirroredRows(): void {
 		self::alarmmanager_test_load('includes/reports.php');
 		[$sql] = $this->unionQuery('events', ['admin' => true, 'device_sql' => '1 = 1'], []);

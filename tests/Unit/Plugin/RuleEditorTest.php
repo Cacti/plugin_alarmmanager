@@ -142,6 +142,21 @@ final class RuleEditorTest extends AlarmManagerTestCase {
 		$this->assertSame(['version' => 1], alarmmanager_admin_configuration_import(['version' => 1]), 'A current backup passes through unchanged.');
 	}
 
+	public function testAdminPageReadsDeviceSummariesOnce(): void {
+		self::alarmmanager_test_load('includes/admin_view.php');
+		$before = $GLOBALS['alarmmanager_test_config_options'];
+
+		try {
+			$first = alarmmanager_view_device_summaries();
+			$this->assertSame(['offline', 'recovering', 'online'], array_keys($first));
+			$GLOBALS['alarmmanager_test_config_options']['alarmmanager_summary_offline'] = 'Changed mid-render ' . bin2hex(random_bytes(3));
+			$this->assertSame($first, alarmmanager_view_device_summaries(), 'One render reuses one read instead of a settings query per editor.');
+			$this->assertNotSame($first, alarmmanager_device_summaries(), 'Workers still read the current text.');
+		} finally {
+			$GLOBALS['alarmmanager_test_config_options'] = $before;
+		}
+	}
+
 	public function testDeviceSummariesComeFromCactiSettings(): void {
 		self::alarmmanager_test_load('includes/routing.php');
 		$before = $GLOBALS['alarmmanager_test_config_options'];

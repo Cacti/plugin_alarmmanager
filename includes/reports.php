@@ -390,6 +390,12 @@ function alarmmanager_report_list(string $kind, array $scope, array $filters): a
 			// Mirror arm: latest event per (poller, alarm_key); active when its transition is non-terminal.
 			// The viewer's device policy and the shared filters apply to that latest event through the derived table named e.
 			[$remote_where, $remote_where_params] = alarmmanager_report_where($scope, $filters, null, 'e.severity', 'conditions', alarmmanager_report_remote_fields('conditions'));
+
+			if ($filters['acknowledged'] !== '') {
+				// Mirrored conditions are never acknowledged, so this keeps or drops them all.
+				$remote_where .= ' AND 0 = ?';
+				$remote_where_params[] = (int) $filters['acknowledged'];
+			}
 			$cond_remote                          = 'e.stream_key, e.received_at AS updated_at, 1 AS active, 0 AS acknowledged, e.severity, e.`summary`, NULL AS id, e.source, e.device_id, e.payload, e.collector_id, e.collector_name';
 			$sql                                  = "SELECT * FROM ((SELECT $cond_local FROM $base WHERE $where)"
 				. " UNION ALL (SELECT $cond_remote FROM (SELECT SHA2(CONCAT('remote:', h.poller_id, ':', {$stream_expr}), 64) AS stream_key, NULL AS id, h.received_at, h.source, JSON_UNQUOTE(JSON_EXTRACT($payload, '\$.source_instance')) AS source_instance, h.device_id, h.poller_id AS collector_id, COALESCE(JSON_UNQUOTE(JSON_EXTRACT($payload, '\$.severity')), 'info') AS severity, COALESCE(JSON_UNQUOTE(JSON_EXTRACT($payload, '\$.summary')), 'Remote alert') AS `summary`, {$transition} AS transition, {$payload} AS payload, JSON_UNQUOTE(JSON_EXTRACT(h.definition, '\$.event_id')) AS event_id, {$stream_expr} AS alarm_key, JSON_UNQUOTE(JSON_EXTRACT($payload, '\$.episode_id')) AS episode_id, ROW_NUMBER() OVER (PARTITION BY h.poller_id, {$stream_expr} ORDER BY h.received_at DESC) AS seq, COALESCE(NULLIF(remote_poller.name, ''), CONCAT('Poller #', h.poller_id)) AS collector_name FROM plugin_alarmmanager_remote_history AS h LEFT JOIN poller AS remote_poller ON remote_poller.id = h.poller_id WHERE h.entity = 'event'$remote_gate AND h.received_at >= ? AND h.received_at < ?) AS e WHERE e.seq = 1 AND e.transition NOT IN ('recovered', 'clear') AND e.transition <> '' AND e.transition IS NOT NULL AND $remote_where)) AS report"

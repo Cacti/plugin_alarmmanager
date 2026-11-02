@@ -114,6 +114,10 @@ final class MappingCredentialTest extends AlarmManagerTestCase {
 		$from_source = alarmmanager_map_payload(['default' => [['to' => 'body', 'source' => 'device.description']]], $event, [], ['body']);
 		$this->assertSame($escaped, $from_source->body, 'A field copied straight into an HTML target is encoded too.');
 
+		$event['context']['rule_name'] = 'R&D';
+		$valued                        = ['default' => [['to' => 'body', 'source' => 'context.rule_name', 'values' => ['R&D' => '<b>Research</b>']]]];
+		$this->assertSame('<b>Research</b>', alarmmanager_map_payload($valued, $event, [], ['body'])->body, 'A values map looks up the raw value and emits administrator text unchanged.');
+
 		$mapping['default'][1]['type'] = 'html';
 		$this->assertSame(htmlspecialchars('<b>Device</b> ' . $attack . '<br>', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'), alarmmanager_map_payload($mapping, $event, [], ['body'])->body, 'The html type is not encoded a second time.');
 	}

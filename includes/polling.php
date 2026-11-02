@@ -136,15 +136,24 @@ function alarmmanager_daemon_sync(): void {
 	}
 }
 
+/**
+ * Refuse daemon enablement while the service is not running on this collector. This runs from config_settings,
+ * before settings.php reads the request: that request builds both the local save and the payload replicated to
+ * collectors, so clearing the setting afterwards would still enable it on every online collector.
+ */
+function alarmmanager_settings_validate(): void {
+	if (($_REQUEST['action'] ?? '') !== 'save' || ($_REQUEST['tab'] ?? '') !== 'alarmmanager' || !isset($_REQUEST['alarmmanager_daemon_enabled'])
+		|| basename((string) ($_SERVER['SCRIPT_NAME'] ?? '')) !== 'settings.php' || alarmmanager_daemon_status()) {
+		return;
+	}
+	unset($_REQUEST['alarmmanager_daemon_enabled'], $_POST['alarmmanager_daemon_enabled']);
+	raise_message('alarmmanager_daemon', __('Start the Alarm Manager service on this collector before enabling daemon workers.', 'alarmmanager'), MESSAGE_LEVEL_ERROR);
+}
+
 /** Cacti global_settings_update hook: apply Alarm Manager daemon settings after the Settings tab is saved. */
 function alarmmanager_settings_update(): void {
 	if (get_nfilter_request_var('tab') !== 'alarmmanager') {
 		return;
-	}
-
-	if (read_config_option('alarmmanager_daemon_enabled', true) === 'on' && !alarmmanager_daemon_status()) {
-		set_config_option('alarmmanager_daemon_enabled', '');
-		raise_message('alarmmanager_daemon', __('Start the Alarm Manager service on this collector before enabling daemon workers.', 'alarmmanager'), MESSAGE_LEVEL_ERROR);
 	}
 
 	try {

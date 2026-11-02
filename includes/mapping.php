@@ -210,7 +210,8 @@ function alarmmanager_map_payload(array $mapping, array $event, array $reference
 
 	foreach ($items as $item) {
 		// The html type already encodes the finished value, so encoding the fields as well would double-encode them.
-		$escape = $item['type'] !== 'html' && in_array($item['to'], $html_targets, true);
+		// A values map looks up the raw event value and emits administrator text, like a constant.
+		$escape = $item['type'] !== 'html' && !isset($item['values']) && in_array($item['to'], $html_targets, true);
 
 		if (array_key_exists('template', $item)) {
 			$value = alarmmanager_mapping_template($item['template'], $fields, $escape);
