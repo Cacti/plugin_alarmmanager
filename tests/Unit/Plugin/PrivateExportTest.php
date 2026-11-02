@@ -72,10 +72,11 @@ final class PrivateExportTest extends AlarmManagerTestCase {
 	}
 
 	public function testRefusesADirectoryOtherAccountsCanModify(): void {
-		chmod($this->root, 0770);
-		$this->reject($this->root . '/bundle.json', 'private_output_directory_required');
-		chmod($this->root, 0707);
-		$this->reject($this->root . '/bundle.json', 'private_output_directory_required');
+		// Group write is enough to plant a link, and it shares the mask test with the world bit. The test never grants access to others.
+		foreach ([0770, 0720] as $mode) {
+			chmod($this->root, $mode);
+			$this->reject($this->root . '/bundle.json', 'private_output_directory_required');
+		}
 		$this->assertFileDoesNotExist($this->root . '/bundle.json');
 	}
 
