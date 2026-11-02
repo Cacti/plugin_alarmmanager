@@ -89,6 +89,35 @@ final class MappingCredentialTest extends AlarmManagerTestCase {
 		$this->assertTrue(json_encode(alarmmanager_map_payload([], $event)) === '{}', 'Empty object');
 	}
 
+	public function testHtmlTargetsEncodeEventValuesButKeepTemplateMarkup(): void {
+		self::alarmmanager_test_load('includes/mapping.php');
+		$event                          = alarmmanager_validate_event($this->sampleEvent());
+		$event['device']['description'] = '<a href="https://attacker.invalid/login">Click</a><img src=x onerror=1>';
+		$attack                         = $event['device']['description'];
+		$escaped                        = htmlspecialchars($attack, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+		$mapping                        = ['default' => [
+			['to' => 'subject', 'source' => 'device.description'],
+			['to' => 'body', 'template' => '<b>Device</b> {{device.description}}<br>'],
+			['to' => 'note', 'source' => 'device.description'],
+			['to' => 'fixed', 'constant' => '<i>admin text</i>']
+		]];
+
+		$plain = alarmmanager_map_payload($mapping, $event);
+		$this->assertSame('<b>Device</b> ' . $attack . '<br>', $plain->body, 'Without an HTML target nothing is encoded.');
+
+		$html = alarmmanager_map_payload($mapping, $event, [], ['body']);
+		$this->assertSame('<b>Device</b> ' . $escaped . '<br>', $html->body, 'Event values are encoded while the administrator markup survives.');
+		$this->assertSame($attack, $html->subject, 'Only the named HTML targets are encoded.');
+		$this->assertSame($attack, $html->note);
+		$this->assertSame('<i>admin text</i>', $html->fixed, 'Administrator constants are never encoded.');
+
+		$from_source = alarmmanager_map_payload(['default' => [['to' => 'body', 'source' => 'device.description']]], $event, [], ['body']);
+		$this->assertSame($escaped, $from_source->body, 'A field copied straight into an HTML target is encoded too.');
+
+		$mapping['default'][1]['type'] = 'html';
+		$this->assertSame(htmlspecialchars('<b>Device</b> ' . $attack . '<br>', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'), alarmmanager_map_payload($mapping, $event, [], ['body'])->body, 'The html type is not encoded a second time.');
+	}
+
 	/**
 	 * @return void
 	 */
