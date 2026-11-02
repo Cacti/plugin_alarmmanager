@@ -421,7 +421,33 @@ final class SnmpSyslogTest extends AlarmManagerTestCase {
 		$this->assertSame(1, substr_count($rules, '<h2>'));
 	}
 
-	public function testQueueControlsAreNotSplitByTableMarkup(): void {
+	public function testQueueShowsACounterAndCollapsedMessages(): void {
+		$html = $this->queueMarkup(true, 3);
+		$this->assertStringContainsString('<span class="alarmmanagerBadge" data-state="paused">Paused</span>', $html);
+		$this->assertStringContainsString('<div class="alarmmanagerQueueCounter"><strong>3</strong>', $html);
+		$this->assertStringContainsString('oldest queued %s UTC', $html);
+		$this->assertStringContainsString('aria-controls="alarmmanager_queue_messages"', $html, 'messages open from the counter');
+		$this->assertStringContainsString('<div id="alarmmanager_queue_messages" class="alarmmanagerQueueMessages" hidden>', $html, 'messages start collapsed');
+		$this->assertStringContainsString('<td>412</td><td>Ops SMS</td>', $html);
+		$this->assertMatchesRegularExpression('~value="queue_resume">(?:<input type="hidden"[^>]*>)*<button type="submit" class="alarmmanagerPrimaryAction">Resume delivery</button></form>~', $html);
+		$this->assertMatchesRegularExpression('~<form[^>]*class="alarmmanagerEditor alarmmanagerConfirm">~', $html, 'clear asks for confirmation');
+		$this->assertStringNotContainsString('name="confirmed"', $html, 'only the dialog adds the confirmation');
+		$this->assertStringContainsString('<button type="submit" class="alarmmanagerDangerAction">Clear queue…</button>', $html);
+		$this->assertSame([], $GLOBALS['alarmmanager_test_boxes'], 'controls are no longer split across table boxes');
+		$this->assertStringNotContainsString('Local configuration revision', $html, 'settings pages no longer show the revision');
+	}
+
+	public function testEmptyQueueHidesMessagesAndDisablesClear(): void {
+		$html = $this->queueMarkup(false, 0);
+		$this->assertStringContainsString('<span class="alarmmanagerBadge" data-state="running">Running</span>', $html);
+		$this->assertStringContainsString('everything has been delivered', $html);
+		$this->assertStringNotContainsString('alarmmanagerQueueToggle', $html);
+		$this->assertStringNotContainsString('alarmmanager_queue_messages', $html);
+		$this->assertStringContainsString('<button type="submit">Pause delivery</button>', $html);
+		$this->assertStringContainsString('<button type="submit" class="alarmmanagerDangerAction" disabled>', $html);
+	}
+
+	private function queueMarkup(bool $paused, int $waiting): string {
 		self::alarmmanager_test_load('includes/admin_view.php');
 
 		if (!function_exists('csrf_get_tokens')) {
@@ -431,22 +457,21 @@ final class SnmpSyslogTest extends AlarmManagerTestCase {
 		}
 
 		$GLOBALS['alarmmanager_test_boxes']         = [];
-		$GLOBALS['alarmmanager_test_query_handler'] = static fn ($sql) => str_contains($sql, 'alarmmanager_notifications_paused') ? [['value' => '1']] : (str_contains($sql, 'COUNT(*)') ? [['waiting' => 3]] : []);
+		$GLOBALS['alarmmanager_test_query_handler'] = static fn ($sql) => match (true) {
+			str_contains($sql, 'alarmmanager_notifications_paused') => $paused ? [['value' => '1']] : [],
+			str_contains($sql, 'COUNT(*)')                          => [['waiting' => $waiting, 'oldest' => $waiting ? '2026-10-27 02:14:07.000000' : null]],
+			str_contains($sql, 'LIMIT 100')                         => [['id' => 412, 'endpoint' => 'Ops SMS', 'summary' => 'core01 down', 'created_at' => '2026-10-27 02:14:07', 'attempts' => 1, 'available_at' => '2026-10-27 02:15:07']],
+			default                                                 => [],
+		};
 		ob_start();
 
 		try {
 			alarmmanager_admin_markup(['revision' => 1, 'configuration' => ['version' => 1, 'endpoints' => [], 'rules' => []]], 'queue');
-			$html = ob_get_contents();
+
+			return (string) ob_get_contents();
 		} finally {
 			ob_end_clean();
 		}
-		$boxes = $GLOBALS['alarmmanager_test_boxes'];
-		$this->assertSame(['html_start_box', true], [$boxes[0][0], $boxes[0][1][2]], 'queue controls open a div box, not a table');
-		$this->assertSame(['html_end_box', [true, true]], $boxes[1], 'and close it as a div box');
-		$this->assertMatchesRegularExpression('~value="queue_resume">(?:<input type="hidden"[^>]*>)*<button type="submit">Resume delivery</button></form>~', $html);
-		$this->assertStringNotContainsString('View waiting messages', $html);
-		$this->assertStringNotContainsString('View messages being sent', $html);
-		$this->assertStringNotContainsString('Local configuration revision', $html, 'settings pages no longer show the revision');
 	}
 
 	public function testTrapAndSyslogTypesAreRegisteredForDelivery(): void {

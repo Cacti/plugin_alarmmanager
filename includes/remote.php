@@ -51,12 +51,44 @@ function alarmmanager_remote_private_read(string $path, int $limit): string {
 
 	return $data;
 }
+/**
+ * The open handle must be the regular, single-link file now named at the path, not something a race swapped in.
+ * @param resource $stream
+ */
+function alarmmanager_remote_private_verify($stream, string $path): void {
+	$opened = fstat($stream);
+	// lstat() warns on a missing path; is_link() and file_exists() do not.
+	$named = is_link($path) || file_exists($path) ? lstat($path) : false;
+
+	if (!$opened || !$named || is_link($path) || $opened['ino'] !== $named['ino'] || $opened['dev'] !== $named['dev'] || $opened['nlink'] !== 1) {
+		throw new RuntimeException('private_output_invalid');
+	}
+}
+/**
+ * Create a new owner-only file holding data that includes decrypted credentials.
+ * The directory must be outside the plugin tree and closed to every other account: otherwise another user could plant
+ * a symlink at the final name and have the bundle created wherever it points, including inside the web-served plugin.
+ */
 function alarmmanager_remote_private_write(string $path, string $data): void {
-	if (!str_starts_with($path, '/') || !realpath(dirname($path)) || str_starts_with(realpath(dirname($path)) . '/', realpath(__DIR__ . '/..') . '/')) {
+	$directory = str_starts_with($path, '/') ? realpath(dirname($path)) : false;
+	$plugin    = realpath(__DIR__ . '/..');
+
+	if (!$directory || !$plugin || str_starts_with($directory . '/', $plugin . '/')) {
 		throw new RuntimeException('private_output_outside_plugin_required');
 	}
+	$stat = @stat($directory);
+
+	if (!$stat || !function_exists('posix_geteuid') || $stat['uid'] !== posix_geteuid() || ($stat['mode'] & 0022)) {
+		throw new RuntimeException('private_output_directory_required');
+	}
+	$final = $directory . '/' . basename($path);
+
+	// Check first so an existing name is a clean refusal; the exclusive open below still decides any race.
+	if (is_link($final) || file_exists($final)) {
+		throw new RuntimeException('private_output_invalid');
+	}
 	$previous = umask(0077);
-	$stream   = @fopen($path, 'xb');
+	$stream   = @fopen($final, 'xb');
 	umask($previous);
 
 	if (!$stream) {
@@ -64,6 +96,8 @@ function alarmmanager_remote_private_write(string $path, string $data): void {
 	}
 
 	try {
+		alarmmanager_remote_private_verify($stream, $final);
+
 		if (fwrite($stream, $data) !== strlen($data) || !fflush($stream) || !fsync($stream)) {
 			throw new RuntimeException('private_output_invalid');
 		}

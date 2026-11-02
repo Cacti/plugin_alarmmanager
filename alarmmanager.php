@@ -38,10 +38,12 @@ try {
 		alarmmanager_dashboard_response($scope);
 	}
 
+	// Routing decisions are part of Events; keep old links and bookmarks working. Read the raw value
+	// first because the filtered tab helper below replaces it and caches the replacement.
+	$legacy  = get_nfilter_request_var('tab') === 'decisions';
 	$filters = alarmmanager_view_filters();
 
-	// Routing decisions are part of Events; keep old links and bookmarks working.
-	if (get_nfilter_request_var('tab') === 'decisions') {
+	if ($legacy) {
 		cacti_redirect(alarmmanager_report_url($filters, 'events'));
 	}
 	$tab     = alarmmanager_view_tab();

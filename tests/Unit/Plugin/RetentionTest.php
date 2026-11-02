@@ -1,0 +1,364 @@
+<?php
+/*
+ +-------------------------------------------------------------------------+
+ | Copyright (C) 2004-2026 The Cacti Group                                 |
+ |                                                                         |
+ | This program is free software; you can redistribute it and/or           |
+ | modify it under the terms of the GNU General Public License             |
+ | as published by the Free Software Foundation; either version 2          |
+ | of the License, or (at your option) any later version.                  |
+ |                                                                         |
+ | This program is distributed in the hope that it will be useful,         |
+ | but WITHOUT ANY WARRANTY; without even the implied warranty of          |
+ | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           |
+ | GNU General Public License for more details.                            |
+ +-------------------------------------------------------------------------+
+ | Cacti: The Complete RRDTool-based Graphing Solution                     |
+ +-------------------------------------------------------------------------+
+ | This code is designed, written, and maintained by the Cacti Group. See  |
+ | about.php and/or the AUTHORS file for specific developer information.   |
+ +-------------------------------------------------------------------------+
+ | http://www.cacti.net/                                                   |
+ +-------------------------------------------------------------------------+
+*/
+
+final class RetentionTest extends AlarmManagerTestCase {
+	/** @param array<string, string> $options */
+	private function withOptions(array $options, callable $test): void {
+		$before = $GLOBALS['alarmmanager_test_config_options'];
+
+		try {
+			$GLOBALS['alarmmanager_test_config_options'] = $options;
+			$test();
+		} finally {
+			$GLOBALS['alarmmanager_test_config_options'] = $before;
+		}
+	}
+
+	public function testRetentionDefaultsToIndefinite(): void {
+		self::alarmmanager_test_load('includes/routing.php');
+
+		$this->withOptions([], function (): void {
+			$this->assertSame(['unit' => 'forever', 'value' => 0], alarmmanager_retention(), 'Unset retention must keep history indefinitely.');
+		});
+		$this->withOptions(['alarmmanager_retention_unit' => 'forever', 'alarmmanager_retention_value' => '9'], function (): void {
+			$this->assertSame(['unit' => 'forever', 'value' => 0], alarmmanager_retention(), 'Indefinite retention ignores the value.');
+		});
+	}
+
+	public function testRetentionReadsEachUnitAndCapsTheValue(): void {
+		self::alarmmanager_test_load('includes/routing.php');
+
+		foreach (['days' => 3650, 'weeks' => 520, 'months' => 120] as $unit => $maximum) {
+			$this->withOptions(['alarmmanager_retention_unit' => $unit, 'alarmmanager_retention_value' => '3650'], function () use ($unit, $maximum): void {
+				$this->assertSame(['unit' => $unit, 'value' => $maximum], alarmmanager_retention(), "$unit must be capped at its maximum.");
+			});
+		}
+		$this->withOptions(['alarmmanager_retention_unit' => 'weeks', 'alarmmanager_retention_value' => '6'], function (): void {
+			$this->assertSame(['unit' => 'weeks', 'value' => 6], alarmmanager_retention());
+		});
+	}
+
+	/** @dataProvider invalidRetention */
+	public function testInvalidRetentionKeepsHistory(string $unit, string $value): void {
+		self::alarmmanager_test_load('includes/routing.php');
+
+		$this->withOptions(['alarmmanager_retention_unit' => $unit, 'alarmmanager_retention_value' => $value], function (): void {
+			$this->assertSame(['unit' => 'forever', 'value' => 0], alarmmanager_retention(), 'An invalid choice must never purge.');
+		});
+	}
+
+	/** @return array<string, array{string, string}> */
+	public static function invalidRetention(): array {
+		return ['unknown unit' => ['years', '1'], 'zero' => ['days', '0'], 'negative' => ['days', '-5'], 'not a number' => ['weeks', 'soon']];
+	}
+
+	public function testPurgeDoesNothingWhenRetainingIndefinitely(): void {
+		self::alarmmanager_test_load('includes/queue.php');
+		self::alarmmanager_test_load('includes/routing.php');
+		$writes                                       = [];
+		$GLOBALS['alarmmanager_test_execute_handler'] = static function (string $sql) use (&$writes): bool {
+			$writes[] = $sql;
+
+			return true;
+		};
+
+		try {
+			$this->withOptions([], function () use (&$writes): void {
+				$this->assertSame(0, alarmmanager_history_purge(), 'Indefinite retention must not purge.');
+				$this->assertSame([], $writes, 'Indefinite retention must not write.');
+			});
+		} finally {
+			unset($GLOBALS['alarmmanager_test_execute_handler']);
+		}
+	}
+
+	public function testPurgeRemovesAgedEventsAndDependents(): void {
+		self::alarmmanager_test_load('includes/queue.php');
+		self::alarmmanager_test_load('includes/routing.php');
+		$writes                                       = [];
+		$reads                                        = [];
+		$GLOBALS['alarmmanager_test_query_handler']   = static function (string $sql) use (&$reads): array {
+			$reads[] = $sql;
+
+			return match (true) {
+				str_contains($sql, 'SELECT e.id')        => [['id' => '7'], ['id' => '9']],
+				str_contains($sql, 'SELECT h.poller_id') => [['poller_id' => '2', 'instance_uuid' => str_repeat('a', 32), 'entity' => 'decision', 'entity_id' => '5']],
+				default                                  => []
+			};
+		};
+		$GLOBALS['alarmmanager_test_execute_handler'] = static function (string $sql) use (&$writes): bool {
+			$writes[] = $sql;
+
+			return true;
+		};
+
+		try {
+			$this->withOptions(['alarmmanager_retention_unit' => 'months', 'alarmmanager_retention_value' => '2'], function (): void {
+				$this->assertSame(2, alarmmanager_history_purge(50), 'Two aged events must be reported as purged.');
+			});
+		} finally {
+			unset($GLOBALS['alarmmanager_test_query_handler'], $GLOBALS['alarmmanager_test_execute_handler']);
+		}
+		$sql  = implode("\n", $writes);
+		$read = implode("\n", $reads);
+		$this->assertStringContainsString('DELETE FROM plugin_alarmmanager_remote_history WHERE (poller_id = ? AND instance_uuid = ? AND entity = ? AND entity_id = ?)', $sql, 'Aged mirrored history is deleted by primary key.');
+		$this->assertStringContainsString("NOT IN ('', 'recovered', 'clear', 'occurrence')", $read, 'The latest event of an active stream survives; occurrences open no condition and age out.');
+		$this->assertStringContainsString("n.source <=> h.source AND JSON_UNQUOTE(JSON_EXTRACT(n.definition, '$.source_instance'))", $read, 'Only a newer event of the same full stream supersedes one.');
+		$this->assertStringContainsString("JSON_UNQUOTE(JSON_EXTRACT(n.definition, '$.mode')) <=> JSON_UNQUOTE(JSON_EXTRACT(h.definition, '$.mode'))", $read);
+		$this->assertStringContainsString("n.source = 'cacti_device' AND n.collector_id = 1 AND n.device_id = e.device_id AND n.sequence > e.sequence", $read, 'The newest main-poller device event survives for ownership handoff.');
+		$this->assertStringContainsString("ep.status = 'active' WHERE rd.event_row_id = e.id AND rd.external_reference IS NOT NULL", $read, 'An incident reference an active episode still needs survives.');
+		$this->assertStringContainsString("d.source = 'cacti_device' AND d.sequence > h.sequence", $read, 'The newest device event must survive for ownership handoff.');
+		$this->assertStringNotContainsString('plugin_alarmmanager_sync_outbox', $read, 'The main poller has no outbound sync cursor to respect.');
+		$this->assertStringContainsString('INTERVAL 2 MONTH', $sql, 'Cutoff must use the configured interval.');
+		$this->assertStringContainsString('DELETE FROM plugin_alarmmanager_events WHERE id IN (7,9)', $sql, 'Aged events must be deleted.');
+
+		foreach (['attempts', 'deliveries', 'decisions', 'jobs', 'failed_jobs', 'device_receipts', 'producer_receipts', 'states', 'episodes', 'remote_history'] as $table) {
+			$this->assertStringContainsString("plugin_alarmmanager_$table", $sql, "Purge must clean $table.");
+		}
+	}
+
+	public function testCollectorPurgeKeepsHistoryTheMainPollerHasNotAcknowledged(): void {
+		self::alarmmanager_test_load('includes/queue.php');
+		self::alarmmanager_test_load('includes/routing.php');
+		$reads                                         = [];
+		$before                                        = $GLOBALS['config'];
+		$GLOBALS['config']['poller_id']                = 2;
+		$GLOBALS['alarmmanager_test_query_handler']    = static function (string $sql) use (&$reads): array {
+			$reads[] = $sql;
+
+			return match (true) {
+				str_contains($sql, 'FROM plugin_alarmmanager_sync_sender') => [['acked' => '41']],
+				str_contains($sql, 'SELECT e.id')                          => [['id' => '7']],
+				default                                                    => []
+			};
+		};
+		$GLOBALS['alarmmanager_test_execute_handler'] = static fn (string $sql): bool => true;
+
+		try {
+			$this->withOptions(['alarmmanager_retention_unit' => 'days', 'alarmmanager_retention_value' => '30'], function (): void {
+				$this->assertSame(1, alarmmanager_history_purge(50));
+			});
+		} finally {
+			$GLOBALS['config'] = $before;
+			unset($GLOBALS['alarmmanager_test_query_handler'], $GLOBALS['alarmmanager_test_execute_handler']);
+		}
+		$select = current(array_filter($reads, static fn (string $sql): bool => str_contains($sql, 'SELECT e.id')));
+		$this->assertStringContainsString('o.id > 41', $select, 'Only outbox rows past the acknowledged cursor still need their source rows.');
+
+		foreach (['event', 'processing', 'decision', 'delivery', 'attempt'] as $entity) {
+			$this->assertStringContainsString("o.entity = '$entity'", $select, "Unsent $entity history must keep its event.");
+		}
+	}
+
+	public function testPurgeReturnsZeroWhenNothingHasAgedOut(): void {
+		self::alarmmanager_test_load('includes/queue.php');
+		self::alarmmanager_test_load('includes/routing.php');
+		$GLOBALS['alarmmanager_test_execute_handler'] = static fn (string $sql): bool => true;
+
+		try {
+			$this->withOptions(['alarmmanager_retention_unit' => 'days', 'alarmmanager_retention_value' => '30'], function (): void {
+				$this->assertSame(0, alarmmanager_history_purge(), 'No aged events means nothing purged.');
+			});
+		} finally {
+			unset($GLOBALS['alarmmanager_test_execute_handler']);
+		}
+	}
+
+	public function testSettingsTabDefinesEveryAlarmManagerOption(): void {
+		self::alarmmanager_test_load('setup.php');
+		global $tabs, $settings;
+		alarmmanager_config_settings();
+
+		$this->assertSame('Alarm Manager', $tabs['alarmmanager']);
+		$fields = array_keys($settings['alarmmanager']);
+
+		foreach (['alarmmanager_summary_offline', 'alarmmanager_summary_recovering', 'alarmmanager_summary_online', 'alarmmanager_retention_unit', 'alarmmanager_retention_value', 'alarmmanager_daemon_enabled', 'alarmmanager_daemon_processing_workers', 'alarmmanager_daemon_delivery_workers'] as $field) {
+			$this->assertContains($field, $fields, "$field must appear on the Settings tab.");
+		}
+		$this->assertSame(['days', 'weeks', 'months', 'forever'], array_keys($settings['alarmmanager']['alarmmanager_retention_unit']['array']), 'Retention offers days, weeks, months or indefinitely.');
+		$this->assertSame([1, 2, 4, 6, 8, 16], array_keys($settings['alarmmanager']['alarmmanager_daemon_processing_workers']['array']));
+		$this->assertSame([0, 1, 2, 4, 6, 8, 16], array_keys($settings['alarmmanager']['alarmmanager_daemon_delivery_workers']['array']));
+		$this->assertSame('1 Worker Process', $settings['alarmmanager']['alarmmanager_daemon_processing_workers']['array'][1]);
+		$this->assertSame('16 Worker Processes', $settings['alarmmanager']['alarmmanager_daemon_processing_workers']['array'][16]);
+		$this->assertSame(0, min(array_keys($settings['alarmmanager']['alarmmanager_daemon_delivery_workers']['array'])));
+	}
+
+	public function testRetentionNumberPrecedesUnitAndJoinsOneLine(): void {
+		self::alarmmanager_test_load('setup.php');
+		global $settings;
+		alarmmanager_config_settings();
+		$fields = array_keys($settings['alarmmanager']);
+
+		$this->assertLessThan(array_search('alarmmanager_retention_unit', $fields, true), array_search('alarmmanager_retention_value', $fields, true), 'The number row comes first.');
+		$this->assertSame('textbox', $settings['alarmmanager']['alarmmanager_retention_value']['method']);
+		$this->assertSame(['days', 'weeks', 'months', 'forever'], array_keys($settings['alarmmanager']['alarmmanager_retention_unit']['array']));
+
+		$GLOBALS['alarmmanager_test_request'] = ['tab' => 'general'];
+		ob_start();
+		alarmmanager_settings_bottom();
+		$other                                = ob_get_clean();
+		$GLOBALS['alarmmanager_test_request'] = ['tab' => 'alarmmanager'];
+		ob_start();
+		alarmmanager_settings_bottom();
+		$script = ob_get_clean();
+		unset($GLOBALS['alarmmanager_test_request']);
+
+		$this->assertSame('', $other, 'Other tabs get no script.');
+		$this->assertStringContainsString('row_alarmmanager_retention_value', $script);
+		$this->assertStringContainsString('row_alarmmanager_retention_unit', $script);
+	}
+
+	public function testDaemonSyncWritesWorkerFileFromSettings(): void {
+		self::alarmmanager_test_load('includes/polling.php');
+		$root   = sys_get_temp_dir() . '/alarmmanager_sync_' . bin2hex(random_bytes(5));
+		$before = $GLOBALS['config'];
+		mkdir($root . '/cache/alarmmanager', 0700, true);
+
+		try {
+			$GLOBALS['config']['base_path'] = $root;
+			$this->withOptions([], function () use ($root): void {
+				alarmmanager_daemon_sync();
+				$this->assertFileDoesNotExist($root . '/cache/alarmmanager/workers.json', 'A disabled daemon with no file needs no file.');
+			});
+			$this->withOptions(['alarmmanager_daemon_enabled' => 'on', 'alarmmanager_daemon_processing_workers' => '5', 'alarmmanager_daemon_delivery_workers' => '0'], function (): void {
+				alarmmanager_daemon_sync();
+				$options = alarmmanager_supervisor_options();
+				$this->assertTrue($options['enabled']);
+				$this->assertSame([5, 0], [$options['processing_workers'], $options['delivery_workers']]);
+				alarmmanager_daemon_sync();
+				$this->assertSame($options, alarmmanager_supervisor_options(), 'An unchanged sync leaves the file as is.');
+			});
+			$this->withOptions(['alarmmanager_daemon_processing_workers' => '5', 'alarmmanager_daemon_delivery_workers' => '1'], function (): void {
+				alarmmanager_daemon_sync();
+				$this->assertFalse(alarmmanager_supervisor_options()['enabled'], 'Clearing the checkbox disables the daemon.');
+			});
+			file_put_contents($root . '/cache/alarmmanager/workers.json', '{broken');
+			$this->withOptions(['alarmmanager_daemon_enabled' => 'on'], function (): void {
+				alarmmanager_daemon_sync();
+				$this->assertTrue(alarmmanager_supervisor_options()['enabled'], 'A corrupt worker file is rewritten from settings.');
+			});
+			file_put_contents($root . '/cache/alarmmanager/workers.json', '{broken');
+			$this->withOptions([], function (): void {
+				alarmmanager_daemon_sync();
+				$this->assertFalse(alarmmanager_supervisor_options()['enabled'], 'A corrupt worker file is repaired even when the settings equal the defaults.');
+			});
+		} finally {
+			$GLOBALS['config'] = $before;
+			@unlink($root . '/cache/alarmmanager/workers.json');
+			@rmdir($root . '/cache/alarmmanager');
+			@rmdir($root . '/cache');
+			@rmdir($root);
+		}
+	}
+
+	public function testSettingsUpdateIgnoresOtherTabs(): void {
+		self::alarmmanager_test_load('includes/polling.php');
+		$GLOBALS['alarmmanager_test_request']  = ['tab' => 'general'];
+		$GLOBALS['alarmmanager_test_messages'] = [];
+
+		try {
+			$this->withOptions(['alarmmanager_daemon_enabled' => 'on'], function (): void {
+				alarmmanager_settings_update();
+				$this->assertSame('on', read_config_option('alarmmanager_daemon_enabled'), 'Other tabs must not touch daemon settings.');
+			});
+			$this->assertSame([], $GLOBALS['alarmmanager_test_messages']);
+		} finally {
+			unset($GLOBALS['alarmmanager_test_request']);
+		}
+	}
+
+	public function testEnablingDaemonRequiresRunningService(): void {
+		self::alarmmanager_test_load('includes/polling.php');
+		$root                                  = sys_get_temp_dir() . '/alarmmanager_enable_' . bin2hex(random_bytes(5));
+		$before                                = [$GLOBALS['config'], $_REQUEST, $_POST, $_SERVER['SCRIPT_NAME'] ?? null];
+		$GLOBALS['alarmmanager_test_messages'] = [];
+		$save                                  = ['action' => 'save', 'tab' => 'alarmmanager', 'alarmmanager_daemon_enabled' => 'on'];
+		mkdir($root . '/cache/alarmmanager', 0700, true);
+
+		try {
+			$GLOBALS['config']['base_path'] = $root;
+			$_SERVER['SCRIPT_NAME']         = '/cacti/settings.php';
+
+			// No heartbeat: the checkbox leaves the request before Cacti saves it locally or replicates it.
+			$_REQUEST = $_POST = $save;
+			alarmmanager_settings_validate();
+			$this->assertArrayNotHasKey('alarmmanager_daemon_enabled', $_REQUEST, 'Settings saves and replicates the checkbox as off.');
+			$this->assertArrayNotHasKey('alarmmanager_daemon_enabled', $_POST);
+			$this->assertSame(MESSAGE_LEVEL_ERROR, $GLOBALS['alarmmanager_test_messages'][0][2]);
+
+			// Other pages, tabs and actions are never touched.
+			foreach ([['/cacti/host.php', $save], ['/cacti/settings.php', ['tab' => 'general'] + $save], ['/cacti/settings.php', ['action' => ''] + $save]] as [$script, $request]) {
+				$_SERVER['SCRIPT_NAME'] = $script;
+				$_REQUEST               = $request;
+				alarmmanager_settings_validate();
+				$this->assertSame('on', $_REQUEST['alarmmanager_daemon_enabled']);
+			}
+
+			// A running service allows enabling.
+			$_SERVER['SCRIPT_NAME'] = '/cacti/settings.php';
+			$_REQUEST               = $save;
+			file_put_contents($root . '/cache/alarmmanager/status.json', json_encode(['updated_at' => time()]));
+			alarmmanager_settings_validate();
+			$this->assertSame('on', $_REQUEST['alarmmanager_daemon_enabled']);
+			$this->assertCount(1, $GLOBALS['alarmmanager_test_messages']);
+		} finally {
+			[$GLOBALS['config'], $_REQUEST, $_POST, $_SERVER['SCRIPT_NAME']] = $before;
+			@unlink($root . '/cache/alarmmanager/status.json');
+			@rmdir($root . '/cache/alarmmanager');
+			@rmdir($root . '/cache');
+			@rmdir($root);
+		}
+	}
+
+	public function testSettingsUpdateReportsUnwritableWorkerFile(): void {
+		self::alarmmanager_test_load('includes/polling.php');
+		$root                                  = sys_get_temp_dir() . '/alarmmanager_readonly_' . bin2hex(random_bytes(5));
+		$directory                             = $root . '/cache/alarmmanager';
+		$before                                = $GLOBALS['config'];
+		$GLOBALS['alarmmanager_test_request']  = ['tab' => 'alarmmanager'];
+		$GLOBALS['alarmmanager_test_messages'] = [];
+		mkdir($directory, 0700, true);
+		file_put_contents($directory . '/status.json', json_encode(['updated_at' => time()]));
+		chmod($directory, 0500);
+
+		try {
+			if (is_writable($directory)) {
+				$this->markTestSkipped('Directory permissions are not enforced for this user.');
+			}
+			$GLOBALS['config']['base_path'] = $root;
+			$this->withOptions(['alarmmanager_daemon_enabled' => 'on'], function (): void {
+				alarmmanager_settings_update();
+			});
+			$this->assertSame(MESSAGE_LEVEL_ERROR, $GLOBALS['alarmmanager_test_messages'][0][2], 'A write failure must be reported to the administrator.');
+		} finally {
+			$GLOBALS['config'] = $before;
+			unset($GLOBALS['alarmmanager_test_request']);
+			chmod($directory, 0700);
+			@unlink($directory . '/status.json');
+			@rmdir($directory);
+			@rmdir($root . '/cache');
+			@rmdir($root);
+		}
+	}
+}

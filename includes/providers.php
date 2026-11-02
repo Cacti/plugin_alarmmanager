@@ -29,7 +29,7 @@ function alarmmanager_provider_value(string $provider, string $field, array $tra
 	}
 	$parts = parse_url($url);
 
-	return isset($parts['host']) ? 'https://' . $parts['host'] : '';
+	return isset($parts['host']) ? 'https://' . $parts['host'] . (isset($parts['port']) ? ':' . $parts['port'] : '') : '';
 }
 
 /**

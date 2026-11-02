@@ -73,9 +73,10 @@ function alarmmanager_view_filters(): array {
 }
 /**
  * The report tab, validated as an enum by Cacti's own filter machinery.
+ * The retired decisions tab maps to events so an old link is redirected instead of rejected as invalid input.
  */
 function alarmmanager_view_tab(): string {
-	$tab = (string) get_filter_request_var('tab', FILTER_CALLBACK, ['options' => static fn ($value) => in_array($value, ALARMMANAGER_TABS, true) ? $value : false, 'default' => 'dashboard']);
+	$tab = (string) get_filter_request_var('tab', FILTER_CALLBACK, ['options' => static fn ($value) => $value === 'decisions' ? 'events' : (in_array($value, ALARMMANAGER_TABS, true) ? $value : false), 'default' => 'dashboard']);
 
 	return $tab;
 }
