@@ -45,7 +45,7 @@ function alarmmanager_history_purge(int $limit = 1000): int {
 		return 0;
 	}
 	$interval = (int) $retention['value'] . ' ' . match ($retention['unit']) {
-		'days' => 'DAY', 'weeks' => 'WEEK', 'months' => 'MONTH'
+		'days' => 'DAY', 'weeks' => 'WEEK', 'months' => 'MONTH', default => throw new UnexpectedValueException('invalid_retention')
 	};
 	$cutoff = "DATE_SUB(UTC_TIMESTAMP(6), INTERVAL $interval)";
 	$limit  = max(1, min(10000, $limit));

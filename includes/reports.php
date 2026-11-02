@@ -148,6 +148,7 @@ function alarmmanager_report_filters(array $input): array {
 
 	return $result;
 }
+/** @param array<string, array<string, mixed>>|null $fields Search fields for the query compiler; the kind's own fields by default. */
 function alarmmanager_report_where(array $scope, array $filters, ?string $time_column = 'e.received_at', string $severity_column = 'e.severity', string $kind = 'dashboard', ?array $fields = null): array {
 	$where  = ['(' . $scope['device_sql'] . ')'];
 	$params = [];

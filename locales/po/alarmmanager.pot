@@ -455,7 +455,7 @@ msgstr ""
 msgid "Next try"
 msgstr ""
 
-#: includes/admin_view.php:430 includes/reports.php:451
+#: includes/admin_view.php:430 includes/reports.php:452
 msgid "Queued"
 msgstr ""
 
@@ -745,101 +745,101 @@ msgstr ""
 msgid "Daemon settings could not be saved. Check the Cacti cache directory permissions."
 msgstr ""
 
-#: includes/reports.php:423
+#: includes/reports.php:424
 msgid "Remote history"
 msgstr ""
 
-#: includes/reports.php:452
+#: includes/reports.php:453
 msgid "Test send"
 msgstr ""
 
-#: includes/reports.php:453
+#: includes/reports.php:454
 msgid "No matching rule"
 msgstr ""
 
-#: includes/reports.php:454
+#: includes/reports.php:455
 msgid "Destination disabled"
 msgstr ""
 
-#: includes/reports.php:455
+#: includes/reports.php:456
 msgid "Suppressed by source"
 msgstr ""
 
-#: includes/reports.php:456
+#: includes/reports.php:457
 msgid "Maintenance window"
 msgstr ""
 
-#: includes/reports.php:457
+#: includes/reports.php:458
 msgid "Acknowledged"
 msgstr ""
 
-#: includes/reports.php:458
+#: includes/reports.php:459
 msgid "Cooldown"
 msgstr ""
 
-#: includes/reports.php:459
+#: includes/reports.php:460
 msgid "Duplicate"
 msgstr ""
 
-#: includes/reports.php:460
+#: includes/reports.php:461
 msgid "Already routed"
 msgstr ""
 
-#: includes/reports.php:461
+#: includes/reports.php:462
 msgid "Out of order"
 msgstr ""
 
-#: includes/reports.php:462
+#: includes/reports.php:463
 msgid "Ignored episode"
 msgstr ""
 
-#: includes/reports.php:463
+#: includes/reports.php:464
 msgid "History only"
-msgstr ""
-
-#: includes/reports.php:511
-#, php-format
-msgid "Deleted destination #%d"
 msgstr ""
 
 #: includes/reports.php:512
 #, php-format
+msgid "Deleted destination #%d"
+msgstr ""
+
+#: includes/reports.php:513
+#, php-format
 msgid "%d destinations"
 msgstr ""
 
-#: includes/reports.php:524
+#: includes/reports.php:525
 msgid "Delivered"
 msgstr ""
 
-#: includes/reports.php:524
+#: includes/reports.php:525
 msgid "Failed"
 msgstr ""
 
-#: includes/reports.php:524
+#: includes/reports.php:525
 msgid "Pending"
 msgstr ""
 
-#: includes/reports.php:524
+#: includes/reports.php:525
 msgid "Sending"
 msgstr ""
 
-#: includes/reports.php:534
+#: includes/reports.php:535
 msgid "Processing failed"
 msgstr ""
 
-#: includes/reports.php:535
+#: includes/reports.php:536
 msgid "Pending processing"
 msgstr ""
 
-#: includes/reports.php:536 includes/web_view.php:264
+#: includes/reports.php:537 includes/web_view.php:264
 msgid "Processing"
 msgstr ""
 
-#: includes/reports.php:537
+#: includes/reports.php:538
 msgid "No matching integration"
 msgstr ""
 
-#: includes/reports.php:537
+#: includes/reports.php:538
 msgid "Suppressed"
 msgstr ""
 
