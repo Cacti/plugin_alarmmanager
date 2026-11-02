@@ -537,7 +537,6 @@ function alarmmanager_admin_markup(array $state, string $section): void {
 		alarmmanager_checkbox('confirmed', 'Confirm local key rotation; create a protected backup before and after');
 		print '<button type="submit">' . __esc('Rotate local key', 'alarmmanager') . '</button></form>';
 	} elseif ($section === 'configuration') {
-
 		print '<section class="alarmmanagerSettingsCard"><header><h3>' . __esc('Backup and restore', 'alarmmanager') . '</h3></header><div class="alarmmanagerSettingsSplit"><div><h4>' . __esc('Export', 'alarmmanager') . '</h4>';
 		print '<p class="alarmmanagerHint">' . __esc('Endpoints, message templates, and rules as JSON. Credentials and settings are not included. Endpoint URLs can contain secrets, so keep the file private.', 'alarmmanager') . '</p>';
 		print '<a class="alarmmanagerPrimaryAction" href="alarmmanager_admin.php?section=configuration&amp;download=configuration">' . __esc('Export configuration', 'alarmmanager') . '</a></div><div><h4>' . __esc('Import', 'alarmmanager') . '</h4>';

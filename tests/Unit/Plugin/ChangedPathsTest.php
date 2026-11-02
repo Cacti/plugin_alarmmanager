@@ -171,7 +171,7 @@ final class ChangedPathsTest extends AlarmManagerTestCase {
 			$attempts = [
 				[['error' => UPLOAD_ERR_OK, 'tmp_name' => $path], static fn (string $name): bool => false],
 				[['error' => UPLOAD_ERR_PARTIAL, 'tmp_name' => $path], static fn (string $name): bool => true],
-				[['error' => UPLOAD_ERR_OK], static fn (string $name): bool                           => true],
+				[['error' => UPLOAD_ERR_OK], static fn (string $name): bool => true],
 				[['error' => UPLOAD_ERR_OK, 'tmp_name' => $path], null]
 			];
 

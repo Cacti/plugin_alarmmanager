@@ -102,9 +102,9 @@ final class RetentionTest extends AlarmManagerTestCase {
 			$reads[] = $sql;
 
 			return match (true) {
-				str_contains($sql, 'SELECT e.id')       => [['id' => '7'], ['id' => '9']],
+				str_contains($sql, 'SELECT e.id')        => [['id' => '7'], ['id' => '9']],
 				str_contains($sql, 'SELECT h.poller_id') => [['poller_id' => '2', 'instance_uuid' => str_repeat('a', 32), 'entity' => 'decision', 'entity_id' => '5']],
-				default                                 => []
+				default                                  => []
 			};
 		};
 		$GLOBALS['alarmmanager_test_execute_handler'] = static function (string $sql) use (&$writes): bool {
@@ -137,16 +137,16 @@ final class RetentionTest extends AlarmManagerTestCase {
 	public function testCollectorPurgeKeepsHistoryTheMainPollerHasNotAcknowledged(): void {
 		self::alarmmanager_test_load('includes/queue.php');
 		self::alarmmanager_test_load('includes/routing.php');
-		$reads                                        = [];
-		$before                                       = $GLOBALS['config'];
+		$reads                                         = [];
+		$before                                        = $GLOBALS['config'];
 		$GLOBALS['config']['poller_id']                = 2;
-		$GLOBALS['alarmmanager_test_query_handler']   = static function (string $sql) use (&$reads): array {
+		$GLOBALS['alarmmanager_test_query_handler']    = static function (string $sql) use (&$reads): array {
 			$reads[] = $sql;
 
 			return match (true) {
 				str_contains($sql, 'FROM plugin_alarmmanager_sync_sender') => [['acked' => '41']],
-				str_contains($sql, 'SELECT e.id')                         => [['id' => '7']],
-				default                                                   => []
+				str_contains($sql, 'SELECT e.id')                          => [['id' => '7']],
+				default                                                    => []
 			};
 		};
 		$GLOBALS['alarmmanager_test_execute_handler'] = static fn (string $sql): bool => true;
@@ -213,7 +213,7 @@ final class RetentionTest extends AlarmManagerTestCase {
 		$GLOBALS['alarmmanager_test_request'] = ['tab' => 'general'];
 		ob_start();
 		alarmmanager_settings_bottom();
-		$other = ob_get_clean();
+		$other                                = ob_get_clean();
 		$GLOBALS['alarmmanager_test_request'] = ['tab' => 'alarmmanager'];
 		ob_start();
 		alarmmanager_settings_bottom();
@@ -270,7 +270,7 @@ final class RetentionTest extends AlarmManagerTestCase {
 
 	public function testSettingsUpdateIgnoresOtherTabs(): void {
 		self::alarmmanager_test_load('includes/polling.php');
-		$GLOBALS['alarmmanager_test_request'] = ['tab' => 'general'];
+		$GLOBALS['alarmmanager_test_request']  = ['tab' => 'general'];
 		$GLOBALS['alarmmanager_test_messages'] = [];
 
 		try {

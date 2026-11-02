@@ -70,6 +70,7 @@ final class DeviceStatusTest extends AlarmManagerTestCase {
 				alarmmanager_process_job($claim);
 			}
 			self::assertSame(3, (int) $db->query('SELECT COUNT(*) FROM plugin_alarmmanager_deliveries')->fetchColumn(), 'All three transitions route');
+
 			// Saved wording applies to subsequent events without rewriting history.
 			foreach (['offline' => 'Device is Offline', 'recovering' => 'Device is Recovering', 'online' => 'Device is Online'] as $state => $text) {
 				$db->prepare('REPLACE INTO settings (name, value) VALUES (?, ?)')->execute(['alarmmanager_summary_' . $state, $text]);
