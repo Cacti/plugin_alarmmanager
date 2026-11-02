@@ -131,33 +131,39 @@ function alarmmanager_event_log_write(array $event): void {
 		if (!is_string($settings['path'])) {
 			throw new RuntimeException('event_log_path_unset');
 		}
-		$path = alarmmanager_event_log_path_validate($settings['path']);
-
-		// A dedicated lock file sidesteps the hazard of locking a handle whose
-		// underlying inode rotate() then renames out from under it. It lives in the
-		// system temp directory rather than beside the log, so a destination whose
-		// directory allows appending to one pre-existing file but nothing else still
-		// works. A fopen() or flock() failure here is a resource (not bool) type
-		// mismatch a few lines down, which the catch below reports like any other.
-		$lock = fopen(sys_get_temp_dir() . '/alarmmanager-eventlog-' . hash('sha256', $path) . '.lock', 'cb');
-
-		try {
-			flock($lock, LOCK_EX);
-			alarmmanager_event_log_rotate($path, (int) $settings['max_bytes']);
-			$handle = fopen($path, 'ab');
-
-			try {
-				if (@fwrite($handle, $line . "\n") !== strlen($line) + 1) {
-					throw new RuntimeException('event_log_write_failed');
-				}
-			} finally {
-				fclose($handle);
-			}
-		} finally {
-			flock($lock, LOCK_UN);
-			fclose($lock);
-		}
+		alarmmanager_event_log_append(alarmmanager_event_log_path_validate($settings['path']), $line, (int) $settings['max_bytes']);
 	} catch (Throwable $error) {
 		alarmmanager_log('Event log write skipped: ' . $error->getMessage());
+	}
+}
+/**
+ * Rotate if needed, then append one line under an exclusive lock. Separated from the public
+ * writer so the rotation and short-write paths can be exercised directly; the caller has
+ * already validated $path against live disk state.
+ */
+function alarmmanager_event_log_append(string $path, string $line, int $max_bytes): void {
+	// A dedicated lock file sidesteps the hazard of locking a handle whose
+	// underlying inode rotate() then renames out from under it. It lives in the
+	// system temp directory rather than beside the log, so a destination whose
+	// directory allows appending to one pre-existing file but nothing else still
+	// works. A fopen() or flock() failure here is a resource (not bool) type
+	// mismatch a few lines down, which the caller's catch reports like any other.
+	$lock = fopen(sys_get_temp_dir() . '/alarmmanager-eventlog-' . hash('sha256', $path) . '.lock', 'cb');
+
+	try {
+		flock($lock, LOCK_EX);
+		alarmmanager_event_log_rotate($path, $max_bytes);
+		$handle = fopen($path, 'ab');
+
+		try {
+			if (@fwrite($handle, $line . "\n") !== strlen($line) + 1) {
+				throw new RuntimeException('event_log_write_failed');
+			}
+		} finally {
+			fclose($handle);
+		}
+	} finally {
+		flock($lock, LOCK_UN);
+		fclose($lock);
 	}
 }

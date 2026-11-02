@@ -194,6 +194,24 @@ final class EventLogTest extends AlarmManagerTestCase {
 		$this->assertStringContainsString('invalid_event_log_path', $GLOBALS['alarmmanager_test_log'][0]);
 	}
 
+	public function testShortWriteAtThePrimitiveRaisesWriteFailed(): void {
+		self::alarmmanager_test_load('includes/eventlog.php');
+
+		if (!in_array('amshortwrite', stream_get_wrappers(), true)) {
+			stream_wrapper_register('amshortwrite', AlarmManagerShortWriteStream::class);
+		}
+
+		// The stream reports one byte short on every write without raising a warning, so the
+		// write primitive must detect the partial write and raise event_log_write_failed.
+		try {
+			$this->expectException(RuntimeException::class);
+			$this->expectExceptionMessage('event_log_write_failed');
+			alarmmanager_event_log_append('amshortwrite://log', 'one line', 1048576);
+		} finally {
+			stream_wrapper_unregister('amshortwrite');
+		}
+	}
+
 	public function testRotationFailureIsReportedAndSkipsTheAppend(): void {
 		self::alarmmanager_test_load('includes/eventlog.php');
 		$directory = sys_get_temp_dir() . '/am-eventlog-rotate-' . bin2hex(random_bytes(8));
@@ -348,5 +366,35 @@ final class EventLogTest extends AlarmManagerTestCase {
 		$this->assertSame(1, $xpath->query('//form[input[@value="event_log_save"]]//select[@name="event_log_target"]/option[@value="file" and @selected]')->length);
 		$this->assertSame(1, $xpath->query('//form[input[@value="event_log_save"]]//*[@data-event-log-targets="file"]//input[@name="event_log_path" and @value="/var/log/alarmmanager/events.jsonl"]')->length);
 		$this->assertSame(1, $xpath->query('//form[input[@value="event_log_save"]]//*[@data-event-log-targets="file"]//input[@name="event_log_max_mb" and @value="10"]')->length);
+	}
+}
+
+/** Test double: a writable stream that always reports one byte short, with no warning. */
+final class AlarmManagerShortWriteStream {
+	/** @var resource */
+	public $context;
+
+	public function stream_open(string $path, string $mode, int $options, ?string &$opened_path): bool {
+		return true;
+	}
+
+	public function stream_write(string $data): int {
+		return max(0, strlen($data) - 1);
+	}
+
+	public function stream_lock(int $operation): bool {
+		return true;
+	}
+
+	public function stream_eof(): bool {
+		return true;
+	}
+
+	public function stream_close(): void {
+	}
+
+	/** @return array<int|string, int> */
+	public function url_stat(string $path, int $flags): array {
+		return ['mode' => 0100644, 'size' => 0];
 	}
 }
