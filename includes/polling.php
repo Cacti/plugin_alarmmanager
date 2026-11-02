@@ -117,10 +117,13 @@ function alarmmanager_daemon_workers(string $name, int $current): int {
  * The daemon never bootstraps Cacti, so the file stays its only input; tuning values already in it are kept.
  */
 function alarmmanager_daemon_sync(): void {
+	$unreadable = false;
+
 	try {
 		$current = alarmmanager_supervisor_options();
 	} catch (Throwable $error) {
-		$current = alarmmanager_supervisor_defaults();
+		$current    = alarmmanager_supervisor_defaults();
+		$unreadable = is_file(alarmmanager_daemon_config_path());
 	}
 	$desired = array_replace($current, [
 		'enabled'            => read_config_option('alarmmanager_daemon_enabled', true) === 'on',
@@ -128,7 +131,7 @@ function alarmmanager_daemon_sync(): void {
 		'delivery_workers'   => alarmmanager_daemon_workers('alarmmanager_daemon_delivery_workers', $current['delivery_workers'])
 	]);
 
-	if (is_file(alarmmanager_daemon_config_path()) ? $desired !== $current : $desired['enabled']) {
+	if ($unreadable || (is_file(alarmmanager_daemon_config_path()) ? $desired !== $current : $desired['enabled'])) {
 		alarmmanager_save_supervisor_options($desired);
 	}
 }

@@ -43,6 +43,9 @@ final class ProviderEditorTest extends AlarmManagerTestCase {
 			}
 		}
 		$this->assertSame('', alarmmanager_provider_value('', 'instance_url', []));
+		$ported = alarmmanager_provider_transport('servicenow', [], ['provider_instance_url' => 'https://customer.service-now.com:8443/'], true);
+		$this->assertStringStartsWith('https://customer.service-now.com:8443/api/now/table/', $ported['url']);
+		$this->assertSame('https://customer.service-now.com:8443', alarmmanager_provider_value('servicenow', 'instance_url', $ported), 'An explicit port must survive reopening the editor.');
 		$this->assertStringContainsString('REPLACE-WITH-ACCOUNT-SID', alarmmanager_provider_transport('twilio', [], [], false)['url']);
 		$this->assertStringContainsString('REPLACE-INSTANCE', alarmmanager_provider_transport('servicenow', [], [], false)['url']);
 		$this->reject(fn () => alarmmanager_provider_transport('bad', [], [], false), 'invalid_provider');

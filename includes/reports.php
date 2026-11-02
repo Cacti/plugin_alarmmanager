@@ -173,6 +173,49 @@ function alarmmanager_report_where(array $scope, array $filters, ?string $time_c
 
 	return [implode(' AND ', $where), $params];
 }
+/**
+ * Routing filters (reason, status, destination) for mirrored collector events.
+ * Local events test these with EXISTS over their own workflow rows; mirrored workflow rows are separate history entities
+ * keyed by poller, instance and the collector's event row ID, so each filter becomes an uncorrelated semi-join.
+ * @param  array<string, mixed> $filters
+ * @return array{string, list<mixed>} SQL fragment starting with AND (or empty) and its parameters.
+ */
+function alarmmanager_report_remote_routing(array $filters): array {
+	$identity = static fn (string $alias): string => "$alias.poller_id, $alias.instance_uuid, CAST(JSON_UNQUOTE(JSON_EXTRACT($alias.definition, '\$.event_row_id')) AS UNSIGNED)";
+	$field    = static fn (string $alias, string $name): string => "JSON_UNQUOTE(JSON_EXTRACT($alias.definition, '\$.$name'))";
+	$sql      = '';
+	$params   = [];
+
+	if ($filters['reason'] !== '') {
+		$sql .= " AND (h.poller_id, h.instance_uuid, h.entity_id) IN (SELECT {$identity('x')} FROM plugin_alarmmanager_remote_history AS x WHERE x.entity = 'decision' AND x.received_at >= ? - INTERVAL 1 HOUR AND {$field('x', 'reason')} = ?)";
+		array_push($params, $filters['from'], $filters['reason']);
+	}
+	$job    = $filters['job'] ?? 'delivery';
+	$checks = [];
+
+	if ($filters['status'] !== '') {
+		$checks[] = ($job === 'attempt' ? $field('x', 'outcome') : $field('x', 'status')) . ' = ?';
+		$params[] = $filters['status'];
+	}
+
+	if ($filters['endpoint_id'] && $job !== 'processing') {
+		$checks[] = ($job === 'attempt' ? $field('d', 'endpoint_id') : $field('x', 'endpoint_id')) . ' = ?';
+		$params[] = $filters['endpoint_id'];
+	}
+
+	if ($checks) {
+		$source = match ($job) {
+			'processing' => "plugin_alarmmanager_remote_history AS x WHERE x.entity = 'processing'",
+			'attempt'    => "plugin_alarmmanager_remote_history AS x INNER JOIN plugin_alarmmanager_remote_history AS d ON d.entity = 'delivery' AND d.poller_id = x.poller_id AND d.instance_uuid = x.instance_uuid AND d.entity_id = CAST({$field('x', 'delivery_id')} AS UNSIGNED) WHERE x.entity = 'attempt'",
+			default      => "plugin_alarmmanager_remote_history AS x WHERE x.entity = 'delivery'"
+		};
+		$owner = $job === 'attempt' ? 'd' : 'x';
+		$sql  .= " AND (h.poller_id, h.instance_uuid, h.entity_id) IN (SELECT {$identity($owner)} FROM $source AND x.received_at >= ? - INTERVAL 1 HOUR AND " . implode(' AND ', $checks) . ')';
+		array_splice($params, count($params) - count($checks), 0, [$filters['from']]);
+	}
+
+	return [$sql, $params];
+}
 /** Every report joins the event and applies the same visibility predicate before LIMIT. */
 function alarmmanager_report_list(string $kind, array $scope, array $filters): array {
 	$collector = (int) ($filters['collector_id'] ?? 0);
@@ -303,8 +346,9 @@ function alarmmanager_report_list(string $kind, array $scope, array $filters): a
 				. "$payload AS payload, "
 				. "h.poller_id AS collector_id, COALESCE(NULLIF(remote_poller.name, ''), CONCAT('Poller #', h.poller_id)) AS collector_name, "
 				. 'h.entity_id AS remote_entity_id, h.instance_uuid AS remote_instance_uuid';
+			[$routing_sql, $routing_params] = alarmmanager_report_remote_routing($filters);
 			$sql = "SELECT * FROM ((SELECT $columns, NULL AS remote_entity_id, NULL AS remote_instance_uuid FROM $base WHERE $where)"
-				. " UNION ALL (SELECT $remote_columns FROM plugin_alarmmanager_remote_history AS h LEFT JOIN poller AS remote_poller ON remote_poller.id = h.poller_id WHERE h.entity = 'event'$remote_gate AND h.received_at >= ? AND h.received_at < ?)) AS report"
+				. " UNION ALL (SELECT $remote_columns FROM plugin_alarmmanager_remote_history AS h LEFT JOIN poller AS remote_poller ON remote_poller.id = h.poller_id WHERE h.entity = 'event'$remote_gate AND h.received_at >= ? AND h.received_at < ?$routing_sql)) AS report"
 				. ' ORDER BY report.received_at DESC, report.collector_id DESC, report.id DESC LIMIT 51 OFFSET ' . $offset;
 		} elseif ($kind === 'conditions') {
 			$stream_expr   = "COALESCE(JSON_UNQUOTE(JSON_EXTRACT($payload, '\$.alarm_key')), 'unknown')";
@@ -324,6 +368,7 @@ function alarmmanager_report_list(string $kind, array $scope, array $filters): a
 		}
 		$params[] = $filters['from'];
 		$params[] = $filters['to'];
+		array_push($params, ...($routing_params ?? []));
 	} else {
 		$sql = "SELECT $columns FROM $base WHERE $where";
 		$sql .= " ORDER BY $order DESC LIMIT 51 OFFSET $offset";
@@ -401,10 +446,14 @@ function alarmmanager_report_routing(array $rows, array $ids): array {
 	$remote = array_filter($rows, static fn (array $row): bool => isset($row['remote_entity_id']));
 
 	if ($remote) {
-		// Mirrored decisions arrive in the same sync batches as their events; the time bound keeps the scan on remote_recent.
-		$params = [min(array_column($remote, 'received_at')), ...array_values(array_unique(array_map('intval', array_column($remote, 'collector_id'))))];
+		// Mirrored decisions arrive in the same sync batches as their events; the time bound keeps the scan on remote_recent
+		// and the identity lists keep only the decisions of the events on this page out of PHP memory.
+		$pollers   = array_values(array_unique(array_map('intval', array_column($remote, 'collector_id'))));
+		$instances = array_values(array_unique(array_map('strval', array_column($remote, 'remote_instance_uuid'))));
+		$events    = array_values(array_unique(array_map('intval', array_column($remote, 'remote_entity_id'))));
+		$params    = [min(array_column($remote, 'received_at')), ...$pollers, ...$instances, ...$events];
 
-		foreach (alarmmanager_report_rows("SELECT poller_id, instance_uuid, JSON_UNQUOTE(JSON_EXTRACT(definition, '$.event_row_id')) AS event_row_id, JSON_UNQUOTE(JSON_EXTRACT(definition, '$.endpoint_id')) AS endpoint_id, JSON_UNQUOTE(JSON_EXTRACT(definition, '$.reason')) AS reason FROM plugin_alarmmanager_remote_history WHERE entity = 'decision' AND received_at >= ? - INTERVAL 1 HOUR AND poller_id IN (" . implode(',', array_fill(0, count($params) - 1, '?')) . ') ORDER BY entity_id', $params) as $decision) {
+		foreach (alarmmanager_report_rows("SELECT poller_id, instance_uuid, JSON_UNQUOTE(JSON_EXTRACT(definition, '$.event_row_id')) AS event_row_id, JSON_UNQUOTE(JSON_EXTRACT(definition, '$.endpoint_id')) AS endpoint_id, JSON_UNQUOTE(JSON_EXTRACT(definition, '$.reason')) AS reason FROM plugin_alarmmanager_remote_history WHERE entity = 'decision' AND received_at >= ? - INTERVAL 1 HOUR AND poller_id IN (" . implode(',', array_fill(0, count($pollers), '?')) . ') AND instance_uuid IN (' . implode(',', array_fill(0, count($instances), '?')) . ") AND CAST(JSON_UNQUOTE(JSON_EXTRACT(definition, '$.event_row_id')) AS UNSIGNED) IN (" . implode(',', array_fill(0, count($events), '?')) . ') ORDER BY entity_id', $params) as $decision) {
 			$decisions['remote:' . $decision['poller_id'] . ':' . $decision['instance_uuid'] . ':' . $decision['event_row_id']][] = $decision;
 		}
 	}

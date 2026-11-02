@@ -1447,9 +1447,14 @@
 				});
 			};
 		links.forEach(
-			/** Bind hover open/close with the same 400 ms delay plugin_audit uses. */
+			/** Bind hover open/close with the same 400 ms delay plugin_audit uses; click opens at once for keyboard and touch. */
 			(link) => {
-				link.addEventListener('click', (event) => event.preventDefault());
+				link.addEventListener('click', (event) => {
+					event.preventDefault();
+					clearTimeout(timer);
+					close();
+					open(link);
+				});
 				link.addEventListener('mouseenter', () => {
 					clearTimeout(timer);
 					close();

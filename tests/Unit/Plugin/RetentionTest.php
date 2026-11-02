@@ -97,7 +97,16 @@ final class RetentionTest extends AlarmManagerTestCase {
 		self::alarmmanager_test_load('includes/queue.php');
 		self::alarmmanager_test_load('includes/routing.php');
 		$writes                                       = [];
-		$GLOBALS['alarmmanager_test_query_handler']   = static fn (string $sql): array => str_contains($sql, 'SELECT e.id') ? [['id' => '7'], ['id' => '9']] : [];
+		$reads                                        = [];
+		$GLOBALS['alarmmanager_test_query_handler']   = static function (string $sql) use (&$reads): array {
+			$reads[] = $sql;
+
+			return match (true) {
+				str_contains($sql, 'SELECT e.id')       => [['id' => '7'], ['id' => '9']],
+				str_contains($sql, 'SELECT h.poller_id') => [['poller_id' => '2', 'instance_uuid' => str_repeat('a', 32), 'entity' => 'decision', 'entity_id' => '5']],
+				default                                 => []
+			};
+		};
 		$GLOBALS['alarmmanager_test_execute_handler'] = static function (string $sql) use (&$writes): bool {
 			$writes[] = $sql;
 
@@ -111,7 +120,12 @@ final class RetentionTest extends AlarmManagerTestCase {
 		} finally {
 			unset($GLOBALS['alarmmanager_test_query_handler'], $GLOBALS['alarmmanager_test_execute_handler']);
 		}
-		$sql = implode("\n", $writes);
+		$sql  = implode("\n", $writes);
+		$read = implode("\n", $reads);
+		$this->assertStringContainsString('DELETE FROM plugin_alarmmanager_remote_history WHERE (poller_id = ? AND instance_uuid = ? AND entity = ? AND entity_id = ?)', $sql, 'Aged mirrored history is deleted by primary key.');
+		$this->assertStringContainsString("NOT IN ('', 'recovered', 'clear')", $read, 'The latest event of an active stream must survive the purge.');
+		$this->assertStringContainsString("d.source = 'cacti_device' AND d.sequence > h.sequence", $read, 'The newest device event must survive for ownership handoff.');
+		$this->assertStringNotContainsString('plugin_alarmmanager_sync_outbox', $read, 'The main poller has no outbound sync cursor to respect.');
 		$this->assertStringContainsString('INTERVAL 2 MONTH', $sql, 'Cutoff must use the configured interval.');
 		$this->assertStringContainsString('DELETE FROM plugin_alarmmanager_events WHERE id IN (7,9)', $sql, 'Aged events must be deleted.');
 
@@ -120,13 +134,51 @@ final class RetentionTest extends AlarmManagerTestCase {
 		}
 	}
 
+	public function testCollectorPurgeKeepsHistoryTheMainPollerHasNotAcknowledged(): void {
+		self::alarmmanager_test_load('includes/queue.php');
+		self::alarmmanager_test_load('includes/routing.php');
+		$reads                                        = [];
+		$before                                       = $GLOBALS['config'];
+		$GLOBALS['config']['poller_id']                = 2;
+		$GLOBALS['alarmmanager_test_query_handler']   = static function (string $sql) use (&$reads): array {
+			$reads[] = $sql;
+
+			return match (true) {
+				str_contains($sql, 'FROM plugin_alarmmanager_sync_sender') => [['acked' => '41']],
+				str_contains($sql, 'SELECT e.id')                         => [['id' => '7']],
+				default                                                   => []
+			};
+		};
+		$GLOBALS['alarmmanager_test_execute_handler'] = static fn (string $sql): bool => true;
+
+		try {
+			$this->withOptions(['alarmmanager_retention_unit' => 'days', 'alarmmanager_retention_value' => '30'], function (): void {
+				$this->assertSame(1, alarmmanager_history_purge(50));
+			});
+		} finally {
+			$GLOBALS['config'] = $before;
+			unset($GLOBALS['alarmmanager_test_query_handler'], $GLOBALS['alarmmanager_test_execute_handler']);
+		}
+		$select = current(array_filter($reads, static fn (string $sql): bool => str_contains($sql, 'SELECT e.id')));
+		$this->assertStringContainsString('o.id > 41', $select, 'Only outbox rows past the acknowledged cursor still need their source rows.');
+
+		foreach (['event', 'processing', 'decision', 'delivery', 'attempt'] as $entity) {
+			$this->assertStringContainsString("o.entity = '$entity'", $select, "Unsent $entity history must keep its event.");
+		}
+	}
+
 	public function testPurgeReturnsZeroWhenNothingHasAgedOut(): void {
 		self::alarmmanager_test_load('includes/queue.php');
 		self::alarmmanager_test_load('includes/routing.php');
+		$GLOBALS['alarmmanager_test_execute_handler'] = static fn (string $sql): bool => true;
 
-		$this->withOptions(['alarmmanager_retention_unit' => 'days', 'alarmmanager_retention_value' => '30'], function (): void {
-			$this->assertSame(0, alarmmanager_history_purge(), 'No aged events means nothing purged.');
-		});
+		try {
+			$this->withOptions(['alarmmanager_retention_unit' => 'days', 'alarmmanager_retention_value' => '30'], function (): void {
+				$this->assertSame(0, alarmmanager_history_purge(), 'No aged events means nothing purged.');
+			});
+		} finally {
+			unset($GLOBALS['alarmmanager_test_execute_handler']);
+		}
 	}
 
 	public function testSettingsTabDefinesEveryAlarmManagerOption(): void {
@@ -201,6 +253,11 @@ final class RetentionTest extends AlarmManagerTestCase {
 			$this->withOptions(['alarmmanager_daemon_enabled' => 'on'], function (): void {
 				alarmmanager_daemon_sync();
 				$this->assertTrue(alarmmanager_supervisor_options()['enabled'], 'A corrupt worker file is rewritten from settings.');
+			});
+			file_put_contents($root . '/cache/alarmmanager/workers.json', '{broken');
+			$this->withOptions([], function (): void {
+				alarmmanager_daemon_sync();
+				$this->assertFalse(alarmmanager_supervisor_options()['enabled'], 'A corrupt worker file is repaired even when the settings equal the defaults.');
 			});
 		} finally {
 			$GLOBALS['config'] = $before;

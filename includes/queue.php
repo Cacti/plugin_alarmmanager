@@ -33,6 +33,9 @@ function alarmmanager_notifications_paused(): bool {
 /**
  * Purge alert history older than the configured retention, one bounded batch per call.
  * Events with active, queued, leased or failed work are kept, as are events backing a current condition.
+ * Mirrored collector history keeps the latest event of every active stream and the newest device event per device,
+ * which the Active conditions report and device ownership handoff read. A collector also keeps every event whose
+ * history has not yet been acknowledged by the main poller, so the sync cursor can always advance.
  * @return int Number of events removed; 0 when retention is indefinite or nothing has aged out.
  */
 function alarmmanager_history_purge(int $limit = 1000): int {
@@ -50,9 +53,20 @@ function alarmmanager_history_purge(int $limit = 1000): int {
 	return alarmmanager_transaction(function () use ($cutoff, $limit): int {
 		alarmmanager_db_write("DELETE FROM plugin_alarmmanager_states WHERE active = 0 AND updated_at < $cutoff LIMIT $limit");
 		alarmmanager_db_write("DELETE FROM plugin_alarmmanager_episodes WHERE status <> 'active' AND ended_at IS NOT NULL AND ended_at < $cutoff LIMIT $limit");
-		alarmmanager_db_write("DELETE FROM plugin_alarmmanager_remote_history WHERE received_at < $cutoff LIMIT $limit");
+		alarmmanager_purge_remote_history($cutoff, $limit);
+		$unsynced = '';
+
+		if (alarmmanager_local_poller() > 1) {
+			$acked    = (int) (alarmmanager_db_row('SELECT acked FROM plugin_alarmmanager_sync_sender WHERE id = 1')['acked'] ?? 0);
+			$unsynced = "AND NOT EXISTS (SELECT 1 FROM plugin_alarmmanager_sync_outbox AS o WHERE o.id > $acked AND (
+					(o.entity = 'event' AND o.entity_id = e.id)
+					OR (o.entity = 'processing' AND o.entity_id IN (SELECT j.id FROM plugin_alarmmanager_jobs AS j WHERE j.event_row_id = e.id))
+					OR (o.entity = 'decision' AND o.entity_id IN (SELECT r.id FROM plugin_alarmmanager_decisions AS r WHERE r.event_row_id = e.id))
+					OR (o.entity = 'delivery' AND o.entity_id IN (SELECT d.id FROM plugin_alarmmanager_deliveries AS d WHERE d.event_row_id = e.id))
+					OR (o.entity = 'attempt' AND o.entity_id IN (SELECT a.id FROM plugin_alarmmanager_attempts AS a INNER JOIN plugin_alarmmanager_deliveries AS d ON d.id = a.delivery_id WHERE d.event_row_id = e.id))))";
+		}
 		$ids = array_map('intval', array_column(alarmmanager_db_rows("SELECT e.id FROM plugin_alarmmanager_events AS e
-			WHERE e.received_at < $cutoff
+			WHERE e.received_at < $cutoff $unsynced
 				AND NOT EXISTS (SELECT 1 FROM plugin_alarmmanager_jobs AS j WHERE j.event_row_id = e.id AND j.status IN ('pending', 'leased', 'failed'))
 				AND NOT EXISTS (SELECT 1 FROM plugin_alarmmanager_deliveries AS d WHERE d.event_row_id = e.id AND d.status IN ('pending', 'leased', 'failed'))
 				AND NOT EXISTS (SELECT 1 FROM plugin_alarmmanager_states AS s WHERE s.last_event_id = e.id)
@@ -75,6 +89,33 @@ function alarmmanager_history_purge(int $limit = 1000): int {
 	});
 }
 
+/**
+ * Remove aged mirrored collector history except what current state still reads: the latest event of every active
+ * stream (the Active conditions report) and the newest device event (ownership handoff).
+ * Rows are selected first and deleted by primary key, because MariaDB cannot filter a DELETE by a subquery on its own table with a LIMIT.
+ */
+function alarmmanager_purge_remote_history(string $cutoff, int $limit): void {
+	$payload = static fn (string $alias, string $field): string => "JSON_UNQUOTE(JSON_EXTRACT(JSON_UNQUOTE(JSON_EXTRACT($alias.definition, '\$.payload')), '\$.$field'))";
+	$newer   = "EXISTS (SELECT 1 FROM plugin_alarmmanager_remote_history AS n WHERE n.entity = 'event' AND n.poller_id = h.poller_id
+		AND (n.received_at > h.received_at OR (n.received_at = h.received_at AND n.entity_id > h.entity_id))
+		AND " . $payload('n', 'alarm_key') . ' <=> ' . $payload('h', 'alarm_key') . ')';
+	$active  = 'COALESCE(' . $payload('h', 'transition') . " NOT IN ('', 'recovered', 'clear'), 0)";
+	$handoff = "COALESCE(h.source = 'cacti_device' AND h.device_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM plugin_alarmmanager_remote_history AS d
+		WHERE d.entity = 'event' AND d.poller_id = h.poller_id AND d.device_id = h.device_id AND d.source = 'cacti_device' AND d.sequence > h.sequence), 0)";
+	$stale   = alarmmanager_db_rows("SELECT h.poller_id, h.instance_uuid, h.entity, h.entity_id FROM plugin_alarmmanager_remote_history AS h
+		WHERE h.received_at < $cutoff AND NOT (h.entity = 'event' AND ((NOT $newer AND $active) OR $handoff))
+		ORDER BY h.received_at LIMIT $limit");
+
+	if (!$stale) {
+		return;
+	}
+	$params = [];
+
+	foreach ($stale as $row) {
+		array_push($params, (int) $row['poller_id'], (string) $row['instance_uuid'], (string) $row['entity'], (int) $row['entity_id']);
+	}
+	alarmmanager_db_write('DELETE FROM plugin_alarmmanager_remote_history WHERE ' . implode(' OR ', array_fill(0, count($stale), '(poller_id = ? AND instance_uuid = ? AND entity = ? AND entity_id = ?)')), $params);
+}
 function alarmmanager_queue_table(string $queue): string {
 	return match ($queue) {
 		'processing' => 'plugin_alarmmanager_jobs', 'delivery' => 'plugin_alarmmanager_deliveries', default => throw new InvalidArgumentException('invalid_queue')

@@ -47,14 +47,21 @@ final class RuleEditorTest extends AlarmManagerTestCase {
 		$this->assertArrayNotHasKey('test', alarmmanager_admin_sections());
 	}
 
-	public function testSharedDaemonSettingsValidation(): void {
-		self::alarmmanager_test_load('includes/admin.php');
-		$settings = alarmmanager_admin_supervisor_settings(['processing_workers' => '3', 'delivery_workers' => '0']);
+	public function testDaemonWorkerCountsAreBounded(): void {
+		self::alarmmanager_test_load('includes/supervisor.php');
+		$settings = ['processing_workers' => 3, 'delivery_workers' => 0] + alarmmanager_supervisor_defaults();
+		alarmmanager_supervisor_validate($settings);
 		$this->assertFalse($settings['enabled']);
-		$this->assertSame(3, $settings['processing_workers']);
-		$this->assertSame(0, $settings['delivery_workers']);
-		$this->expectException(InvalidArgumentException::class);
-		alarmmanager_admin_supervisor_settings(['processing_workers' => '65', 'delivery_workers' => '4']);
+		$this->assertSame([3, 0], [$settings['processing_workers'], $settings['delivery_workers']], 'Zero delivery workers is a valid choice.');
+
+		foreach ([['processing_workers' => 65], ['processing_workers' => 0], ['delivery_workers' => 65], ['delivery_workers' => -1], ['processing_workers' => '3']] as $bad) {
+			try {
+				alarmmanager_supervisor_validate($bad + $settings);
+				$this->fail('Out-of-range or mistyped worker counts must be rejected: ' . json_encode($bad));
+			} catch (RuntimeException $error) {
+				$this->assertSame('invalid_supervisor_config', $error->getMessage());
+			}
+		}
 	}
 
 	public function testConfigurationCardsSaveIndependentlyWithFileImport(): void {

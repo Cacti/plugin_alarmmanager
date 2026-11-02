@@ -107,11 +107,15 @@ final class SupervisorTest extends AlarmManagerTestCase {
 			alarmmanager_daemon_write_json(dirname(alarmmanager_daemon_config_path()) . '/status.json', $status);
 			$this->assertSame([], alarmmanager_daemon_status(), 'A stale heartbeat is not a running supervisor');
 			self::alarmmanager_test_load('includes/polling.php');
-			$settings['enabled'] = true;
-			alarmmanager_save_supervisor_options($settings);
+			// The Cacti setting is the source of truth; the poller hook rewrites workers.json from it before deciding to drain.
+			$GLOBALS['alarmmanager_test_config_options']['alarmmanager_daemon_enabled']            = 'on';
+			$GLOBALS['alarmmanager_test_config_options']['alarmmanager_daemon_processing_workers'] = '3';
 			alarmmanager_poller_bottom();
+			$this->assertTrue(alarmmanager_supervisor_options()['enabled'], 'The hook applies the Cacti setting to the worker file');
 			$this->assertSame([], $GLOBALS['alarmmanager_test_workers'], 'Daemon mode skips the poller drain');
 		} finally {
+			unset($GLOBALS['alarmmanager_test_config_options']['alarmmanager_daemon_enabled'], $GLOBALS['alarmmanager_test_config_options']['alarmmanager_daemon_processing_workers']);
+
 			foreach (glob($root . '/cache/alarmmanager/*') ?: [] as $file) {
 				unlink($file);
 			}
