@@ -168,8 +168,9 @@ function alarmmanager_admin_configuration_read(string $path): array {
 
 /**
  * Backups made before device summaries moved to Cacti Settings still carry them; the summaries are now edited
- * under Settings > Alarm Manager. Builds that add an event log destination export its settings as event_log,
- * which this version has no consumer for. Both keys are dropped rather than failing the whole import.
+ * under Settings > Alarm Manager. Event log settings are environment-specific (a server-local file path) and are
+ * reconfigured from the Configuration page after a restore, not carried in a portable backup. Both keys are
+ * dropped rather than failing the whole import.
  * @param  array<string, mixed> $configuration
  * @return array<string, mixed>
  */
@@ -301,7 +302,7 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 			alarmmanager_db_write("REPLACE INTO settings (name, value) VALUES ('alarmmanager_notifications_paused', ?)", [$action === 'queue_pause' ? '1' : '0']);
 			alarmmanager_request_configuration_replication();
 		});
-		alarmmanager_log('Alarm Queue ' . ($action === 'queue_pause' ? 'paused' : 'resumed') . ' by user ' . alarmmanager_web_username());
+		alarmmanager_log(($action === 'queue_pause' ? 'WARNING: Alarm Queue paused' : 'Alarm Queue resumed') . ' by user ' . alarmmanager_web_username());
 
 		return 'Alarm Queue updated.';
 	}
@@ -394,7 +395,7 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 		return 'Test queued for delivery workers; event row ' . $id . '.';
 	}
 
-	if (!in_array($action, ['configuration_save', 'endpoint_save', 'endpoint_delete', 'rule_save'], true)) {
+	if (!in_array($action, ['configuration_save', 'event_log_save', 'endpoint_save', 'endpoint_delete', 'rule_save'], true)) {
 		throw new InvalidArgumentException('invalid_action');
 	}
 	$test_destination = $action === 'endpoint_save' && ($input['test_destination'] ?? '') === 'yes';
@@ -458,6 +459,8 @@ function alarmmanager_admin_action(#[\SensitiveParameter] array $input): string 
 		$settings = isset($_FILES['configuration_file'])
 			? alarmmanager_admin_configuration_upload($_FILES['configuration_file'])
 			: alarmmanager_admin_json($input['configuration_json'] ?? '', 1048576);
+	} elseif ($action === 'event_log_save') {
+		$settings['event_log'] = ['enabled' => isset($input['event_log_enabled']), 'target' => $input['event_log_target'] ?? 'cacti_log', 'path' => $input['event_log_path'] ?? null, 'max_bytes' => alarmmanager_admin_int($input['event_log_max_mb'] ?? 50, 1, 500) * 1048576];
 	} else {
 		$id   = alarmmanager_admin_int($input['id'] ?? 0, 0);
 		$name = $input['name'] ?? '';
@@ -775,6 +778,8 @@ function alarmmanager_admin_error_message(Throwable $error): string {
 		'invalid_rule_schedule'          => 'Choose at least one day for each enabled schedule.',
 		'invalid_schedule'               => 'Choose a valid timezone and start and end times for each schedule.',
 		'invalid_configuration'          => 'Action failed. Configuration fields are invalid.',
+		'invalid_event_log'              => 'Choose Cacti log or an external file for the event log target.',
+		'invalid_event_log_path'         => 'Enter an absolute file path for the event log, outside the plugin and Cacti web root and not a symlink.',
 		default                          => 'The action could not be completed. Check the Cacti log for an internal error. Submitted credential values were cleared.'
 	};
 }

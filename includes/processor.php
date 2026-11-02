@@ -23,12 +23,16 @@
 */
 require_once(__DIR__ . '/lifecycle.php');
 require_once(__DIR__ . '/routing.php');
+require_once(__DIR__ . '/eventlog.php');
 
 function alarmmanager_decision(int $event_id, int $rule_id, int $endpoint_id, string $reason, int $revision = 0): void {
 	alarmmanager_db_write('INSERT INTO plugin_alarmmanager_decisions (event_row_id, rule_id, endpoint_id, reason, config_revision, created_at)
 		VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP(6)) ON DUPLICATE KEY UPDATE reason = reason', [$event_id, $rule_id, $endpoint_id, $reason, $revision]);
 }
 function alarmmanager_route_event(array $record, array $event, array $state, string $disposition): void {
+	// Independent of rule matching: every event that reaches this point is a candidate,
+	// including ones no rule selects and ones kept only as history.
+	alarmmanager_event_log_write($event);
 	$event_id = (int) $record['id'];
 
 	// Archived observations remain history; upgrading must never send their old notifications.

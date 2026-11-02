@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Alarm Manager 0.12.2\n"
 "Report-Msgid-Bugs-To: https://github.com/bmfmancini/plugin_alarmmanager/issues\n"
-"POT-Creation-Date: 2026-11-01 22:53-0500\n"
+"POT-Creation-Date: 2026-11-02 13:02-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alarm Manager Developers <https://github.com/bmfmancini/plugin_alarmmanager>\n"
 "Language-Team: Alarm Manager Developers <https://github.com/bmfmancini/plugin_alarmmanager>\n"
@@ -612,128 +612,156 @@ msgstr ""
 msgid "Rotate local key"
 msgstr ""
 
-#: includes/admin_view.php:551
+#: includes/admin_view.php:553
+msgid "Event log"
+msgstr ""
+
+#: includes/admin_view.php:553
+msgid "Writes every event as it is processed, independent of which rules match or whether any destination is notified — a complete audit trail for external analysis, for example with Splunk."
+msgstr ""
+
+#: includes/admin_view.php:555
+msgid "Cacti log"
+msgstr ""
+
+#: includes/admin_view.php:555
+msgid "External file"
+msgstr ""
+
+#: includes/admin_view.php:555
+msgid "Write to"
+msgstr ""
+
+#: includes/admin_view.php:559
+msgid "One JSON object per line (occurred_at, transition, severity, device, alarm key…). The path must already exist, outside the plugin directory and Cacti's web root. Past the size limit, the file rotates to one .1 backup."
+msgstr ""
+
+#: includes/admin_view.php:559
+msgid "Save event log settings"
+msgstr ""
+
+#: includes/admin_view.php:561
 msgid "Backup and restore"
 msgstr ""
 
-#: includes/admin_view.php:551
+#: includes/admin_view.php:561
 msgid "Export"
 msgstr ""
 
-#: includes/admin_view.php:552
+#: includes/admin_view.php:562
 msgid "Endpoints, message templates, and rules as JSON. Credentials and settings are not included. Endpoint URLs can contain secrets, so keep the file private."
 msgstr ""
 
-#: includes/admin_view.php:553
+#: includes/admin_view.php:563
 msgid "Export configuration"
 msgstr ""
 
-#: includes/admin_view.php:553
+#: includes/admin_view.php:563
 msgid "Import"
 msgstr ""
 
-#: includes/admin_view.php:557
+#: includes/admin_view.php:567
 msgid "Replaces the routing configuration using the IDs in the file. Endpoints and rules missing from the file are disabled, not deleted. Saved credentials are kept."
 msgstr ""
 
-#: includes/admin_view.php:558
+#: includes/admin_view.php:568
 msgid "Import configuration"
 msgstr ""
 
-#: includes/admin_view.php:562
+#: includes/admin_view.php:572
 msgid "Local queue health"
 msgstr ""
 
-#: includes/admin_view.php:563
+#: includes/admin_view.php:573
 msgid "Jobs"
 msgstr ""
 
-#: includes/admin_view.php:563
+#: includes/admin_view.php:573
 msgid "Oldest job age (seconds)"
 msgstr ""
 
-#: includes/admin_view.php:563
+#: includes/admin_view.php:573
 msgid "Queue"
 msgstr ""
 
-#: includes/admin_view.php:563
+#: includes/admin_view.php:573
 msgid "Retries"
 msgstr ""
 
-#: includes/admin_view.php:563 includes/admin_view.php:582
+#: includes/admin_view.php:573 includes/admin_view.php:592
 #: includes/web_view.php:181
 msgid "Status"
 msgstr ""
 
-#: includes/admin_view.php:578
+#: includes/admin_view.php:588
 msgid "No queue activity recorded."
 msgstr ""
 
-#: includes/admin_view.php:581
+#: includes/admin_view.php:591
 msgid "Local worker health"
 msgstr ""
 
-#: includes/admin_view.php:582
+#: includes/admin_view.php:592
 msgid "Current job"
 msgstr ""
 
-#: includes/admin_view.php:582
+#: includes/admin_view.php:592
 msgid "Heartbeat age (seconds)"
 msgstr ""
 
-#: includes/admin_view.php:582
+#: includes/admin_view.php:592
 msgid "PID"
 msgstr ""
 
-#: includes/admin_view.php:582
+#: includes/admin_view.php:592
 msgid "Poller"
 msgstr ""
 
-#: includes/admin_view.php:582
+#: includes/admin_view.php:592
 msgid "Role"
 msgstr ""
 
-#: includes/admin_view.php:582
+#: includes/admin_view.php:592
 msgid "Worker"
 msgstr ""
 
-#: includes/admin_view.php:597
+#: includes/admin_view.php:607
 msgid "No local worker heartbeats recorded."
 msgstr ""
 
-#: includes/admin_view.php:600
+#: includes/admin_view.php:610
 msgid "Completed delivery jobs in the last 300 seconds"
 msgstr ""
 
-#: includes/admin_view.php:600
+#: includes/admin_view.php:610
 msgid "Completed processing jobs in the last 300 seconds"
 msgstr ""
 
-#: includes/admin_view.php:600
+#: includes/admin_view.php:610
 msgid "Processing streams blocked behind a failed predecessor"
 msgstr ""
 
-#: includes/admin_view.php:603
+#: includes/admin_view.php:613
 msgid "Pending jobs for destination types without a qualified transport"
 msgstr ""
 
-#: includes/admin_view.php:610
+#: includes/admin_view.php:620
 msgid "Failed deliveries and replay"
 msgstr ""
 
-#: includes/admin_view.php:610
+#: includes/admin_view.php:620
 msgid "Failed processing jobs and replay"
 msgstr ""
 
-#: includes/admin_view.php:615
+#: includes/admin_view.php:625
 msgid "Authentication"
 msgstr ""
 
-#: includes/admin_view.php:615
+#: includes/admin_view.php:625
 msgid "Authentication type"
 msgstr ""
 
-#: includes/admin_view.php:639
+#: includes/admin_view.php:649
 msgid "Saved credentials are encrypted and never displayed. New values replace the saved credential record."
 msgstr ""
 
@@ -903,8 +931,8 @@ msgstr ""
 msgid "Statistics could not be rendered."
 msgstr ""
 
-#: includes/web_view.php:129 setup.php:131 setup.php:266 setup.php:282
-#: setup.php:283
+#: includes/web_view.php:129 setup.php:131 setup.php:273 setup.php:289
+#: setup.php:290
 msgid "Alarm Manager"
 msgstr ""
 
@@ -1194,10 +1222,10 @@ msgstr ""
 msgid "Number of daemon workers that deliver notifications."
 msgstr ""
 
-#: setup.php:250
+#: setup.php:257
 msgid "Import/Export"
 msgstr ""
 
-#: setup.php:252 setup.php:258 setup.php:264
+#: setup.php:259 setup.php:265 setup.php:271
 msgid "Alarm Manager Settings"
 msgstr ""

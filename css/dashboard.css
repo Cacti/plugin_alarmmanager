@@ -166,6 +166,9 @@
 .alarmmanagerEditor label { min-width:140px; flex:1; }
 .alarmmanagerEditor input:not([type=checkbox]) { min-width:100px; flex:1; }
 #alarmmanager_app .alarmmanagerDestination > label { display:block; width:100%; }
+#alarmmanager_app .alarmmanagerEventLog label { display:block; width:100%; margin:8px 0; }
+#alarmmanager_app .alarmmanagerEventLog > div { display:block; }
+#alarmmanager_app .alarmmanagerEventLog select { margin-left:6px; }
 .alarmmanagerEditor input[type=url] { display:block; width:100%; }
 .alarmmanagerFullWidth { width:100%; flex-basis:100% !important; min-width:0 !important; }
 .alarmmanagerFullWidth textarea { width:100%; display:block; min-height:130px; font-family:monospace; }

@@ -136,7 +136,7 @@ final class ChangedPathsTest extends AlarmManagerTestCase {
 			$this->assertSame('Alarm Queue updated.', alarmmanager_admin_action(['action' => 'queue_resume']));
 			$this->assertSame('Waiting notifications cleared. History preserved.', alarmmanager_admin_action(['action' => 'queue_clear', 'confirmed' => 'yes']));
 			$this->assertSame(
-				['Alarm Queue paused by user alice', 'Alarm Queue resumed by user alice', 'Waiting notifications cleared by user alice'],
+				['WARNING: Alarm Queue paused by user alice', 'Alarm Queue resumed by user alice', 'Waiting notifications cleared by user alice'],
 				array_values(array_filter($GLOBALS['alarmmanager_test_log'], static fn (string $line): bool => str_contains($line, ' by user '))),
 				'Queue actions name the person, not the user ID.'
 			);

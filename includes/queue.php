@@ -29,6 +29,14 @@ function alarmmanager_notifications_paused(): bool {
 
 	return ($row['value'] ?? '0') === '1';
 }
+/** Deliveries still waiting on this poller: shown on the Alarm Queue page and in the poller STATS line. */
+function alarmmanager_queue_waiting_count(): int {
+	$row = alarmmanager_db_row("SELECT COUNT(*) AS waiting FROM plugin_alarmmanager_deliveries AS d
+		INNER JOIN plugin_alarmmanager_events AS e ON e.id = d.event_row_id
+		WHERE d.status = 'pending' AND e.processing_poller_id = ?", [alarmmanager_local_poller()]);
+
+	return (int) ($row['waiting'] ?? 0);
+}
 
 /**
  * Purge alert history older than the configured retention, one bounded batch per call.
@@ -254,7 +262,8 @@ function alarmmanager_finish_delivery(array $claim, array $result): bool {
 	$duration    = $result['duration_ms'] ?? 0;
 	$duration    = is_int($duration) ? max(0, $duration) : 0;
 
-	return alarmmanager_transaction(function () use ($claim, $outcome, $code, $retry_after, $duration, $reference): bool {
+	$status = null;
+	$found  = alarmmanager_transaction(function () use ($claim, $outcome, $code, $retry_after, $duration, $reference, &$status): bool {
 		$job = alarmmanager_db_row("SELECT id, attempts FROM plugin_alarmmanager_deliveries WHERE id = ? AND status = 'leased' AND lease_token = ? AND lease_until > UTC_TIMESTAMP(6) FOR UPDATE", [$claim['id'], $claim['lease_token']]);
 
 		if (!$job) {
@@ -272,6 +281,39 @@ function alarmmanager_finish_delivery(array $claim, array $result): bool {
 
 		return true;
 	});
+
+	// A final outcome, logged in plain language after the transaction commits: 'pending'
+	// (still retrying) stays quiet, matching how a transient retry is not yet a failure.
+	if ($found && ($status === 'completed' || $status === 'failed')) {
+		alarmmanager_log_delivery_result($claim, $status, $code);
+	}
+
+	return $found;
+}
+/**
+ * Best effort: a courtesy log line is never worth risking the delivery outcome it describes.
+ * @param array<string, mixed> $claim
+ */
+function alarmmanager_log_delivery_result(array $claim, string $status, string $code): void {
+	try {
+		$row     = alarmmanager_db_row('SELECT payload FROM plugin_alarmmanager_events WHERE id = ?', [$claim['event_row_id']]);
+		$payload = $row ? json_decode($row['payload'], true, 32) : null;
+		$device  = is_array($payload) ? (string) ($payload['device']['hostname'] ?? '') : '';
+		$device  = $device !== '' ? $device : 'an unknown device';
+		$name    = (string) ($claim['endpoint']['name'] ?? 'its destination');
+
+		// The hostname and destination name are only type/length checked upstream, so strip
+		// control characters here to stop CR/LF in either value from forging extra log lines.
+		$sanitize = static fn (string $value): string => (string) preg_replace('/[\x00-\x1f\x7f]+/', ' ', $value);
+		$device   = $sanitize($device);
+		$name     = $sanitize($name);
+
+		alarmmanager_log($status === 'completed'
+			? '- Processed alarm for ' . $device . '. Alarm sent to ' . $name . '.'
+			: 'ERROR: Alarm delivery failed for ' . $device . ' to ' . $name . ': ' . $code);
+	} catch (Throwable) {
+		// Swallowed: see the comment above.
+	}
 }
 function alarmmanager_fail_processing(array $claim, string $code = 'processing_error'): bool {
 	if (!preg_match('/\A[a-z0-9_]{1,32}\z/D', $code)) {

@@ -112,7 +112,7 @@ final class EventRoutingTest extends AlarmManagerTestCase {
 				$this->assertSame('invalid_configuration', $error->getMessage());
 			}
 		}
-		$this->assertSame(['version' => 1, 'endpoints' => [], 'rules' => []], alarmmanager_configuration(['version' => 1, 'endpoints' => [], 'rules' => []]));
+		$this->assertSame(['version' => 1, 'endpoints' => [], 'rules' => [], 'event_log' => ['enabled' => false, 'target' => 'cacti_log', 'path' => null, 'max_bytes' => 52428800]], alarmmanager_configuration(['version' => 1, 'endpoints' => [], 'rules' => []]));
 	}
 
 	public function testRetiredTablesAreDroppedAtSchemaFourteen(): void {
