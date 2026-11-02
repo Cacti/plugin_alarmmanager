@@ -31,7 +31,7 @@ require_once(__DIR__ . '/runtime.php');
  */
 function alarmmanager_event_log_settings(): array {
 	$row           = alarmmanager_db_row('SELECT h.definition FROM plugin_alarmmanager_configuration_history AS h JOIN plugin_alarmmanager_schema AS s ON s.config_revision = h.revision WHERE s.id = 1');
-	$configuration = $row ? json_decode($row['definition'], true, 24, JSON_THROW_ON_ERROR) : [];
+	$configuration = isset($row['definition']) ? json_decode($row['definition'], true, 24, JSON_THROW_ON_ERROR) : [];
 
 	return ($configuration['event_log'] ?? []) + ['enabled' => false, 'target' => 'cacti_log', 'path' => null, 'max_bytes' => 52428800];
 }
@@ -58,7 +58,11 @@ function alarmmanager_event_log_record(array $event): array {
  * confirms the path looks like a path, not that the filesystem still agrees.
  */
 function alarmmanager_event_log_path_validate(string $path): string {
-	if (!str_starts_with($path, '/') || is_link($path)) {
+	global $config;
+
+	// A trailing separator makes is_link() follow a symlink-to-file here, yet the
+	// basename()/dirname() split below drops it; reject it so the symlink check is honest.
+	if (!str_starts_with($path, '/') || str_ends_with($path, '/') || is_link($path)) {
 		throw new RuntimeException('invalid_event_log_path');
 	}
 	$directory = realpath(dirname($path));
@@ -67,7 +71,17 @@ function alarmmanager_event_log_path_validate(string $path): string {
 	if (!$directory || $name === '') {
 		throw new RuntimeException('invalid_event_log_path');
 	}
-	$forbidden = array_filter([realpath(__DIR__ . '/..'), realpath(__DIR__ . '/../../..')]);
+	$resolved = $directory . '/' . $name;
+
+	// Re-check the exact pathname that will be opened: a symlink the trailing-slash case
+	// could have masked, and any existing non-regular target (FIFO, device, directory)
+	// whose append would block the holding transaction or corrupt the log.
+	if (is_link($resolved) || (file_exists($resolved) && !is_file($resolved))) {
+		throw new RuntimeException('invalid_event_log_path');
+	}
+	// Cacti's web root is the running base_path, not the plugin's physical ancestors, so a
+	// symlinked plugin checkout cannot route the log into a web-servable directory.
+	$forbidden = array_filter([realpath(__DIR__ . '/..'), realpath((string) ($config['base_path'] ?? ''))]);
 
 	foreach ($forbidden as $root) {
 		if (str_starts_with($directory . '/', $root . '/')) {
@@ -75,15 +89,23 @@ function alarmmanager_event_log_path_validate(string $path): string {
 		}
 	}
 
-	return $directory . '/' . $name;
+	return $resolved;
 }
 /** Rotates one backup (path.1) past the size threshold; called with the write lock already held. */
 function alarmmanager_event_log_rotate(string $path, int $max_bytes): void {
 	clearstatcache(true, $path);
 
 	// The common case is the very first write, when there is nothing to rotate yet.
-	if (is_file($path) && filesize($path) >= $max_bytes) {
-		@rename($path, $path . '.1');
+	if (!is_file($path) || filesize($path) < $max_bytes) {
+		return;
+	}
+	$backup = $path . '.1';
+
+	// A non-regular backup target can never be replaced, and any other rename failure (an
+	// unwritable directory) must stop the append rather than let the file grow past its limit
+	// unchecked; the caller reports and skips it.
+	if ((file_exists($backup) && !is_file($backup)) || !@rename($path, $backup)) {
+		throw new RuntimeException('event_log_rotate_failed');
 	}
 }
 /**

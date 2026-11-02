@@ -209,7 +209,7 @@ function alarmmanager_http_transport(array $event, array $endpoint, string $idem
 function alarmmanager_email_transport(array $event, array $endpoint, string $idempotency): array {
 	global $config;
 	$settings = alarmmanager_endpoint_transport($endpoint);
-	$payload  = alarmmanager_map_payload($settings['mapping'], $event);
+	$payload  = alarmmanager_map_payload($settings['mapping'], $event, [], $settings['html'] ? ['body'] : []);
 
 	if (!is_string($payload->subject ?? null) || !is_string($payload->body ?? null) || strlen($payload->subject) > 512 || preg_match('/[\r\n\x00]/', $payload->subject)) {
 		throw new InvalidArgumentException('email_payload_invalid');

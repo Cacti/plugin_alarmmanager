@@ -58,9 +58,51 @@ final class EventLogTest extends AlarmManagerTestCase {
 			} catch (RuntimeException $error) {
 				$this->assertSame('invalid_event_log_path', $error->getMessage());
 			}
+
+			// A trailing separator makes is_link() follow a symlink-to-file, so it must be rejected.
+			$linkdir = $directory . '/linkdir';
+			symlink($real, $linkdir);
+
+			foreach ([$linkdir . '/', $directory . '/'] as $trailing) {
+				try {
+					alarmmanager_event_log_path_validate($trailing);
+					$this->fail("Accepted a trailing-separator path: $trailing");
+				} catch (RuntimeException $error) {
+					$this->assertSame('invalid_event_log_path', $error->getMessage());
+				}
+			}
+
+			// An existing non-regular target (here a directory) would block or corrupt an append.
+			mkdir($directory . '/nested');
+
+			try {
+				alarmmanager_event_log_path_validate($directory . '/nested');
+				$this->fail('Accepted an existing non-regular target.');
+			} catch (RuntimeException $error) {
+				$this->assertSame('invalid_event_log_path', $error->getMessage());
+			}
+
+			// The forbidden Cacti root is the running base_path, not the plugin's ancestors.
+			$before_base                    = $GLOBALS['config']['base_path'] ?? null;
+			$GLOBALS['config']['base_path'] = $directory;
+
+			try {
+				alarmmanager_event_log_path_validate($directory . '/inside-web-root.jsonl');
+				$this->fail('Accepted a path inside the Cacti base_path.');
+			} catch (RuntimeException $error) {
+				$this->assertSame('invalid_event_log_path', $error->getMessage());
+			} finally {
+				$GLOBALS['config']['base_path'] = $before_base;
+			}
 			$this->assertSame($directory . '/events.jsonl', alarmmanager_event_log_path_validate($directory . '/events.jsonl'));
 		} finally {
-			array_map('unlink', glob($directory . '/*'));
+			foreach (glob($directory . '/*') ?: [] as $entry) {
+				if (is_dir($entry) && !is_link($entry)) {
+					rmdir($entry);
+				} else {
+					unlink($entry);
+				}
+			}
 			rmdir($directory);
 		}
 	}
@@ -138,19 +180,55 @@ final class EventLogTest extends AlarmManagerTestCase {
 		$this->assertStringContainsString('event_log_path_unset', $GLOBALS['alarmmanager_test_log'][0]);
 	}
 
-	public function testShortWriteIsSwallowedAndNeverStopsAlarmProcessing(): void {
-		if (!is_readable('/dev/full')) {
-			self::markTestSkipped('/dev/full is required to force a short write.');
+	public function testExistingNonRegularTargetIsRejectedBeforeOpening(): void {
+		if (!file_exists('/dev/full')) {
+			self::markTestSkipped('/dev/full is required to exercise a non-regular target.');
 		}
 		self::alarmmanager_test_load('includes/eventlog.php');
-		$GLOBALS['alarmmanager_test_log'] = [];
-		// /dev/full always reports the disk full on write, forcing fwrite() to return fewer
-		// bytes than requested without touching real disk state or process permissions. The
-		// lock file lives in the system temp directory, so creating it never depends on /dev
-		// being writable.
+		$GLOBALS['alarmmanager_test_log']           = [];
+		// /dev/full is a character device: a valid path that is not a regular file. Opening it
+		// for append could block or discard data, so validation must reject it up front rather
+		// than letting the writer touch it while holding the event-log lock.
 		$GLOBALS['alarmmanager_test_query_handler'] = $this->withEventLog(['enabled' => true, 'target' => 'file', 'path' => '/dev/full', 'max_bytes' => 1048576]);
 		alarmmanager_event_log_write($this->sampleEvent());
-		$this->assertStringContainsString('event_log_write_failed', $GLOBALS['alarmmanager_test_log'][0]);
+		$this->assertStringContainsString('invalid_event_log_path', $GLOBALS['alarmmanager_test_log'][0]);
+	}
+
+	public function testRotationFailureIsReportedAndSkipsTheAppend(): void {
+		self::alarmmanager_test_load('includes/eventlog.php');
+		$directory = sys_get_temp_dir() . '/am-eventlog-rotate-' . bin2hex(random_bytes(8));
+		mkdir($directory);
+
+		try {
+			$path = $directory . '/events.jsonl';
+			file_put_contents($path, str_repeat('x', 4096));
+			// An unreplaceable backup (a non-empty directory where path.1 would go) makes rename()
+			// fail, so rotation must raise rather than keep appending past the size limit.
+			mkdir($path . '.1');
+			file_put_contents($path . '.1/blocker', 'x');
+			$GLOBALS['alarmmanager_test_log']           = [];
+			$GLOBALS['alarmmanager_test_query_handler'] = $this->withEventLog(['enabled' => true, 'target' => 'file', 'path' => $path, 'max_bytes' => 1024]);
+			alarmmanager_event_log_write($this->sampleEvent());
+			$this->assertStringContainsString('event_log_rotate_failed', $GLOBALS['alarmmanager_test_log'][0]);
+			$this->assertSame(4096, filesize($path), 'A failed rotation must not append to the over-limit file.');
+		} finally {
+			if (is_file($path . '.1/blocker')) {
+				unlink($path . '.1/blocker');
+			}
+
+			if (is_dir($path . '.1')) {
+				rmdir($path . '.1');
+			}
+
+			foreach (glob($directory . '/*') ?: [] as $entry) {
+				if (is_dir($entry) && !is_link($entry)) {
+					rmdir($entry);
+				} else {
+					unlink($entry);
+				}
+			}
+			rmdir($directory);
+		}
 	}
 
 	public function testRouteEventLogsEveryEventRegardlessOfDispositionOrRuleMatch(): void {
@@ -263,7 +341,7 @@ final class EventLogTest extends AlarmManagerTestCase {
 			ob_end_clean();
 		}
 		$document = new DOMDocument();
-		@$document->loadHTML($html);
+		$document->loadHTML($html, LIBXML_NOERROR | LIBXML_NOWARNING);
 		$xpath = new DOMXPath($document);
 		$this->assertSame(1, $xpath->query('//form[input[@name="action" and @value="event_log_save"]]')->length);
 		$this->assertSame(1, $xpath->query('//form[input[@value="event_log_save"]]//input[@name="event_log_enabled" and @checked]')->length);

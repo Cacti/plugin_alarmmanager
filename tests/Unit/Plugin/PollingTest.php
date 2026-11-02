@@ -37,6 +37,27 @@ final class PollingTest extends AlarmManagerTestCase {
 		}
 	}
 
+	public function testSettingsAndPurgeFailuresAreLoggedAndTheDrainContinues(): void {
+		self::alarmmanager_test_load('includes/polling.php');
+		$before                                      = [$GLOBALS['config'], $GLOBALS['alarmmanager_test_config_options'] ?? []];
+		$blocker                                     = tempnam(sys_get_temp_dir(), 'alarmmanager-base-');
+		$GLOBALS['config']['base_path']              = $blocker;
+		$GLOBALS['alarmmanager_test_config_options'] = ['alarmmanager_daemon_enabled' => 'on', 'alarmmanager_retention_unit' => 'days', 'alarmmanager_retention_value' => '30'];
+		$GLOBALS['alarmmanager_test_log']            = [];
+
+		try {
+			// The worker file cannot be written, and without a write handler the purge's first DELETE fails.
+			alarmmanager_poller_bottom(['poller_bottom']);
+			$log = implode("\n", $GLOBALS['alarmmanager_test_log']);
+			$this->assertStringContainsString('daemon settings could not be applied; previous local settings retained', $log);
+			$this->assertStringContainsString('history purge failed; aged history retained', $log);
+			$this->assertCount(2, $GLOBALS['alarmmanager_test_workers'], 'Both failures leave the queue drain running.');
+		} finally {
+			[$GLOBALS['config'], $GLOBALS['alarmmanager_test_config_options']] = $before;
+			unlink($blocker);
+		}
+	}
+
 	public function testPollerBudgetIsBounded(): void {
 		self::alarmmanager_test_load('includes/polling.php');
 		$budget = alarmmanager_poller_budget();

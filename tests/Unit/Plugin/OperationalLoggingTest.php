@@ -76,6 +76,17 @@ final class OperationalLoggingTest extends AlarmManagerTestCase {
 		$this->assertSame(['- Processed alarm for an unknown device. Alarm sent to Ops SMS.'], $GLOBALS['alarmmanager_test_log']);
 	}
 
+	public function testControlCharactersInDeviceAndDestinationCannotForgeLogLines(): void {
+		self::alarmmanager_test_load('includes/queue.php');
+		$GLOBALS['alarmmanager_test_log'] = [];
+		$claim                            = $this->claim();
+		$claim['endpoint']['name']        = "Ops SMS\r\nWARNING: forged line";
+		$this->withDeliveryHarness(['id' => 1, 'attempts' => 1], ['device' => ['hostname' => "core01\nINFO: injected"]]);
+		$this->assertTrue(alarmmanager_finish_delivery($claim, ['outcome' => 'success', 'code' => 'http_200']));
+		$this->assertSame(['- Processed alarm for core01 INFO: injected. Alarm sent to Ops SMS WARNING: forged line.'], $GLOBALS['alarmmanager_test_log']);
+		$this->assertCount(1, $GLOBALS['alarmmanager_test_log'], 'A single sanitized line, never extra forged entries.');
+	}
+
 	public function testACourtesyLogFailureNeverRisksTheDeliveryOutcomeItDescribes(): void {
 		self::alarmmanager_test_load('includes/queue.php');
 		$GLOBALS['alarmmanager_test_cell_handler']    = static fn ($sql) => 0;
@@ -117,7 +128,7 @@ final class OperationalLoggingTest extends AlarmManagerTestCase {
 			$GLOBALS['alarmmanager_test_log']             = [];
 			alarmmanager_admin_action(['action' => 'queue_pause', 'revision' => 0]);
 			alarmmanager_admin_action(['action' => 'queue_resume', 'revision' => 0]);
-			$this->assertSame(['WARNING: Alarm Queue paused by user 9', 'Alarm Queue resumed by user 9'], $GLOBALS['alarmmanager_test_log']);
+			$this->assertSame(['WARNING: Alarm Queue paused by user user9', 'Alarm Queue resumed by user user9'], $GLOBALS['alarmmanager_test_log']);
 		} finally {
 			[$_SESSION, $_SERVER['REQUEST_METHOD'], $GLOBALS['alarmmanager_test_config_options'], $GLOBALS['alarmmanager_test_allowed_realms']] = $before;
 			unset($GLOBALS['alarmmanager_test_csrf_valid']);
@@ -144,7 +155,7 @@ final class OperationalLoggingTest extends AlarmManagerTestCase {
 			function html_header(...$args) {
 			}
 		}
-		$GLOBALS['alarmmanager_test_query_handler'] = static fn ($sql) => str_contains($sql, 'COUNT(*) AS waiting') ? [['waiting' => 3]] : [];
+		$GLOBALS['alarmmanager_test_query_handler'] = static fn ($sql) => str_contains($sql, 'COUNT(*) AS waiting') ? [['waiting' => 3, 'oldest' => '2026-10-27 03:00:00']] : [];
 		ob_start();
 
 		try {
@@ -153,6 +164,7 @@ final class OperationalLoggingTest extends AlarmManagerTestCase {
 		} finally {
 			ob_end_clean();
 		}
-		$this->assertStringContainsString('Waiting messages: 3', $html);
+		$this->assertStringContainsString('<div class="alarmmanagerQueueCounter"><strong>3</strong>', $html);
+		$this->assertStringContainsString('waiting messages', $html);
 	}
 }

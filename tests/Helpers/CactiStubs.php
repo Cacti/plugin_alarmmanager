@@ -253,6 +253,52 @@ if (!function_exists('read_config_option')) {
 	}
 }
 
+$GLOBALS['alarmmanager_test_config_options'] ??= [];
+
+if (!function_exists('set_config_option')) {
+	function set_config_option($config_name, $value, $remote = false) {
+		$GLOBALS['alarmmanager_test_config_options'][$config_name] = $value;
+	}
+}
+
+if (!function_exists('get_nfilter_request_var')) {
+	function get_nfilter_request_var($name, $default = '') {
+		return $GLOBALS['alarmmanager_test_request'][$name] ?? $default;
+	}
+}
+
+if (!function_exists('get_filter_request_var')) {
+	/** Reads $_REQUEST. Cacti rejects an invalid value; the double falls back to the supplied default so tests can read the result. */
+	function get_filter_request_var($name, $filter = FILTER_VALIDATE_INT, $options = []) {
+		$value = $_REQUEST[$name] ?? '';
+
+		if ($filter === FILTER_CALLBACK) {
+			return $options['options']($value) ?: ($options['default'] ?? '');
+		}
+		$result = isset($_REQUEST[$name]) ? filter_var($value, $filter, $options) : false;
+
+		return $result === false ? ($options['default'] ?? null) : $result;
+	}
+}
+
+if (!function_exists('get_username')) {
+	function get_username($user_id) {
+		return $GLOBALS['alarmmanager_test_usernames'][$user_id] ?? 'user' . $user_id;
+	}
+}
+
+if (!defined('MESSAGE_LEVEL_ERROR')) {
+	define('MESSAGE_LEVEL_ERROR', 3);
+}
+
+if (!function_exists('raise_message')) {
+	function raise_message($message_id, $message = '', $message_level = 0, $message_title = null) {
+		$GLOBALS['alarmmanager_test_messages'][] = [$message_id, $message, $message_level];
+
+		return true;
+	}
+}
+
 if (!function_exists('is_realm_allowed')) {
 	function is_realm_allowed($realm) {
 		return !empty($GLOBALS['alarmmanager_test_allowed_realms']) && in_array($realm, $GLOBALS['alarmmanager_test_allowed_realms'], true);
