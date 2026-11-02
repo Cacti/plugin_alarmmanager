@@ -268,14 +268,16 @@ if (!function_exists('get_nfilter_request_var')) {
 }
 
 if (!function_exists('get_filter_request_var')) {
-	/** Cacti rejects an invalid value; the double falls back to the supplied default so tests can read the result. */
+	/** Reads $_REQUEST. Cacti rejects an invalid value; the double falls back to the supplied default so tests can read the result. */
 	function get_filter_request_var($name, $filter = FILTER_VALIDATE_INT, $options = []) {
-		if (!isset($GLOBALS['alarmmanager_test_request'][$name])) {
-			return $options['default'] ?? null;
-		}
-		$value = filter_var($GLOBALS['alarmmanager_test_request'][$name], $filter, $options);
+		$value = $_REQUEST[$name] ?? '';
 
-		return $value === false ? ($options['default'] ?? null) : $value;
+		if ($filter === FILTER_CALLBACK) {
+			return $options['options']($value) ?: ($options['default'] ?? '');
+		}
+		$result = isset($_REQUEST[$name]) ? filter_var($value, $filter, $options) : false;
+
+		return $result === false ? ($options['default'] ?? null) : $result;
 	}
 }
 

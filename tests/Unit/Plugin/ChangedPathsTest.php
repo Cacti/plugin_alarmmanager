@@ -158,6 +158,36 @@ final class ChangedPathsTest extends AlarmManagerTestCase {
 		});
 	}
 
+	public function testConfigurationUploadNeedsAGenuineUpload(): void {
+		self::alarmmanager_test_load('includes/admin.php');
+		$path = sys_get_temp_dir() . '/alarmmanager-upload-' . bin2hex(random_bytes(5)) . '.json';
+		file_put_contents($path, '{"version":1,"endpoints":[],"rules":[],"event_log":{}}');
+
+		try {
+			$this->assertSame(['version' => 1, 'endpoints' => [], 'rules' => []], alarmmanager_admin_configuration_upload(['error' => UPLOAD_ERR_OK, 'tmp_name' => $path], static fn (string $file): bool => $file === $path));
+
+			// Rejected: the check fails, PHP reports an upload error, or there is no temporary file at all. With no check
+			// supplied PHP's own is_uploaded_file() decides, and a file that did not arrive over HTTP fails it.
+			$attempts = [
+				[['error' => UPLOAD_ERR_OK, 'tmp_name' => $path], static fn (string $name): bool => false],
+				[['error' => UPLOAD_ERR_PARTIAL, 'tmp_name' => $path], static fn (string $name): bool => true],
+				[['error' => UPLOAD_ERR_OK], static fn (string $name): bool                           => true],
+				[['error' => UPLOAD_ERR_OK, 'tmp_name' => $path], null]
+			];
+
+			foreach ($attempts as [$file, $verify]) {
+				try {
+					alarmmanager_admin_configuration_upload($file, $verify);
+					$this->fail('A file PHP did not accept as an upload must be rejected.');
+				} catch (InvalidArgumentException $error) {
+					$this->assertSame('invalid_configuration_upload', $error->getMessage());
+				}
+			}
+		} finally {
+			@unlink($path);
+		}
+	}
+
 	public function testConfigurationFileIsReadWithoutRetiredKeys(): void {
 		self::alarmmanager_test_load('includes/admin.php');
 		$path = sys_get_temp_dir() . '/alarmmanager-import-' . bin2hex(random_bytes(5)) . '.json';

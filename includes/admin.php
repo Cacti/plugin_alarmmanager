@@ -139,11 +139,14 @@ function alarmmanager_admin_json($value, int $limit = 131072): array {
 }
 /**
  * Read only a PHP-verified upload; never accept a client-supplied filesystem path.
- * @param  array<string, mixed> $file
+ * @param  array<string, mixed>          $file
+ * @param  (callable(string): bool)|null $verify Decides whether the path is a genuine upload; PHP's own check by default.
  * @return array<string, mixed>
  */
-function alarmmanager_admin_configuration_upload(array $file): array {
-	if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK || !is_string($file['tmp_name'] ?? null) || !is_uploaded_file($file['tmp_name'])) {
+function alarmmanager_admin_configuration_upload(array $file, ?callable $verify = null): array {
+	$verify ??= 'is_uploaded_file';
+
+	if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK || !is_string($file['tmp_name'] ?? null) || !$verify($file['tmp_name'])) {
 		throw new InvalidArgumentException('invalid_configuration_upload');
 	}
 

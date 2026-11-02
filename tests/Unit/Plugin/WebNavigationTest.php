@@ -38,8 +38,9 @@ final class WebNavigationTest extends AlarmManagerTestCase {
 
 	public function testRetiredDecisionsTabMapsToEvents(): void {
 		self::alarmmanager_test_load('includes/web_view.php');
-		$tab = static function (?string $requested): string {
-			$GLOBALS['alarmmanager_test_request'] = $requested === null ? [] : ['tab' => $requested];
+		$before = $_REQUEST;
+		$tab    = static function (?string $requested): string {
+			$_REQUEST = $requested === null ? [] : ['tab' => $requested];
 
 			return alarmmanager_view_tab();
 		};
@@ -50,7 +51,7 @@ final class WebNavigationTest extends AlarmManagerTestCase {
 			$this->assertSame('conditions', $tab('conditions'));
 			$this->assertSame('dashboard', $tab(null), 'No tab opens the dashboard.');
 		} finally {
-			unset($GLOBALS['alarmmanager_test_request']);
+			$_REQUEST = $before;
 		}
 	}
 
