@@ -208,3 +208,23 @@ if (!function_exists('cacti_log')) {
 		return false;
 	}
 }
+
+if (!function_exists('read_config_option')) {
+	/**
+	 * Cacti reads the settings table and caches it; this reads the same table on the current test connection
+	 * without counting a query. An unset name, or a test database without the table, reads as ''.
+	 * @param mixed $config_name
+	 * @param mixed $force
+	 */
+	function read_config_option($config_name, $force = false) {
+		try {
+			$query = $GLOBALS['alarmmanager_test_db']->prepare('SELECT value FROM settings WHERE name = ?');
+			$query->execute([$config_name]);
+			$value = $query->fetchColumn();
+		} catch (PDOException $error) {
+			$value = false;
+		}
+
+		return $value === false || $value === null ? '' : $value;
+	}
+}

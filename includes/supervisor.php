@@ -73,9 +73,19 @@ function alarmmanager_supervisor_validate(array $settings): void {
 function alarmmanager_daemon_write_json(string $path, array $data): void {
 	$directory = dirname($path);
 
-	if (!is_dir($directory) && !@mkdir($directory, 0770, true) && !is_dir($directory)) {
-		throw new RuntimeException('daemon_config_write_failed');
+	if (!is_dir($directory)) {
+		// mkdir() warns when it cannot create the path, so check the nearest existing ancestor first.
+		$ancestor = dirname($directory);
+
+		while (!file_exists($ancestor) && dirname($ancestor) !== $ancestor) {
+			$ancestor = dirname($ancestor);
+		}
+
+		if (!is_dir($ancestor) || !is_writable($ancestor) || (!@mkdir($directory, 0770, true) && !is_dir($directory))) {
+			throw new RuntimeException('daemon_config_write_failed');
+		}
 	}
+
 	// tempnam() silently falls back to the system temp directory, and raises a notice, when this one is not writable.
 	if (!is_writable($directory)) {
 		throw new RuntimeException('daemon_config_write_failed');

@@ -40,7 +40,8 @@ final class PollingTest extends AlarmManagerTestCase {
 	public function testSettingsAndPurgeFailuresAreLoggedAndTheDrainContinues(): void {
 		self::alarmmanager_test_load('includes/polling.php');
 		$before                                      = [$GLOBALS['config'], $GLOBALS['alarmmanager_test_config_options'] ?? []];
-		$GLOBALS['config']['base_path']              = '/proc/alarmmanager-missing';
+		$blocker                                     = tempnam(sys_get_temp_dir(), 'alarmmanager-base-');
+		$GLOBALS['config']['base_path']              = $blocker;
 		$GLOBALS['alarmmanager_test_config_options'] = ['alarmmanager_daemon_enabled' => 'on', 'alarmmanager_retention_unit' => 'days', 'alarmmanager_retention_value' => '30'];
 		$GLOBALS['alarmmanager_test_log']            = [];
 
@@ -53,6 +54,7 @@ final class PollingTest extends AlarmManagerTestCase {
 			$this->assertCount(2, $GLOBALS['alarmmanager_test_workers'], 'Both failures leave the queue drain running.');
 		} finally {
 			[$GLOBALS['config'], $GLOBALS['alarmmanager_test_config_options']] = $before;
+			unlink($blocker);
 		}
 	}
 

@@ -57,7 +57,8 @@ function alarmmanager_remote_private_read(string $path, int $limit): string {
  */
 function alarmmanager_remote_private_verify($stream, string $path): void {
 	$opened = fstat($stream);
-	$named  = @lstat($path);
+	// lstat() warns on a missing path; is_link() and file_exists() do not.
+	$named = is_link($path) || file_exists($path) ? lstat($path) : false;
 
 	if (!$opened || !$named || is_link($path) || $opened['ino'] !== $named['ino'] || $opened['dev'] !== $named['dev'] || $opened['nlink'] !== 1) {
 		throw new RuntimeException('private_output_invalid');
