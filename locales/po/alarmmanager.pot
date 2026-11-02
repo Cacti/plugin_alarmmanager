@@ -612,128 +612,128 @@ msgstr ""
 msgid "Rotate local key"
 msgstr ""
 
-#: includes/admin_view.php:541
+#: includes/admin_view.php:540
 msgid "Backup and restore"
 msgstr ""
 
-#: includes/admin_view.php:541
+#: includes/admin_view.php:540
 msgid "Export"
 msgstr ""
 
-#: includes/admin_view.php:542
+#: includes/admin_view.php:541
 msgid "Endpoints, message templates, and rules as JSON. Credentials and settings are not included. Endpoint URLs can contain secrets, so keep the file private."
 msgstr ""
 
-#: includes/admin_view.php:543
+#: includes/admin_view.php:542
 msgid "Export configuration"
 msgstr ""
 
-#: includes/admin_view.php:543
+#: includes/admin_view.php:542
 msgid "Import"
 msgstr ""
 
-#: includes/admin_view.php:547
+#: includes/admin_view.php:546
 msgid "Replaces the routing configuration using the IDs in the file. Endpoints and rules missing from the file are disabled, not deleted. Saved credentials are kept."
 msgstr ""
 
-#: includes/admin_view.php:548
+#: includes/admin_view.php:547
 msgid "Import configuration"
 msgstr ""
 
-#: includes/admin_view.php:552
+#: includes/admin_view.php:551
 msgid "Local queue health"
 msgstr ""
 
-#: includes/admin_view.php:553
+#: includes/admin_view.php:552
 msgid "Jobs"
 msgstr ""
 
-#: includes/admin_view.php:553
+#: includes/admin_view.php:552
 msgid "Oldest job age (seconds)"
 msgstr ""
 
-#: includes/admin_view.php:553
+#: includes/admin_view.php:552
 msgid "Queue"
 msgstr ""
 
-#: includes/admin_view.php:553
+#: includes/admin_view.php:552
 msgid "Retries"
 msgstr ""
 
-#: includes/admin_view.php:553 includes/admin_view.php:572
+#: includes/admin_view.php:552 includes/admin_view.php:571
 #: includes/web_view.php:181
 msgid "Status"
 msgstr ""
 
-#: includes/admin_view.php:568
+#: includes/admin_view.php:567
 msgid "No queue activity recorded."
 msgstr ""
 
-#: includes/admin_view.php:571
+#: includes/admin_view.php:570
 msgid "Local worker health"
 msgstr ""
 
-#: includes/admin_view.php:572
+#: includes/admin_view.php:571
 msgid "Current job"
 msgstr ""
 
-#: includes/admin_view.php:572
+#: includes/admin_view.php:571
 msgid "Heartbeat age (seconds)"
 msgstr ""
 
-#: includes/admin_view.php:572
+#: includes/admin_view.php:571
 msgid "PID"
 msgstr ""
 
-#: includes/admin_view.php:572
+#: includes/admin_view.php:571
 msgid "Poller"
 msgstr ""
 
-#: includes/admin_view.php:572
+#: includes/admin_view.php:571
 msgid "Role"
 msgstr ""
 
-#: includes/admin_view.php:572
+#: includes/admin_view.php:571
 msgid "Worker"
 msgstr ""
 
-#: includes/admin_view.php:587
+#: includes/admin_view.php:586
 msgid "No local worker heartbeats recorded."
 msgstr ""
 
-#: includes/admin_view.php:590
+#: includes/admin_view.php:589
 msgid "Completed delivery jobs in the last 300 seconds"
 msgstr ""
 
-#: includes/admin_view.php:590
+#: includes/admin_view.php:589
 msgid "Completed processing jobs in the last 300 seconds"
 msgstr ""
 
-#: includes/admin_view.php:590
+#: includes/admin_view.php:589
 msgid "Processing streams blocked behind a failed predecessor"
 msgstr ""
 
-#: includes/admin_view.php:593
+#: includes/admin_view.php:592
 msgid "Pending jobs for destination types without a qualified transport"
 msgstr ""
 
-#: includes/admin_view.php:600
+#: includes/admin_view.php:599
 msgid "Failed deliveries and replay"
 msgstr ""
 
-#: includes/admin_view.php:600
+#: includes/admin_view.php:599
 msgid "Failed processing jobs and replay"
 msgstr ""
 
-#: includes/admin_view.php:605
+#: includes/admin_view.php:604
 msgid "Authentication"
 msgstr ""
 
-#: includes/admin_view.php:605
+#: includes/admin_view.php:604
 msgid "Authentication type"
 msgstr ""
 
-#: includes/admin_view.php:629
+#: includes/admin_view.php:628
 msgid "Saved credentials are encrypted and never displayed. New values replace the saved credential record."
 msgstr ""
 
