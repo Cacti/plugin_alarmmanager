@@ -129,10 +129,14 @@ function alarmmanager_mapping_template_fields(string $template): array {
 	return $fields;
 }
 
-/** @param array<string, mixed> $fields */
-function alarmmanager_mapping_template(string $template, array $fields): ?string {
+/**
+ * Substitute event fields into a template. With $html, each substituted value is HTML-encoded and the
+ * administrator's own template text is left as written, so markup around the fields survives.
+ * @param array<string, mixed> $fields
+ */
+function alarmmanager_mapping_template(string $template, array $fields, bool $html = false): ?string {
 	$missing = false;
-	$text    = preg_replace_callback('/{{([^{}]*)}}/', static function (array $match) use ($fields, &$missing): string {
+	$text    = preg_replace_callback('/{{([^{}]*)}}/', static function (array $match) use ($fields, &$missing, $html): string {
 		$value = $fields[trim($match[1])];
 
 		if ($value === null) {
@@ -141,7 +145,7 @@ function alarmmanager_mapping_template(string $template, array $fields): ?string
 			return '';
 		}
 
-		return alarmmanager_mapping_convert($value, 'string');
+		return alarmmanager_mapping_convert($value, $html ? 'html' : 'string');
 	}, $template);
 
 	return $missing ? null : $text;
@@ -194,15 +198,31 @@ function alarmmanager_mapping_convert($value, string $type) {
 
 	throw new InvalidArgumentException('mapping_type');
 }
-/** @param array<string, mixed> $reference */
-function alarmmanager_map_payload(array $mapping, array $event, array $reference = []): stdClass {
+/**
+ * @param array<string, mixed> $reference
+ * @param list<string>         $html_targets Payload members rendered as HTML: event values written to them are encoded.
+ */
+function alarmmanager_map_payload(array $mapping, array $event, array $reference = [], array $html_targets = []): stdClass {
 	$mapping = alarmmanager_mapping_validate($mapping);
 	$items   = $mapping[$event['transition']] ?? $mapping['default'] ?? [];
 	$fields  = alarmmanager_mapping_fields($event, $reference);
 	$payload = new stdClass();
 
 	foreach ($items as $item) {
-		$value = array_key_exists('template', $item) ? alarmmanager_mapping_template($item['template'], $fields) : (array_key_exists('constant', $item) ? $item['constant'] : $fields[$item['source']]);
+		// The html type already encodes the finished value, so encoding the fields as well would double-encode them.
+		$escape = $item['type'] !== 'html' && in_array($item['to'], $html_targets, true);
+
+		if (array_key_exists('template', $item)) {
+			$value = alarmmanager_mapping_template($item['template'], $fields, $escape);
+		} elseif (array_key_exists('constant', $item)) {
+			$value = $item['constant'];
+		} else {
+			$value = $fields[$item['source']];
+
+			if ($escape && $value !== null) {
+				$value = alarmmanager_mapping_convert($value, 'html');
+			}
+		}
 
 		if ($value === null && array_key_exists('default', $item)) {
 			$value = $item['default'];
