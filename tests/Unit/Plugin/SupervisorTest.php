@@ -76,6 +76,35 @@ final class SupervisorTest extends AlarmManagerTestCase {
 		return false;
 	}
 
+	public function testUnwritableConfigDirectoryFailsCleanlyWithoutTheSystemTempDirectory(): void {
+		if (function_exists('posix_geteuid') && posix_geteuid() === 0) {
+			$this->markTestSkipped('The superuser can write to any directory.');
+		}
+		self::alarmmanager_test_load('includes/supervisor.php');
+		$root = sys_get_temp_dir() . '/alarmmanager-readonly-' . bin2hex(random_bytes(5));
+		mkdir($root, 0500);
+		$before = glob(sys_get_temp_dir() . '/.daemon-*') ?: [];
+		$seen   = [];
+		set_error_handler(static function (int $number, string $message) use (&$seen): bool {
+			$seen[] = $message;
+
+			return true;
+		});
+
+		try {
+			alarmmanager_daemon_write_json($root . '/workers.json', ['enabled' => false]);
+			$this->fail('A read-only directory must fail the write.');
+		} catch (RuntimeException $error) {
+			$this->assertSame('daemon_config_write_failed', $error->getMessage());
+		} finally {
+			restore_error_handler();
+			chmod($root, 0700);
+			rmdir($root);
+		}
+		$this->assertSame([], $seen, 'tempnam must not fall back to the system temp directory.');
+		$this->assertSame($before, glob(sys_get_temp_dir() . '/.daemon-*') ?: [], 'No stray temporary file is left behind.');
+	}
+
 	public function testManagedSettingsDefaultToDisabledAndValidateBeforeWriting(): void {
 		self::alarmmanager_test_load('includes/supervisor.php');
 		$before                         = $GLOBALS['config'];

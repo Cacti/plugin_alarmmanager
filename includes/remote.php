@@ -70,7 +70,8 @@ function alarmmanager_remote_private_write(string $path, string $data): void {
 	}
 	$final = $directory . '/' . basename($path);
 
-	if (is_link($final)) {
+	// Check first so an existing name is a clean refusal; the exclusive open below still decides any race.
+	if (is_link($final) || file_exists($final)) {
 		throw new RuntimeException('private_output_invalid');
 	}
 	$previous = umask(0077);

@@ -67,7 +67,21 @@ final class PrivateExportTest extends AlarmManagerTestCase {
 
 	public function testNeverOverwritesAnExistingFile(): void {
 		file_put_contents($this->root . '/bundle.json', 'original');
-		$this->reject($this->root . '/bundle.json', 'private_output_invalid');
+
+		// Count every diagnostic, including ones silenced with @, because a strict runner fails on them.
+		$seen = [];
+		set_error_handler(static function (int $number, string $message) use (&$seen): bool {
+			$seen[] = $message;
+
+			return true;
+		});
+
+		try {
+			$this->reject($this->root . '/bundle.json', 'private_output_invalid');
+		} finally {
+			restore_error_handler();
+		}
+		$this->assertSame([], $seen, 'An existing file is refused before any open is attempted.');
 		$this->assertSame('original', file_get_contents($this->root . '/bundle.json'));
 	}
 

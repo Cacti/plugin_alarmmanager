@@ -76,6 +76,10 @@ function alarmmanager_daemon_write_json(string $path, array $data): void {
 	if (!is_dir($directory) && !@mkdir($directory, 0770, true) && !is_dir($directory)) {
 		throw new RuntimeException('daemon_config_write_failed');
 	}
+	// tempnam() silently falls back to the system temp directory, and raises a notice, when this one is not writable.
+	if (!is_writable($directory)) {
+		throw new RuntimeException('daemon_config_write_failed');
+	}
 	$temp = @tempnam($directory, '.daemon-');
 
 	if ($temp === false) {
