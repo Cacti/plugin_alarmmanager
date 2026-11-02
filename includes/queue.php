@@ -109,7 +109,7 @@ function alarmmanager_purge_remote_history(string $cutoff, int $limit): void {
 		AND n.source <=> h.source AND " . $member('n', 'source_instance') . ' <=> ' . $member('h', 'source_instance') . ' AND ' . $member('n', 'mode') . ' <=> ' . $member('h', 'mode') . '
 		AND ' . $payload('n', 'alarm_key') . ' <=> ' . $payload('h', 'alarm_key') . ')';
 	// Occurrences notify without opening a condition, so they age out like any other history.
-	$active = 'COALESCE(' . $payload('h', 'transition') . " NOT IN ('', 'recovered', 'clear', 'occurrence'), 0)";
+	$active  = 'COALESCE(' . $payload('h', 'transition') . " NOT IN ('', 'recovered', 'clear', 'occurrence'), 0)";
 	$handoff = "COALESCE(h.source = 'cacti_device' AND h.device_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM plugin_alarmmanager_remote_history AS d
 		WHERE d.entity = 'event' AND d.poller_id = h.poller_id AND d.device_id = h.device_id AND d.source = 'cacti_device' AND d.sequence > h.sequence), 0)";
 	$stale   = alarmmanager_db_rows("SELECT h.poller_id, h.instance_uuid, h.entity, h.entity_id FROM plugin_alarmmanager_remote_history AS h
