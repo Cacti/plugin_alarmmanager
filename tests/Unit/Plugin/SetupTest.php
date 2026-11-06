@@ -243,6 +243,34 @@ final class SetupTest extends AlarmManagerTestCase {
 		}
 	}
 
+	public function testDeviceBackfillAvoidsCollationMixAndLogsFailedSteps(): void {
+		self::alarmmanager_test_load('includes/schema.php');
+		$writes                                       = [];
+		$GLOBALS['alarmmanager_test_log']             = [];
+		$GLOBALS['alarmmanager_test_cell_handler']    = static fn () => 1;
+		$GLOBALS['alarmmanager_test_execute_handler'] = static function ($sql) use (&$writes) {
+			$writes[] = $sql;
+
+			return true;
+		};
+		$this->assertTrue(alarmmanager_schema_ui());
+		$this->assertStringContainsString("CAST(JSON_TYPE(JSON_EXTRACT(payload, '$.device.id')) AS BINARY) = 'INTEGER'", $writes[0], 'JSON_TYPE is compared as bytes, not in a collation (issue #15).');
+		$this->assertSame([], $GLOBALS['alarmmanager_test_log']);
+
+		$GLOBALS['alarmmanager_test_execute_handler'] = static function () {
+			$GLOBALS['database_last_error'] = 'DB Execute Failed!, Error 1267: Illegal mix of collations';
+
+			return false;
+		};
+		$this->assertFalse(alarmmanager_schema_ui());
+		$this->assertSame(['schema step v4 failed (storage_failure): DB Execute Failed!, Error 1267: Illegal mix of collations'], $GLOBALS['alarmmanager_test_log']);
+
+		$GLOBALS['alarmmanager_test_log'] = [];
+		$this->assertFalse(alarmmanager_schema_failed('v2', 'newer_schema'));
+		$this->assertSame(['schema step v2 failed (newer_schema)'], $GLOBALS['alarmmanager_test_log'], 'A stale database error is not blamed for a non-storage failure.');
+		unset($GLOBALS['database_last_error']);
+	}
+
 	public function testPluginMetadata(): void {
 		self::alarmmanager_test_load('setup.php');
 
