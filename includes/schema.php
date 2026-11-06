@@ -30,12 +30,12 @@ function alarmmanager_schema_install(): bool {
 	$database_version = db_fetch_cell_prepared('SELECT VERSION()', [], '', false);
 
 	if (!is_string($database_version) || stripos($database_version, 'MariaDB') === false) {
-		return false;
+		return alarmmanager_schema_failed('v1', 'requires_mariadb_10_11');
 	}
 	$database_version = str_starts_with($database_version, '5.5.5-') ? substr($database_version, 6) : $database_version;
 
 	if (!preg_match('/\A(\d+\.\d+\.\d+)/', $database_version, $match) || version_compare($match[1], '10.11.0', '<')) {
-		return false;
+		return alarmmanager_schema_failed('v1', 'requires_mariadb_10_11');
 	}
 	$statements = [
 		'CREATE TABLE IF NOT EXISTS plugin_alarmmanager_schema (id TINYINT UNSIGNED NOT NULL PRIMARY KEY, version INT UNSIGNED NOT NULL) ENGINE=InnoDB',
@@ -79,7 +79,7 @@ function alarmmanager_schema_install(): bool {
 
 	foreach ($statements as $sql) {
 		if (!db_execute_prepared($sql, [], false)) {
-			return false;
+			return alarmmanager_schema_failed('v1');
 		}
 	}
 	$engines = db_fetch_cell_prepared("SELECT COUNT(*) FROM information_schema.TABLES
@@ -88,13 +88,13 @@ function alarmmanager_schema_install(): bool {
 		AND ENGINE = 'InnoDB'", [], '', false);
 
 	if ((int) $engines !== 3) {
-		return false;
+		return alarmmanager_schema_failed('v1', 'tables_not_innodb');
 	}
 	$base = (bool) db_execute_prepared('INSERT INTO plugin_alarmmanager_schema (id, version) VALUES (1, 1)
 		ON DUPLICATE KEY UPDATE version = GREATEST(version, VALUES(version))', [], false);
 
 	if (!$base) {
-		return false;
+		return alarmmanager_schema_failed('v1');
 	}
 
 	if (!alarmmanager_schema_runtime()) {
@@ -155,6 +155,21 @@ function alarmmanager_schema_ensure(): bool {
 	return true;
 }
 
+/** Logs why a schema step failed, so an install stuck at "Awaiting Configuration"
+ * says which step failed and with which database error instead of failing silently.
+ * The database error is only appended for storage failures; for other reasons it
+ * may be left over from an earlier, unrelated query.
+ * @return bool Always false, so callers can return it directly.
+ */
+function alarmmanager_schema_failed(string $step, string $reason = 'storage_failure'): bool {
+	global $database_last_error;
+	$detail = in_array($reason, ['storage_failure', 'storage_contention', 'storage_table_missing', 'schema_failure'], true) && !empty($database_last_error)
+		? ': ' . $database_last_error : '';
+	alarmmanager_log("schema step $step failed ($reason)$detail");
+
+	return false;
+}
+
 function alarmmanager_schema_column(string $table, string $column, string $definition): void {
 	$count = db_fetch_cell_prepared('SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?', [$table, $column], '', false);
 
@@ -186,7 +201,7 @@ function alarmmanager_schema_runtime(): bool {
 		$version = db_fetch_cell_prepared('SELECT version FROM plugin_alarmmanager_schema WHERE id = 1', [], '', false);
 
 		if ($version === false || (int) $version > 14) {
-			return false;
+			return alarmmanager_schema_failed('v2', $version === false ? 'storage_failure' : 'newer_schema');
 		}
 		alarmmanager_schema_column('plugin_alarmmanager_schema', 'config_revision', 'BIGINT UNSIGNED NOT NULL DEFAULT 0');
 		alarmmanager_schema_column('plugin_alarmmanager_events', 'stream_key', "CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL DEFAULT ''");
@@ -275,13 +290,13 @@ function alarmmanager_schema_runtime(): bool {
 		$count = db_fetch_cell_prepared("SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND LEFT(TABLE_NAME, 20) = 'plugin_alarmmanager_' AND ENGINE <> 'InnoDB'", [], '', false);
 
 		if ($count === false || (int) $count !== 0) {
-			return false;
+			return alarmmanager_schema_failed('v2', $count === false ? 'storage_failure' : 'tables_not_innodb');
 		}
 		alarmmanager_db_write('UPDATE plugin_alarmmanager_schema SET version = GREATEST(version, 2) WHERE id = 1 AND version <= 4');
 
 		return true;
 	} catch (Throwable $error) {
-		return false;
+		return alarmmanager_schema_failed('v2', $error->getMessage());
 	}
 }
 
@@ -293,13 +308,13 @@ function alarmmanager_schema_delivery(): bool {
 		$count = db_fetch_cell_prepared("SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME IN ('plugin_alarmmanager_credentials', 'plugin_alarmmanager_transports') AND ENGINE = 'InnoDB'", [], '', false);
 
 		if ((int) $count !== 2) {
-			return false;
+			return alarmmanager_schema_failed('v3', $count === false ? 'storage_failure' : 'tables_not_innodb');
 		}
 		alarmmanager_db_write('UPDATE plugin_alarmmanager_schema SET version = GREATEST(version, 3) WHERE id = 1 AND version <= 4');
 
 		return true;
 	} catch (Throwable $error) {
-		return false;
+		return alarmmanager_schema_failed('v3', $error->getMessage());
 	}
 }
 
@@ -307,7 +322,7 @@ function alarmmanager_schema_delivery(): bool {
 function alarmmanager_schema_ui(): bool {
 	try {
 		alarmmanager_schema_column('plugin_alarmmanager_events', 'device_id', 'INT UNSIGNED NULL');
-		alarmmanager_db_write("UPDATE plugin_alarmmanager_events SET device_id = CAST(JSON_UNQUOTE(JSON_EXTRACT(payload, '$.device.id')) AS UNSIGNED) WHERE device_id IS NULL AND JSON_TYPE(JSON_EXTRACT(payload, '$.device.id')) = 'INTEGER'");
+		alarmmanager_db_write("UPDATE plugin_alarmmanager_events SET device_id = CAST(JSON_UNQUOTE(JSON_EXTRACT(payload, '$.device.id')) AS UNSIGNED) WHERE device_id IS NULL AND CAST(JSON_TYPE(JSON_EXTRACT(payload, '$.device.id')) AS BINARY) = 'INTEGER'");
 		alarmmanager_schema_index('plugin_alarmmanager_events', 'device_received', 'device_id, received_at, id');
 		alarmmanager_schema_index('plugin_alarmmanager_events', 'mode_received', 'mode, received_at, id');
 		alarmmanager_schema_index('plugin_alarmmanager_deliveries', 'created_report', 'created_at, event_row_id, status');
@@ -317,7 +332,7 @@ function alarmmanager_schema_ui(): bool {
 
 		return true;
 	} catch (Throwable $error) {
-		return false;
+		return alarmmanager_schema_failed('v4', $error->getMessage());
 	}
 }
 
@@ -342,11 +357,11 @@ function alarmmanager_schema_producers(): bool {
 
 	foreach ($queries as $sql) {
 		if (!db_execute_prepared($sql, [], false)) {
-			return false;
+			return alarmmanager_schema_failed('v5');
 		}
 	}
 
-	return (bool) db_execute_prepared('UPDATE plugin_alarmmanager_schema SET version = GREATEST(version, 5) WHERE id = 1', [], false);
+	return db_execute_prepared('UPDATE plugin_alarmmanager_schema SET version = GREATEST(version, 5) WHERE id = 1', [], false) ? true : alarmmanager_schema_failed('v5');
 }
 
 /** v6: node identity, device ownership, signed sync outbox/peers/history and outbox triggers. */
@@ -364,21 +379,21 @@ function alarmmanager_schema_remote(): bool {
 
 	foreach ($queries as $sql) {
 		if (!db_execute_prepared($sql, [], false)) {
-			return false;
+			return alarmmanager_schema_failed('v6');
 		}
 	}
 
 	// Never silently change a previously provisioned node's identity.
 	if ($version < 6) {
 		if (!db_execute_prepared('INSERT IGNORE INTO plugin_alarmmanager_node (id, instance_uuid) VALUES (1, ?)', [bin2hex(random_bytes(16))], false)) {
-			return false;
+			return alarmmanager_schema_failed('v6');
 		}
 	} elseif (!is_string(db_fetch_cell_prepared('SELECT instance_uuid FROM plugin_alarmmanager_node WHERE id = 1', [], '', false))) {
-		return false;
+		return alarmmanager_schema_failed('v6', 'node_identity_missing');
 	}
 
 	if (!db_execute_prepared('INSERT IGNORE INTO plugin_alarmmanager_sync_sender (id) VALUES (1)', [], false)) {
-		return false;
+		return alarmmanager_schema_failed('v6');
 	}
 
 	foreach (['event' => 'events', 'processing' => 'jobs', 'decision' => 'decisions', 'delivery' => 'deliveries', 'attempt' => 'attempts'] as $entity => $table) {
@@ -386,12 +401,12 @@ function alarmmanager_schema_remote(): bool {
 			$sql = "CREATE TRIGGER IF NOT EXISTS plugin_alarmmanager_sync_{$entity}_" . strtolower($operation) . " AFTER $operation ON plugin_alarmmanager_$table FOR EACH ROW INSERT INTO plugin_alarmmanager_sync_outbox (entity, entity_id, created_at) VALUES ('$entity', NEW.id, UTC_TIMESTAMP(6))";
 
 			if (!db_execute_prepared($sql, [], false)) {
-				return false;
+				return alarmmanager_schema_failed('v6');
 			}
 		}
 	}
 
-	return (bool) db_execute_prepared('UPDATE plugin_alarmmanager_schema SET version = GREATEST(version, 6) WHERE id = 1', [], false);
+	return db_execute_prepared('UPDATE plugin_alarmmanager_schema SET version = GREATEST(version, 6) WHERE id = 1', [], false) ? true : alarmmanager_schema_failed('v6');
 }
 
 /** v7: database-assigned identities for administrator-created configuration records. */
@@ -402,7 +417,7 @@ function alarmmanager_schema_record_ids(): bool {
 			$automatic = db_fetch_cell_prepared("SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = 'id' AND EXTRA LIKE '%auto_increment%'", [$table], '', false);
 
 			if ($automatic === false) {
-				return false;
+				return alarmmanager_schema_failed('v7');
 			}
 
 			if ((int) $automatic === 0) {
@@ -411,7 +426,7 @@ function alarmmanager_schema_record_ids(): bool {
 		}
 		alarmmanager_db_write('UPDATE plugin_alarmmanager_schema SET version = GREATEST(version, 7) WHERE id = 1');
 	} catch (Throwable $error) {
-		return false;
+		return alarmmanager_schema_failed('v7', $error->getMessage());
 	}
 
 	return true;
@@ -425,7 +440,7 @@ function alarmmanager_schema_integrations(): bool {
 
 		return true;
 	} catch (Throwable $error) {
-		return false;
+		return alarmmanager_schema_failed('v9', $error->getMessage());
 	}
 }
 
@@ -442,7 +457,7 @@ function alarmmanager_schema_device_status(): bool {
 
 		return true;
 	} catch (Throwable $error) {
-		return false;
+		return alarmmanager_schema_failed('v10', $error->getMessage());
 	}
 }
 
@@ -456,7 +471,7 @@ function alarmmanager_schema_sync(): bool {
 
 		return true;
 	} catch (Throwable $error) {
-		return false;
+		return alarmmanager_schema_failed('v11', $error->getMessage());
 	}
 }
 
@@ -470,7 +485,7 @@ function alarmmanager_schema_direct_routes(): bool {
 
 		return true;
 	} catch (Throwable $error) {
-		return false;
+		return alarmmanager_schema_failed('v12', $error->getMessage());
 	}
 }
 
@@ -501,7 +516,7 @@ function alarmmanager_schema_recipients(): bool {
 
 		return true;
 	} catch (Throwable $error) {
-		return false;
+		return alarmmanager_schema_failed('v13', $error->getMessage());
 	}
 }
 
@@ -513,6 +528,6 @@ function alarmmanager_schema_retired(): bool {
 
 		return true;
 	} catch (Throwable $error) {
-		return false;
+		return alarmmanager_schema_failed('v14', $error->getMessage());
 	}
 }
