@@ -243,6 +243,134 @@ final class SetupTest extends AlarmManagerTestCase {
 		}
 	}
 
+	public function testDeviceBackfillAvoidsCollationMixAndLogsFailedSteps(): void {
+		self::alarmmanager_test_load('includes/schema.php');
+		$writes                                       = [];
+		$GLOBALS['alarmmanager_test_log']             = [];
+		$GLOBALS['alarmmanager_test_cell_handler']    = static fn () => 1;
+		$GLOBALS['alarmmanager_test_execute_handler'] = static function ($sql) use (&$writes) {
+			$writes[] = $sql;
+
+			return true;
+		};
+		$this->assertTrue(alarmmanager_schema_ui());
+		$this->assertStringContainsString("CAST(JSON_TYPE(JSON_EXTRACT(payload, '$.device.id')) AS BINARY) = 'INTEGER'", $writes[0], 'JSON_TYPE is compared as bytes, not in a collation (issue #15).');
+		$this->assertSame([], $GLOBALS['alarmmanager_test_log']);
+
+		$GLOBALS['alarmmanager_test_execute_handler'] = static function () {
+			$GLOBALS['database_last_error'] = 'DB Execute Failed!, Error 1267: Illegal mix of collations';
+
+			return false;
+		};
+		$this->assertFalse(alarmmanager_schema_ui());
+		$this->assertSame(['schema step v4 failed (storage_failure): DB Execute Failed!, Error 1267: Illegal mix of collations'], $GLOBALS['alarmmanager_test_log']);
+
+		$GLOBALS['alarmmanager_test_log'] = [];
+		$this->assertFalse(alarmmanager_schema_failed('v2', 'newer_schema'));
+		$this->assertSame(['schema step v2 failed (newer_schema)'], $GLOBALS['alarmmanager_test_log'], 'A stale database error is not blamed for a non-storage failure.');
+		unset($GLOBALS['database_last_error']);
+	}
+
+	/** One case per failure branch of each schema step: the step function, the step and reason it
+	 * must log, the information_schema/cell answers to override, and the SQL whose write fails. */
+	public static function schemaStepFailures(): array {
+		$innodb_count = "ENGINE <> 'InnoDB'";
+		$version      = 'SELECT version FROM plugin_alarmmanager_schema';
+
+		return [
+			'v1 MySQL server'               => ['alarmmanager_schema_install', 'v1', 'requires_mariadb_10_11', ['SELECT VERSION()' => '8.0.36'], null],
+			'v1 MariaDB older than 10.11'   => ['alarmmanager_schema_install', 'v1', 'requires_mariadb_10_11', ['SELECT VERSION()' => '5.5.5-10.6.18-MariaDB'], null],
+			'v1 create table'               => ['alarmmanager_schema_install', 'v1', 'storage_failure', [], 'CREATE TABLE IF NOT EXISTS plugin_alarmmanager_jobs'],
+			'v1 tables not InnoDB'          => ['alarmmanager_schema_install', 'v1', 'tables_not_innodb', ["ENGINE = 'InnoDB'" => 2], null],
+			'v1 version row'                => ['alarmmanager_schema_install', 'v1', 'storage_failure', [], 'INSERT INTO plugin_alarmmanager_schema'],
+			'v2 version unreadable'         => ['alarmmanager_schema_runtime', 'v2', 'storage_failure', [$version => false], null],
+			'v2 newer schema'               => ['alarmmanager_schema_runtime', 'v2', 'newer_schema', [$version => 15], null],
+			'v2 engine check unreadable'    => ['alarmmanager_schema_runtime', 'v2', 'storage_failure', [$innodb_count => false], null],
+			'v2 tables not InnoDB'          => ['alarmmanager_schema_runtime', 'v2', 'tables_not_innodb', [$innodb_count => 1], null],
+			'v2 write'                      => ['alarmmanager_schema_runtime', 'v2', 'storage_failure', [], 'SET stream_key = SHA2'],
+			'v3 engine check unreadable'    => ['alarmmanager_schema_delivery', 'v3', 'storage_failure', ['plugin_alarmmanager_transports' => false], null],
+			'v3 tables not InnoDB'          => ['alarmmanager_schema_delivery', 'v3', 'tables_not_innodb', ['plugin_alarmmanager_transports' => 1], null],
+			'v3 write'                      => ['alarmmanager_schema_delivery', 'v3', 'storage_failure', [], 'CREATE TABLE IF NOT EXISTS plugin_alarmmanager_credentials'],
+			'v5 create table'               => ['alarmmanager_schema_producers', 'v5', 'storage_failure', [], 'CREATE TABLE IF NOT EXISTS plugin_alarmmanager_producer_streams'],
+			'v5 version update'             => ['alarmmanager_schema_producers', 'v5', 'storage_failure', [], 'GREATEST(version, 5)'],
+			'v6 create table'               => ['alarmmanager_schema_remote', 'v6', 'storage_failure', [], 'CREATE TABLE IF NOT EXISTS plugin_alarmmanager_sync_outbox'],
+			'v6 node identity insert'       => ['alarmmanager_schema_remote', 'v6', 'storage_failure', [], 'INSERT IGNORE INTO plugin_alarmmanager_node'],
+			'v6 node identity missing'      => ['alarmmanager_schema_remote', 'v6', 'node_identity_missing', [$version => 6, 'SELECT instance_uuid' => false], null],
+			'v6 sync sender'                => ['alarmmanager_schema_remote', 'v6', 'storage_failure', [], 'INSERT IGNORE INTO plugin_alarmmanager_sync_sender'],
+			'v6 outbox trigger'             => ['alarmmanager_schema_remote', 'v6', 'storage_failure', [], 'CREATE TRIGGER IF NOT EXISTS plugin_alarmmanager_sync_delivery_update'],
+			'v6 version update'             => ['alarmmanager_schema_remote', 'v6', 'storage_failure', [], 'GREATEST(version, 6)'],
+			'v7 column check unreadable'    => ['alarmmanager_schema_record_ids', 'v7', 'storage_failure', ["EXTRA LIKE '%auto_increment%'" => false], null],
+			'v7 write'                      => ['alarmmanager_schema_record_ids', 'v7', 'storage_failure', ["EXTRA LIKE '%auto_increment%'" => 0], 'MODIFY COLUMN id'],
+			'v9 write'                      => ['alarmmanager_schema_integrations', 'v9', 'storage_failure', [], 'GREATEST(version, 9)'],
+			'v10 write'                     => ['alarmmanager_schema_device_status', 'v10', 'storage_failure', [], 'CREATE TABLE IF NOT EXISTS plugin_alarmmanager_device_status'],
+			'v11 write'                     => ['alarmmanager_schema_sync', 'v11', 'storage_failure', [], 'GREATEST(version, 11)'],
+			'v12 write'                     => ['alarmmanager_schema_direct_routes', 'v12', 'storage_failure', [], 'DROP TABLE IF EXISTS plugin_alarmmanager_profiles'],
+			'v13 index check unreadable'    => ['alarmmanager_schema_recipients', 'v13', 'storage_failure', ["INDEX_NAME = 'event_endpoint'" => false], null],
+			'v14 write'                     => ['alarmmanager_schema_retired', 'v14', 'storage_failure', [], 'DROP TABLE IF EXISTS plugin_alarmmanager_api_clients'],
+		];
+	}
+
+	/** Answers the schema steps' reads like a healthy MariaDB 10.11 with plugin tables at v1,
+	 * except for $cells, and fails every write containing $fail_on. Successful writes are
+	 * recorded in $GLOBALS['alarmmanager_test_schema_writes']. */
+	private static function fakeSchemaDatabase(array $cells, ?string $fail_on): void {
+		$GLOBALS['alarmmanager_test_schema_writes']   = [];
+		$GLOBALS['alarmmanager_test_log']             = [];
+		$GLOBALS['database_last_error']               = 'DB Execute Failed!, Error 2006: MySQL server has gone away';
+		$GLOBALS['alarmmanager_test_cell_handler']    = static function (string $sql) use ($cells) {
+			foreach ($cells as $needle => $value) {
+				if (str_contains($sql, $needle)) {
+					return $value;
+				}
+			}
+
+			return match (true) {
+				$sql === 'SELECT VERSION()'                          => '10.11.14-MariaDB',
+				str_contains($sql, "ENGINE <> 'InnoDB'")             => 0,
+				str_contains($sql, 'plugin_alarmmanager_transports') => 2,
+				str_contains($sql, "ENGINE = 'InnoDB'")              => 3,
+				str_contains($sql, 'SELECT instance_uuid')           => str_repeat('a', 32),
+				default                                              => 1,
+			};
+		};
+		$GLOBALS['alarmmanager_test_execute_handler'] = static function (string $sql) use ($fail_on) {
+			if ($fail_on !== null && str_contains($sql, $fail_on)) {
+				return false;
+			}
+			$GLOBALS['alarmmanager_test_schema_writes'][] = $sql;
+
+			return true;
+		};
+	}
+
+	public function testSchemaInstallSucceedsAgainstTheFakeDatabase(): void {
+		self::alarmmanager_test_load('includes/schema.php');
+		self::fakeSchemaDatabase([], null);
+
+		try {
+			$this->assertTrue(alarmmanager_schema_install());
+			$this->assertSame([], $GLOBALS['alarmmanager_test_log'], 'A healthy install logs no schema failure.');
+			$this->assertNotEmpty(preg_grep('/SET version = 14 WHERE id = 1/', $GLOBALS['alarmmanager_test_schema_writes']), 'A healthy install reaches v14.');
+		} finally {
+			unset($GLOBALS['database_last_error'], $GLOBALS['alarmmanager_test_schema_writes']);
+		}
+	}
+
+	#[\PHPUnit\Framework\Attributes\DataProvider('schemaStepFailures')]
+	public function testSchemaStepFailureIsLoggedAndDoesNotAdvanceTheVersion(string $function, string $step, string $reason, array $cells, ?string $fail_on): void {
+		self::alarmmanager_test_load('includes/schema.php');
+		self::fakeSchemaDatabase($cells, $fail_on);
+
+		try {
+			$this->assertFalse($function(), "$function() reports the failure.");
+			$detail = in_array($reason, ['storage_failure', 'schema_failure'], true) ? ': ' . $GLOBALS['database_last_error'] : '';
+			$this->assertSame(["schema step $step failed ($reason)$detail"], $GLOBALS['alarmmanager_test_log'], 'Exactly one line names the failed step and reason.');
+			$this->assertSame([], preg_grep('/plugin_alarmmanager_schema SET version|INSERT INTO plugin_alarmmanager_schema/', $GLOBALS['alarmmanager_test_schema_writes']), 'A failed step does not advance the schema version.');
+		} finally {
+			unset($GLOBALS['database_last_error'], $GLOBALS['alarmmanager_test_schema_writes']);
+		}
+	}
+
 	public function testPluginMetadata(): void {
 		self::alarmmanager_test_load('setup.php');
 
