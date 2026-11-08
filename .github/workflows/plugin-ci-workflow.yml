@@ -40,7 +40,7 @@ jobs:
       fail-fast: false
       matrix:
         cacti: ['1.2.x', 'develop']
-        php: ['8.2', '8.3', '8.4']
+        php: ['8.2', '8.3', '8.4', '8.5']
         os: [ubuntu-latest]
         # Cacti develop's composer lock now requires PHP >= 8.3 (its
         # include/vendor/composer/platform_check.php refuses 8.2), so the
@@ -50,13 +50,9 @@ jobs:
             php: '8.2'
         experimental: [false]
         include:
-          # PHP 8.5 and 8.6 run as non-blocking (experimental) legs on the
-          # pinned 1.2.x lane because their packages can lag on the runners
+          # PHP 8.6 runs as a non-blocking (experimental) leg on the
+          # pinned 1.2.x lane because its packages can lag on the runners
           # and in Ondřej Surý's PPA.
-          - cacti: '1.2.x'
-            php: '8.5'
-            os: ubuntu-latest
-            experimental: true
           # Pinned to Ubuntu 24.04 (Noble): ubuntu-latest is now Ubuntu 26.04
           # (Resolute), which Ondrej Sury's PPA does not yet serve, so the 8.6
           # PPA toolchain install 404s. Noble carries the latest packaged 8.6 RC.
