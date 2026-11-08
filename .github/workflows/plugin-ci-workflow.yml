@@ -33,7 +33,7 @@ on:
 
 jobs:
   integration-test:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     continue-on-error: ${{ matrix.experimental }}
 
     strategy:
@@ -41,6 +41,7 @@ jobs:
       matrix:
         cacti: ['1.2.x', 'develop']
         php: ['8.2', '8.3', '8.4']
+        os: [ubuntu-latest]
         # Cacti develop's composer lock now requires PHP >= 8.3 (its
         # include/vendor/composer/platform_check.php refuses 8.2), so the
         # develop lane only runs on 8.3+. The pinned 1.2.x lane keeps 8.2.
@@ -54,9 +55,14 @@ jobs:
           # and in Ondřej Surý's PPA.
           - cacti: '1.2.x'
             php: '8.5'
+            os: ubuntu-latest
             experimental: true
+          # Pinned to Ubuntu 24.04 (Noble): ubuntu-latest is now Ubuntu 26.04
+          # (Resolute), which Ondrej Sury's PPA does not yet serve, so the 8.6
+          # PPA toolchain install 404s. Noble carries the latest packaged 8.6 RC.
           - cacti: '1.2.x'
             php: '8.6'
+            os: ubuntu-24.04
             experimental: true
 
     services:
