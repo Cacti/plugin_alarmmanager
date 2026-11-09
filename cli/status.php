@@ -26,7 +26,7 @@ if (PHP_SAPI !== 'cli') {
 	exit;
 }
 
-if (in_array('--help', $argv, true)) {
+if (in_array('--help', $_SERVER['argv'] ?? [], true)) {
 	print "Usage: php cli/status.php\n";
 	exit;
 }
