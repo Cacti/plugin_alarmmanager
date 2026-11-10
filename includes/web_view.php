@@ -245,7 +245,7 @@ function alarmmanager_dashboard_markup(): void {
 		'queues'      => 'Current queues',
 		'workers'     => 'Current worker health'
 	] as $id => $label) {
-		print '<article class="alarmmanagerDashboardCard" id="alarmmanager_panel_' . html_escape($id) . '"><header class="alarmmanagerDashboardCardHeader"><h3 class="alarmmanagerDashboardCardTitle">' . __esc($label, 'alarmmanager') . '</h3><button type="button" class="alarmmanagerCardToggle" aria-expanded="true">' . __esc('Collapse', 'alarmmanager') . '</button></header><div class="alarmmanagerCardBody"><div class="alarmmanagerChart" id="alarmmanager_chart_' . html_escape($id) . '" ' . (in_array($id, ['endpoints', 'queues', 'workers'], true) ? 'hidden' : '') . '></div><div class="alarmmanagerLegend" id="alarmmanager_legend_' . html_escape($id) . '"></div></div></article>';
+		print '<article class="ccCard" data-card="' . html_escape($id) . '" data-severity="none" id="alarmmanager_panel_' . html_escape($id) . '"><header class="ccCardHeader"><h3 class="ccTitle">' . __esc($label, 'alarmmanager') . '</h3><span class="ccTools"><button type="button" class="ccTool alarmmanagerCardToggle" aria-expanded="true">' . __esc('Collapse', 'alarmmanager') . '</button></span></header><div class="ccCardBody alarmmanagerCardBody"><div class="alarmmanagerChart" id="alarmmanager_chart_' . html_escape($id) . '" ' . (in_array($id, ['endpoints', 'queues', 'workers'], true) ? 'hidden' : '') . '></div><div class="alarmmanagerLegend" id="alarmmanager_legend_' . html_escape($id) . '"></div></div></article>';
 	}
 
 	print '</div></div>';

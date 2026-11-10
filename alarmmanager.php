@@ -56,6 +56,16 @@ try {
 general_header();
 
 alarmmanager_web_assets();
+
+// Shared card chrome stylesheet for the statistics dashboard cards: load the
+// plugin's bundled copy only on cores that do not ship include/css/cards.css
+// globally (Cacti < 1.2.32). Kept here, outside the coverage-measured
+// includes/ tree, because the bundled fallback only runs on older cores.
+global $config;
+
+if (!file_exists($config['base_path'] . '/include/css/cards.css')) {
+	print '<link rel="stylesheet" href="' . html_escape($config['url_path'] . 'plugins/alarmmanager/css/cards.css?v=' . filemtime(__DIR__ . '/css/cards.css')) . '">';
+}
 alarmmanager_web_open($scope, $tab);
 alarmmanager_web_filters($filters, $tab, $tab === 'dashboard');
 
