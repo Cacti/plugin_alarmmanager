@@ -48,7 +48,7 @@ if (in_array($path, ['/plugins/alarmmanager/alarmmanager.php', '/plugins/alarmma
 	return true;
 }
 
-if (in_array($path, ['/plugins/alarmmanager/css/dashboard.css', '/plugins/alarmmanager/js/dashboard.js'], true)) {
+if (in_array($path, ['/plugins/alarmmanager/css/dashboard.css', '/plugins/alarmmanager/css/cards.css', '/plugins/alarmmanager/js/dashboard.js'], true)) {
 	return false;
 }
 
