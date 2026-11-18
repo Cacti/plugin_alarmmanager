@@ -56,7 +56,7 @@ See [CHANGELOG.md](CHANGELOG.md) for the version history.
 
 ### Configure notifications
 
-1. Open **Administration → Alarm Manager → Endpoints** and choose a provider preset or a generic integration. Presets start as disabled drafts.
+1. Open **Alarm Manager Settings → Alarm Destinations** and choose a provider preset or a generic integration. Presets start as disabled drafts.
 2. Replace placeholder values, configure authentication and message fields, and use the preview and test controls to check the destination before enabling it.
 3. Open **Alarm Rules → Create a rule**, select one or more destinations, configure the filters you need, and enable the rule. **Notifications require an enabled, matching rule; an enabled endpoint alone does not send alarms.**
 4. Review **Events** for processing and delivery results, and **Alarm Queue** for waiting messages and pause controls.
@@ -65,9 +65,20 @@ For custom source-plugin integrations, see the [sample event](examples/event.jso
 
 ### Workers and remote collectors
 
-By default, Alarm Manager processes bounded batches at the end of each Cacti poller cycle; no separate cron job is needed. For resident workers, install the supplied [systemd service](service/alarmmanager.service), adjusting its user, group, Cacti path, and PHP executable for your installation. Configure worker enablement and pool sizes under **Administration → Configuration**.
+By default, Alarm Manager processes bounded batches at the end of each Cacti poller cycle; no separate cron job is needed. For resident workers, install the supplied [systemd service](service/alarmmanager.service), adjusting its user, group, Cacti path, and PHP executable for your installation. Configure worker enablement and pool sizes on the **Alarm Manager** tab under **Console > Configuration > Settings** (**Enable Daemon**, **Processing Workers**, **Delivery Workers**).
 
 For distributed installations, deploy the plugin files on the main poller and collectors, and enable the plugin through the main poller's Plugin Management page. Manage destinations, rules, credentials, worker settings, and delivery pause/resume on poller 1. Cacti synchronizes the configuration to remote collectors. Install the systemd service on each machine that will run resident workers, and ensure configured script executables and custom CA files exist at the same paths on the relevant collectors.
+
+### Command-line tools
+
+The `cli/` directory contains administration scripts. Run them with PHP from the plugin directory. Each prints its usage when called with invalid arguments.
+
+- `cli/status.php` prints the current queue and worker metrics as JSON.
+- `cli/submit_event.php --file=examples/event.json` submits an event from a JSON file.
+- `cli/endpoint.php --endpoint=1 --file=examples/event.json --preview|--test-send` previews a destination's payload without sending, or queues one explicit test delivery.
+- `cli/credentials.php` saves destination credentials (`--save=ENDPOINT_ID --file=...`, where `--file=php://stdin` avoids storing plaintext), writes a key backup (`--backup-dir=...`), rotates the key (`--rotate`), or restores credentials (`--restore=... --key-file=... --replace-local-credentials`).
+- `cli/producers.php --retry-pending [--limit=100]` retries pending producer receipts using their original event IDs.
+- `cli/remote.php` manages remote collectors: `--identity`, `--export-for=POLLER --endpoints=1,2 --output=...`, `--provision=...`, `--configure=...`, `--grant-file=...`, `--send [--limit=100]` and `--seed=event|processing|decision|delivery|attempt [--after=0 --limit=100]`. Secrets are read and written only through owner-private files.
 
 ### Provider setup
 
