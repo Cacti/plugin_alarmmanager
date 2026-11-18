@@ -2,6 +2,23 @@
 
 Alarm Manager is a Cacti plugin for routing alarms to notification services and scripts. It tracks alarm state, queues deliveries, and records notification results in Cacti. Source plugins such as thold and syslog submit alarms through Cacti's in-process `alarmmanager_submit` hook; Alarm Manager also captures confirmed Cacti device down and recovery states after each poller cycle.
 
+## Versions and compatibility
+
+This README describes the `main` source branch.
+
+| Code | Plugin version | Minimum Cacti declared in `INFO` |
+| --- | --- | --- |
+| [Source branch](INFO) | 0.12.2 | 1.2.29 |
+
+No GitHub release is published for this repository. The source version above
+is not a published-release designation. Follow the development caveats and
+requirements in this README before deployment.
+
+Install this plugin in **`<cacti-root>/plugins/alarmmanager`**, using the directory
+name `alarmmanager` rather than `plugin_alarmmanager`.
+
+See [CHANGELOG.md](CHANGELOG.md) for the version history.
+
 ## Features
 
 - **Notification integrations:** REST APIs, webhooks, Cacti email, and executable scripts, with presets for Slack, Microsoft Teams Workflows, Telegram, Twilio SMS and WhatsApp, PagerDuty, and ServiceNow incidents and events.
@@ -44,7 +61,7 @@ Alarm Manager is a Cacti plugin for routing alarms to notification services and 
 3. Open **Alarm Rules → Create a rule**, select one or more destinations, configure the filters you need, and enable the rule. **Notifications require an enabled, matching rule; an enabled endpoint alone does not send alarms.**
 4. Review **Events** for processing and delivery results, and **Alarm Queue** for waiting messages and pause controls.
 
-For custom source-plugin integrations, see the [sample event](examples/event.json), [examples](examples/), and [Cacti admin-alert hook guide](docs/cacti-admin-alert-hook.md).
+For custom source-plugin integrations, see the [sample event](examples/event.json) and [examples](examples/).
 
 ### Workers and remote collectors
 
