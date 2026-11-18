@@ -28,7 +28,7 @@ if (PHP_SAPI !== 'cli') {
 $options = getopt('', ['config:', 'help']);
 
 if (isset($options['help'])) {
-	print "Usage: php alarmmanager_daemon.php [--config=/path/to/workers.json]\nWithout --config, settings are managed through Administration > Daemon.\n";
+	print "Usage: php alarmmanager_daemon.php [--config=/path/to/workers.json]\nWithout --config, settings are managed on the Alarm Manager tab under Console > Configuration > Settings (Daemon section).\n";
 	exit;
 }
 
