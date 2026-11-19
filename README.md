@@ -8,7 +8,7 @@ This README describes the `main` source branch.
 
 | Code | Plugin version | Minimum Cacti declared in `INFO` |
 | --- | --- | --- |
-| [Source branch](INFO) | 0.12.2 | 1.2.29 |
+| [Source branch](https://github.com/Cacti/plugin_alarmmanager/blob/main/INFO) | 0.12.2 | 1.2.29 |
 
 No GitHub release is published for this repository. The source version above
 is not a published-release designation. Follow the development caveats and
@@ -17,7 +17,7 @@ requirements in this README before deployment.
 Install this plugin in **`<cacti-root>/plugins/alarmmanager`**, using the directory
 name `alarmmanager` rather than `plugin_alarmmanager`.
 
-See [CHANGELOG.md](CHANGELOG.md) for the version history.
+See [CHANGELOG.md](https://github.com/Cacti/plugin_alarmmanager/blob/main/CHANGELOG.md) for the version history.
 
 ## Features
 
@@ -61,11 +61,11 @@ See [CHANGELOG.md](CHANGELOG.md) for the version history.
 3. Open **Alarm Rules → Create a rule**, select one or more destinations, configure the filters you need, and enable the rule. **Notifications require an enabled, matching rule; an enabled endpoint alone does not send alarms.**
 4. Review **Events** for processing and delivery results, and **Alarm Queue** for waiting messages and pause controls.
 
-For custom source-plugin integrations, see the [sample event](examples/event.json) and [examples](examples/).
+For custom source-plugin integrations, see the [sample event](https://github.com/Cacti/plugin_alarmmanager/blob/main/examples/event.json) and [examples](https://github.com/Cacti/plugin_alarmmanager/tree/main/examples).
 
 ### Workers and remote collectors
 
-By default, Alarm Manager processes bounded batches at the end of each Cacti poller cycle; no separate cron job is needed. For resident workers, install the supplied [systemd service](service/alarmmanager.service), adjusting its user, group, Cacti path, and PHP executable for your installation. Configure worker enablement and pool sizes on the **Alarm Manager** tab under **Console > Configuration > Settings** (**Enable Daemon**, **Processing Workers**, **Delivery Workers**).
+By default, Alarm Manager processes bounded batches at the end of each Cacti poller cycle; no separate cron job is needed. For resident workers, install the supplied [systemd service](https://github.com/Cacti/plugin_alarmmanager/blob/main/service/alarmmanager.service), adjusting its user, group, Cacti path, and PHP executable for your installation. Configure worker enablement and pool sizes on the **Alarm Manager** tab under **Console > Configuration > Settings** (**Enable Daemon**, **Processing Workers**, **Delivery Workers**).
 
 For distributed installations, deploy the plugin files on the main poller and collectors, and enable the plugin through the main poller's Plugin Management page. Manage destinations, rules, credentials, worker settings, and delivery pause/resume on poller 1. Cacti synchronizes the configuration to remote collectors. Install the systemd service on each machine that will run resident workers, and ensure configured script executables and custom CA files exist at the same paths on the relevant collectors.
 
