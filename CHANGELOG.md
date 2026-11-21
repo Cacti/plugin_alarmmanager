@@ -1,5 +1,7 @@
 ## ChangeLog
 
+* issue#24: Add starting language catalogs for Swedish, German, Latvian, French and Japanese (`locales/po/*.po`, compiled to `locales/LC_MESSAGES/*.mo`) so the plugin can be translated. The catalogs are created from `alarmmanager.pot` and pre-filled only where Cacti core or thold already translate the identical string; every other string is left empty for translators. VERIFIED: `msgfmt --check-format` passes on all five catalogs (40 to 44 of 301 strings translated, none fuzzy). UNVERIFIED: the plugin running in Cacti with a non-English language selected.
+
 * Fix: the `alarmmanager_daemon.php` usage text pointed to a nonexistent Administration > Daemon page; it now names the Daemon section of the Alarm Manager tab under Console > Configuration > Settings.
 
 Documentation update (unreleased): Refresh README release/source compatibility,
