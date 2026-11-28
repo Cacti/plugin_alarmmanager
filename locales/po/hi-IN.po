@@ -1,0 +1,1230 @@
+# Hindi translations for Alarm Manager package.
+# Copyright (C) 2004-2026 The Cacti Group
+# This file is distributed under the same license as the Alarm Manager package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Alarm Manager 0.12.2\n"
+"Report-Msgid-Bugs-To: https://github.com/bmfmancini/plugin_alarmmanager/issues\n"
+"POT-Creation-Date: 2026-11-02 13:02-0500\n"
+"PO-Revision-Date: 2026-11-28 02:15+0000\n"
+"Last-Translator: Thomas Vincent <thomasvincent@gmail.com>\n"
+"Language-Team: Hindi <https://translate.cacti.net/projects/cacti/core/hi/>\n"
+"Language: hi-IN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n > 1;\n"
+
+#: alarmmanager_admin.php:50
+msgid "The administration action succeeded."
+msgstr "प्रशासन कार्रवाई सफल रही।"
+
+#: alarmmanager_admin.php:86
+msgid "Administration unavailable or permission denied."
+msgstr "प्रशासन अनुपलब्ध है या अनुमति अस्वीकृत है।"
+
+#: includes/admin_view.php:78
+msgid "Choose the alarm information to send to any service. Use Combined text to arrange device details, or Use device message to start with a complete message. Email uses Subject and Message; API destinations use the field names required by the receiving service."
+msgstr "किसी भी सेवा को भेजने के लिए अलार्म जानकारी चुनें। डिवाइस विवरण व्यवस्थित करने के लिए संयुक्त पाठ का उपयोग करें, या पूर्ण संदेश से शुरू करने के लिए डिवाइस संदेश का उपयोग करें। ईमेल विषय और संदेश का उपयोग करता है; API गंतव्य प्राप्तकर्ता सेवा द्वारा आवश्यक फ़ील्ड नामों का उपयोग करते हैं।"
+
+#: includes/admin_view.php:79
+msgid "Advanced message configuration"
+msgstr "उन्नत संदेश कॉन्फ़िगरेशन"
+
+#: includes/admin_view.php:90
+msgid "New endpoint"
+msgstr "नया एंडपॉइंट"
+
+#: includes/admin_view.php:100
+msgid "Custom integration"
+msgstr "कस्टम एकीकरण"
+
+#: includes/admin_view.php:100
+msgid "Integration provider"
+msgstr "एकीकरण प्रदाता"
+
+#: includes/admin_view.php:112
+msgid "API Key SID and Secret (recommended)"
+msgstr "API Key SID और Secret (अनुशंसित)"
+
+#: includes/admin_view.php:112
+msgid "Account SID and Auth Token"
+msgstr "Account SID और Auth Token"
+
+#: includes/admin_view.php:112
+msgid "Twilio credentials"
+msgstr "Twilio क्रेडेंशियल्स"
+
+#: includes/admin_view.php:113
+msgid "Send using"
+msgstr "इसके माध्यम से भेजें"
+
+#: includes/admin_view.php:125
+msgid "Event"
+msgstr "इवेंट"
+
+#: includes/admin_view.php:125
+msgid "Incident"
+msgstr "घटना"
+
+#: includes/admin_view.php:125
+msgid "ServiceNow record type"
+msgstr "ServiceNow रिकॉर्ड प्रकार"
+
+#: includes/admin_view.php:126
+msgid "Changing the record type replaces the destination table, message fields and recovery settings with its defaults. Your instance and credentials are retained."
+msgstr "रिकॉर्ड प्रकार बदलने से गंतव्य तालिका, संदेश फ़ील्ड और पुनर्प्राप्ति सेटिंग्स इसके डिफ़ॉल्ट से बदल जाती हैं। आपका इंस्टेंस और क्रेडेंशियल सुरक्षित रहते हैं।"
+
+#: includes/admin_view.php:149
+msgid "Destination"
+msgstr "स्थान"
+
+#: includes/admin_view.php:154
+msgid "Email settings"
+msgstr "ईमेल सेटिंग्स"
+
+#: includes/admin_view.php:161
+msgid "Delivery uses the Cacti mail settings. Add the people who should receive these alarms."
+msgstr "डिलीवरी Cacti मेल सेटिंग्स का उपयोग करती है। उन लोगों को जोड़ें जिन्हें ये अलार्म प्राप्त होने चाहिए।"
+
+#: includes/admin_view.php:162
+msgid "Script settings"
+msgstr "स्क्रिप्ट सेटिंग्स"
+
+#: includes/admin_view.php:167
+msgid "JSON output is sent to the script on standard input."
+msgstr "JSON आउटपुट मानक इनपुट पर स्क्रिप्ट को भेजा जाता है।"
+
+#: includes/admin_view.php:167
+msgid "The executable must exist and be executable by the worker on every delivering poller. Arguments are passed directly without a shell."
+msgstr "निष्पादन योग्य फ़ाइल प्रत्येक डिलीवरी पोलर पर मौजूद होनी चाहिए और वर्कर द्वारा निष्पादन योग्य होनी चाहिए। तर्क बिना शेल के सीधे पास किए जाते हैं।"
+
+#: includes/admin_view.php:169
+msgid "WebSocket delivery is not implemented."
+msgstr "WebSocket डिलीवरी लागू नहीं की गई है।"
+
+#: includes/admin_view.php:171
+msgid "Advanced delivery settings"
+msgstr "उन्नत डिलीवरी सेटिंग्स"
+
+#: includes/admin_view.php:176
+msgid "Connection options"
+msgstr "कनेक्शन विकल्प"
+
+#: includes/admin_view.php:179
+msgid "Method"
+msgstr "तरीका"
+
+#: includes/admin_view.php:186
+msgid "Certificate and hostname verification remain enabled. Provision the PEM file on every poller. Saved credentials are never displayed."
+msgstr "प्रमाणपत्र और होस्टनाम सत्यापन सक्षम रहते हैं। प्रत्येक पोलर पर PEM फ़ाइल उपलब्ध कराएं। सहेजे गए क्रेडेंशियल कभी प्रदर्शित नहीं किए जाते।"
+
+#: includes/admin_view.php:187
+msgid "Other delivery options"
+msgstr "अन्य डिलीवरी विकल्प"
+
+#: includes/admin_view.php:189 includes/admin_view.php:458
+msgid "Cancel"
+msgstr "कैंसिल करें"
+
+#: includes/admin_view.php:189
+msgid "Test destination saves the current settings and queues a sample alarm for this destination. Enable the destination before testing."
+msgstr "गंतव्य का परीक्षण वर्तमान सेटिंग्स को सहेजता है और इस गंतव्य के लिए एक नमूना अलार्म कतारबद्ध करता है। परीक्षण से पहले गंतव्य को सक्षम करें।"
+
+#: includes/admin_view.php:190
+msgid "Save endpoint"
+msgstr "एंडपॉइंट सहेजें"
+
+#: includes/admin_view.php:190
+msgid "Test destination"
+msgstr "गंतव्य का परीक्षण करें"
+
+#: includes/admin_view.php:194
+msgid "Delete endpoint"
+msgstr "एंडपॉइंट हटाएं"
+
+#: includes/admin_view.php:194
+msgid "Delete this endpoint, its delivery settings and saved credentials"
+msgstr "यह एंडपॉइंट, इसकी डिलीवरी सेटिंग्स और सहेजे गए क्रेडेंशियल हटाएं"
+
+#: includes/admin_view.php:194
+msgid "Deleting stops future delivery and removes the saved settings and credentials. Remove notification rule references and resolve queued or running deliveries first. Completed and failed delivery history is preserved."
+msgstr "हटाने से भविष्य की डिलीवरी रुक जाती है और सहेजी गई सेटिंग्स तथा क्रेडेंशियल हट जाते हैं। पहले सूचना नियम के संदर्भ हटाएं और कतारबद्ध या चल रही डिलीवरी का समाधान करें। पूर्ण और विफल डिलीवरी इतिहास सुरक्षित रहता है।"
+
+#: includes/admin_view.php:205
+msgid "Chat and messaging"
+msgstr "चैट और संदेश सेवा"
+
+#: includes/admin_view.php:206
+msgid "Post alarms to a Slack channel."
+msgstr "Slack चैनल पर अलार्म पोस्ट करें।"
+
+#: includes/admin_view.php:207
+msgid "Post alarm cards through a Teams Workflow."
+msgstr "Teams Workflow के माध्यम से अलार्म कार्ड पोस्ट करें।"
+
+#: includes/admin_view.php:208
+msgid "Send alarms from a Telegram bot."
+msgstr "Telegram बॉट से अलार्म भेजें।"
+
+#: includes/admin_view.php:209
+msgid "Text alarms to phone numbers."
+msgstr "फ़ोन नंबरों पर टेक्स्ट अलार्म भेजें।"
+
+#: includes/admin_view.php:210
+msgid "Send approved WhatsApp templates."
+msgstr "अनुमोदित WhatsApp टेम्पलेट भेजें।"
+
+#: includes/admin_view.php:211
+msgid "Incident management"
+msgstr "घटना प्रबंधन"
+
+#: includes/admin_view.php:212
+msgid "Trigger and resolve PagerDuty incidents."
+msgstr "PagerDuty घटनाएं ट्रिगर और हल करें।"
+
+#: includes/admin_view.php:213
+msgid "Open and resolve ServiceNow incidents or events."
+msgstr "ServiceNow घटनाएं या इवेंट खोलें और हल करें।"
+
+#: includes/admin_view.php:214
+msgid "Network management"
+msgstr "नेटवर्क प्रबंधन"
+
+#: includes/admin_view.php:215
+msgid "Send SNMPv2c or SNMPv3 traps and INFORMs."
+msgstr "SNMPv2c या SNMPv3 ट्रैप और INFORM भेजें।"
+
+#: includes/admin_view.php:216
+msgid "Forward RFC 5424 or RFC 3164 messages over UDP, TCP or TLS."
+msgstr "UDP, TCP या TLS पर RFC 5424 या RFC 3164 संदेश अग्रेषित करें।"
+
+#: includes/admin_view.php:217
+msgid "Custom"
+msgstr "रुचि अनुसरणीय"
+
+#: includes/admin_view.php:218
+msgid "Start from an empty endpoint."
+msgstr "एक रिक्त एंडपॉइंट से प्रारंभ करें।"
+
+#: includes/admin_view.php:219
+msgid "POST alarm JSON to any HTTPS endpoint."
+msgstr "किसी भी HTTPS एंडपॉइंट पर अलार्म JSON को POST करें।"
+
+#: includes/admin_view.php:220
+msgid "Call an API with your own method, authentication and response checks."
+msgstr "अपनी स्वयं की विधि, प्रमाणीकरण और प्रतिक्रिया जांच के साथ API कॉल करें।"
+
+#: includes/admin_view.php:221
+msgid "Run a local executable with the alarm as JSON input."
+msgstr "अलार्म को JSON इनपुट के रूप में लेकर एक स्थानीय निष्पादन योग्य फ़ाइल चलाएं।"
+
+#: includes/admin_view.php:227
+msgid "Add integration"
+msgstr "एकीकरण जोड़ें"
+
+#: includes/admin_view.php:228
+msgid "Choose a template. It opens as a disabled draft; nothing is sent until you enable it."
+msgstr "एक टेम्पलेट चुनें। यह एक अक्षम ड्राफ्ट के रूप में खुलता है; जब तक आप इसे सक्षम नहीं करते तब तक कुछ भी नहीं भेजा जाता।"
+
+#: includes/admin_view.php:228
+msgid "Search integrations"
+msgstr "एकीकरण खोजें"
+
+#: includes/admin_view.php:234
+msgid "Blank endpoint"
+msgstr "रिक्त एंडपॉइंट"
+
+#: includes/admin_view.php:239
+msgid "No integrations match your search."
+msgstr "आपकी खोज से कोई एकीकरण मेल नहीं खाता।"
+
+#: includes/admin_view.php:243
+msgid "SNMP trap settings"
+msgstr "SNMP ट्रैप सेटिंग्स"
+
+#: includes/admin_view.php:259
+msgid "Saved community and passphrases are encrypted and never displayed. Leave them blank to keep the saved values; entering any value replaces all saved SNMP secrets."
+msgstr "सहेजी गई कम्युनिटी और पासफ़्रेज़ एन्क्रिप्टेड होते हैं और कभी प्रदर्शित नहीं किए जाते। सहेजे गए मानों को बनाए रखने के लिए उन्हें रिक्त छोड़ें; कोई भी मान दर्ज करने से सभी सहेजे गए SNMP सीक्रेट बदल जाते हैं।"
+
+#: includes/admin_view.php:260
+msgid "Traps are sent as Cacti's CACTI-MIB cactiNotify with the snmptrap binary from Cacti Settings > Paths on every delivering poller. Add one destination per receiver."
+msgstr "ट्रैप प्रत्येक डिलीवरी पोलर पर Cacti सेटिंग्स > पथ से snmptrap बाइनरी के साथ Cacti के CACTI-MIB cactiNotify के रूप में भेजे जाते हैं। प्रति प्राप्तकर्ता एक गंतव्य जोड़ें।"
+
+#: includes/admin_view.php:261
+msgid "Syslog settings"
+msgstr "Syslog सेटिंग्स"
+
+#: includes/admin_view.php:269
+msgid "TLS verifies the receiver certificate and hostname. Use port 6514 for TLS. UDP and TCP are unencrypted, and a UDP message is confirmed only as sent."
+msgstr "TLS प्राप्तकर्ता प्रमाणपत्र और होस्टनाम को सत्यापित करता है। TLS के लिए पोर्ट 6514 का उपयोग करें। UDP और TCP अनएन्क्रिप्टेड हैं, और UDP संदेश की पुष्टि केवल भेजे गए के रूप में होती है।"
+
+#: includes/admin_view.php:278 setup.php:191
+msgid "Days"
+msgstr "दिन"
+
+#: includes/admin_view.php:283
+msgid "Timezone"
+msgstr "समय क्षेत्र"
+
+#: includes/admin_view.php:291
+msgid "Times use the selected timezone and the alarm event time. An end time before the start runs overnight. Equal times cover the entire selected day."
+msgstr "समय चयनित समय क्षेत्र और अलार्म इवेंट समय का उपयोग करते हैं। प्रारंभ से पहले का समाप्ति समय रात भर चलता है। समान समय पूरे चयनित दिन को कवर करते हैं।"
+
+#: includes/admin_view.php:332 includes/admin_view.php:521
+msgid "Create a rule"
+msgstr "नियम बनाएं"
+
+#: includes/admin_view.php:332
+msgid "Enabled"
+msgstr "सक्षम"
+
+#: includes/admin_view.php:332
+msgid "Priority"
+msgstr "प्राथमिकता"
+
+#: includes/admin_view.php:334
+msgid "Rule and destination"
+msgstr "नियम और गंतव्य"
+
+#: includes/admin_view.php:338
+msgid "Alarm Destination"
+msgstr "अलार्म गंतव्य"
+
+#: includes/admin_view.php:341
+msgid "disabled"
+msgstr "अक्षम"
+
+#: includes/admin_view.php:343
+msgid "Select one or more alarm destinations. Disabled destinations do not send alarms."
+msgstr "एक या अधिक अलार्म गंतव्य चुनें। अक्षम गंतव्य अलार्म नहीं भेजते।"
+
+#: includes/admin_view.php:345
+msgid "Message template"
+msgstr "संदेश टेम्पलेट"
+
+#: includes/admin_view.php:345
+msgid "Use each destination default, or customize its message for this rule. Customization starts with a copy of the destination template and does not change other rules. If several rules match the same destination, the first matching rule in priority and ID order supplies its template."
+msgstr "प्रत्येक गंतव्य डिफ़ॉल्ट का उपयोग करें, या इस नियम के लिए उसका संदेश कस्टमाइज़ करें। कस्टमाइज़ेशन गंतव्य टेम्पलेट की प्रति से शुरू होता है और अन्य नियमों को नहीं बदलता। यदि कई नियम एक ही गंतव्य से मेल खाते हैं, तो प्राथमिकता और आईडी क्रम में पहला मेल खाने वाला नियम अपना टेम्पलेट प्रदान करता है।"
+
+#: includes/admin_view.php:352
+msgid "Custom template"
+msgstr "कस्टम टेम्पलेट"
+
+#: includes/admin_view.php:355
+msgid "Destination recipient"
+msgstr "गंतव्य प्राप्तकर्ता"
+
+#: includes/admin_view.php:355
+#, php-format
+msgid "Recipients: %d"
+msgstr "प्राप्तकर्ता: %d"
+
+#: includes/admin_view.php:357
+msgid "Customize message for this rule"
+msgstr "इस नियम के लिए संदेश कस्टमाइज़ करें"
+
+#: includes/admin_view.php:357
+msgid "Unchecked: Use destination default."
+msgstr "अचयनित: गंतव्य डिफ़ॉल्ट का उपयोग करें।"
+
+#: includes/admin_view.php:361
+msgid "Optional: add each phone number in international format, such as +15551234567. These numbers replace the destination recipient for this rule. Leave the list empty to use the destination default. Each number has its own delivery status and retries."
+msgstr "वैकल्पिक: प्रत्येक फ़ोन नंबर अंतरराष्ट्रीय प्रारूप में जोड़ें, जैसे +15551234567। ये नंबर इस नियम के लिए गंतव्य प्राप्तकर्ता को बदल देते हैं। गंतव्य डिफ़ॉल्ट का उपयोग करने के लिए सूची रिक्त छोड़ें। प्रत्येक नंबर की अपनी डिलीवरी स्थिति और पुनः प्रयास होते हैं।"
+
+#: includes/admin_view.php:374
+msgid "None"
+msgstr "कोई नहीं"
+
+#: includes/admin_view.php:376
+msgid "Build device conditions using AND, OR and groups. These conditions use the current Cacti device settings and must also satisfy any alarm filters below. With no device conditions, all devices can match."
+msgstr "AND, OR और समूहों का उपयोग करके डिवाइस शर्तें बनाएं। ये शर्तें वर्तमान Cacti डिवाइस सेटिंग्स का उपयोग करती हैं और इन्हें नीचे दिए गए किसी भी अलार्म फ़िल्टर को भी संतुष्ट करना होगा। कोई डिवाइस शर्त न होने पर सभी डिवाइस मेल खा सकते हैं।"
+
+#: includes/admin_view.php:376
+msgid "Match devices"
+msgstr "डिवाइस मिलान करें"
+
+#: includes/admin_view.php:387
+msgid "Cacti_Admin_Notifications"
+msgstr "Cacti_Admin_Notifications"
+
+#: includes/admin_view.php:387
+msgid "Device Status"
+msgstr "उपकरण की स्थिति"
+
+#: includes/admin_view.php:387
+msgid "Syslog"
+msgstr "सिसलॉग"
+
+#: includes/admin_view.php:387
+msgid "Thold"
+msgstr "Thold"
+
+#: includes/admin_view.php:392
+msgid "Build alarm conditions using AND, OR, NOT and groups. Alarms must also match the device conditions above."
+msgstr "AND, OR, NOT और समूहों का उपयोग करके अलार्म शर्तें बनाएं। अलार्म को ऊपर दी गई डिवाइस शर्तों से भी मेल खाना होगा।"
+
+#: includes/admin_view.php:392
+msgid "Match alarms"
+msgstr "अलार्म मिलान करें"
+
+#: includes/admin_view.php:395
+msgid "No alarm sources detected yet. Sources appear after their first alarm."
+msgstr "अभी तक कोई अलार्म स्रोत नहीं मिला। पहले अलार्म के बाद स्रोत दिखाई देते हैं।"
+
+#: includes/admin_view.php:397
+msgid "By default, matching alarms can notify at any time. Turn on a schedule to limit when this rule matches."
+msgstr "डिफ़ॉल्ट रूप से, मेल खाने वाले अलार्म किसी भी समय सूचना दे सकते हैं। यह नियम कब मेल खाए, इसे सीमित करने के लिए शेड्यूल चालू करें।"
+
+#: includes/admin_view.php:397
+msgid "Notification hours"
+msgstr "सूचना घंटे"
+
+#: includes/admin_view.php:399
+msgid "Suppress notifications"
+msgstr "सूचनाएं रोकें"
+
+#: includes/admin_view.php:399
+msgid "Suppressed alarms remain in history. Recovery notifications bypass acknowledgment, cooldown and duplicate suppression, but still follow notification hours and maintenance windows."
+msgstr "रोके गए अलार्म इतिहास में बने रहते हैं। पुनर्प्राप्ति सूचनाएं स्वीकृति, कूलडाउन और डुप्लिकेट रोकथाम को बायपास करती हैं, लेकिन फिर भी सूचना घंटों और रखरखाव विंडो का पालन करती हैं।"
+
+#: includes/admin_view.php:403
+msgid "Set a duration to 0 to turn it off."
+msgstr "इसे बंद करने के लिए अवधि को 0 पर सेट करें।"
+
+#: includes/admin_view.php:405
+msgid "Rule order"
+msgstr "नियम क्रम"
+
+#: includes/admin_view.php:408
+msgid "Create rule"
+msgstr "नियम बनाएं"
+
+#: includes/admin_view.php:408
+msgid "Rules with equal priority run in ID order. Stopping also applies when this rule suppresses notifications."
+msgstr "समान प्राथमिकता वाले नियम आईडी के क्रम में चलते हैं। जब यह नियम सूचनाओं को रोकता है तब भी रोकना लागू होता है।"
+
+#: includes/admin_view.php:417
+msgid "Configuration Backup/Restore"
+msgstr "कॉन्फ़िगरेशन बैकअप/पुनर्स्थापना"
+
+#: includes/admin_view.php:427
+msgid "Paused"
+msgstr "रोका गया"
+
+#: includes/admin_view.php:427
+msgid "Running"
+msgstr "चल रहा है"
+
+#: includes/admin_view.php:428
+msgid "everything has been delivered"
+msgstr "सब कुछ डिलीवर हो चुका है"
+
+#: includes/admin_view.php:428
+#, php-format
+msgid "oldest queued %s UTC"
+msgstr "सबसे पुराना कतारबद्ध %s UTC"
+
+#: includes/admin_view.php:428
+msgid "waiting messages"
+msgstr "प्रतीक्षारत संदेश"
+
+#: includes/admin_view.php:431
+msgid "Hide messages"
+msgstr "संदेश छिपाएं"
+
+#: includes/admin_view.php:431
+msgid "View messages"
+msgstr "संदेश देखें"
+
+#: includes/admin_view.php:441
+msgid "Endpoint"
+msgstr "एंडपॉइंट"
+
+#: includes/admin_view.php:441
+msgid "ID"
+msgstr "आईडी"
+
+#: includes/admin_view.php:441
+msgid "Message"
+msgstr "संदेश"
+
+#: includes/admin_view.php:441
+msgid "Next try"
+msgstr "अगला प्रयास"
+
+#: includes/admin_view.php:441 includes/reports.php:458
+msgid "Queued"
+msgstr "कतारबद्ध"
+
+#: includes/admin_view.php:441
+msgid "Tries"
+msgstr "प्रयास"
+
+#: includes/admin_view.php:451
+msgid "Times in UTC · first 100 shown"
+msgstr "UTC में समय · पहले 100 दिखाए गए"
+
+#: includes/admin_view.php:455
+msgid "Pause delivery"
+msgstr "डिलीवरी रोकें"
+
+#: includes/admin_view.php:455
+msgid "Resume delivery"
+msgstr "डिलीवरी फिर से शुरू करें"
+
+#: includes/admin_view.php:458
+msgid "Clear queue"
+msgstr "कतार साफ़ करें"
+
+#: includes/admin_view.php:459
+#, php-format
+msgid "Discard all %d waiting notifications on this poller?"
+msgstr "क्या इस पोलर पर सभी %d प्रतीक्षारत सूचनाओं को छोड़ दिया जाए?"
+
+#: includes/admin_view.php:460
+msgid "Includes retries. They stay in delivery history as failed, reason queue_cleared."
+msgstr "पुनः प्रयास शामिल हैं। वे डिलीवरी इतिहास में queue_cleared कारण के साथ विफल के रूप में बने रहते हैं।"
+
+#: includes/admin_view.php:461
+msgid "Messages already sending and alarm state are kept."
+msgstr "पहले से भेजे जा रहे संदेश और अलार्म स्थिति सुरक्षित रखी जाती हैं।"
+
+#: includes/admin_view.php:462
+msgid "Tip: pause delivery first during maintenance."
+msgstr "सुझाव: रखरखाव के दौरान पहले डिलीवरी रोकें।"
+
+#: includes/admin_view.php:463
+msgid "Clear queue…"
+msgstr "कतार साफ़ की जा रही है…"
+
+#: includes/admin_view.php:464
+msgid "Controls apply to this poller. While paused, alarms are still received and queued; Resume sends them."
+msgstr "नियंत्रण इस पोलर पर लागू होते हैं। विराम के दौरान, अलार्म अभी भी प्राप्त होते हैं और कतार में लग जाते हैं; पुनः आरंभ करने पर वे भेज दिए जाते हैं।"
+
+#: includes/admin_view.php:467
+msgid "View delivery results"
+msgstr "डिलीवरी परिणाम देखें"
+
+#: includes/admin_view.php:470
+msgid "Create an integration, configure its destination and credentials, test a sample alarm here, then select it directly in a rule."
+msgstr "एक एकीकरण बनाएं, उसका गंतव्य और क्रेडेंशियल कॉन्फ़िगर करें, यहां एक नमूना अलार्म का परीक्षण करें, फिर इसे सीधे किसी नियम में चुनें।"
+
+#: includes/admin_view.php:476
+msgid "Configured integrations"
+msgstr "कॉन्फ़िगर किए गए एकीकरण"
+
+#: includes/admin_view.php:479
+msgid "No integrations yet. Choose a template above to create one."
+msgstr "अभी तक कोई एकीकरण नहीं है। एक बनाने के लिए ऊपर एक टेम्पलेट चुनें।"
+
+#: includes/admin_view.php:490
+msgid "Alarm Rules"
+msgstr "अलार्म नियम"
+
+#: includes/admin_view.php:490
+msgid "Choose which alarms should notify, where to send them and when to pause notifications. Rules run from lowest to highest priority."
+msgstr "चुनें कि कौन से अलार्म सूचना दें, उन्हें कहां भेजें और सूचनाएं कब रोकें। नियम सबसे कम से उच्चतम प्राथमिकता के क्रम में चलते हैं।"
+
+#: includes/admin_view.php:493
+msgid "Create an integration before saving your first rule."
+msgstr "अपना पहला नियम सहेजने से पहले एक एकीकरण बनाएं।"
+
+#: includes/admin_view.php:493
+msgid "Create integration"
+msgstr "एकीकरण बनाएं"
+
+#: includes/admin_view.php:495
+msgid "Clear"
+msgstr "साफ़ करें"
+
+#: includes/admin_view.php:495
+msgid "Critical"
+msgstr "गंभीर"
+
+#: includes/admin_view.php:495
+msgid "Information"
+msgstr "PHP जानकारी"
+
+#: includes/admin_view.php:495
+msgid "Major"
+msgstr "गंभीर"
+
+#: includes/admin_view.php:495
+msgid "Minor"
+msgstr "मामूली"
+
+#: includes/admin_view.php:495
+msgid "Occurrence"
+msgstr "घटना"
+
+#: includes/admin_view.php:495
+msgid "Raised"
+msgstr "उत्पन्न"
+
+#: includes/admin_view.php:495
+msgid "Recovered"
+msgstr "पुनर्प्राप्त"
+
+#: includes/admin_view.php:495
+msgid "Reminder"
+msgstr "अनुस्मारक"
+
+#: includes/admin_view.php:495
+msgid "Updated"
+msgstr "अपडेट करें"
+
+#: includes/admin_view.php:495
+msgid "Warning"
+msgstr "चेतावनी"
+
+#: includes/admin_view.php:520
+msgid "Alarm notifications require an enabled matching Alarm Rule. Without one, alarms remain in history but no notifications are sent."
+msgstr "अलार्म सूचनाओं के लिए एक सक्षम मेल खाने वाला अलार्म नियम आवश्यक है। इसके बिना, अलार्म इतिहास में बने रहते हैं लेकिन कोई सूचना नहीं भेजी जाती।"
+
+#: includes/admin_view.php:524
+msgid "No rules yet. Create a rule below to start routing alarms to your notification destinations."
+msgstr "अभी तक कोई नियम नहीं है। अपने सूचना गंतव्यों पर अलार्म रूट करना शुरू करने के लिए नीचे एक नियम बनाएं।"
+
+#: includes/admin_view.php:533
+msgid "Credential values are never loaded into this page. Saving replaces the endpoint record; blank values do not preserve an old password. Use the CLI for protected backup/restore and poller provisioning."
+msgstr "क्रेडेंशियल मान इस पृष्ठ पर कभी लोड नहीं किए जाते। सहेजने से एंडपॉइंट रिकॉर्ड बदल जाता है; रिक्त मान पुराना पासवर्ड सुरक्षित नहीं रखते। संरक्षित बैकअप/पुनर्स्थापना और पोलर प्रोविजनिंग के लिए CLI का उपयोग करें।"
+
+#: includes/admin_view.php:536
+msgid "Create endpoint"
+msgstr "एंडपॉइंट बनाएं"
+
+#: includes/admin_view.php:536
+msgid "No REST API or webhook endpoints have been saved. Create an endpoint to enter its bearer token, Basic authentication username and password, or API-key headers."
+msgstr "कोई REST API या वेबहुक एंडपॉइंट सहेजा नहीं गया है। इसका Bearer टोकन, Basic प्रमाणीकरण उपयोगकर्ता नाम और पासवर्ड, या API-कुंजी हेडर दर्ज करने के लिए एक एंडपॉइंट बनाएं।"
+
+#: includes/admin_view.php:540
+msgid "Configured"
+msgstr "कॉन्फ़िगर किया गया"
+
+#: includes/admin_view.php:543
+msgid "Replace credential"
+msgstr "क्रेडेंशियल बदलें"
+
+#: includes/admin_view.php:549
+msgid "Rotate local key"
+msgstr "स्थानीय कुंजी घुमाएं"
+
+#: includes/admin_view.php:553
+msgid "Event log"
+msgstr "इवेंट लॉग"
+
+#: includes/admin_view.php:553
+msgid "Writes every event as it is processed, independent of which rules match or whether any destination is notified — a complete audit trail for external analysis, for example with Splunk."
+msgstr "प्रत्येक इवेंट को प्रोसेस होते समय लिखता है, चाहे कोई भी नियम मेल खाए या किसी भी गंतव्य को सूचित किया जाए या नहीं - बाहरी विश्लेषण के लिए एक पूर्ण ऑडिट ट्रेल, उदाहरण के लिए Splunk के साथ।"
+
+#: includes/admin_view.php:555
+msgid "Cacti log"
+msgstr "Cacti लॉग"
+
+#: includes/admin_view.php:555
+msgid "External file"
+msgstr "बाहरी फ़ाइल"
+
+#: includes/admin_view.php:555
+msgid "Write to"
+msgstr "इसमें लिखें"
+
+#: includes/admin_view.php:559
+msgid "One JSON object per line (occurred_at, transition, severity, device, alarm key…). The path must already exist, outside the plugin directory and Cacti's web root. Past the size limit, the file rotates to one .1 backup."
+msgstr "प्रति पंक्ति एक JSON ऑब्जेक्ट (occurred_at, transition, severity, device, अलार्म कुंजी…)। पथ पहले से मौजूद होना चाहिए, प्लगइन निर्देशिका और Cacti के वेब रूट के बाहर। आकार सीमा पार होने पर, फ़ाइल एक .1 बैकअप में रोटेट हो जाती है।"
+
+#: includes/admin_view.php:559
+msgid "Save event log settings"
+msgstr "इवेंट लॉग सेटिंग्स सहेजें"
+
+#: includes/admin_view.php:561
+msgid "Backup and restore"
+msgstr "बैकअप और पुनर्स्थापना"
+
+#: includes/admin_view.php:561
+msgid "Export"
+msgstr "एक्सपोर्ट"
+
+#: includes/admin_view.php:562
+msgid "Endpoints, message templates, and rules as JSON. Credentials and settings are not included. Endpoint URLs can contain secrets, so keep the file private."
+msgstr "JSON के रूप में एंडपॉइंट, संदेश टेम्पलेट और नियम। क्रेडेंशियल और सेटिंग्स शामिल नहीं हैं। एंडपॉइंट URL में सीक्रेट हो सकते हैं, इसलिए फ़ाइल को निजी रखें।"
+
+#: includes/admin_view.php:563
+msgid "Export configuration"
+msgstr "कॉन्फ़िगरेशन निर्यात करें"
+
+#: includes/admin_view.php:563
+msgid "Import"
+msgstr "आयात करें"
+
+#: includes/admin_view.php:567
+msgid "Replaces the routing configuration using the IDs in the file. Endpoints and rules missing from the file are disabled, not deleted. Saved credentials are kept."
+msgstr "फ़ाइल में दी गई आईडी का उपयोग करके रूटिंग कॉन्फ़िगरेशन को बदलता है। फ़ाइल से अनुपस्थित एंडपॉइंट और नियम हटाए नहीं जाते, बल्कि अक्षम कर दिए जाते हैं। सहेजे गए क्रेडेंशियल सुरक्षित रहते हैं।"
+
+#: includes/admin_view.php:568
+msgid "Import configuration"
+msgstr "कॉन्फ़िगरेशन आयात करें"
+
+#: includes/admin_view.php:572
+msgid "Local queue health"
+msgstr "स्थानीय कतार स्वास्थ्य"
+
+#: includes/admin_view.php:573
+msgid "Jobs"
+msgstr "जॉब"
+
+#: includes/admin_view.php:573
+msgid "Oldest job age (seconds)"
+msgstr "सबसे पुराने जॉब की आयु (सेकंड)"
+
+#: includes/admin_view.php:573
+msgid "Queue"
+msgstr "कतार"
+
+#: includes/admin_view.php:573
+msgid "Retries"
+msgstr "पुनर्प्रयास"
+
+#: includes/admin_view.php:573 includes/admin_view.php:592
+#: includes/web_view.php:181
+msgid "Status"
+msgstr "स्थिति"
+
+#: includes/admin_view.php:588
+msgid "No queue activity recorded."
+msgstr "कोई कतार गतिविधि रिकॉर्ड नहीं की गई।"
+
+#: includes/admin_view.php:591
+msgid "Local worker health"
+msgstr "स्थानीय वर्कर स्वास्थ्य"
+
+#: includes/admin_view.php:592
+msgid "Current job"
+msgstr "वर्तमान जॉब"
+
+#: includes/admin_view.php:592
+msgid "Heartbeat age (seconds)"
+msgstr "हार्टबीट आयु (सेकंड)"
+
+#: includes/admin_view.php:592
+msgid "PID"
+msgstr "PID"
+
+#: includes/admin_view.php:592
+msgid "Poller"
+msgstr "पोलर"
+
+#: includes/admin_view.php:592
+msgid "Role"
+msgstr "भूमिकाओं"
+
+#: includes/admin_view.php:592
+msgid "Worker"
+msgstr "वर्कर"
+
+#: includes/admin_view.php:607
+msgid "No local worker heartbeats recorded."
+msgstr "कोई स्थानीय वर्कर हार्टबीट रिकॉर्ड नहीं किया गया।"
+
+#: includes/admin_view.php:610
+msgid "Completed delivery jobs in the last 300 seconds"
+msgstr "पिछले 300 सेकंड में पूर्ण हुए डिलीवरी जॉब"
+
+#: includes/admin_view.php:610
+msgid "Completed processing jobs in the last 300 seconds"
+msgstr "पिछले 300 सेकंड में पूर्ण हुए प्रोसेसिंग जॉब"
+
+#: includes/admin_view.php:610
+msgid "Processing streams blocked behind a failed predecessor"
+msgstr "विफल पूर्ववर्ती के पीछे अवरुद्ध प्रोसेसिंग स्ट्रीम"
+
+#: includes/admin_view.php:613
+msgid "Pending jobs for destination types without a qualified transport"
+msgstr "योग्य ट्रांसपोर्ट के बिना गंतव्य प्रकारों के लिए लंबित जॉब"
+
+#: includes/admin_view.php:620
+msgid "Failed deliveries and replay"
+msgstr "विफल डिलीवरी और पुनः प्रेषण"
+
+#: includes/admin_view.php:620
+msgid "Failed processing jobs and replay"
+msgstr "विफल प्रोसेसिंग जॉब और पुनः संचालन"
+
+#: includes/admin_view.php:625
+msgid "Authentication"
+msgstr "प्रमाणीकरण"
+
+#: includes/admin_view.php:625
+msgid "Authentication type"
+msgstr "प्रमाणीकरण प्रकार"
+
+#: includes/admin_view.php:649
+msgid "Saved credentials are encrypted and never displayed. New values replace the saved credential record."
+msgstr "सहेजे गए क्रेडेंशियल एन्क्रिप्टेड होते हैं और कभी प्रदर्शित नहीं किए जाते। नए मान सहेजे गए क्रेडेंशियल रिकॉर्ड को बदल देते हैं।"
+
+#: includes/polling.php:150
+msgid "Start the Alarm Manager service on this collector before enabling daemon workers."
+msgstr "डेमन वर्कर सक्षम करने से पहले इस कलेक्टर पर अलार्म प्रबंधक सेवा प्रारंभ करें।"
+
+#: includes/polling.php:163
+msgid "Daemon settings could not be saved. Check the Cacti cache directory permissions."
+msgstr "डेमन सेटिंग्स सहेजी नहीं जा सकीं। Cacti कैश निर्देशिका की अनुमतियां जांचें।"
+
+#: includes/reports.php:430
+msgid "Remote history"
+msgstr "दूरस्थ इतिहास"
+
+#: includes/reports.php:459
+msgid "Test send"
+msgstr "परीक्षण भेजें"
+
+#: includes/reports.php:460
+msgid "No matching rule"
+msgstr "कोई मेल खाता नियम नहीं"
+
+#: includes/reports.php:461
+msgid "Destination disabled"
+msgstr "गंतव्य अक्षम है"
+
+#: includes/reports.php:462
+msgid "Suppressed by source"
+msgstr "स्रोत द्वारा रोका गया"
+
+#: includes/reports.php:463
+msgid "Maintenance window"
+msgstr "रखरखाव विंडो"
+
+#: includes/reports.php:464
+msgid "Acknowledged"
+msgstr "स्वीकृत"
+
+#: includes/reports.php:465
+msgid "Cooldown"
+msgstr "कूलडाउन"
+
+#: includes/reports.php:466
+msgid "Duplicate"
+msgstr "डुप्लीकेट"
+
+#: includes/reports.php:467
+msgid "Already routed"
+msgstr "पहले से रूट किया गया"
+
+#: includes/reports.php:468
+msgid "Out of order"
+msgstr "क्रम से बाहर"
+
+#: includes/reports.php:469
+msgid "Ignored episode"
+msgstr "अनदेखा किया गया एपिसोड"
+
+#: includes/reports.php:470
+msgid "History only"
+msgstr "केवल इतिहास"
+
+#: includes/reports.php:518
+#, php-format
+msgid "Deleted destination #%d"
+msgstr "गंतव्य #%d हटाया गया"
+
+#: includes/reports.php:519
+#, php-format
+msgid "%d destinations"
+msgstr "%d गंतव्य"
+
+#: includes/reports.php:531
+msgid "Delivered"
+msgstr "डिलीवर किया गया"
+
+#: includes/reports.php:531
+msgid "Failed"
+msgstr "असफल"
+
+#: includes/reports.php:531
+msgid "Pending"
+msgstr "लंबित"
+
+#: includes/reports.php:531
+msgid "Sending"
+msgstr "भेजा जा रहा है"
+
+#: includes/reports.php:541
+msgid "Processing failed"
+msgstr "प्रोसेसिंग विफल"
+
+#: includes/reports.php:542
+msgid "Pending processing"
+msgstr "प्रोसेसिंग लंबित"
+
+#: includes/reports.php:543 includes/web_view.php:264
+msgid "Processing"
+msgstr "प्रोसेसिंग"
+
+#: includes/reports.php:544
+msgid "No matching integration"
+msgstr "कोई मेल खाता एकीकरण नहीं"
+
+#: includes/reports.php:544
+msgid "Suppressed"
+msgstr "रोका गया"
+
+#: includes/routing.php:106
+msgid "Device description"
+msgstr "डिवाइस विवरण"
+
+#: includes/routing.php:106
+msgid "Hostname"
+msgstr "होस्टनाम"
+
+#: includes/routing.php:106
+msgid "Location"
+msgstr "स्थान"
+
+#: includes/routing.php:106
+msgid "SNMP system location"
+msgstr "SNMP सिस्टम स्थान"
+
+#: includes/routing.php:110 includes/routing.php:125
+msgid "Collector"
+msgstr "कलेक्टरों"
+
+#: includes/routing.php:110
+msgid "Device Site Association"
+msgstr "डिवाइस साइट एसोसिएशन"
+
+#: includes/routing.php:110
+msgid "Device Template"
+msgstr "डिवाइस टेम्पलेट"
+
+#: includes/routing.php:121
+msgid "Alarm change"
+msgstr "अलार्म परिवर्तन"
+
+#: includes/routing.php:121
+msgid "Alarm source"
+msgstr "अलार्म स्रोत"
+
+#: includes/routing.php:121
+msgid "Alarm summary"
+msgstr "अलार्म सारांश"
+
+#: includes/routing.php:121 includes/web_view.php:161
+msgid "Severity"
+msgstr "तीव्रता"
+
+#: includes/routing.php:125
+msgid "Device"
+msgstr "डिवाइस"
+
+#: includes/routing.php:128
+msgid "Device tag"
+msgstr "डिवाइस टैग"
+
+#: includes/web_view.php:93
+msgid "Report unavailable or permission denied."
+msgstr "रिपोर्ट अनुपलब्ध है या अनुमति अस्वीकृत है।"
+
+#: includes/web_view.php:119
+msgid "Statistics could not be rendered."
+msgstr "आंकड़े प्रदर्शित नहीं किए जा सके।"
+
+#: includes/web_view.php:129 setup.php:131 setup.php:273 setup.php:289
+#: setup.php:290
+msgid "Alarm Manager"
+msgstr "अलार्म प्रबंधक (Alarm Manager)"
+
+#: includes/web_view.php:136
+msgid "Alarm Manager pages"
+msgstr "अलार्म प्रबंधक पृष्ठ"
+
+#: includes/web_view.php:149 includes/web_view.php:152
+msgid "Alarm statistics"
+msgstr "अलार्म आंकड़े"
+
+#: includes/web_view.php:149
+msgid "Filters"
+msgstr "फिल्टर"
+
+#: includes/web_view.php:152
+msgid "Time range"
+msgstr "समय सीमा"
+
+#: includes/web_view.php:158
+msgid "Off"
+msgstr "बंद"
+
+#: includes/web_view.php:158
+msgid "Refresh"
+msgstr "रीफ्रैश करो"
+
+#: includes/web_view.php:160
+msgid "Advanced filter JSON"
+msgstr "उन्नत फ़िल्टर JSON"
+
+#: includes/web_view.php:160
+msgid "Filter document"
+msgstr "फ़िल्टर दस्तावेज़"
+
+#: includes/web_view.php:160
+msgid "Quick filters"
+msgstr "त्वरित फ़िल्टर"
+
+#: includes/web_view.php:160
+msgid "Search conditions"
+msgstr "खोज शर्तें"
+
+#: includes/web_view.php:161 includes/web_view.php:181
+msgid "All"
+msgstr "सभी"
+
+#: includes/web_view.php:161
+msgid "Source"
+msgstr "डाटा स्रोत"
+
+#: includes/web_view.php:168
+msgid "Device ID"
+msgstr "डिवाइस"
+
+#: includes/web_view.php:171
+msgid "Status type"
+msgstr "स्थिति प्रकार"
+
+#: includes/web_view.php:190
+msgid "event_id"
+msgstr "इवेंट आईडी"
+
+#: includes/web_view.php:195
+msgid "Collector ID"
+msgstr "कलेक्टर आईडी"
+
+#: includes/web_view.php:195
+msgid "Local and mirrored collectors"
+msgstr "स्थानीय और मिरर किए गए कलेक्टर"
+
+#: includes/web_view.php:198
+msgid "mirrored"
+msgstr "मिरर किया गया"
+
+#: includes/web_view.php:203
+msgid "Mirrored events carry no Record ID and no detail view."
+msgstr "मिरर किए गए इवेंट में कोई रिकॉर्ड आईडी और कोई विवरण दृश्य नहीं होता।"
+
+#: includes/web_view.php:205
+msgid "Mirrored collector events are always included here unless you narrow by a specific remote Collector ID."
+msgstr "जब तक आप किसी विशिष्ट दूरस्थ कलेक्टर आईडी द्वारा सीमित न करें, मिरर किए गए कलेक्टर इवेंट यहां हमेशा शामिल होते हैं।"
+
+#: includes/web_view.php:211
+msgid "Apply"
+msgstr "लागू करें"
+
+#: includes/web_view.php:211
+msgid "Reset"
+msgstr "पुनः सेट करें"
+
+#: includes/web_view.php:213
+msgid "Historical window uses UTC. Current conditions and queues ignore the time window."
+msgstr "ऐतिहासिक विंडो UTC का उपयोग करती है। वर्तमान स्थितियां और कतारें समय विंडो को अनदेखा करती हैं।"
+
+#: includes/web_view.php:235
+msgid "Loading statistics…"
+msgstr "आंकड़े लोड हो रहे हैं…"
+
+#: includes/web_view.php:248
+msgid "Collapse"
+msgstr "संक्षिप्त करें"
+
+#: includes/web_view.php:261
+msgid "Integration results"
+msgstr "एकीकरण परिणाम"
+
+#: includes/web_view.php:262
+msgid "Delivery attempts"
+msgstr "डिलीवरी प्रयास"
+
+#: includes/web_view.php:263
+msgid "Routing decisions"
+msgstr "रूटिंग निर्णय"
+
+#: includes/web_view.php:265
+msgid "conditions"
+msgstr "शर्तें"
+
+#: includes/web_view.php:270
+msgid "No matching records."
+msgstr "कोई मेल खाता रिकॉर्ड नहीं।"
+
+#: includes/web_view.php:290
+msgid "Integration status"
+msgstr "एकीकरण स्थिति"
+
+#: includes/web_view.php:291
+msgid "Collector Name"
+msgstr "कलेक्टर का नाम"
+
+#: includes/web_view.php:292
+msgid "Attempts in current retry cycle"
+msgstr "वर्तमान पुनः प्रयास चक्र में प्रयास"
+
+#: includes/web_view.php:298
+msgid "Action"
+msgstr "कार्रवाई"
+
+#: includes/web_view.php:314
+msgid "Display"
+msgstr "डिस्प्ले"
+
+#: includes/web_view.php:349
+msgid "Latest 100 records for this event."
+msgstr "इस इवेंट के लिए नवीनतम 100 रिकॉर्ड।"
+
+#: includes/web_view.php:354
+msgid "Showing at most 50 records per page."
+msgstr "प्रति पृष्ठ अधिकतम 50 रिकॉर्ड दिखाए जा रहे हैं।"
+
+#: includes/web_view.php:355
+msgid "Pages"
+msgstr "पृष्ठ"
+
+#: includes/web_view.php:358
+msgid "Previous"
+msgstr "पिछला"
+
+#: includes/web_view.php:361
+#, php-format
+msgid "Page %d"
+msgstr "पृष्ठ %d"
+
+#: includes/web_view.php:364
+msgid "Next"
+msgstr "अगला"
+
+#: includes/web_view.php:371
+msgid "Selected event details"
+msgstr "चयनित इवेंट विवरण"
+
+#: includes/web_view.php:378
+msgid "Show metadata"
+msgstr "मेटाडेटा दिखाएं"
+
+#: includes/web_view.php:400
+msgid "Confirm replay may repeat an external effect"
+msgstr "पुष्टि करें कि पुनः चलाने से बाहरी प्रभाव दोहराया जा सकता है"
+
+#: setup.php:102
+msgid "Alarm Manager View"
+msgstr "अलार्म प्रबंधक दृश्य"
+
+#: setup.php:103
+msgid "Alarm Manager Administration"
+msgstr "अलार्म प्रबंधक प्रशासन"
+
+#: setup.php:133
+msgid "0 Worker Processes"
+msgstr "0 वर्कर प्रक्रियाएं"
+
+#: setup.php:133
+msgid "1 Worker Process"
+msgstr "1 वर्कर प्रक्रिया"
+
+#: setup.php:136
+#, php-format
+msgid "%d Worker Processes"
+msgstr "%d वर्कर प्रक्रियाएं"
+
+#: setup.php:144
+msgid "Device Alarm Summaries"
+msgstr "डिवाइस अलार्म सारांश"
+
+#: setup.php:148
+msgid "Offline Summary"
+msgstr "ऑफ़लाइन सारांश"
+
+#: setup.php:149
+msgid "Summary for new Cacti device down alarms. Existing history retains its original summary."
+msgstr "नए Cacti डिवाइस डाउन अलार्म के लिए सारांश। मौजूदा इतिहास अपना मूल सारांश बनाए रखता है।"
+
+#: setup.php:156
+msgid "Recovering Summary"
+msgstr "पुनर्प्राप्ति सारांश"
+
+#: setup.php:157
+msgid "Summary for device recovering updates within the same outage."
+msgstr "उसी आउटेज के भीतर डिवाइस पुनर्प्राप्ति अपडेट के लिए सारांश।"
+
+#: setup.php:164
+msgid "Online Summary"
+msgstr "ऑनलाइन सारांश"
+
+#: setup.php:165
+msgid "Summary for device recovery alarms once Cacti confirms the device is up."
+msgstr "Cacti द्वारा डिवाइस के चालू होने की पुष्टि करने के बाद डिवाइस पुनर्प्राप्ति अलार्म के लिए सारांश।"
+
+#: setup.php:172
+msgid "Alert History Retention"
+msgstr "अलर्ट इतिहास प्रतिधारण"
+
+#: setup.php:177
+msgid "Keep Alert History For"
+msgstr "अलर्ट इतिहास रखने की अवधि"
+
+#: setup.php:178
+msgid "Enter how many days, weeks or months to keep alert history, or choose Indefinitely to keep everything (the number is then ignored). Maximum 3650 days, 520 weeks or 120 months. A purge job runs with the Cacti poller and removes aged events with their decisions, deliveries and attempts. Active conditions and queued or failed work are never purged. Each collector purges its own history."
+msgstr "अलर्ट इतिहास रखने के लिए दिनों, सप्ताहों या महीनों की संख्या दर्ज करें, या सब कुछ रखने के लिए अनिश्चित काल चुनें (तब संख्या को अनदेखा कर दिया जाता है)। अधिकतम 3650 दिन, 520 सप्ताह या 120 महीने। एक पर्ज जॉब Cacti पोलर के साथ चलता है और पुरानी घटनाओं को उनके निर्णयों, डिलीवरी और प्रयासों सहित हटा देता है। सक्रिय स्थितियां और कतारबद्ध या विफल कार्य कभी नहीं हटाए जाते। प्रत्येक कलेक्टर अपना इतिहास स्वयं साफ़ करता है।"
+
+#: setup.php:187
+msgid "Retention Unit"
+msgstr "प्रतिधारण इकाई"
+
+#: setup.php:188
+msgid "The unit for the retention period."
+msgstr "प्रतिधारण अवधि के लिए इकाई।"
+
+#: setup.php:191
+msgid "Indefinitely"
+msgstr "अनिश्चित काल तक"
+
+#: setup.php:191
+msgid "Months"
+msgstr "महीने"
+
+#: setup.php:191
+msgid "Weeks"
+msgstr "सप्ताह"
+
+#: setup.php:194
+msgid "Daemon"
+msgstr "डेमन"
+
+#: setup.php:198
+msgid "Enable Daemon"
+msgstr "डेमन सक्षम करें"
+
+#: setup.php:199
+msgid "Run processing and delivery workers in the resident Alarm Manager service instead of the Cacti poller. The service must be installed and running; disabling it lets current jobs finish and returns processing to the poller. Changes apply within a few seconds and synchronize to collectors."
+msgstr "Cacti पोलर के बजाय स्थायी अलार्म प्रबंधक सेवा में प्रोसेसिंग और डिलीवरी वर्कर चलाएं। सेवा स्थापित और चालू होनी चाहिए; इसे अक्षम करने से वर्तमान जॉब पूरे हो जाते हैं और प्रोसेसिंग पोलर पर वापस आ जाती है। परिवर्तन कुछ ही सेकंड में लागू होते हैं और कलेक्टरों के साथ सिंक्रनाइज़ हो जाते हैं।"
+
+#: setup.php:204
+msgid "Processing Workers"
+msgstr "प्रोसेसिंग वर्कर"
+
+#: setup.php:205
+msgid "Number of daemon workers that evaluate rules."
+msgstr "नियमों का मूल्यांकन करने वाले डेमन वर्करों की संख्या।"
+
+#: setup.php:211
+msgid "Delivery Workers"
+msgstr "डिलीवरी वर्कर"
+
+#: setup.php:212
+msgid "Number of daemon workers that deliver notifications."
+msgstr "सूचनाएं डिलीवर करने वाले डेमन वर्करों की संख्या।"
+
+#: setup.php:257
+msgid "Import/Export"
+msgstr "आयात/निर्यात"
+
+#: setup.php:259 setup.php:265 setup.php:271
+msgid "Alarm Manager Settings"
+msgstr "अलार्म प्रबंधक सेटिंग्स"

@@ -1,0 +1,1230 @@
+# Georgian translations for Alarm Manager package.
+# Copyright (C) 2004-2026 The Cacti Group
+# This file is distributed under the same license as the Alarm Manager package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Alarm Manager 0.12.2\n"
+"Report-Msgid-Bugs-To: https://github.com/bmfmancini/plugin_alarmmanager/issues\n"
+"POT-Creation-Date: 2026-11-02 13:02-0500\n"
+"PO-Revision-Date: 2026-11-28 02:15+0000\n"
+"Last-Translator: Thomas Vincent <thomasvincent@gmail.com>\n"
+"Language-Team: Georgian <https://translate.cacti.net/projects/cacti/core/ka/>\n"
+"Language: ka-GE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+
+#: alarmmanager_admin.php:50
+msgid "The administration action succeeded."
+msgstr "ადმინისტრირების მოქმედება წარმატებით შესრულდა."
+
+#: alarmmanager_admin.php:86
+msgid "Administration unavailable or permission denied."
+msgstr "ადმინისტრირება მიუწვდომელია ან ნებართვა უარყოფილია."
+
+#: includes/admin_view.php:78
+msgid "Choose the alarm information to send to any service. Use Combined text to arrange device details, or Use device message to start with a complete message. Email uses Subject and Message; API destinations use the field names required by the receiving service."
+msgstr "აირჩიეთ, რომელი განგაშის ინფორმაცია გაეგზავნოს სერვისს. გამოიყენეთ გაერთიანებული ტექსტი მოწყობილობის დეტალების დასალაგებლად, ან გამოიყენეთ მოწყობილობის შეტყობინება სრული შეტყობინებით დასაწყებად. ელფოსტა იყენებს თემას და შეტყობინებას; API დანიშნულებები იყენებს მიმღები სერვისის მიერ მოთხოვნილ ველების სახელებს."
+
+#: includes/admin_view.php:79
+msgid "Advanced message configuration"
+msgstr "შეტყობინების გაფართოებული კონფიგურაცია"
+
+#: includes/admin_view.php:90
+msgid "New endpoint"
+msgstr "ახალი ბოლო წერტილი"
+
+#: includes/admin_view.php:100
+msgid "Custom integration"
+msgstr "მორგებული ინტეგრაცია"
+
+#: includes/admin_view.php:100
+msgid "Integration provider"
+msgstr "ინტეგრაციის პროვაიდერი"
+
+#: includes/admin_view.php:112
+msgid "API Key SID and Secret (recommended)"
+msgstr "API გასაღების SID და საიდუმლო (რეკომენდებული)"
+
+#: includes/admin_view.php:112
+msgid "Account SID and Auth Token"
+msgstr "ანგარიშის SID და Auth Token"
+
+#: includes/admin_view.php:112
+msgid "Twilio credentials"
+msgstr "Twilio ავტორიზაციის მონაცემები"
+
+#: includes/admin_view.php:113
+msgid "Send using"
+msgstr "გაგზავნა გამოყენებით"
+
+#: includes/admin_view.php:125
+msgid "Event"
+msgstr "მოვლენა"
+
+#: includes/admin_view.php:125
+msgid "Incident"
+msgstr "ინციდენტი"
+
+#: includes/admin_view.php:125
+msgid "ServiceNow record type"
+msgstr "ServiceNow ჩანაწერის ტიპი"
+
+#: includes/admin_view.php:126
+msgid "Changing the record type replaces the destination table, message fields and recovery settings with its defaults. Your instance and credentials are retained."
+msgstr "ჩანაწერის ტიპის შეცვლა დანიშნულების ცხრილს, შეტყობინების ველებსა და აღდგენის პარამეტრებს ნაგულისხმევი მნიშვნელობებით ანაცვლებს. თქვენი ინსტანსი და ავტორიზაციის მონაცემები შენარჩუნდება."
+
+#: includes/admin_view.php:149
+msgid "Destination"
+msgstr "დანიშნულების ადგილი"
+
+#: includes/admin_view.php:154
+msgid "Email settings"
+msgstr "ელფოსტის პარამეტრები"
+
+#: includes/admin_view.php:161
+msgid "Delivery uses the Cacti mail settings. Add the people who should receive these alarms."
+msgstr "მიწოდება იყენებს Cacti ფოსტის პარამეტრებს. დაამატეთ პირები, რომლებმაც უნდა მიიღონ ეს განგაშები."
+
+#: includes/admin_view.php:162
+msgid "Script settings"
+msgstr "სკრიპტის პარამეტრები"
+
+#: includes/admin_view.php:167
+msgid "JSON output is sent to the script on standard input."
+msgstr "JSON გამომავალი მონაცემები სკრიპტს ეგზავნება სტანდარტული შეყვანით."
+
+#: includes/admin_view.php:167
+msgid "The executable must exist and be executable by the worker on every delivering poller. Arguments are passed directly without a shell."
+msgstr "შესრულებადი ფაილი უნდა არსებობდეს და იყოს შესრულებადი სამუშაო პროცესისთვის თითოეულ მიმწოდებელ პოლერზე. არგუმენტები გადაეცემა პირდაპირ, გარსის (shell) გარეშე."
+
+#: includes/admin_view.php:169
+msgid "WebSocket delivery is not implemented."
+msgstr "WebSocket მიწოდება არ არის რეალიზებული."
+
+#: includes/admin_view.php:171
+msgid "Advanced delivery settings"
+msgstr "მიწოდების გაფართოებული პარამეტრები"
+
+#: includes/admin_view.php:176
+msgid "Connection options"
+msgstr "კავშირის პარამეტრები"
+
+#: includes/admin_view.php:179
+msgid "Method"
+msgstr "მეთოდი"
+
+#: includes/admin_view.php:186
+msgid "Certificate and hostname verification remain enabled. Provision the PEM file on every poller. Saved credentials are never displayed."
+msgstr "სერტიფიკატისა და ჰოსტის სახელის გადამოწმება ჩართული რჩება. განათავსეთ PEM ფაილი თითოეულ პოლერზე. შენახული ავტორიზაციის მონაცემები არასოდეს ნაჩვენები არ არის."
+
+#: includes/admin_view.php:187
+msgid "Other delivery options"
+msgstr "მიწოდების სხვა პარამეტრები"
+
+#: includes/admin_view.php:189 includes/admin_view.php:458
+msgid "Cancel"
+msgstr "გაუქმება"
+
+#: includes/admin_view.php:189
+msgid "Test destination saves the current settings and queues a sample alarm for this destination. Enable the destination before testing."
+msgstr "დანიშნულების ტესტირება ინახავს მიმდინარე პარამეტრებს და რიგში აყენებს სატესტო განგაშს ამ დანიშნულებისთვის. ტესტირებამდე ჩართეთ დანიშნულება."
+
+#: includes/admin_view.php:190
+msgid "Save endpoint"
+msgstr "ბოლო წერტილის შენახვა"
+
+#: includes/admin_view.php:190
+msgid "Test destination"
+msgstr "დანიშნულების ტესტირება"
+
+#: includes/admin_view.php:194
+msgid "Delete endpoint"
+msgstr "ბოლო წერტილის წაშლა"
+
+#: includes/admin_view.php:194
+msgid "Delete this endpoint, its delivery settings and saved credentials"
+msgstr "წაშალეთ ეს ბოლო წერტილი, მისი მიწოდების პარამეტრები და შენახული ავტორიზაციის მონაცემები"
+
+#: includes/admin_view.php:194
+msgid "Deleting stops future delivery and removes the saved settings and credentials. Remove notification rule references and resolve queued or running deliveries first. Completed and failed delivery history is preserved."
+msgstr "წაშლა აჩერებს მომავალ მიწოდებას და შლის შენახულ პარამეტრებსა და ავტორიზაციის მონაცემებს. ჯერ წაშალეთ შეტყობინების წესების მითითებები და დაასრულეთ რიგში არსებული ან მიმდინარე მიწოდებები. დასრულებული და წარუმატებელი მიწოდებების ისტორია შენარჩუნდება."
+
+#: includes/admin_view.php:205
+msgid "Chat and messaging"
+msgstr "ჩატი და შეტყობინებები"
+
+#: includes/admin_view.php:206
+msgid "Post alarms to a Slack channel."
+msgstr "განგაშების გაგზავნა Slack არხში."
+
+#: includes/admin_view.php:207
+msgid "Post alarm cards through a Teams Workflow."
+msgstr "განგაშის ბარათების გაგზავნა Teams Workflow-ის მეშვეობით."
+
+#: includes/admin_view.php:208
+msgid "Send alarms from a Telegram bot."
+msgstr "განგაშების გაგზავნა Telegram ბოტიდან."
+
+#: includes/admin_view.php:209
+msgid "Text alarms to phone numbers."
+msgstr "SMS განგაშების გაგზავნა ტელეფონის ნომრებზე."
+
+#: includes/admin_view.php:210
+msgid "Send approved WhatsApp templates."
+msgstr "დამტკიცებული WhatsApp შაბლონების გაგზავნა."
+
+#: includes/admin_view.php:211
+msgid "Incident management"
+msgstr "ინციდენტების მართვა"
+
+#: includes/admin_view.php:212
+msgid "Trigger and resolve PagerDuty incidents."
+msgstr "PagerDuty ინციდენტების გახსნა და გადაჭრა."
+
+#: includes/admin_view.php:213
+msgid "Open and resolve ServiceNow incidents or events."
+msgstr "ServiceNow ინციდენტების ან მოვლენების გახსნა და გადაჭრა."
+
+#: includes/admin_view.php:214
+msgid "Network management"
+msgstr "ქსელის მართვა"
+
+#: includes/admin_view.php:215
+msgid "Send SNMPv2c or SNMPv3 traps and INFORMs."
+msgstr "SNMPv2c ან SNMPv3 trap და INFORM შეტყობინებების გაგზავნა."
+
+#: includes/admin_view.php:216
+msgid "Forward RFC 5424 or RFC 3164 messages over UDP, TCP or TLS."
+msgstr "RFC 5424 ან RFC 3164 შეტყობინებების გადაგზავნა UDP, TCP ან TLS-ით."
+
+#: includes/admin_view.php:217
+msgid "Custom"
+msgstr "მორგებული"
+
+#: includes/admin_view.php:218
+msgid "Start from an empty endpoint."
+msgstr "დაწყება ცარიელი ბოლო წერტილიდან."
+
+#: includes/admin_view.php:219
+msgid "POST alarm JSON to any HTTPS endpoint."
+msgstr "განგაშის JSON-ის POST გაგზავნა ნებისმიერ HTTPS ბოლო წერტილზე."
+
+#: includes/admin_view.php:220
+msgid "Call an API with your own method, authentication and response checks."
+msgstr "გამოიძახეთ API საკუთარი მეთოდით, ავთენტიფიკაციით და პასუხის შემოწმებებით."
+
+#: includes/admin_view.php:221
+msgid "Run a local executable with the alarm as JSON input."
+msgstr "ლოკალური შესრულებადი ფაილის გაშვება განგაშის JSON შეყვანით."
+
+#: includes/admin_view.php:227
+msgid "Add integration"
+msgstr "ინტეგრაციის დამატება"
+
+#: includes/admin_view.php:228
+msgid "Choose a template. It opens as a disabled draft; nothing is sent until you enable it."
+msgstr "აირჩიეთ შაბლონი. ის იხსნება გამორთული მონახაზის სახით; არაფერი იგზავნება, სანამ არ ჩართავთ."
+
+#: includes/admin_view.php:228
+msgid "Search integrations"
+msgstr "ინტეგრაციების ძიება"
+
+#: includes/admin_view.php:234
+msgid "Blank endpoint"
+msgstr "ცარიელი ბოლო წერტილი"
+
+#: includes/admin_view.php:239
+msgid "No integrations match your search."
+msgstr "თქვენს ძიებას არცერთი ინტეგრაცია არ შეესაბამება."
+
+#: includes/admin_view.php:243
+msgid "SNMP trap settings"
+msgstr "SNMP trap პარამეტრები"
+
+#: includes/admin_view.php:259
+msgid "Saved community and passphrases are encrypted and never displayed. Leave them blank to keep the saved values; entering any value replaces all saved SNMP secrets."
+msgstr "შენახული community და საიდუმლო ფრაზები დაშიფრულია და არასოდეს ჩანს. დატოვეთ ისინი ცარიელი შენახული მნიშვნელობების შესანარჩუნებლად; ნებისმიერი მნიშვნელობის შეყვანა ანაცვლებს ყველა შენახულ SNMP საიდუმლოს."
+
+#: includes/admin_view.php:260
+msgid "Traps are sent as Cacti's CACTI-MIB cactiNotify with the snmptrap binary from Cacti Settings > Paths on every delivering poller. Add one destination per receiver."
+msgstr "Trap შეტყობინებები იგზავნება როგორც Cacti-ს CACTI-MIB cactiNotify ბინარული ფაილით snmptrap, რომელიც მითითებულია Cacti პარამეტრები > გზები განყოფილებაში თითოეულ მიმწოდებელ პოლერზე. დაამატეთ თითო დანიშნულება თითოეული მიმღებისთვის."
+
+#: includes/admin_view.php:261
+msgid "Syslog settings"
+msgstr "Syslog პარამეტრები"
+
+#: includes/admin_view.php:269
+msgid "TLS verifies the receiver certificate and hostname. Use port 6514 for TLS. UDP and TCP are unencrypted, and a UDP message is confirmed only as sent."
+msgstr "TLS ამოწმებს მიმღების სერტიფიკატსა და ჰოსტის სახელს. TLS-ისთვის გამოიყენეთ პორტი 6514. UDP და TCP დაუშიფრავია, ხოლო UDP შეტყობინება დასტურდება მხოლოდ როგორც გაგზავნილი."
+
+#: includes/admin_view.php:278 setup.php:191
+msgid "Days"
+msgstr "დღე"
+
+#: includes/admin_view.php:283
+msgid "Timezone"
+msgstr "დროის სარტყელი"
+
+#: includes/admin_view.php:291
+msgid "Times use the selected timezone and the alarm event time. An end time before the start runs overnight. Equal times cover the entire selected day."
+msgstr "დრო იყენებს არჩეულ დროის სარტყელს და განგაშის მოვლენის დროს. დაწყების დროზე ადრე მდგომი დასრულების დრო მოიცავს ღამეს. თანაბარი დროები ფარავს მთელ არჩეულ დღეს."
+
+#: includes/admin_view.php:332 includes/admin_view.php:521
+msgid "Create a rule"
+msgstr "წესის შექმნა"
+
+#: includes/admin_view.php:332
+msgid "Enabled"
+msgstr "ჩართულია"
+
+#: includes/admin_view.php:332
+msgid "Priority"
+msgstr "პრიორიტეტი"
+
+#: includes/admin_view.php:334
+msgid "Rule and destination"
+msgstr "წესი და დანიშნულება"
+
+#: includes/admin_view.php:338
+msgid "Alarm Destination"
+msgstr "განგაშის დანიშნულება"
+
+#: includes/admin_view.php:341
+msgid "disabled"
+msgstr "გამორთულია"
+
+#: includes/admin_view.php:343
+msgid "Select one or more alarm destinations. Disabled destinations do not send alarms."
+msgstr "აირჩიეთ ერთი ან მეტი განგაშის დანიშნულება. გამორთული დანიშნულებები განგაშებს არ აგზავნის."
+
+#: includes/admin_view.php:345
+msgid "Message template"
+msgstr "შეტყობინების შაბლონი"
+
+#: includes/admin_view.php:345
+msgid "Use each destination default, or customize its message for this rule. Customization starts with a copy of the destination template and does not change other rules. If several rules match the same destination, the first matching rule in priority and ID order supplies its template."
+msgstr "გამოიყენეთ თითოეული დანიშნულების ნაგულისხმევი ან მოარგეთ მისი შეტყობინება ამ წესისთვის. მორგება იწყება დანიშნულების შაბლონის ასლით და არ ცვლის სხვა წესებს. თუ ერთსა და იმავე დანიშნულებას რამდენიმე წესი ემთხვევა, პრიორიტეტისა და ID-ის მიხედვით პირველი შესაბამისი წესი აწვდის თავის შაბლონს."
+
+#: includes/admin_view.php:352
+msgid "Custom template"
+msgstr "მორგებული შაბლონი"
+
+#: includes/admin_view.php:355
+msgid "Destination recipient"
+msgstr "დანიშნულების მიმღები"
+
+#: includes/admin_view.php:355
+#, php-format
+msgid "Recipients: %d"
+msgstr "მიმღებები: %d"
+
+#: includes/admin_view.php:357
+msgid "Customize message for this rule"
+msgstr "შეტყობინების მორგება ამ წესისთვის"
+
+#: includes/admin_view.php:357
+msgid "Unchecked: Use destination default."
+msgstr "მოუნიშნავი: დანიშნულების ნაგულისხმევის გამოყენება."
+
+#: includes/admin_view.php:361
+msgid "Optional: add each phone number in international format, such as +15551234567. These numbers replace the destination recipient for this rule. Leave the list empty to use the destination default. Each number has its own delivery status and retries."
+msgstr "არასავალდებულო: დაამატეთ თითოეული ტელეფონის ნომერი საერთაშორისო ფორმატში, მაგალითად +15551234567. ეს ნომრები ანაცვლებს დანიშნულების მიმღებს ამ წესისთვის. დატოვეთ სია ცარიელი დანიშნულების ნაგულისხმევის გამოსაყენებლად. თითოეულ ნომერს აქვს საკუთარი მიწოდების სტატუსი და განმეორებები."
+
+#: includes/admin_view.php:374
+msgid "None"
+msgstr "არცერთი"
+
+#: includes/admin_view.php:376
+msgid "Build device conditions using AND, OR and groups. These conditions use the current Cacti device settings and must also satisfy any alarm filters below. With no device conditions, all devices can match."
+msgstr "შექმენით მოწყობილობის პირობები AND, OR და ჯგუფების გამოყენებით. ეს პირობები იყენებს Cacti მოწყობილობის მიმდინარე პარამეტრებს და ასევე უნდა აკმაყოფილებდეს ქვემოთ მოცემულ განგაშის ფილტრებს. მოწყობილობის პირობების გარეშე ყველა მოწყობილობა შეიძლება დაემთხვეს."
+
+#: includes/admin_view.php:376
+msgid "Match devices"
+msgstr "მოწყობილობების შესაბამისობა"
+
+#: includes/admin_view.php:387
+msgid "Cacti_Admin_Notifications"
+msgstr "Cacti_Admin_Notifications"
+
+#: includes/admin_view.php:387
+msgid "Device Status"
+msgstr "მოწყობილობის სტატუსი"
+
+#: includes/admin_view.php:387
+msgid "Syslog"
+msgstr "სისტ. ჟურნალი"
+
+#: includes/admin_view.php:387
+msgid "Thold"
+msgstr "ზღვარი"
+
+#: includes/admin_view.php:392
+msgid "Build alarm conditions using AND, OR, NOT and groups. Alarms must also match the device conditions above."
+msgstr "შექმენით განგაშის პირობები AND, OR, NOT და ჯგუფების გამოყენებით. განგაშები ასევე უნდა აკმაყოფილებდეს ზემოთ მითითებულ მოწყობილობის პირობებს."
+
+#: includes/admin_view.php:392
+msgid "Match alarms"
+msgstr "განგაშების შესაბამისობა"
+
+#: includes/admin_view.php:395
+msgid "No alarm sources detected yet. Sources appear after their first alarm."
+msgstr "განგაშის წყაროები ჯერ არ აღმოჩენილა. წყაროები პირველი განგაშის შემდეგ გამოჩნდება."
+
+#: includes/admin_view.php:397
+msgid "By default, matching alarms can notify at any time. Turn on a schedule to limit when this rule matches."
+msgstr "ნაგულისხმევად, შესაბამისმა განგაშებმა შეიძლება ნებისმიერ დროს გამოაგზავნოს შეტყობინება. ჩართეთ განრიგი ამ წესის მოქმედების დროის შესაზღუდად."
+
+#: includes/admin_view.php:397
+msgid "Notification hours"
+msgstr "შეტყობინების საათები"
+
+#: includes/admin_view.php:399
+msgid "Suppress notifications"
+msgstr "შეტყობინებების დათრგუნვა"
+
+#: includes/admin_view.php:399
+msgid "Suppressed alarms remain in history. Recovery notifications bypass acknowledgment, cooldown and duplicate suppression, but still follow notification hours and maintenance windows."
+msgstr "დათრგუნული განგაშები ისტორიაში რჩება. აღდგენის შეტყობინებები გვერდს უვლის დადასტურებას, მოცდის პერიოდს და დუბლიკატების დათრგუნვას, მაგრამ კვლავ იცავს შეტყობინების საათებსა და ტექნიკური მომსახურების ფანჯრებს."
+
+#: includes/admin_view.php:403
+msgid "Set a duration to 0 to turn it off."
+msgstr "გამორთვისთვის მიუთითეთ ხანგრძლივობა 0."
+
+#: includes/admin_view.php:405
+msgid "Rule order"
+msgstr "წესების თანმიმდევრობა"
+
+#: includes/admin_view.php:408
+msgid "Create rule"
+msgstr "წესის შექმნა"
+
+#: includes/admin_view.php:408
+msgid "Rules with equal priority run in ID order. Stopping also applies when this rule suppresses notifications."
+msgstr "თანაბარი პრიორიტეტის წესები სრულდება ID-ის თანმიმდევრობით. შეჩერება ასევე მოქმედებს, როდესაც ეს წესი თრგუნავს შეტყობინებებს."
+
+#: includes/admin_view.php:417
+msgid "Configuration Backup/Restore"
+msgstr "კონფიგურაციის სარეზერვო კოპირება/აღდგენა"
+
+#: includes/admin_view.php:427
+msgid "Paused"
+msgstr "შეჩერებულია"
+
+#: includes/admin_view.php:427
+msgid "Running"
+msgstr "გაშვებულია"
+
+#: includes/admin_view.php:428
+msgid "everything has been delivered"
+msgstr "ყველაფერი მიწოდებულია"
+
+#: includes/admin_view.php:428
+#, php-format
+msgid "oldest queued %s UTC"
+msgstr "უძველესი რიგში %s UTC"
+
+#: includes/admin_view.php:428
+msgid "waiting messages"
+msgstr "მოლოდინში მყოფი შეტყობინებები"
+
+#: includes/admin_view.php:431
+msgid "Hide messages"
+msgstr "შეტყობინებების დამალვა"
+
+#: includes/admin_view.php:431
+msgid "View messages"
+msgstr "შეტყობინებების ნახვა"
+
+#: includes/admin_view.php:441
+msgid "Endpoint"
+msgstr "საბოლოო წერტილი"
+
+#: includes/admin_view.php:441
+msgid "ID"
+msgstr "ID"
+
+#: includes/admin_view.php:441
+msgid "Message"
+msgstr "შეტყობინება"
+
+#: includes/admin_view.php:441
+msgid "Next try"
+msgstr "შემდეგი მცდელობა"
+
+#: includes/admin_view.php:441 includes/reports.php:458
+msgid "Queued"
+msgstr "რიგშია"
+
+#: includes/admin_view.php:441
+msgid "Tries"
+msgstr "მცდელობები"
+
+#: includes/admin_view.php:451
+msgid "Times in UTC · first 100 shown"
+msgstr "დრო UTC-ში · ნაჩვენებია პირველი 100"
+
+#: includes/admin_view.php:455
+msgid "Pause delivery"
+msgstr "მიწოდების შეჩერება"
+
+#: includes/admin_view.php:455
+msgid "Resume delivery"
+msgstr "მიწოდების განახლება"
+
+#: includes/admin_view.php:458
+msgid "Clear queue"
+msgstr "რიგის გასუფთავება"
+
+#: includes/admin_view.php:459
+#, php-format
+msgid "Discard all %d waiting notifications on this poller?"
+msgstr "გაუქმდეს ყველა %d მოლოდინში მყოფი შეტყობინება ამ პოლერზე?"
+
+#: includes/admin_view.php:460
+msgid "Includes retries. They stay in delivery history as failed, reason queue_cleared."
+msgstr "მოიცავს განმეორებით მცდელობებს. ისინი რჩება მიწოდების ისტორიაში როგორც წარუმატებელი, მიზეზით queue_cleared."
+
+#: includes/admin_view.php:461
+msgid "Messages already sending and alarm state are kept."
+msgstr "უკვე გაგზავნის პროცესში მყოფი შეტყობინებები და განგაშის მდგომარეობა შენარჩუნდება."
+
+#: includes/admin_view.php:462
+msgid "Tip: pause delivery first during maintenance."
+msgstr "რჩევა: ტექნიკური მომსახურების დროს ჯერ შეაჩერეთ მიწოდება."
+
+#: includes/admin_view.php:463
+msgid "Clear queue…"
+msgstr "რიგი სუფთავდება…"
+
+#: includes/admin_view.php:464
+msgid "Controls apply to this poller. While paused, alarms are still received and queued; Resume sends them."
+msgstr "მართვის ელემენტები ეხება ამ პოლერს. პაუზის დროს განგაშები კვლავ მიიღება და რიგში დგება; განახლება მათ აგზავნის."
+
+#: includes/admin_view.php:467
+msgid "View delivery results"
+msgstr "მიწოდების შედეგების ნახვა"
+
+#: includes/admin_view.php:470
+msgid "Create an integration, configure its destination and credentials, test a sample alarm here, then select it directly in a rule."
+msgstr "შექმენით ინტეგრაცია, დააკონფიგურირეთ მისი დანიშნულება და ავტორიზაციის მონაცემები, გამოსცადეთ სატესტო განგაში აქ და შემდეგ პირდაპირ აირჩიეთ წესში."
+
+#: includes/admin_view.php:476
+msgid "Configured integrations"
+msgstr "კონფიგურირებული ინტეგრაციები"
+
+#: includes/admin_view.php:479
+msgid "No integrations yet. Choose a template above to create one."
+msgstr "ინტეგრაციები ჯერ არ არის. აირჩიეთ შაბლონი ზემოთ ახლის შესაქმნელად."
+
+#: includes/admin_view.php:490
+msgid "Alarm Rules"
+msgstr "განგაშის წესები"
+
+#: includes/admin_view.php:490
+msgid "Choose which alarms should notify, where to send them and when to pause notifications. Rules run from lowest to highest priority."
+msgstr "აირჩიეთ, რომელი განგაშები გაგზავნიან შეტყობინებას, სად გაიგზავნოს ისინი და როდის შეჩერდეს შეტყობინებები. წესები სრულდება უდაბლესიდან უმაღლეს პრიორიტეტამდე."
+
+#: includes/admin_view.php:493
+msgid "Create an integration before saving your first rule."
+msgstr "პირველი წესის შენახვამდე შექმენით ინტეგრაცია."
+
+#: includes/admin_view.php:493
+msgid "Create integration"
+msgstr "ინტეგრაციის შექმნა"
+
+#: includes/admin_view.php:495
+msgid "Clear"
+msgstr "გასუფთავება"
+
+#: includes/admin_view.php:495
+msgid "Critical"
+msgstr "კრიტიკული"
+
+#: includes/admin_view.php:495
+msgid "Information"
+msgstr "ინფორმაცია"
+
+#: includes/admin_view.php:495
+msgid "Major"
+msgstr "მნიშვნელოვანი"
+
+#: includes/admin_view.php:495
+msgid "Minor"
+msgstr "უმნიშვნელო"
+
+#: includes/admin_view.php:495
+msgid "Occurrence"
+msgstr "შემთხვევა"
+
+#: includes/admin_view.php:495
+msgid "Raised"
+msgstr "აღძრულია"
+
+#: includes/admin_view.php:495
+msgid "Recovered"
+msgstr "აღდგენილია"
+
+#: includes/admin_view.php:495
+msgid "Reminder"
+msgstr "შეხსენება"
+
+#: includes/admin_view.php:495
+msgid "Updated"
+msgstr "განახლებულია"
+
+#: includes/admin_view.php:495
+msgid "Warning"
+msgstr "გაფრთხილება"
+
+#: includes/admin_view.php:520
+msgid "Alarm notifications require an enabled matching Alarm Rule. Without one, alarms remain in history but no notifications are sent."
+msgstr "განგაშის შეტყობინებებისთვის საჭიროა ჩართული შესაბამისი განგაშის წესი. მის გარეშე განგაშები ისტორიაში რჩება, მაგრამ შეტყობინებები არ იგზავნება."
+
+#: includes/admin_view.php:524
+msgid "No rules yet. Create a rule below to start routing alarms to your notification destinations."
+msgstr "წესები ჯერ არ არის. შექმენით წესი ქვემოთ, რათა დაიწყოთ განგაშების მარშრუტიზაცია თქვენს შეტყობინების დანიშნულებებზე."
+
+#: includes/admin_view.php:533
+msgid "Credential values are never loaded into this page. Saving replaces the endpoint record; blank values do not preserve an old password. Use the CLI for protected backup/restore and poller provisioning."
+msgstr "ავტორიზაციის მონაცემის მნიშვნელობები ამ გვერდზე არასოდეს იტვირთება. შენახვა ანაცვლებს ბოლო წერტილის ჩანაწერს; ცარიელი მნიშვნელობები ძველ პაროლს არ ინახავს. დაცული სარეზერვო კოპირების/აღდგენისა და პოლერის მომზადებისთვის გამოიყენეთ CLI."
+
+#: includes/admin_view.php:536
+msgid "Create endpoint"
+msgstr "ბოლო წერტილის შექმნა"
+
+#: includes/admin_view.php:536
+msgid "No REST API or webhook endpoints have been saved. Create an endpoint to enter its bearer token, Basic authentication username and password, or API-key headers."
+msgstr "REST API ან webhook ბოლო წერტილები ჯერ არ შენახულა. შექმენით ბოლო წერტილი მისი bearer ტოკენის, Basic ავთენტიფიკაციის მომხმარებლის სახელისა და პაროლის ან API გასაღების სათაურების შესაყვანად."
+
+#: includes/admin_view.php:540
+msgid "Configured"
+msgstr "მორგებული"
+
+#: includes/admin_view.php:543
+msgid "Replace credential"
+msgstr "ავტორიზაციის მონაცემის ჩანაცვლება"
+
+#: includes/admin_view.php:549
+msgid "Rotate local key"
+msgstr "ლოკალური გასაღების როტაცია"
+
+#: includes/admin_view.php:553
+msgid "Event log"
+msgstr "მოვლენების ჟურნალი"
+
+#: includes/admin_view.php:553
+msgid "Writes every event as it is processed, independent of which rules match or whether any destination is notified — a complete audit trail for external analysis, for example with Splunk."
+msgstr "წერს თითოეულ მოვლენას მისი დამუშავებისას, მიუხედავად იმისა, რომელი წესები ემთხვევა ან ეცნობა თუ არა რომელიმე დანიშნულებას - სრული აუდიტის კვალი გარე ანალიზისთვის, მაგალითად Splunk-ით."
+
+#: includes/admin_view.php:555
+msgid "Cacti log"
+msgstr "Cacti ჟურნალი"
+
+#: includes/admin_view.php:555
+msgid "External file"
+msgstr "გარე ფაილი"
+
+#: includes/admin_view.php:555
+msgid "Write to"
+msgstr "ჩაწერა აქ"
+
+#: includes/admin_view.php:559
+msgid "One JSON object per line (occurred_at, transition, severity, device, alarm key…). The path must already exist, outside the plugin directory and Cacti's web root. Past the size limit, the file rotates to one .1 backup."
+msgstr "თითო JSON ობიექტი თითო ხაზზე (occurred_at, transition, severity, device, alarm key…). გზა უკვე უნდა არსებობდეს დანამატის დირექტორიისა და Cacti ვებ-ფესვის გარეთ. ზომის ლიმიტის გადაჭარბებისას ფაილი გადადის ერთ .1 სარეზერვო ასლში."
+
+#: includes/admin_view.php:559
+msgid "Save event log settings"
+msgstr "მოვლენების ჟურნალის პარამეტრების შენახვა"
+
+#: includes/admin_view.php:561
+msgid "Backup and restore"
+msgstr "სარეზერვო კოპირება და აღდგენა"
+
+#: includes/admin_view.php:561
+msgid "Export"
+msgstr "გატანa"
+
+#: includes/admin_view.php:562
+msgid "Endpoints, message templates, and rules as JSON. Credentials and settings are not included. Endpoint URLs can contain secrets, so keep the file private."
+msgstr "ბოლო წერტილები, შეტყობინების შაბლონები და წესები JSON ფორმატში. ავტორიზაციის მონაცემები და პარამეტრები არ შედის. ბოლო წერტილების URL-ები შეიძლება შეიცავდეს საიდუმლოებს, ამიტომ ფაილი კონფიდენციალურად შეინახეთ."
+
+#: includes/admin_view.php:563
+msgid "Export configuration"
+msgstr "კონფიგურაციის ექსპორტი"
+
+#: includes/admin_view.php:563
+msgid "Import"
+msgstr "შემოტანა"
+
+#: includes/admin_view.php:567
+msgid "Replaces the routing configuration using the IDs in the file. Endpoints and rules missing from the file are disabled, not deleted. Saved credentials are kept."
+msgstr "ანაცვლებს მარშრუტიზაციის კონფიგურაციას ფაილში მოცემული ID-ების გამოყენებით. ბოლო წერტილები და წესები, რომლებიც ფაილში არ არის, გამოირთვება და არ წაიშლება. შენახული ავტორიზაციის მონაცემები შენარჩუნდება."
+
+#: includes/admin_view.php:568
+msgid "Import configuration"
+msgstr "კონფიგურაციის იმპორტი"
+
+#: includes/admin_view.php:572
+msgid "Local queue health"
+msgstr "ლოკალური რიგის მდგომარეობა"
+
+#: includes/admin_view.php:573
+msgid "Jobs"
+msgstr "ამოცანები"
+
+#: includes/admin_view.php:573
+msgid "Oldest job age (seconds)"
+msgstr "უძველესი დავალების ასაკი (წამები)"
+
+#: includes/admin_view.php:573
+msgid "Queue"
+msgstr "რიგი"
+
+#: includes/admin_view.php:573
+msgid "Retries"
+msgstr "თავიდან ცდები"
+
+#: includes/admin_view.php:573 includes/admin_view.php:592
+#: includes/web_view.php:181
+msgid "Status"
+msgstr "სტატუსი"
+
+#: includes/admin_view.php:588
+msgid "No queue activity recorded."
+msgstr "რიგის აქტივობა არ დაფიქსირებულა."
+
+#: includes/admin_view.php:591
+msgid "Local worker health"
+msgstr "ლოკალური სამუშაო პროცესების მდგომარეობა"
+
+#: includes/admin_view.php:592
+msgid "Current job"
+msgstr "მიმდინარე დავალება"
+
+#: includes/admin_view.php:592
+msgid "Heartbeat age (seconds)"
+msgstr "პულსის სიგნალის ასაკი (წამები)"
+
+#: includes/admin_view.php:592
+msgid "PID"
+msgstr "PID"
+
+#: includes/admin_view.php:592
+msgid "Poller"
+msgstr "გამომთხოვი"
+
+#: includes/admin_view.php:592
+msgid "Role"
+msgstr "როლი"
+
+#: includes/admin_view.php:592
+msgid "Worker"
+msgstr "სამუშაო პროცესი"
+
+#: includes/admin_view.php:607
+msgid "No local worker heartbeats recorded."
+msgstr "ლოკალური სამუშაო პროცესების პულსის სიგნალები არ დაფიქსირებულა."
+
+#: includes/admin_view.php:610
+msgid "Completed delivery jobs in the last 300 seconds"
+msgstr "ბოლო 300 წამში დასრულებული მიწოდების დავალებები"
+
+#: includes/admin_view.php:610
+msgid "Completed processing jobs in the last 300 seconds"
+msgstr "ბოლო 300 წამში დასრულებული დამუშავების დავალებები"
+
+#: includes/admin_view.php:610
+msgid "Processing streams blocked behind a failed predecessor"
+msgstr "დამუშავების ნაკადები დაბლოკილია წარუმატებელი წინამორბედის გამო"
+
+#: includes/admin_view.php:613
+msgid "Pending jobs for destination types without a qualified transport"
+msgstr "მოლოდინში მყოფი დავალებები კვალიფიციური ტრანსპორტის არმქონე დანიშნულების ტიპებისთვის"
+
+#: includes/admin_view.php:620
+msgid "Failed deliveries and replay"
+msgstr "წარუმატებელი მიწოდებები და განმეორება"
+
+#: includes/admin_view.php:620
+msgid "Failed processing jobs and replay"
+msgstr "წარუმატებელი დამუშავების დავალებები და განმეორება"
+
+#: includes/admin_view.php:625
+msgid "Authentication"
+msgstr "ავთენტიკაცია"
+
+#: includes/admin_view.php:625
+msgid "Authentication type"
+msgstr "ავთენტიფიკაციის ტიპი"
+
+#: includes/admin_view.php:649
+msgid "Saved credentials are encrypted and never displayed. New values replace the saved credential record."
+msgstr "შენახული ავტორიზაციის მონაცემები დაშიფრულია და არასოდეს ჩანს. ახალი მნიშვნელობები ანაცვლებს შენახულ ავტორიზაციის ჩანაწერს."
+
+#: includes/polling.php:150
+msgid "Start the Alarm Manager service on this collector before enabling daemon workers."
+msgstr "დემონის სამუშაო პროცესების ჩართვამდე ამ კოლექტორზე გაუშვით განგაშის მენეჯერის სერვისი."
+
+#: includes/polling.php:163
+msgid "Daemon settings could not be saved. Check the Cacti cache directory permissions."
+msgstr "დემონის პარამეტრების შენახვა ვერ მოხერხდა. შეამოწმეთ Cacti ქეშის დირექტორიის ნებართვები."
+
+#: includes/reports.php:430
+msgid "Remote history"
+msgstr "დაშორებული ისტორია"
+
+#: includes/reports.php:459
+msgid "Test send"
+msgstr "სატესტო გაგზავნა"
+
+#: includes/reports.php:460
+msgid "No matching rule"
+msgstr "შესაბამისი წესი არ არის"
+
+#: includes/reports.php:461
+msgid "Destination disabled"
+msgstr "დანიშნულება გამორთულია"
+
+#: includes/reports.php:462
+msgid "Suppressed by source"
+msgstr "დათრგუნულია წყაროს მიერ"
+
+#: includes/reports.php:463
+msgid "Maintenance window"
+msgstr "ტექნიკური მომსახურების ფანჯარა"
+
+#: includes/reports.php:464
+msgid "Acknowledged"
+msgstr "დადასტურებული"
+
+#: includes/reports.php:465
+msgid "Cooldown"
+msgstr "მოცდის პერიოდი"
+
+#: includes/reports.php:466
+msgid "Duplicate"
+msgstr "დუბლირება"
+
+#: includes/reports.php:467
+msgid "Already routed"
+msgstr "უკვე მარშრუტიზებულია"
+
+#: includes/reports.php:468
+msgid "Out of order"
+msgstr "თანმიმდევრობის დარღვევა"
+
+#: includes/reports.php:469
+msgid "Ignored episode"
+msgstr "უგულებელყოფილი ეპიზოდი"
+
+#: includes/reports.php:470
+msgid "History only"
+msgstr "მხოლოდ ისტორია"
+
+#: includes/reports.php:518
+#, php-format
+msgid "Deleted destination #%d"
+msgstr "წაიშალა დანიშნულება #%d"
+
+#: includes/reports.php:519
+#, php-format
+msgid "%d destinations"
+msgstr "%d დანიშნულება"
+
+#: includes/reports.php:531
+msgid "Delivered"
+msgstr "მიწოდებულია"
+
+#: includes/reports.php:531
+msgid "Failed"
+msgstr "ჩავარდა"
+
+#: includes/reports.php:531
+msgid "Pending"
+msgstr "რიგშია"
+
+#: includes/reports.php:531
+msgid "Sending"
+msgstr "იგზავნება"
+
+#: includes/reports.php:541
+msgid "Processing failed"
+msgstr "დამუშავება ვერ მოხერხდა"
+
+#: includes/reports.php:542
+msgid "Pending processing"
+msgstr "დამუშავების მოლოდინში"
+
+#: includes/reports.php:543 includes/web_view.php:264
+msgid "Processing"
+msgstr "დამუშავება"
+
+#: includes/reports.php:544
+msgid "No matching integration"
+msgstr "შესაბამისი ინტეგრაცია არ არის"
+
+#: includes/reports.php:544
+msgid "Suppressed"
+msgstr "დათრგუნულია"
+
+#: includes/routing.php:106
+msgid "Device description"
+msgstr "მოწყობილობის აღწერა"
+
+#: includes/routing.php:106
+msgid "Hostname"
+msgstr "ჰოსტის სახელი"
+
+#: includes/routing.php:106
+msgid "Location"
+msgstr "მდებარეობა"
+
+#: includes/routing.php:106
+msgid "SNMP system location"
+msgstr "SNMP სისტემის მდებარეობა"
+
+#: includes/routing.php:110 includes/routing.php:125
+msgid "Collector"
+msgstr "მომგროვებელი"
+
+#: includes/routing.php:110
+msgid "Device Site Association"
+msgstr "მოწყობილობის საიტის ასოციაცია"
+
+#: includes/routing.php:110
+msgid "Device Template"
+msgstr "მოწყობილობის შაბლონი"
+
+#: includes/routing.php:121
+msgid "Alarm change"
+msgstr "განგაშის ცვლილება"
+
+#: includes/routing.php:121
+msgid "Alarm source"
+msgstr "განგაშის წყარო"
+
+#: includes/routing.php:121
+msgid "Alarm summary"
+msgstr "განგაშის შეჯამება"
+
+#: includes/routing.php:121 includes/web_view.php:161
+msgid "Severity"
+msgstr "სიმძიმე"
+
+#: includes/routing.php:125
+msgid "Device"
+msgstr "მოწყობილობა"
+
+#: includes/routing.php:128
+msgid "Device tag"
+msgstr "მოწყობილობის ტეგი"
+
+#: includes/web_view.php:93
+msgid "Report unavailable or permission denied."
+msgstr "ანგარიში მიუწვდომელია ან ნებართვა უარყოფილია."
+
+#: includes/web_view.php:119
+msgid "Statistics could not be rendered."
+msgstr "სტატისტიკის ასახვა ვერ მოხერხდა."
+
+#: includes/web_view.php:129 setup.php:131 setup.php:273 setup.php:289
+#: setup.php:290
+msgid "Alarm Manager"
+msgstr "განგაშის მმართველი"
+
+#: includes/web_view.php:136
+msgid "Alarm Manager pages"
+msgstr "განგაშის მენეჯერის გვერდები"
+
+#: includes/web_view.php:149 includes/web_view.php:152
+msgid "Alarm statistics"
+msgstr "განგაშის სტატისტიკა"
+
+#: includes/web_view.php:149
+msgid "Filters"
+msgstr "ფილტრები"
+
+#: includes/web_view.php:152
+msgid "Time range"
+msgstr "დროის დიაპაზონი"
+
+#: includes/web_view.php:158
+msgid "Off"
+msgstr "გამორთულია"
+
+#: includes/web_view.php:158
+msgid "Refresh"
+msgstr "განახლება"
+
+#: includes/web_view.php:160
+msgid "Advanced filter JSON"
+msgstr "გაფართოებული JSON ფილტრი"
+
+#: includes/web_view.php:160
+msgid "Filter document"
+msgstr "ფილტრის დოკუმენტი"
+
+#: includes/web_view.php:160
+msgid "Quick filters"
+msgstr "სწრაფი ფილტრები"
+
+#: includes/web_view.php:160
+msgid "Search conditions"
+msgstr "ძიების პირობები"
+
+#: includes/web_view.php:161 includes/web_view.php:181
+msgid "All"
+msgstr "ყველა"
+
+#: includes/web_view.php:161
+msgid "Source"
+msgstr "წყარო"
+
+#: includes/web_view.php:168
+msgid "Device ID"
+msgstr "მოწყობილობის ID"
+
+#: includes/web_view.php:171
+msgid "Status type"
+msgstr "სტატუსის ტიპი"
+
+#: includes/web_view.php:190
+msgid "event_id"
+msgstr "event_id"
+
+#: includes/web_view.php:195
+msgid "Collector ID"
+msgstr "კოლექტორის ID"
+
+#: includes/web_view.php:195
+msgid "Local and mirrored collectors"
+msgstr "ლოკალური და სარკული კოლექტორები"
+
+#: includes/web_view.php:198
+msgid "mirrored"
+msgstr "სარკული"
+
+#: includes/web_view.php:203
+msgid "Mirrored events carry no Record ID and no detail view."
+msgstr "სარკულ მოვლენებს არ აქვთ ჩანაწერის ID და დეტალური ხედი."
+
+#: includes/web_view.php:205
+msgid "Mirrored collector events are always included here unless you narrow by a specific remote Collector ID."
+msgstr "სარკული კოლექტორის მოვლენები აქ ყოველთვის შედის, თუ არ გაფილტრავთ კონკრეტული დაშორებული კოლექტორის ID-ით."
+
+#: includes/web_view.php:211
+msgid "Apply"
+msgstr "გამოყენება"
+
+#: includes/web_view.php:211
+msgid "Reset"
+msgstr "ჩამოყრა"
+
+#: includes/web_view.php:213
+msgid "Historical window uses UTC. Current conditions and queues ignore the time window."
+msgstr "ისტორიული ფანჯარა იყენებს UTC-ს. მიმდინარე მდგომარეობები და რიგები დროის ფანჯარას უგულებელყოფს."
+
+#: includes/web_view.php:235
+msgid "Loading statistics…"
+msgstr "სტატისტიკა იტვირთება…"
+
+#: includes/web_view.php:248
+msgid "Collapse"
+msgstr "ჩაკეცვა"
+
+#: includes/web_view.php:261
+msgid "Integration results"
+msgstr "ინტეგრაციის შედეგები"
+
+#: includes/web_view.php:262
+msgid "Delivery attempts"
+msgstr "მიწოდების მცდელობები"
+
+#: includes/web_view.php:263
+msgid "Routing decisions"
+msgstr "მარშრუტიზაციის გადაწყვეტილებები"
+
+#: includes/web_view.php:265
+msgid "conditions"
+msgstr "პირობა"
+
+#: includes/web_view.php:270
+msgid "No matching records."
+msgstr "შესაბამისი ჩანაწერები არ არის."
+
+#: includes/web_view.php:290
+msgid "Integration status"
+msgstr "ინტეგრაციის სტატუსი"
+
+#: includes/web_view.php:291
+msgid "Collector Name"
+msgstr "შემგროვებლის სახელი"
+
+#: includes/web_view.php:292
+msgid "Attempts in current retry cycle"
+msgstr "მცდელობები მიმდინარე განმეორების ციკლში"
+
+#: includes/web_view.php:298
+msgid "Action"
+msgstr "ქმედება"
+
+#: includes/web_view.php:314
+msgid "Display"
+msgstr "ჩვენება"
+
+#: includes/web_view.php:349
+msgid "Latest 100 records for this event."
+msgstr "ბოლო 100 ჩანაწერი ამ მოვლენისთვის."
+
+#: includes/web_view.php:354
+msgid "Showing at most 50 records per page."
+msgstr "თითო გვერდზე ნაჩვენებია მაქსიმუმ 50 ჩანაწერი."
+
+#: includes/web_view.php:355
+msgid "Pages"
+msgstr "გვერდები"
+
+#: includes/web_view.php:358
+msgid "Previous"
+msgstr "წინა"
+
+#: includes/web_view.php:361
+#, php-format
+msgid "Page %d"
+msgstr "გვერდი %d"
+
+#: includes/web_view.php:364
+msgid "Next"
+msgstr "შემდეგი"
+
+#: includes/web_view.php:371
+msgid "Selected event details"
+msgstr "არჩეული მოვლენის დეტალები"
+
+#: includes/web_view.php:378
+msgid "Show metadata"
+msgstr "მეტამონაცემების ჩვენება"
+
+#: includes/web_view.php:400
+msgid "Confirm replay may repeat an external effect"
+msgstr "დაადასტურეთ, რომ განმეორებამ შეიძლება გაიმეოროს გარე ეფექტი"
+
+#: setup.php:102
+msgid "Alarm Manager View"
+msgstr "განგაშის მენეჯერის ხედი"
+
+#: setup.php:103
+msgid "Alarm Manager Administration"
+msgstr "განგაშის მენეჯერის ადმინისტრირება"
+
+#: setup.php:133
+msgid "0 Worker Processes"
+msgstr "0 სამუშაო პროცესი"
+
+#: setup.php:133
+msgid "1 Worker Process"
+msgstr "1 სამუშაო პროცესი"
+
+#: setup.php:136
+#, php-format
+msgid "%d Worker Processes"
+msgstr "%d სამუშაო პროცესი"
+
+#: setup.php:144
+msgid "Device Alarm Summaries"
+msgstr "მოწყობილობის განგაშის შეჯამებები"
+
+#: setup.php:148
+msgid "Offline Summary"
+msgstr "ხაზგარეშე შეჯამება"
+
+#: setup.php:149
+msgid "Summary for new Cacti device down alarms. Existing history retains its original summary."
+msgstr "შეჯამება Cacti მოწყობილობის გათიშვის ახალი განგაშებისთვის. არსებული ისტორია ინარჩუნებს თავდაპირველ შეჯამებას."
+
+#: setup.php:156
+msgid "Recovering Summary"
+msgstr "აღდგენის პროცესის შეჯამება"
+
+#: setup.php:157
+msgid "Summary for device recovering updates within the same outage."
+msgstr "შეჯამება მოწყობილობის აღდგენის განახლებებისთვის იმავე გათიშვის ფარგლებში."
+
+#: setup.php:164
+msgid "Online Summary"
+msgstr "ხაზზე ყოფნის შეჯამება"
+
+#: setup.php:165
+msgid "Summary for device recovery alarms once Cacti confirms the device is up."
+msgstr "შეჯამება მოწყობილობის აღდგენის განგაშებისთვის მას შემდეგ, რაც Cacti დაადასტურებს, რომ მოწყობილობა ჩართულია."
+
+#: setup.php:172
+msgid "Alert History Retention"
+msgstr "შეტყობინებების ისტორიის შენახვა"
+
+#: setup.php:177
+msgid "Keep Alert History For"
+msgstr "შეტყობინებების ისტორიის შენახვის ვადა"
+
+#: setup.php:178
+msgid "Enter how many days, weeks or months to keep alert history, or choose Indefinitely to keep everything (the number is then ignored). Maximum 3650 days, 520 weeks or 120 months. A purge job runs with the Cacti poller and removes aged events with their decisions, deliveries and attempts. Active conditions and queued or failed work are never purged. Each collector purges its own history."
+msgstr "მიუთითეთ, რამდენი დღე, კვირა ან თვე შეინახოს შეტყობინებების ისტორია, ან აირჩიეთ უვადოდ ყველაფრის შესანახად (რიცხვი მაშინ იგნორირებულია). მაქსიმუმ 3650 დღე, 520 კვირა ან 120 თვე. გასუფთავების დავალება მუშაობს Cacti პოლერთან ერთად და შლის მოძველებულ მოვლენებს მათ გადაწყვეტილებებთან, მიწოდებებთან და მცდელობებთან ერთად. აქტიური მდგომარეობები და რიგში არსებული ან წარუმატებელი დავალებები არასოდეს იშლება. თითოეული კოლექტორი ასუფთავებს საკუთარ ისტორიას."
+
+#: setup.php:187
+msgid "Retention Unit"
+msgstr "შენახვის ერთეული"
+
+#: setup.php:188
+msgid "The unit for the retention period."
+msgstr "შენახვის პერიოდის ერთეული."
+
+#: setup.php:191
+msgid "Indefinitely"
+msgstr "განუსაზღვრელად"
+
+#: setup.php:191
+msgid "Months"
+msgstr "თვე"
+
+#: setup.php:191
+msgid "Weeks"
+msgstr "კვირა"
+
+#: setup.php:194
+msgid "Daemon"
+msgstr "დემონი"
+
+#: setup.php:198
+msgid "Enable Daemon"
+msgstr "დემონის ჩართვა"
+
+#: setup.php:199
+msgid "Run processing and delivery workers in the resident Alarm Manager service instead of the Cacti poller. The service must be installed and running; disabling it lets current jobs finish and returns processing to the poller. Changes apply within a few seconds and synchronize to collectors."
+msgstr "დამუშავებისა და მიწოდების სამუშაო პროცესების გაშვება მუდმივ განგაშის მენეჯერის სერვისში Cacti პოლერის ნაცვლად. სერვისი უნდა იყოს დაყენებული და გაშვებული; მისი გამორთვა ასრულებს მიმდინარე დავალებებს და დამუშავებას აბრუნებს პოლერზე. ცვლილებები ძალაში შედის რამდენიმე წამში და სინქრონიზდება კოლექტორებთან."
+
+#: setup.php:204
+msgid "Processing Workers"
+msgstr "დამუშავების სამუშაო პროცესები"
+
+#: setup.php:205
+msgid "Number of daemon workers that evaluate rules."
+msgstr "დემონის სამუშაო პროცესების რაოდენობა, რომლებიც აფასებენ წესებს."
+
+#: setup.php:211
+msgid "Delivery Workers"
+msgstr "მიწოდების სამუშაო პროცესები"
+
+#: setup.php:212
+msgid "Number of daemon workers that deliver notifications."
+msgstr "დემონის სამუშაო პროცესების რაოდენობა, რომლებიც აწვდიან შეტყობინებებს."
+
+#: setup.php:257
+msgid "Import/Export"
+msgstr "შეტანა / გატანა"
+
+#: setup.php:259 setup.php:265 setup.php:271
+msgid "Alarm Manager Settings"
+msgstr "განგაშის მენეჯერის პარამეტრები"

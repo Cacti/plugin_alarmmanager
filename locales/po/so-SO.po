@@ -1,0 +1,1230 @@
+# Somali translations for Alarm Manager package.
+# Copyright (C) 2004-2026 The Cacti Group
+# This file is distributed under the same license as the Alarm Manager package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Alarm Manager 0.12.2\n"
+"Report-Msgid-Bugs-To: https://github.com/bmfmancini/plugin_alarmmanager/issues\n"
+"POT-Creation-Date: 2026-11-02 13:02-0500\n"
+"PO-Revision-Date: 2026-11-28 02:15+0000\n"
+"Last-Translator: Thomas Vincent <thomasvincent@gmail.com>\n"
+"Language-Team: Somali <developers@cacti.net>\n"
+"Language: so_SO\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: alarmmanager_admin.php:50
+msgid "The administration action succeeded."
+msgstr "Falka maamulku wuu guuleystay."
+
+#: alarmmanager_admin.php:86
+msgid "Administration unavailable or permission denied."
+msgstr "Maamulka lama heli karo ama ogolaanshaha waa la diiday."
+
+#: includes/admin_view.php:78
+msgid "Choose the alarm information to send to any service. Use Combined text to arrange device details, or Use device message to start with a complete message. Email uses Subject and Message; API destinations use the field names required by the receiving service."
+msgstr "Dooro macluumaadka qaylo-dhaanta ee loo dirayo adeeg kasta. Isticmaal Qoraal isku-dhafan si aad u habeeyso faahfaahinta qalabka, ama Isticmaal fariinta qalabka si aad ugu bilowdo fariin dhammaystiran. Iimaylku wuxuu isticmaalaa Mawduuca iyo Fariinta; meelaha loo dirayo ee API waxay isticmaalaan magacyada meelaha uu u baahan yahay adeegga helaya."
+
+#: includes/admin_view.php:79
+msgid "Advanced message configuration"
+msgstr "Habaynta horumarsan ee fariinta"
+
+#: includes/admin_view.php:90
+msgid "New endpoint"
+msgstr "Bar-dhammaad cusub"
+
+#: includes/admin_view.php:100
+msgid "Custom integration"
+msgstr "Isdhexgal gaar ah"
+
+#: includes/admin_view.php:100
+msgid "Integration provider"
+msgstr "Bixiyaha isdhexgalka"
+
+#: includes/admin_view.php:112
+msgid "API Key SID and Secret (recommended)"
+msgstr "API Key SID iyo Sir (la taliyay)"
+
+#: includes/admin_view.php:112
+msgid "Account SID and Auth Token"
+msgstr "Account SID iyo Token-ka Xaqiijinta"
+
+#: includes/admin_view.php:112
+msgid "Twilio credentials"
+msgstr "Aqoonsiyada Twilio"
+
+#: includes/admin_view.php:113
+msgid "Send using"
+msgstr "Ku dir adigoo isticmaalaya"
+
+#: includes/admin_view.php:125
+msgid "Event"
+msgstr "Dhacdo"
+
+#: includes/admin_view.php:125
+msgid "Incident"
+msgstr "Shil"
+
+#: includes/admin_view.php:125
+msgid "ServiceNow record type"
+msgstr "Nooca diiwaanka ServiceNow"
+
+#: includes/admin_view.php:126
+msgid "Changing the record type replaces the destination table, message fields and recovery settings with its defaults. Your instance and credentials are retained."
+msgstr "Beddelidda nooca diiwaanka waxay ku beddeshaa shaxda meesha loo dirayo, meelaha fariinta iyo dejinta soo-kabashada kuwa caadiga ah. Tusaalahaaga iyo aqoonsiyadaadu way sii jirayaan."
+
+#: includes/admin_view.php:149
+msgid "Destination"
+msgstr "Ujeeddada"
+
+#: includes/admin_view.php:154
+msgid "Email settings"
+msgstr "Dejinta iimaylka"
+
+#: includes/admin_view.php:161
+msgid "Delivery uses the Cacti mail settings. Add the people who should receive these alarms."
+msgstr "Gaarsiintu waxay isticmaashaa dejinta iimaylka ee Cacti. Ku dar dadka heli doona qaylo-dhaannadan."
+
+#: includes/admin_view.php:162
+msgid "Script settings"
+msgstr "Dejinta qoraalka"
+
+#: includes/admin_view.php:167
+msgid "JSON output is sent to the script on standard input."
+msgstr "Soo-saarka JSON waxaa qoraalka loogu diraa gelinta caadiga ah."
+
+#: includes/admin_view.php:167
+msgid "The executable must exist and be executable by the worker on every delivering poller. Arguments are passed directly without a shell."
+msgstr "Barnaamijka la fulin karo waa inuu jiraa oo uu fulin karaa hawl-wadeenku poller kasta oo gaarsiinaya. Doodaha waxaa si toos ah loo gudbiyaa iyadoo aan la isticmaalin shell."
+
+#: includes/admin_view.php:169
+msgid "WebSocket delivery is not implemented."
+msgstr "Gaarsiinta WebSocket lama hirgelin."
+
+#: includes/admin_view.php:171
+msgid "Advanced delivery settings"
+msgstr "Dejinta horumarsan ee gaarsiinta"
+
+#: includes/admin_view.php:176
+msgid "Connection options"
+msgstr "Ikhtiyaarrada isku-xirka"
+
+#: includes/admin_view.php:179
+msgid "Method"
+msgstr "Habka"
+
+#: includes/admin_view.php:186
+msgid "Certificate and hostname verification remain enabled. Provision the PEM file on every poller. Saved credentials are never displayed."
+msgstr "Xaqiijinta shahaadada iyo magaca martigeliyaha way shidan tahay. Ku diyaari faylka PEM poller kasta. Aqoonsiyada kaydsan marna lama soo bandhigo."
+
+#: includes/admin_view.php:187
+msgid "Other delivery options"
+msgstr "Ikhtiyaarrada kale ee gaarsiinta"
+
+#: includes/admin_view.php:189 includes/admin_view.php:458
+msgid "Cancel"
+msgstr "Jooji"
+
+#: includes/admin_view.php:189
+msgid "Test destination saves the current settings and queues a sample alarm for this destination. Enable the destination before testing."
+msgstr "Tijaabi meesha loo dirayo waxay kaydisaa dejinta hadda waxayna safka gelisaa qaylo-dhaan tusaale ah meeshan. Daar meesha loo dirayo ka hor tijaabinta."
+
+#: includes/admin_view.php:190
+msgid "Save endpoint"
+msgstr "Kaydi bar-dhammaadka"
+
+#: includes/admin_view.php:190
+msgid "Test destination"
+msgstr "Tijaabi meesha loo dirayo"
+
+#: includes/admin_view.php:194
+msgid "Delete endpoint"
+msgstr "Tirtir bar-dhammaadka"
+
+#: includes/admin_view.php:194
+msgid "Delete this endpoint, its delivery settings and saved credentials"
+msgstr "Tirtir bar-dhammaadkan, dejintiisa gaarsiinta iyo aqoonsiyada kaydsan"
+
+#: includes/admin_view.php:194
+msgid "Deleting stops future delivery and removes the saved settings and credentials. Remove notification rule references and resolve queued or running deliveries first. Completed and failed delivery history is preserved."
+msgstr "Tirtiriddu waxay joojisaa gaarsiinta mustaqbalka waxayna ka saartaa dejinta iyo aqoonsiyada kaydsan. Marka hore ka saar tixraacyada xeerka ogeysiiska oo xalli gaarsiinta safka ku jirta ama socota. Taariikhda gaarsiinta dhammaatay iyo tan fashilantay waa la ilaaliyaa."
+
+#: includes/admin_view.php:205
+msgid "Chat and messaging"
+msgstr "Sheekaysiga iyo fariimaha"
+
+#: includes/admin_view.php:206
+msgid "Post alarms to a Slack channel."
+msgstr "U dir qaylo-dhaannada kanaalka Slack."
+
+#: includes/admin_view.php:207
+msgid "Post alarm cards through a Teams Workflow."
+msgstr "U dir kaararka qaylo-dhaanta iyadoo loo marayo Teams Workflow."
+
+#: includes/admin_view.php:208
+msgid "Send alarms from a Telegram bot."
+msgstr "Ka dir qaylo-dhaanno bot-ka Telegram."
+
+#: includes/admin_view.php:209
+msgid "Text alarms to phone numbers."
+msgstr "U dir qaylo-dhaanno qoraal ah lambarrada telefoonka."
+
+#: includes/admin_view.php:210
+msgid "Send approved WhatsApp templates."
+msgstr "Dir qaab-dhismeedyada WhatsApp ee la ansixiyay."
+
+#: includes/admin_view.php:211
+msgid "Incident management"
+msgstr "Maaraynta shilalka"
+
+#: includes/admin_view.php:212
+msgid "Trigger and resolve PagerDuty incidents."
+msgstr "Kici oo xalli shilalka PagerDuty."
+
+#: includes/admin_view.php:213
+msgid "Open and resolve ServiceNow incidents or events."
+msgstr "Fur oo xalli shilalka ama dhacdooyinka ServiceNow."
+
+#: includes/admin_view.php:214
+msgid "Network management"
+msgstr "Maamulka shabakadda"
+
+#: includes/admin_view.php:215
+msgid "Send SNMPv2c or SNMPv3 traps and INFORMs."
+msgstr "Dir dabinnada SNMPv2c ama SNMPv3 iyo INFORM-yada."
+
+#: includes/admin_view.php:216
+msgid "Forward RFC 5424 or RFC 3164 messages over UDP, TCP or TLS."
+msgstr "U gudbi fariimaha RFC 5424 ama RFC 3164 iyadoo la adeegsanayo UDP, TCP ama TLS."
+
+#: includes/admin_view.php:217
+msgid "Custom"
+msgstr "Gaar ah"
+
+#: includes/admin_view.php:218
+msgid "Start from an empty endpoint."
+msgstr "Ka bilow bar-dhammaad madhan."
+
+#: includes/admin_view.php:219
+msgid "POST alarm JSON to any HTTPS endpoint."
+msgstr "U dir JSON qaylo-dhaan adigoo isticmaalaya POST bar-dhammaad kasta oo HTTPS ah."
+
+#: includes/admin_view.php:220
+msgid "Call an API with your own method, authentication and response checks."
+msgstr "U wac API adigoo isticmaalaya habkaaga, xaqiijintaada iyo hubinta jawaabahaaga."
+
+#: includes/admin_view.php:221
+msgid "Run a local executable with the alarm as JSON input."
+msgstr "Ku orod barnaamij maxalli ah iyadoo qaylo-dhaantu tahay gelinta JSON."
+
+#: includes/admin_view.php:227
+msgid "Add integration"
+msgstr "Ku dar isdhexgal"
+
+#: includes/admin_view.php:228
+msgid "Choose a template. It opens as a disabled draft; nothing is sent until you enable it."
+msgstr "Dooro qaab-dhismeed. Wuxuu u furmaa sidii qabyo damisan; waxba lama diro ilaa aad shiddo."
+
+#: includes/admin_view.php:228
+msgid "Search integrations"
+msgstr "Raadi isdhexgallada"
+
+#: includes/admin_view.php:234
+msgid "Blank endpoint"
+msgstr "Bar-dhammaad madhan"
+
+#: includes/admin_view.php:239
+msgid "No integrations match your search."
+msgstr "Ma jiraan isdhexgallo u dhigma raadintaada."
+
+#: includes/admin_view.php:243
+msgid "SNMP trap settings"
+msgstr "Dejinta dabinka SNMP"
+
+#: includes/admin_view.php:259
+msgid "Saved community and passphrases are encrypted and never displayed. Leave them blank to keep the saved values; entering any value replaces all saved SNMP secrets."
+msgstr "Bulshada iyo weedhaha sirta ee kaydsan waa la sir-qariyay marna lama soo bandhigo. Madhan u daa si aad u hayso qiimayaasha kaydsan; gelinta qiimo kasta waxay beddeshaa dhammaan siraha SNMP ee kaydsan."
+
+#: includes/admin_view.php:260
+msgid "Traps are sent as Cacti's CACTI-MIB cactiNotify with the snmptrap binary from Cacti Settings > Paths on every delivering poller. Add one destination per receiver."
+msgstr "Dabinnada waxaa loo diraa sidii CACTI-MIB cactiNotify ee Cacti iyadoo la adeegsanayo faylka snmptrap ee Dejinta Cacti > Waddooyinka poller kasta oo gaarsiinaya. Ku dar hal meel loo diro qaataha kasta."
+
+#: includes/admin_view.php:261
+msgid "Syslog settings"
+msgstr "Dejinta Syslog"
+
+#: includes/admin_view.php:269
+msgid "TLS verifies the receiver certificate and hostname. Use port 6514 for TLS. UDP and TCP are unencrypted, and a UDP message is confirmed only as sent."
+msgstr "TLS waxay xaqiijisaa shahaadada qaataha iyo magaca martigeliyaha. Isticmaal dekedda 6514 loogu talagalay TLS. UDP iyo TCP ma sir-qarsana, fariinta UDP-na waxaa la xaqiijiyaa oo keliya in la diray."
+
+#: includes/admin_view.php:278 setup.php:191
+msgid "Days"
+msgstr "Maalmo"
+
+#: includes/admin_view.php:283
+msgid "Timezone"
+msgstr "Aagga waqtiga"
+
+#: includes/admin_view.php:291
+msgid "Times use the selected timezone and the alarm event time. An end time before the start runs overnight. Equal times cover the entire selected day."
+msgstr "Waqtiyadu waxay isticmaalaan aagga waqtiga la doortay iyo waqtiga dhacdada qaylo-dhaanta. Waqti dhammaad ka horreeya bilowga wuxuu socdaa habeenkii oo dhan. Waqtiyo siman waxay daboolaan maalinta la doortay oo dhan."
+
+#: includes/admin_view.php:332 includes/admin_view.php:521
+msgid "Create a rule"
+msgstr "Samee xeer"
+
+#: includes/admin_view.php:332
+msgid "Enabled"
+msgstr "La hawlgeliyay"
+
+#: includes/admin_view.php:332
+msgid "Priority"
+msgstr "Muhiimadda"
+
+#: includes/admin_view.php:334
+msgid "Rule and destination"
+msgstr "Xeerka iyo meesha loo dirayo"
+
+#: includes/admin_view.php:338
+msgid "Alarm Destination"
+msgstr "Meesha Loo Dirayo Qaylo-dhaanta"
+
+#: includes/admin_view.php:341
+msgid "disabled"
+msgstr "la joojiyay"
+
+#: includes/admin_view.php:343
+msgid "Select one or more alarm destinations. Disabled destinations do not send alarms."
+msgstr "Dooro hal ama ka badan meelo qaylo-dhaan loo diro. Meelaha damisan ma diraan qaylo-dhaanno."
+
+#: includes/admin_view.php:345
+msgid "Message template"
+msgstr "Qaab-dhismeedka fariinta"
+
+#: includes/admin_view.php:345
+msgid "Use each destination default, or customize its message for this rule. Customization starts with a copy of the destination template and does not change other rules. If several rules match the same destination, the first matching rule in priority and ID order supplies its template."
+msgstr "Isticmaal caadiga meel kasta oo loo diro, ama u habeey fariinteeda xeerkan. Habayntu waxay ka bilaabataa nuqul qaab-dhismeedka meesha loo dirayo mana beddesho xeerarka kale. Haddii dhowr xeer ay u dhigmaan isla meel loo diro, xeerka ugu horreeya ee u dhigma mudnaanta iyo kala horreynta ID ayaa bixiya qaab-dhismeedkiisa."
+
+#: includes/admin_view.php:352
+msgid "Custom template"
+msgstr "Qaab-dhismeed gaar ah"
+
+#: includes/admin_view.php:355
+msgid "Destination recipient"
+msgstr "Qaataha meesha loo dirayo"
+
+#: includes/admin_view.php:355
+#, php-format
+msgid "Recipients: %d"
+msgstr "Qaatayaasha: %d"
+
+#: includes/admin_view.php:357
+msgid "Customize message for this rule"
+msgstr "U habeey fariinta xeerkan"
+
+#: includes/admin_view.php:357
+msgid "Unchecked: Use destination default."
+msgstr "Aan la calaamadayn: Isticmaal caadiga meesha loo dirayo."
+
+#: includes/admin_view.php:361
+msgid "Optional: add each phone number in international format, such as +15551234567. These numbers replace the destination recipient for this rule. Leave the list empty to use the destination default. Each number has its own delivery status and retries."
+msgstr "Ikhtiyaari: ku dar lambar kasta oo telefoon qaab caalami ah, sida +15551234567. Lambarradani waxay beddelaan qaataha meesha loo dirayo ee xeerkan. Liiska madhan u daa si aad u isticmaasho caadiga meesha loo dirayo. Lambar kasta wuxuu leeyahay xaaladdiisa gaarsiinta iyo isku-dayada ku-celinta."
+
+#: includes/admin_view.php:374
+msgid "None"
+msgstr "Midna"
+
+#: includes/admin_view.php:376
+msgid "Build device conditions using AND, OR and groups. These conditions use the current Cacti device settings and must also satisfy any alarm filters below. With no device conditions, all devices can match."
+msgstr "Ku dhis shuruudaha qalabka adigoo isticmaalaya AND, OR iyo kooxo. Shuruudahani waxay isticmaalaan dejinta qalabka Cacti ee hadda waana inay buuxiyaan shaandhooyinka qaylo-dhaanta ee hoose. Haddii aysan jirin shuruudo qalab, qalabyada oo dhan way u dhigmi karaan."
+
+#: includes/admin_view.php:376
+msgid "Match devices"
+msgstr "Isku-beeg qalabyada"
+
+#: includes/admin_view.php:387
+msgid "Cacti_Admin_Notifications"
+msgstr "Cacti_Admin_Notifications"
+
+#: includes/admin_view.php:387
+msgid "Device Status"
+msgstr "Xaaladda Aaladda"
+
+#: includes/admin_view.php:387
+msgid "Syslog"
+msgstr "Syslog"
+
+#: includes/admin_view.php:387
+msgid "Thold"
+msgstr "Thold"
+
+#: includes/admin_view.php:392
+msgid "Build alarm conditions using AND, OR, NOT and groups. Alarms must also match the device conditions above."
+msgstr "Ku dhis shuruudaha qaylo-dhaanta adigoo isticmaalaya AND, OR, NOT iyo kooxo. Qaylo-dhaannadu waa inay sidoo kale u dhigmaan shuruudaha qalabka ee kor ku xusan."
+
+#: includes/admin_view.php:392
+msgid "Match alarms"
+msgstr "Isku-beeg qaylo-dhaannada"
+
+#: includes/admin_view.php:395
+msgid "No alarm sources detected yet. Sources appear after their first alarm."
+msgstr "Weli lama ogaan ilo qaylo-dhaan. Iluhu waxay soo muuqdaan qaylo-dhaantooda ugu horreysa ka dib."
+
+#: includes/admin_view.php:397
+msgid "By default, matching alarms can notify at any time. Turn on a schedule to limit when this rule matches."
+msgstr "Si caadi ah, qaylo-dhaannada u dhigma waxay ogeysiin karaan wakhti kasta. Daar jadwal si aad u xaddiddo marka xeerkani shaqeeyo."
+
+#: includes/admin_view.php:397
+msgid "Notification hours"
+msgstr "Saacadaha ogeysiiska"
+
+#: includes/admin_view.php:399
+msgid "Suppress notifications"
+msgstr "Xakamee ogeysiisyada"
+
+#: includes/admin_view.php:399
+msgid "Suppressed alarms remain in history. Recovery notifications bypass acknowledgment, cooldown and duplicate suppression, but still follow notification hours and maintenance windows."
+msgstr "Qaylo-dhaannada la xakameeyay waxay ku sii jiraan taariikhda. Ogeysiisyada soo-kabashadu waxay ka gudbaan aqoonsashada, waqtiga qaboojinta iyo xakamaynta nuqullada, laakiin weli waxay raacaan saacadaha ogeysiiska iyo daaqadaha dayactirka."
+
+#: includes/admin_view.php:403
+msgid "Set a duration to 0 to turn it off."
+msgstr "U deji muddada 0 si aad u damiso."
+
+#: includes/admin_view.php:405
+msgid "Rule order"
+msgstr "Kala horreynta xeerarka"
+
+#: includes/admin_view.php:408
+msgid "Create rule"
+msgstr "Samee xeer"
+
+#: includes/admin_view.php:408
+msgid "Rules with equal priority run in ID order. Stopping also applies when this rule suppresses notifications."
+msgstr "Xeerarka leh mudnaan isku mid ah waxay u shaqeeyaan sida kala horreynta ID. Joojintu sidoo kale waxay khuseysaa marka xeerkani xakameeyo ogeysiisyada."
+
+#: includes/admin_view.php:417
+msgid "Configuration Backup/Restore"
+msgstr "Kayd-celinta/Soo-celinta Habaynta"
+
+#: includes/admin_view.php:427
+msgid "Paused"
+msgstr "La hakiyay"
+
+#: includes/admin_view.php:427
+msgid "Running"
+msgstr "Socda"
+
+#: includes/admin_view.php:428
+msgid "everything has been delivered"
+msgstr "wax walba waa la gaarsiiyay"
+
+#: includes/admin_view.php:428
+#, php-format
+msgid "oldest queued %s UTC"
+msgstr "kan ugu da'da weyn ee safka ku jira %s UTC"
+
+#: includes/admin_view.php:428
+msgid "waiting messages"
+msgstr "fariimaha sugaya"
+
+#: includes/admin_view.php:431
+msgid "Hide messages"
+msgstr "Qari fariimaha"
+
+#: includes/admin_view.php:431
+msgid "View messages"
+msgstr "Eeg fariimaha"
+
+#: includes/admin_view.php:441
+msgid "Endpoint"
+msgstr "Barta Dhammaadka"
+
+#: includes/admin_view.php:441
+msgid "ID"
+msgstr "Aqoonsiga"
+
+#: includes/admin_view.php:441
+msgid "Message"
+msgstr "Fariin"
+
+#: includes/admin_view.php:441
+msgid "Next try"
+msgstr "Isku-dayga xiga"
+
+#: includes/admin_view.php:441 includes/reports.php:458
+msgid "Queued"
+msgstr "Safka ku jira"
+
+#: includes/admin_view.php:441
+msgid "Tries"
+msgstr "Isku-dayo"
+
+#: includes/admin_view.php:451
+msgid "Times in UTC · first 100 shown"
+msgstr "Waqtiyada ku jira UTC · 100-ka hore ayaa muuqda"
+
+#: includes/admin_view.php:455
+msgid "Pause delivery"
+msgstr "Haki gaarsiinta"
+
+#: includes/admin_view.php:455
+msgid "Resume delivery"
+msgstr "Sii wad gaarsiinta"
+
+#: includes/admin_view.php:458
+msgid "Clear queue"
+msgstr "Nadiifi safka"
+
+#: includes/admin_view.php:459
+#, php-format
+msgid "Discard all %d waiting notifications on this poller?"
+msgstr "Ma iska tuurtaa dhammaan %d ogeysiisyada sugaya ee ku jira poller-kan?"
+
+#: includes/admin_view.php:460
+msgid "Includes retries. They stay in delivery history as failed, reason queue_cleared."
+msgstr "Waxaa ku jira isku-dayada ku-celinta. Waxay ku sii jiraan taariikhda gaarsiinta sidii kuwo fashilmay, sababta queue_cleared."
+
+#: includes/admin_view.php:461
+msgid "Messages already sending and alarm state are kept."
+msgstr "Fariimaha horay u socda iyo xaaladda qaylo-dhaanta waa la hayaa."
+
+#: includes/admin_view.php:462
+msgid "Tip: pause delivery first during maintenance."
+msgstr "Talo: marka hore haki gaarsiinta inta lagu jiro dayactirka."
+
+#: includes/admin_view.php:463
+msgid "Clear queue…"
+msgstr "Nadiifinaya safka…"
+
+#: includes/admin_view.php:464
+msgid "Controls apply to this poller. While paused, alarms are still received and queued; Resume sends them."
+msgstr "Xakamayntani waxay khuseysaa poller-kan. Inta la hakiyay, qaylo-dhaannada weli waa la helaa oo safka ayaa la geliyaa; Sii wad ayaa dirta."
+
+#: includes/admin_view.php:467
+msgid "View delivery results"
+msgstr "Eeg natiijooyinka gaarsiinta"
+
+#: includes/admin_view.php:470
+msgid "Create an integration, configure its destination and credentials, test a sample alarm here, then select it directly in a rule."
+msgstr "Samee isdhexgal, habee meesha loo dirayo iyo aqoonsiyada, halkan ku tijaabi qaylo-dhaan tusaale ah, ka dibna si toos ah uga dooro xeer."
+
+#: includes/admin_view.php:476
+msgid "Configured integrations"
+msgstr "Isdhexgallada la habeeyay"
+
+#: includes/admin_view.php:479
+msgid "No integrations yet. Choose a template above to create one."
+msgstr "Weli ma jiraan isdhexgallo. Dooro qaab-dhismeed kor ku yaal si aad u sameyso mid."
+
+#: includes/admin_view.php:490
+msgid "Alarm Rules"
+msgstr "Xeerarka Qaylo-dhaanta"
+
+#: includes/admin_view.php:490
+msgid "Choose which alarms should notify, where to send them and when to pause notifications. Rules run from lowest to highest priority."
+msgstr "Dooro qaylo-dhaannada ogeysiinaya, meesha loo dirayo iyo marka la hakinayo ogeysiisyada. Xeerarku waxay u shaqeeyaan laga bilaabo mudnaanta ugu hooseysa ilaa tan ugu sarreysa."
+
+#: includes/admin_view.php:493
+msgid "Create an integration before saving your first rule."
+msgstr "Samee isdhexgal ka hor intaadan kaydin xeerkaaga ugu horreeya."
+
+#: includes/admin_view.php:493
+msgid "Create integration"
+msgstr "Samee isdhexgal"
+
+#: includes/admin_view.php:495
+msgid "Clear"
+msgstr "Nadiifi"
+
+#: includes/admin_view.php:495
+msgid "Critical"
+msgstr "Halis ah"
+
+#: includes/admin_view.php:495
+msgid "Information"
+msgstr "Macluumaad"
+
+#: includes/admin_view.php:495
+msgid "Major"
+msgstr "Weyn"
+
+#: includes/admin_view.php:495
+msgid "Minor"
+msgstr "Yar"
+
+#: includes/admin_view.php:495
+msgid "Occurrence"
+msgstr "Dhicid"
+
+#: includes/admin_view.php:495
+msgid "Raised"
+msgstr "La kiciyay"
+
+#: includes/admin_view.php:495
+msgid "Recovered"
+msgstr "Soo kabtay"
+
+#: includes/admin_view.php:495
+msgid "Reminder"
+msgstr "Xasuusin"
+
+#: includes/admin_view.php:495
+msgid "Updated"
+msgstr "La cusboonaysiiyay"
+
+#: includes/admin_view.php:495
+msgid "Warning"
+msgstr "Digniin"
+
+#: includes/admin_view.php:520
+msgid "Alarm notifications require an enabled matching Alarm Rule. Without one, alarms remain in history but no notifications are sent."
+msgstr "Ogeysiisyada qaylo-dhaantu waxay u baahan yihiin Xeer Qaylo-dhaan oo shidan oo u dhigma. La'aanteed, qaylo-dhaannadu waxay ku sii jiraan taariikhda laakiin wax ogeysiis ah lama diro."
+
+#: includes/admin_view.php:524
+msgid "No rules yet. Create a rule below to start routing alarms to your notification destinations."
+msgstr "Weli ma jiraan xeerar. Hoose ka samee xeer si aad u bilowdo jiheynta qaylo-dhaannada meelahaaga ogeysiiska."
+
+#: includes/admin_view.php:533
+msgid "Credential values are never loaded into this page. Saving replaces the endpoint record; blank values do not preserve an old password. Use the CLI for protected backup/restore and poller provisioning."
+msgstr "Qiimayaasha aqoonsiga marna laguma soo rogo boggan. Kaydintu waxay beddeshaa diiwaanka bar-dhammaadka; qiimayaasha madhan ma ilaaliyaan eray-sir hore. Isticmaal CLI kayd-celinta/soo-celinta la ilaaliyo iyo diyaarinta poller-ka."
+
+#: includes/admin_view.php:536
+msgid "Create endpoint"
+msgstr "Samee bar-dhammaad"
+
+#: includes/admin_view.php:536
+msgid "No REST API or webhook endpoints have been saved. Create an endpoint to enter its bearer token, Basic authentication username and password, or API-key headers."
+msgstr "Ma jiraan bar-dhammaadyo REST API ama webhook ah oo la kaydiyay. Samee bar-dhammaad si aad u geliso token-kiisa bearer, magac-isticmaale iyo eray-sir xaqiijinta Basic, ama madaxyada furaha API."
+
+#: includes/admin_view.php:540
+msgid "Configured"
+msgstr "La habeeyay"
+
+#: includes/admin_view.php:543
+msgid "Replace credential"
+msgstr "Beddel aqoonsiga"
+
+#: includes/admin_view.php:549
+msgid "Rotate local key"
+msgstr "Wareeji furaha maxalliga ah"
+
+#: includes/admin_view.php:553
+msgid "Event log"
+msgstr "Diiwaanka dhacdooyinka"
+
+#: includes/admin_view.php:553
+msgid "Writes every event as it is processed, independent of which rules match or whether any destination is notified — a complete audit trail for external analysis, for example with Splunk."
+msgstr "Waxay qortaa dhacdo kasta marka la farsameeyo, iyadoon loo eegin xeerarka u dhigma ama haddii meel loo dirayo la ogeysiiyay - diiwaan hanti-dhawr oo dhammaystiran oo loogu talagalay falanqaynta dibadda, tusaale ahaan Splunk."
+
+#: includes/admin_view.php:555
+msgid "Cacti log"
+msgstr "Diiwaanka Cacti"
+
+#: includes/admin_view.php:555
+msgid "External file"
+msgstr "Fayl dibadeed"
+
+#: includes/admin_view.php:555
+msgid "Write to"
+msgstr "U qor"
+
+#: includes/admin_view.php:559
+msgid "One JSON object per line (occurred_at, transition, severity, device, alarm key…). The path must already exist, outside the plugin directory and Cacti's web root. Past the size limit, the file rotates to one .1 backup."
+msgstr "Hal shay oo JSON ah xariiq kasta (occurred_at, transition, severity, device, furaha qaylo-dhaanta…). Waddadu waa inay horay u jirtaa, kana baxsan tahay galka ku-darka iyo xididka webka Cacti. Marka laga gudbo xadka cabbirka, faylku wuxuu u wareegaa hal kayd-celin .1 ah."
+
+#: includes/admin_view.php:559
+msgid "Save event log settings"
+msgstr "Kaydi dejinta diiwaanka dhacdooyinka"
+
+#: includes/admin_view.php:561
+msgid "Backup and restore"
+msgstr "Kayd-celinta iyo soo-celinta"
+
+#: includes/admin_view.php:561
+msgid "Export"
+msgstr "Dhoofi"
+
+#: includes/admin_view.php:562
+msgid "Endpoints, message templates, and rules as JSON. Credentials and settings are not included. Endpoint URLs can contain secrets, so keep the file private."
+msgstr "Bar-dhammaadyada, qaab-dhismeedyada fariimaha, iyo xeerarka oo ah JSON. Aqoonsiyada iyo dejinta kuma jiraan. URL-yada bar-dhammaadyadu waxay yeelan karaan siro, markaa faylka ka dhig mid gaar ah."
+
+#: includes/admin_view.php:563
+msgid "Export configuration"
+msgstr "Dhoofi habaynta"
+
+#: includes/admin_view.php:563
+msgid "Import"
+msgstr "Soo dhoofi"
+
+#: includes/admin_view.php:567
+msgid "Replaces the routing configuration using the IDs in the file. Endpoints and rules missing from the file are disabled, not deleted. Saved credentials are kept."
+msgstr "Waxay ku beddeshaa habaynta jiheynta iyadoo isticmaalaysa aqoonsiyada faylka ku jira. Bar-dhammaadyada iyo xeerarka ka maqan faylka waa la damiyaa, lama tirtiro. Aqoonsiyada kaydsan waa la hayaa."
+
+#: includes/admin_view.php:568
+msgid "Import configuration"
+msgstr "Soo dejiso habaynta"
+
+#: includes/admin_view.php:572
+msgid "Local queue health"
+msgstr "Caafimaadka safka maxalliga ah"
+
+#: includes/admin_view.php:573
+msgid "Jobs"
+msgstr "Shaqooyinka"
+
+#: includes/admin_view.php:573
+msgid "Oldest job age (seconds)"
+msgstr "Da'da shaqada ugu da'da weyn (ilbiriqsiyo)"
+
+#: includes/admin_view.php:573
+msgid "Queue"
+msgstr "Saf"
+
+#: includes/admin_view.php:573
+msgid "Retries"
+msgstr "Ku-celisyada"
+
+#: includes/admin_view.php:573 includes/admin_view.php:592
+#: includes/web_view.php:181
+msgid "Status"
+msgstr "Xaaladda"
+
+#: includes/admin_view.php:588
+msgid "No queue activity recorded."
+msgstr "Ma jirto hawl saf ah oo la diiwaangeliyay."
+
+#: includes/admin_view.php:591
+msgid "Local worker health"
+msgstr "Caafimaadka hawl-wadeenka maxalliga ah"
+
+#: includes/admin_view.php:592
+msgid "Current job"
+msgstr "Shaqada hadda"
+
+#: includes/admin_view.php:592
+msgid "Heartbeat age (seconds)"
+msgstr "Da'da garaaca wadnaha (ilbiriqsiyo)"
+
+#: includes/admin_view.php:592
+msgid "PID"
+msgstr "PID"
+
+#: includes/admin_view.php:592
+msgid "Poller"
+msgstr "Xog-uruuriye"
+
+#: includes/admin_view.php:592
+msgid "Role"
+msgstr "Doorka"
+
+#: includes/admin_view.php:592
+msgid "Worker"
+msgstr "Hawl-wadeen"
+
+#: includes/admin_view.php:607
+msgid "No local worker heartbeats recorded."
+msgstr "Ma jiraan garaacyo wadno oo hawl-wadeen maxalli ah oo la diiwaangeliyay."
+
+#: includes/admin_view.php:610
+msgid "Completed delivery jobs in the last 300 seconds"
+msgstr "Shaqooyinka gaarsiinta ee dhammaaday 300-kii ilbiriqsi ee u dambeeyay"
+
+#: includes/admin_view.php:610
+msgid "Completed processing jobs in the last 300 seconds"
+msgstr "Shaqooyinka farsamaynta ee dhammaaday 300-kii ilbiriqsi ee u dambeeyay"
+
+#: includes/admin_view.php:610
+msgid "Processing streams blocked behind a failed predecessor"
+msgstr "Qulqulka farsamaynta ee ku xiran mid ka horreeyay oo fashilmay"
+
+#: includes/admin_view.php:613
+msgid "Pending jobs for destination types without a qualified transport"
+msgstr "Shaqooyinka sugaya ee noocyada meelaha loo dirayo ee aan lahayn gaadiid u qalma"
+
+#: includes/admin_view.php:620
+msgid "Failed deliveries and replay"
+msgstr "Gaarsiinta fashilantay iyo ku-celinta"
+
+#: includes/admin_view.php:620
+msgid "Failed processing jobs and replay"
+msgstr "Shaqooyinka farsamaynta ee fashilmay iyo ku-celinta"
+
+#: includes/admin_view.php:625
+msgid "Authentication"
+msgstr "Xaqiijinta Aqoonsiga"
+
+#: includes/admin_view.php:625
+msgid "Authentication type"
+msgstr "Nooca xaqiijinta"
+
+#: includes/admin_view.php:649
+msgid "Saved credentials are encrypted and never displayed. New values replace the saved credential record."
+msgstr "Aqoonsiyada kaydsan waa la sir-qariyay marna lama soo bandhigo. Qiimayaasha cusub waxay beddelaan diiwaanka aqoonsiga ee kaydsan."
+
+#: includes/polling.php:150
+msgid "Start the Alarm Manager service on this collector before enabling daemon workers."
+msgstr "Ka bilow adeegga Alarm Manager ururiyahan ka hor intaadan shidin hawl-wadeennada daemon."
+
+#: includes/polling.php:163
+msgid "Daemon settings could not be saved. Check the Cacti cache directory permissions."
+msgstr "Dejinta Daemon lama kaydin karin. Hubi ogolaanshaha galka kaydka ku-meel-gaarka ah ee Cacti."
+
+#: includes/reports.php:430
+msgid "Remote history"
+msgstr "Taariikhda fog"
+
+#: includes/reports.php:459
+msgid "Test send"
+msgstr "Tijaabi dirista"
+
+#: includes/reports.php:460
+msgid "No matching rule"
+msgstr "Ma jiro xeer u dhigma"
+
+#: includes/reports.php:461
+msgid "Destination disabled"
+msgstr "Meesha loo dirayo waa la damiyay"
+
+#: includes/reports.php:462
+msgid "Suppressed by source"
+msgstr "Waxaa xakameeyay isha"
+
+#: includes/reports.php:463
+msgid "Maintenance window"
+msgstr "Daaqadda dayactirka"
+
+#: includes/reports.php:464
+msgid "Acknowledged"
+msgstr "La aqoonsaday"
+
+#: includes/reports.php:465
+msgid "Cooldown"
+msgstr "Waqtiga qaboojinta"
+
+#: includes/reports.php:466
+msgid "Duplicate"
+msgstr "Nuqul labaad"
+
+#: includes/reports.php:467
+msgid "Already routed"
+msgstr "Horay loo jiheeyay"
+
+#: includes/reports.php:468
+msgid "Out of order"
+msgstr "Kala horreyn la'aan"
+
+#: includes/reports.php:469
+msgid "Ignored episode"
+msgstr "Dhacdo la iska indha tiray"
+
+#: includes/reports.php:470
+msgid "History only"
+msgstr "Taariikh keliya"
+
+#: includes/reports.php:518
+#, php-format
+msgid "Deleted destination #%d"
+msgstr "Waa la tirtiray meesha loo dirayo #%d"
+
+#: includes/reports.php:519
+#, php-format
+msgid "%d destinations"
+msgstr "%d meelood oo loo dirayo"
+
+#: includes/reports.php:531
+msgid "Delivered"
+msgstr "La gaarsiiyay"
+
+#: includes/reports.php:531
+msgid "Failed"
+msgstr "Fashilmay"
+
+#: includes/reports.php:531
+msgid "Pending"
+msgstr "Sugaya"
+
+#: includes/reports.php:531
+msgid "Sending"
+msgstr "Diraya"
+
+#: includes/reports.php:541
+msgid "Processing failed"
+msgstr "Farsamayntu way fashilantay"
+
+#: includes/reports.php:542
+msgid "Pending processing"
+msgstr "Sugaya farsamaynta"
+
+#: includes/reports.php:543 includes/web_view.php:264
+msgid "Processing"
+msgstr "Habaynaya"
+
+#: includes/reports.php:544
+msgid "No matching integration"
+msgstr "Ma jiro isdhexgal u dhigma"
+
+#: includes/reports.php:544
+msgid "Suppressed"
+msgstr "La xakameeyay"
+
+#: includes/routing.php:106
+msgid "Device description"
+msgstr "Sharaxaadda qalabka"
+
+#: includes/routing.php:106
+msgid "Hostname"
+msgstr "Magaca Martigeliyaha"
+
+#: includes/routing.php:106
+msgid "Location"
+msgstr "Goobta"
+
+#: includes/routing.php:106
+msgid "SNMP system location"
+msgstr "Goobta nidaamka SNMP"
+
+#: includes/routing.php:110 includes/routing.php:125
+msgid "Collector"
+msgstr "Uruuriye"
+
+#: includes/routing.php:110
+msgid "Device Site Association"
+msgstr "Ku-xirnaanta Goobta Qalabka"
+
+#: includes/routing.php:110
+msgid "Device Template"
+msgstr "Qaabka Aaladda"
+
+#: includes/routing.php:121
+msgid "Alarm change"
+msgstr "Isbeddelka qaylo-dhaanta"
+
+#: includes/routing.php:121
+msgid "Alarm source"
+msgstr "Isha qaylo-dhaanta"
+
+#: includes/routing.php:121
+msgid "Alarm summary"
+msgstr "Soo-koobidda qaylo-dhaanta"
+
+#: includes/routing.php:121 includes/web_view.php:161
+msgid "Severity"
+msgstr "Darnaanta"
+
+#: includes/routing.php:125
+msgid "Device"
+msgstr "Qalab"
+
+#: includes/routing.php:128
+msgid "Device tag"
+msgstr "Sumadda qalabka"
+
+#: includes/web_view.php:93
+msgid "Report unavailable or permission denied."
+msgstr "Warbixinta lama heli karo ama ogolaanshaha waa la diiday."
+
+#: includes/web_view.php:119
+msgid "Statistics could not be rendered."
+msgstr "Tirokoobka lama soo bandhigi karin."
+
+#: includes/web_view.php:129 setup.php:131 setup.php:273 setup.php:289
+#: setup.php:290
+msgid "Alarm Manager"
+msgstr "Maareeyaha Qaylo-dhaanta"
+
+#: includes/web_view.php:136
+msgid "Alarm Manager pages"
+msgstr "Boggaga Alarm Manager"
+
+#: includes/web_view.php:149 includes/web_view.php:152
+msgid "Alarm statistics"
+msgstr "Tirokoobka qaylo-dhaanta"
+
+#: includes/web_view.php:149
+msgid "Filters"
+msgstr "Shaandheeyeyaasha"
+
+#: includes/web_view.php:152
+msgid "Time range"
+msgstr "Kala duwanaanshaha waqtiga"
+
+#: includes/web_view.php:158
+msgid "Off"
+msgstr "Damsan"
+
+#: includes/web_view.php:158
+msgid "Refresh"
+msgstr "Cusboonaysii"
+
+#: includes/web_view.php:160
+msgid "Advanced filter JSON"
+msgstr "JSON shaandhada horumarsan"
+
+#: includes/web_view.php:160
+msgid "Filter document"
+msgstr "Dukumeentiga shaandhada"
+
+#: includes/web_view.php:160
+msgid "Quick filters"
+msgstr "Shaandhooyinka degdegga ah"
+
+#: includes/web_view.php:160
+msgid "Search conditions"
+msgstr "Raadi shuruudaha"
+
+#: includes/web_view.php:161 includes/web_view.php:181
+msgid "All"
+msgstr "Dhammaan"
+
+#: includes/web_view.php:161
+msgid "Source"
+msgstr "Isha"
+
+#: includes/web_view.php:168
+msgid "Device ID"
+msgstr "Aqoonsiga Qalabka"
+
+#: includes/web_view.php:171
+msgid "Status type"
+msgstr "Nooca xaaladda"
+
+#: includes/web_view.php:190
+msgid "event_id"
+msgstr "event_id"
+
+#: includes/web_view.php:195
+msgid "Collector ID"
+msgstr "Aqoonsiga Ururiyaha"
+
+#: includes/web_view.php:195
+msgid "Local and mirrored collectors"
+msgstr "Ururiyeyaasha maxalliga ah iyo kuwa nuqul-wadaagga ah"
+
+#: includes/web_view.php:198
+msgid "mirrored"
+msgstr "nuqul-wadaag"
+
+#: includes/web_view.php:203
+msgid "Mirrored events carry no Record ID and no detail view."
+msgstr "Dhacdooyinka nuqul-wadaagga ah ma laha Aqoonsi Diiwaan mana laha muuqaal faahfaahsan."
+
+#: includes/web_view.php:205
+msgid "Mirrored collector events are always included here unless you narrow by a specific remote Collector ID."
+msgstr "Dhacdooyinka ururiyaha nuqul-wadaagga ah had iyo jeer halkan way ku jiraan haddii aadan ku xaddidin Aqoonsi Ururiye fog oo gaar ah."
+
+#: includes/web_view.php:211
+msgid "Apply"
+msgstr "Dhaqan geli"
+
+#: includes/web_view.php:211
+msgid "Reset"
+msgstr "Dib u deji"
+
+#: includes/web_view.php:213
+msgid "Historical window uses UTC. Current conditions and queues ignore the time window."
+msgstr "Daaqadda taariikheed waxay isticmaashaa UTC. Xaaladaha hadda iyo safafku waxay iska indha tiraan daaqadda waqtiga."
+
+#: includes/web_view.php:235
+msgid "Loading statistics…"
+msgstr "Soo raraya tirokoobka…"
+
+#: includes/web_view.php:248
+msgid "Collapse"
+msgstr "Laab"
+
+#: includes/web_view.php:261
+msgid "Integration results"
+msgstr "Natiijooyinka isdhexgalka"
+
+#: includes/web_view.php:262
+msgid "Delivery attempts"
+msgstr "Isku-dayada gaarsiinta"
+
+#: includes/web_view.php:263
+msgid "Routing decisions"
+msgstr "Go'aannada jiheynta"
+
+#: includes/web_view.php:265
+msgid "conditions"
+msgstr "shuruudo"
+
+#: includes/web_view.php:270
+msgid "No matching records."
+msgstr "Ma jiraan diiwaanno u dhigma."
+
+#: includes/web_view.php:290
+msgid "Integration status"
+msgstr "Xaaladda isdhexgalka"
+
+#: includes/web_view.php:291
+msgid "Collector Name"
+msgstr "Magaca Ururiyaha"
+
+#: includes/web_view.php:292
+msgid "Attempts in current retry cycle"
+msgstr "Isku-dayada wareegga isku-celinta hadda"
+
+#: includes/web_view.php:298
+msgid "Action"
+msgstr "Ficil"
+
+#: includes/web_view.php:314
+msgid "Display"
+msgstr "Muuqaal"
+
+#: includes/web_view.php:349
+msgid "Latest 100 records for this event."
+msgstr "100-kii diiwaan ee ugu dambeeyay ee dhacdadani."
+
+#: includes/web_view.php:354
+msgid "Showing at most 50 records per page."
+msgstr "Waxaa la muujinayaa ugu badnaan 50 diiwaan bog kasta."
+
+#: includes/web_view.php:355
+msgid "Pages"
+msgstr "Boggaga"
+
+#: includes/web_view.php:358
+msgid "Previous"
+msgstr "Kii hore"
+
+#: includes/web_view.php:361
+#, php-format
+msgid "Page %d"
+msgstr "Bogga %d"
+
+#: includes/web_view.php:364
+msgid "Next"
+msgstr "Xiga"
+
+#: includes/web_view.php:371
+msgid "Selected event details"
+msgstr "Faahfaahinta dhacdada la doortay"
+
+#: includes/web_view.php:378
+msgid "Show metadata"
+msgstr "Muuji metadata"
+
+#: includes/web_view.php:400
+msgid "Confirm replay may repeat an external effect"
+msgstr "Xaqiiji in ku-celintu soo celin karto saamayn dibadeed"
+
+#: setup.php:102
+msgid "Alarm Manager View"
+msgstr "Muuqaalka Alarm Manager"
+
+#: setup.php:103
+msgid "Alarm Manager Administration"
+msgstr "Maamulka Alarm Manager"
+
+#: setup.php:133
+msgid "0 Worker Processes"
+msgstr "0 Hawlo Hawl-wadeen"
+
+#: setup.php:133
+msgid "1 Worker Process"
+msgstr "1 Hawl Hawl-wadeen"
+
+#: setup.php:136
+#, php-format
+msgid "%d Worker Processes"
+msgstr "%d Hawlo Shaqaale"
+
+#: setup.php:144
+msgid "Device Alarm Summaries"
+msgstr "Soo-koobidda Qaylo-dhaanta Qalabyada"
+
+#: setup.php:148
+msgid "Offline Summary"
+msgstr "Soo-koobidda Offline-ka"
+
+#: setup.php:149
+msgid "Summary for new Cacti device down alarms. Existing history retains its original summary."
+msgstr "Soo-koobidda qaylo-dhaannada cusub ee qalabka Cacti ee damay. Taariikhda jirta waxay haysataa soo-koobiddeedii asalka ahayd."
+
+#: setup.php:156
+msgid "Recovering Summary"
+msgstr "Soo-koobidda Soo-kabashada"
+
+#: setup.php:157
+msgid "Summary for device recovering updates within the same outage."
+msgstr "Soo-koobidda cusboonaysiinta soo-kabashada qalabka isla go'itaanka gudahooda."
+
+#: setup.php:164
+msgid "Online Summary"
+msgstr "Soo-koobidda Online-ka"
+
+#: setup.php:165
+msgid "Summary for device recovery alarms once Cacti confirms the device is up."
+msgstr "Soo-koobidda qaylo-dhaannada soo-kabashada qalabka marka Cacti xaqiijiso in qalabku shaqaynayo."
+
+#: setup.php:172
+msgid "Alert History Retention"
+msgstr "Haynta Taariikhda Digniinta"
+
+#: setup.php:177
+msgid "Keep Alert History For"
+msgstr "Hay Taariikhda Digniinta Muddada"
+
+#: setup.php:178
+msgid "Enter how many days, weeks or months to keep alert history, or choose Indefinitely to keep everything (the number is then ignored). Maximum 3650 days, 520 weeks or 120 months. A purge job runs with the Cacti poller and removes aged events with their decisions, deliveries and attempts. Active conditions and queued or failed work are never purged. Each collector purges its own history."
+msgstr "Geli inta maalmood, toddobaadyo ama bilood ee la haynayo taariikhda digniinta, ama dooro Weligeed si wax walba loo hayo (lambarka markaas waa la iska indha tiraa). Ugu badnaan 3650 maalmood, 520 toddobaad ama 120 bilood. Shaqo nadiifin ah ayaa la socota poller-ka Cacti waxayna ka saartaa dhacdooyinka gaboobay iyadoo la socda go'aannadooda, gaarsiintooda iyo isku-dayadooda. Xaaladaha firfircoon iyo shaqada safka ku jirta ama fashilantay marna lama nadiifiyo. Ururiye kasta wuxuu nadiifiyaa taariikhdiisa."
+
+#: setup.php:187
+msgid "Retention Unit"
+msgstr "Halbeegga Haynta"
+
+#: setup.php:188
+msgid "The unit for the retention period."
+msgstr "Halbeegga muddada haynta."
+
+#: setup.php:191
+msgid "Indefinitely"
+msgstr "Si aan xad lahayn"
+
+#: setup.php:191
+msgid "Months"
+msgstr "Bilood"
+
+#: setup.php:191
+msgid "Weeks"
+msgstr "Toddobaadyo"
+
+#: setup.php:194
+msgid "Daemon"
+msgstr "Daemon"
+
+#: setup.php:198
+msgid "Enable Daemon"
+msgstr "Daar Daemon"
+
+#: setup.php:199
+msgid "Run processing and delivery workers in the resident Alarm Manager service instead of the Cacti poller. The service must be installed and running; disabling it lets current jobs finish and returns processing to the poller. Changes apply within a few seconds and synchronize to collectors."
+msgstr "Ku orod hawl-wadeennada farsamaynta iyo gaarsiinta adeegga deggen ee Alarm Manager halkii laga isticmaali lahaa poller-ka Cacti. Adeeggu waa inuu rakiban yahay oo socdaa; damintiisu waxay u ogolaataa shaqooyinka hadda inay dhammaadaan waxayna farsamaynta ku celisaa poller-ka. Isbeddelladu waxay dhaqan galaan dhowr ilbiriqsi gudahood waxayna la jaanqaadaan ururiyeyaasha."
+
+#: setup.php:204
+msgid "Processing Workers"
+msgstr "Hawl-wadeennada Farsamaynta"
+
+#: setup.php:205
+msgid "Number of daemon workers that evaluate rules."
+msgstr "Tirada hawl-wadeennada daemon ee qiimeeya xeerarka."
+
+#: setup.php:211
+msgid "Delivery Workers"
+msgstr "Hawl-wadeennada Gaarsiinta"
+
+#: setup.php:212
+msgid "Number of daemon workers that deliver notifications."
+msgstr "Tirada hawl-wadeennada daemon ee gaarsiiya ogeysiisyada."
+
+#: setup.php:257
+msgid "Import/Export"
+msgstr "Soo-dejinta/Dhoofinta"
+
+#: setup.php:259 setup.php:265 setup.php:271
+msgid "Alarm Manager Settings"
+msgstr "Dejinta Alarm Manager"

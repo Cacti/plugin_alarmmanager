@@ -1,0 +1,1230 @@
+# Russian translations for Alarm Manager package.
+# Copyright (C) 2004-2026 The Cacti Group
+# This file is distributed under the same license as the Alarm Manager package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Alarm Manager 0.12.2\n"
+"Report-Msgid-Bugs-To: https://github.com/bmfmancini/plugin_alarmmanager/issues\n"
+"POT-Creation-Date: 2026-11-02 13:02-0500\n"
+"PO-Revision-Date: 2026-11-28 02:15+0000\n"
+"Last-Translator: Thomas Vincent <thomasvincent@gmail.com>\n"
+"Language-Team: Russian <https://translate.cacti.net/projects/cacti/core/ru/>\n"
+"Language: ru-RU\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+
+#: alarmmanager_admin.php:50
+msgid "The administration action succeeded."
+msgstr "Административное действие выполнено успешно."
+
+#: alarmmanager_admin.php:86
+msgid "Administration unavailable or permission denied."
+msgstr "Администрирование недоступно или доступ запрещён."
+
+#: includes/admin_view.php:78
+msgid "Choose the alarm information to send to any service. Use Combined text to arrange device details, or Use device message to start with a complete message. Email uses Subject and Message; API destinations use the field names required by the receiving service."
+msgstr "Выберите данные тревоги для отправки в любой сервис. Используйте «Комбинированный текст» для настройки сведений об устройстве или «Использовать сообщение устройства», чтобы начать с готового сообщения. Электронная почта использует «Тему» и «Сообщение»; назначения API используют имена полей, требуемые принимающим сервисом."
+
+#: includes/admin_view.php:79
+msgid "Advanced message configuration"
+msgstr "Расширенная настройка сообщений"
+
+#: includes/admin_view.php:90
+msgid "New endpoint"
+msgstr "Новая конечная точка"
+
+#: includes/admin_view.php:100
+msgid "Custom integration"
+msgstr "Пользовательская интеграция"
+
+#: includes/admin_view.php:100
+msgid "Integration provider"
+msgstr "Поставщик интеграции"
+
+#: includes/admin_view.php:112
+msgid "API Key SID and Secret (recommended)"
+msgstr "SID ключа API и секрет (рекомендуется)"
+
+#: includes/admin_view.php:112
+msgid "Account SID and Auth Token"
+msgstr "SID учётной записи и токен аутентификации"
+
+#: includes/admin_view.php:112
+msgid "Twilio credentials"
+msgstr "Учётные данные Twilio"
+
+#: includes/admin_view.php:113
+msgid "Send using"
+msgstr "Отправлять через"
+
+#: includes/admin_view.php:125
+msgid "Event"
+msgstr "Событие"
+
+#: includes/admin_view.php:125
+msgid "Incident"
+msgstr "Инцидент"
+
+#: includes/admin_view.php:125
+msgid "ServiceNow record type"
+msgstr "Тип записи ServiceNow"
+
+#: includes/admin_view.php:126
+msgid "Changing the record type replaces the destination table, message fields and recovery settings with its defaults. Your instance and credentials are retained."
+msgstr "Изменение типа записи заменяет целевую таблицу, поля сообщения и настройки восстановления значениями по умолчанию. Ваш экземпляр и учётные данные сохраняются."
+
+#: includes/admin_view.php:149
+msgid "Destination"
+msgstr "Место назначения"
+
+#: includes/admin_view.php:154
+msgid "Email settings"
+msgstr "Настройки электронной почты"
+
+#: includes/admin_view.php:161
+msgid "Delivery uses the Cacti mail settings. Add the people who should receive these alarms."
+msgstr "Для доставки используются настройки почты Cacti. Добавьте получателей этих тревог."
+
+#: includes/admin_view.php:162
+msgid "Script settings"
+msgstr "Настройки скрипта"
+
+#: includes/admin_view.php:167
+msgid "JSON output is sent to the script on standard input."
+msgstr "Вывод JSON передаётся скрипту через стандартный ввод."
+
+#: includes/admin_view.php:167
+msgid "The executable must exist and be executable by the worker on every delivering poller. Arguments are passed directly without a shell."
+msgstr "Исполняемый файл должен существовать и быть доступен для выполнения рабочему процессу на каждом доставляющем опросчике. Аргументы передаются напрямую без оболочки."
+
+#: includes/admin_view.php:169
+msgid "WebSocket delivery is not implemented."
+msgstr "Доставка по WebSocket не реализована."
+
+#: includes/admin_view.php:171
+msgid "Advanced delivery settings"
+msgstr "Расширенные настройки доставки"
+
+#: includes/admin_view.php:176
+msgid "Connection options"
+msgstr "Параметры подключения"
+
+#: includes/admin_view.php:179
+msgid "Method"
+msgstr "Метод"
+
+#: includes/admin_view.php:186
+msgid "Certificate and hostname verification remain enabled. Provision the PEM file on every poller. Saved credentials are never displayed."
+msgstr "Проверка сертификата и имени узла остаётся включённой. Разместите PEM-файл на каждом опросчике. Сохранённые учётные данные никогда не отображаются."
+
+#: includes/admin_view.php:187
+msgid "Other delivery options"
+msgstr "Другие параметры доставки"
+
+#: includes/admin_view.php:189 includes/admin_view.php:458
+msgid "Cancel"
+msgstr "Отмена"
+
+#: includes/admin_view.php:189
+msgid "Test destination saves the current settings and queues a sample alarm for this destination. Enable the destination before testing."
+msgstr "Проверка назначения сохраняет текущие настройки и ставит тестовую тревогу в очередь для этого назначения. Включите назначение перед проверкой."
+
+#: includes/admin_view.php:190
+msgid "Save endpoint"
+msgstr "Сохранить конечную точку"
+
+#: includes/admin_view.php:190
+msgid "Test destination"
+msgstr "Проверить назначение"
+
+#: includes/admin_view.php:194
+msgid "Delete endpoint"
+msgstr "Удалить конечную точку"
+
+#: includes/admin_view.php:194
+msgid "Delete this endpoint, its delivery settings and saved credentials"
+msgstr "Удалить эту конечную точку, её настройки доставки и сохранённые учётные данные"
+
+#: includes/admin_view.php:194
+msgid "Deleting stops future delivery and removes the saved settings and credentials. Remove notification rule references and resolve queued or running deliveries first. Completed and failed delivery history is preserved."
+msgstr "Удаление останавливает дальнейшую доставку и удаляет сохранённые настройки и учётные данные. Сначала удалите ссылки из правил уведомлений и завершите ожидающие или выполняемые доставки. История завершённых и неудачных доставок сохраняется."
+
+#: includes/admin_view.php:205
+msgid "Chat and messaging"
+msgstr "Чаты и мессенджеры"
+
+#: includes/admin_view.php:206
+msgid "Post alarms to a Slack channel."
+msgstr "Отправка тревог в канал Slack."
+
+#: includes/admin_view.php:207
+msgid "Post alarm cards through a Teams Workflow."
+msgstr "Отправка карточек тревог через Teams Workflow."
+
+#: includes/admin_view.php:208
+msgid "Send alarms from a Telegram bot."
+msgstr "Отправка тревог от имени бота Telegram."
+
+#: includes/admin_view.php:209
+msgid "Text alarms to phone numbers."
+msgstr "Отправка SMS-тревог на номера телефонов."
+
+#: includes/admin_view.php:210
+msgid "Send approved WhatsApp templates."
+msgstr "Отправка утверждённых шаблонов WhatsApp."
+
+#: includes/admin_view.php:211
+msgid "Incident management"
+msgstr "Управление инцидентами"
+
+#: includes/admin_view.php:212
+msgid "Trigger and resolve PagerDuty incidents."
+msgstr "Создание и закрытие инцидентов PagerDuty."
+
+#: includes/admin_view.php:213
+msgid "Open and resolve ServiceNow incidents or events."
+msgstr "Создание и закрытие инцидентов или событий ServiceNow."
+
+#: includes/admin_view.php:214
+msgid "Network management"
+msgstr "Управление сетью"
+
+#: includes/admin_view.php:215
+msgid "Send SNMPv2c or SNMPv3 traps and INFORMs."
+msgstr "Отправка SNMPv2c- или SNMPv3-трапов и INFORM-сообщений."
+
+#: includes/admin_view.php:216
+msgid "Forward RFC 5424 or RFC 3164 messages over UDP, TCP or TLS."
+msgstr "Пересылка сообщений RFC 5424 или RFC 3164 по UDP, TCP или TLS."
+
+#: includes/admin_view.php:217
+msgid "Custom"
+msgstr "Пользовательский"
+
+#: includes/admin_view.php:218
+msgid "Start from an empty endpoint."
+msgstr "Начать с пустой конечной точки."
+
+#: includes/admin_view.php:219
+msgid "POST alarm JSON to any HTTPS endpoint."
+msgstr "Отправка JSON тревоги методом POST на любую конечную точку HTTPS."
+
+#: includes/admin_view.php:220
+msgid "Call an API with your own method, authentication and response checks."
+msgstr "Вызов API с собственным методом, аутентификацией и проверками ответа."
+
+#: includes/admin_view.php:221
+msgid "Run a local executable with the alarm as JSON input."
+msgstr "Запуск локального исполняемого файла с передачей тревоги в формате JSON на вход."
+
+#: includes/admin_view.php:227
+msgid "Add integration"
+msgstr "Добавить интеграцию"
+
+#: includes/admin_view.php:228
+msgid "Choose a template. It opens as a disabled draft; nothing is sent until you enable it."
+msgstr "Выберите шаблон. Он откроется как отключённый черновик; ничего не будет отправлено, пока вы его не включите."
+
+#: includes/admin_view.php:228
+msgid "Search integrations"
+msgstr "Поиск интеграций"
+
+#: includes/admin_view.php:234
+msgid "Blank endpoint"
+msgstr "Пустая конечная точка"
+
+#: includes/admin_view.php:239
+msgid "No integrations match your search."
+msgstr "Нет интеграций, соответствующих вашему поиску."
+
+#: includes/admin_view.php:243
+msgid "SNMP trap settings"
+msgstr "Настройки SNMP-трапов"
+
+#: includes/admin_view.php:259
+msgid "Saved community and passphrases are encrypted and never displayed. Leave them blank to keep the saved values; entering any value replaces all saved SNMP secrets."
+msgstr "Сохранённые строка сообщества и парольные фразы шифруются и никогда не отображаются. Оставьте поля пустыми, чтобы сохранить текущие значения; ввод любого значения заменит все сохранённые секреты SNMP."
+
+#: includes/admin_view.php:260
+msgid "Traps are sent as Cacti's CACTI-MIB cactiNotify with the snmptrap binary from Cacti Settings > Paths on every delivering poller. Add one destination per receiver."
+msgstr "Трапы отправляются как CACTI-MIB cactiNotify с помощью исполняемого файла snmptrap из раздела «Настройки Cacti > Пути» на каждом доставляющем опросчике. Добавьте по одному назначению на каждого получателя."
+
+#: includes/admin_view.php:261
+msgid "Syslog settings"
+msgstr "Настройки Syslog"
+
+#: includes/admin_view.php:269
+msgid "TLS verifies the receiver certificate and hostname. Use port 6514 for TLS. UDP and TCP are unencrypted, and a UDP message is confirmed only as sent."
+msgstr "TLS проверяет сертификат и имя узла получателя. Используйте порт 6514 для TLS. UDP и TCP не шифруются, а для UDP подтверждается только отправка сообщения."
+
+#: includes/admin_view.php:278 setup.php:191
+msgid "Days"
+msgstr "Дни"
+
+#: includes/admin_view.php:283
+msgid "Timezone"
+msgstr "Часовой пояс"
+
+#: includes/admin_view.php:291
+msgid "Times use the selected timezone and the alarm event time. An end time before the start runs overnight. Equal times cover the entire selected day."
+msgstr "Время использует выбранный часовой пояс и время события тревоги. Время окончания раньше времени начала переходит через полночь. Одинаковое время охватывает весь выбранный день."
+
+#: includes/admin_view.php:332 includes/admin_view.php:521
+msgid "Create a rule"
+msgstr "Создать правило"
+
+#: includes/admin_view.php:332
+msgid "Enabled"
+msgstr "Включенные"
+
+#: includes/admin_view.php:332
+msgid "Priority"
+msgstr "Приоритет"
+
+#: includes/admin_view.php:334
+msgid "Rule and destination"
+msgstr "Правило и назначение"
+
+#: includes/admin_view.php:338
+msgid "Alarm Destination"
+msgstr "Назначение оповещения"
+
+#: includes/admin_view.php:341
+msgid "disabled"
+msgstr "отключено"
+
+#: includes/admin_view.php:343
+msgid "Select one or more alarm destinations. Disabled destinations do not send alarms."
+msgstr "Выберите одно или несколько назначений тревог. Отключённые назначения не отправляют тревоги."
+
+#: includes/admin_view.php:345
+msgid "Message template"
+msgstr "Шаблон сообщения"
+
+#: includes/admin_view.php:345
+msgid "Use each destination default, or customize its message for this rule. Customization starts with a copy of the destination template and does not change other rules. If several rules match the same destination, the first matching rule in priority and ID order supplies its template."
+msgstr "Используйте настройки каждого назначения по умолчанию или настройте сообщение для этого правила. Настройка начинается с копии шаблона назначения и не затрагивает другие правила. Если несколько правил соответствуют одному назначению, шаблон берётся из первого подходящего правила в порядке приоритета и ID."
+
+#: includes/admin_view.php:352
+msgid "Custom template"
+msgstr "Пользовательский шаблон"
+
+#: includes/admin_view.php:355
+msgid "Destination recipient"
+msgstr "Получатель назначения"
+
+#: includes/admin_view.php:355
+#, php-format
+msgid "Recipients: %d"
+msgstr "Получатели: %d"
+
+#: includes/admin_view.php:357
+msgid "Customize message for this rule"
+msgstr "Настроить сообщение для этого правила"
+
+#: includes/admin_view.php:357
+msgid "Unchecked: Use destination default."
+msgstr "Не отмечено: использовать значение назначения по умолчанию."
+
+#: includes/admin_view.php:361
+msgid "Optional: add each phone number in international format, such as +15551234567. These numbers replace the destination recipient for this rule. Leave the list empty to use the destination default. Each number has its own delivery status and retries."
+msgstr "Необязательно: добавьте каждый номер телефона в международном формате, например +15551234567. Эти номера заменяют получателя назначения для данного правила. Оставьте список пустым, чтобы использовать значение назначения по умолчанию. У каждого номера свой статус доставки и повторные попытки."
+
+#: includes/admin_view.php:374
+msgid "None"
+msgstr "Нет"
+
+#: includes/admin_view.php:376
+msgid "Build device conditions using AND, OR and groups. These conditions use the current Cacti device settings and must also satisfy any alarm filters below. With no device conditions, all devices can match."
+msgstr "Создавайте условия устройств с помощью И (AND), ИЛИ (OR) и групп. Эти условия используют текущие параметры устройств Cacti и должны также удовлетворять фильтрам тревог ниже. Если условия устройств не заданы, подходят все устройства."
+
+#: includes/admin_view.php:376
+msgid "Match devices"
+msgstr "Соответствие устройствам"
+
+#: includes/admin_view.php:387
+msgid "Cacti_Admin_Notifications"
+msgstr "Cacti_Admin_Notifications"
+
+#: includes/admin_view.php:387
+msgid "Device Status"
+msgstr "Состояние устройства"
+
+#: includes/admin_view.php:387
+msgid "Syslog"
+msgstr "Системный журнал"
+
+#: includes/admin_view.php:387
+msgid "Thold"
+msgstr "Порог"
+
+#: includes/admin_view.php:392
+msgid "Build alarm conditions using AND, OR, NOT and groups. Alarms must also match the device conditions above."
+msgstr "Создавайте условия тревог с помощью И (AND), ИЛИ (OR), НЕ (NOT) и групп. Тревоги также должны соответствовать условиям устройств выше."
+
+#: includes/admin_view.php:392
+msgid "Match alarms"
+msgstr "Соответствие тревогам"
+
+#: includes/admin_view.php:395
+msgid "No alarm sources detected yet. Sources appear after their first alarm."
+msgstr "Источники тревог пока не обнаружены. Источники появляются после первой тревоги."
+
+#: includes/admin_view.php:397
+msgid "By default, matching alarms can notify at any time. Turn on a schedule to limit when this rule matches."
+msgstr "По умолчанию подходящие тревоги могут отправлять уведомления в любое время. Включите расписание, чтобы ограничить время срабатывания этого правила."
+
+#: includes/admin_view.php:397
+msgid "Notification hours"
+msgstr "Часы уведомлений"
+
+#: includes/admin_view.php:399
+msgid "Suppress notifications"
+msgstr "Подавлять уведомления"
+
+#: includes/admin_view.php:399
+msgid "Suppressed alarms remain in history. Recovery notifications bypass acknowledgment, cooldown and duplicate suppression, but still follow notification hours and maintenance windows."
+msgstr "Подавленные тревоги остаются в истории. Уведомления о восстановлении обходят подтверждение, период ожидания и подавление дубликатов, но по-прежнему учитывают часы уведомлений и окна обслуживания."
+
+#: includes/admin_view.php:403
+msgid "Set a duration to 0 to turn it off."
+msgstr "Укажите длительность 0, чтобы отключить."
+
+#: includes/admin_view.php:405
+msgid "Rule order"
+msgstr "Порядок правил"
+
+#: includes/admin_view.php:408
+msgid "Create rule"
+msgstr "Создать правило"
+
+#: includes/admin_view.php:408
+msgid "Rules with equal priority run in ID order. Stopping also applies when this rule suppresses notifications."
+msgstr "Правила с одинаковым приоритетом выполняются в порядке ID. Остановка также применяется, когда это правило подавляет уведомления."
+
+#: includes/admin_view.php:417
+msgid "Configuration Backup/Restore"
+msgstr "Резервное копирование и восстановление конфигурации"
+
+#: includes/admin_view.php:427
+msgid "Paused"
+msgstr "Приостановлено"
+
+#: includes/admin_view.php:427
+msgid "Running"
+msgstr "В процессе"
+
+#: includes/admin_view.php:428
+msgid "everything has been delivered"
+msgstr "всё доставлено"
+
+#: includes/admin_view.php:428
+#, php-format
+msgid "oldest queued %s UTC"
+msgstr "самое старое в очереди %s UTC"
+
+#: includes/admin_view.php:428
+msgid "waiting messages"
+msgstr "ожидающие сообщения"
+
+#: includes/admin_view.php:431
+msgid "Hide messages"
+msgstr "Скрыть сообщения"
+
+#: includes/admin_view.php:431
+msgid "View messages"
+msgstr "Показать сообщения"
+
+#: includes/admin_view.php:441
+msgid "Endpoint"
+msgstr "Конечная точка"
+
+#: includes/admin_view.php:441
+msgid "ID"
+msgstr "ИД"
+
+#: includes/admin_view.php:441
+msgid "Message"
+msgstr "Сообщение"
+
+#: includes/admin_view.php:441
+msgid "Next try"
+msgstr "Следующая попытка"
+
+#: includes/admin_view.php:441 includes/reports.php:458
+msgid "Queued"
+msgstr "В очереди"
+
+#: includes/admin_view.php:441
+msgid "Tries"
+msgstr "Попытки"
+
+#: includes/admin_view.php:451
+msgid "Times in UTC · first 100 shown"
+msgstr "Время указано в UTC · показаны первые 100"
+
+#: includes/admin_view.php:455
+msgid "Pause delivery"
+msgstr "Приостановить доставку"
+
+#: includes/admin_view.php:455
+msgid "Resume delivery"
+msgstr "Возобновить доставку"
+
+#: includes/admin_view.php:458
+msgid "Clear queue"
+msgstr "Очистить очередь"
+
+#: includes/admin_view.php:459
+#, php-format
+msgid "Discard all %d waiting notifications on this poller?"
+msgstr "Отменить все ожидающие уведомления (%d) на этом опросчике?"
+
+#: includes/admin_view.php:460
+msgid "Includes retries. They stay in delivery history as failed, reason queue_cleared."
+msgstr "Включая повторные попытки. Они остаются в истории доставки как неудачные с причиной queue_cleared."
+
+#: includes/admin_view.php:461
+msgid "Messages already sending and alarm state are kept."
+msgstr "Уже отправляемые сообщения и состояние тревог сохраняются."
+
+#: includes/admin_view.php:462
+msgid "Tip: pause delivery first during maintenance."
+msgstr "Совет: сначала приостановите доставку на время обслуживания."
+
+#: includes/admin_view.php:463
+msgid "Clear queue…"
+msgstr "Очистить очередь…"
+
+#: includes/admin_view.php:464
+msgid "Controls apply to this poller. While paused, alarms are still received and queued; Resume sends them."
+msgstr "Элементы управления применяются к этому опросчику. Во время паузы тревоги продолжают поступать и ставиться в очередь; кнопка «Возобновить» отправит их."
+
+#: includes/admin_view.php:467
+msgid "View delivery results"
+msgstr "Просмотр результатов доставки"
+
+#: includes/admin_view.php:470
+msgid "Create an integration, configure its destination and credentials, test a sample alarm here, then select it directly in a rule."
+msgstr "Создайте интеграцию, настройте её назначение и учётные данные, проверьте тестовой тревогой здесь, а затем выберите её непосредственно в правиле."
+
+#: includes/admin_view.php:476
+msgid "Configured integrations"
+msgstr "Настроенные интеграции"
+
+#: includes/admin_view.php:479
+msgid "No integrations yet. Choose a template above to create one."
+msgstr "Интеграций пока нет. Выберите шаблон выше, чтобы создать первую."
+
+#: includes/admin_view.php:490
+msgid "Alarm Rules"
+msgstr "Правила тревог"
+
+#: includes/admin_view.php:490
+msgid "Choose which alarms should notify, where to send them and when to pause notifications. Rules run from lowest to highest priority."
+msgstr "Выберите, какие тревоги должны отправлять уведомления, куда их направлять и когда приостанавливать уведомления. Правила выполняются от наименьшего приоритета к наибольшему."
+
+#: includes/admin_view.php:493
+msgid "Create an integration before saving your first rule."
+msgstr "Создайте интеграцию перед сохранением первого правила."
+
+#: includes/admin_view.php:493
+msgid "Create integration"
+msgstr "Создать интеграцию"
+
+#: includes/admin_view.php:495
+msgid "Clear"
+msgstr "Очистить"
+
+#: includes/admin_view.php:495
+msgid "Critical"
+msgstr "Критический"
+
+#: includes/admin_view.php:495
+msgid "Information"
+msgstr "Информация"
+
+#: includes/admin_view.php:495
+msgid "Major"
+msgstr "Высокая"
+
+#: includes/admin_view.php:495
+msgid "Minor"
+msgstr "Незначительная"
+
+#: includes/admin_view.php:495
+msgid "Occurrence"
+msgstr "Событие"
+
+#: includes/admin_view.php:495
+msgid "Raised"
+msgstr "Сработала"
+
+#: includes/admin_view.php:495
+msgid "Recovered"
+msgstr "Восстановлено"
+
+#: includes/admin_view.php:495
+msgid "Reminder"
+msgstr "Напоминание"
+
+#: includes/admin_view.php:495
+msgid "Updated"
+msgstr "Обновлено"
+
+#: includes/admin_view.php:495
+msgid "Warning"
+msgstr "Предупреждение"
+
+#: includes/admin_view.php:520
+msgid "Alarm notifications require an enabled matching Alarm Rule. Without one, alarms remain in history but no notifications are sent."
+msgstr "Для отправки уведомлений о тревогах требуется включённое подходящее правило тревог. Без него тревоги сохраняются в истории, но уведомления не отправляются."
+
+#: includes/admin_view.php:524
+msgid "No rules yet. Create a rule below to start routing alarms to your notification destinations."
+msgstr "Правил пока нет. Создайте правило ниже, чтобы начать маршрутизацию тревог к вашим назначениям уведомлений."
+
+#: includes/admin_view.php:533
+msgid "Credential values are never loaded into this page. Saving replaces the endpoint record; blank values do not preserve an old password. Use the CLI for protected backup/restore and poller provisioning."
+msgstr "Значения учётных данных никогда не загружаются на эту страницу. Сохранение заменяет запись конечной точки; пустые значения не сохраняют старый пароль. Используйте CLI для защищённого резервного копирования/восстановления и настройки опросчиков."
+
+#: includes/admin_view.php:536
+msgid "Create endpoint"
+msgstr "Создать конечную точку"
+
+#: includes/admin_view.php:536
+msgid "No REST API or webhook endpoints have been saved. Create an endpoint to enter its bearer token, Basic authentication username and password, or API-key headers."
+msgstr "Нет сохранённых конечных точек REST API или webhook. Создайте конечную точку, чтобы указать Bearer-токен, имя пользователя и пароль для Basic-аутентификации или заголовки ключа API."
+
+#: includes/admin_view.php:540
+msgid "Configured"
+msgstr "Настроенные"
+
+#: includes/admin_view.php:543
+msgid "Replace credential"
+msgstr "Заменить учётные данные"
+
+#: includes/admin_view.php:549
+msgid "Rotate local key"
+msgstr "Ротировать локальный ключ"
+
+#: includes/admin_view.php:553
+msgid "Event log"
+msgstr "Журнал событий"
+
+#: includes/admin_view.php:553
+msgid "Writes every event as it is processed, independent of which rules match or whether any destination is notified — a complete audit trail for external analysis, for example with Splunk."
+msgstr "Записывает каждое событие по мере его обработки, независимо от сработавших правил и отправки уведомлений: полный журнал аудита для внешнего анализа, например в Splunk."
+
+#: includes/admin_view.php:555
+msgid "Cacti log"
+msgstr "Журнал Cacti"
+
+#: includes/admin_view.php:555
+msgid "External file"
+msgstr "Внешний файл"
+
+#: includes/admin_view.php:555
+msgid "Write to"
+msgstr "Записать в"
+
+#: includes/admin_view.php:559
+msgid "One JSON object per line (occurred_at, transition, severity, device, alarm key…). The path must already exist, outside the plugin directory and Cacti's web root. Past the size limit, the file rotates to one .1 backup."
+msgstr "Один JSON-объект на строку (occurred_at, transition, severity, device, ключ тревоги…). Путь уже должен существовать вне каталога плагина и корневого веб-каталога Cacti. При превышении лимита размера файл ротируется в одну резервную копию .1."
+
+#: includes/admin_view.php:559
+msgid "Save event log settings"
+msgstr "Сохранить настройки журнала событий"
+
+#: includes/admin_view.php:561
+msgid "Backup and restore"
+msgstr "Резервное копирование и восстановление"
+
+#: includes/admin_view.php:561
+msgid "Export"
+msgstr "Экспорт"
+
+#: includes/admin_view.php:562
+msgid "Endpoints, message templates, and rules as JSON. Credentials and settings are not included. Endpoint URLs can contain secrets, so keep the file private."
+msgstr "Конечные точки, шаблоны сообщений и правила в формате JSON. Учётные данные и настройки не включаются. URL конечных точек могут содержать секреты, поэтому храните файл в защищённом месте."
+
+#: includes/admin_view.php:563
+msgid "Export configuration"
+msgstr "Экспорт конфигурации"
+
+#: includes/admin_view.php:563
+msgid "Import"
+msgstr "Импорт"
+
+#: includes/admin_view.php:567
+msgid "Replaces the routing configuration using the IDs in the file. Endpoints and rules missing from the file are disabled, not deleted. Saved credentials are kept."
+msgstr "Заменяет конфигурацию маршрутизации с использованием идентификаторов из файла. Конечные точки и правила, отсутствующие в файле, отключаются, а не удаляются. Сохранённые учётные данные сохраняются."
+
+#: includes/admin_view.php:568
+msgid "Import configuration"
+msgstr "Импорт конфигурации"
+
+#: includes/admin_view.php:572
+msgid "Local queue health"
+msgstr "Состояние локальной очереди"
+
+#: includes/admin_view.php:573
+msgid "Jobs"
+msgstr "Задания"
+
+#: includes/admin_view.php:573
+msgid "Oldest job age (seconds)"
+msgstr "Возраст старейшего задания (секунды)"
+
+#: includes/admin_view.php:573
+msgid "Queue"
+msgstr "Очередь"
+
+#: includes/admin_view.php:573
+msgid "Retries"
+msgstr "Попытки"
+
+#: includes/admin_view.php:573 includes/admin_view.php:592
+#: includes/web_view.php:181
+msgid "Status"
+msgstr "Статус"
+
+#: includes/admin_view.php:588
+msgid "No queue activity recorded."
+msgstr "Активность очереди не зарегистрирована."
+
+#: includes/admin_view.php:591
+msgid "Local worker health"
+msgstr "Состояние локальных рабочих процессов"
+
+#: includes/admin_view.php:592
+msgid "Current job"
+msgstr "Текущее задание"
+
+#: includes/admin_view.php:592
+msgid "Heartbeat age (seconds)"
+msgstr "Возраст пульса (секунды)"
+
+#: includes/admin_view.php:592
+msgid "PID"
+msgstr "PID"
+
+#: includes/admin_view.php:592
+msgid "Poller"
+msgstr "Регистратор"
+
+#: includes/admin_view.php:592
+msgid "Role"
+msgstr "Роль"
+
+#: includes/admin_view.php:592
+msgid "Worker"
+msgstr "Рабочий процесс"
+
+#: includes/admin_view.php:607
+msgid "No local worker heartbeats recorded."
+msgstr "Сигналы пульса локальных рабочих процессов не зарегистрированы."
+
+#: includes/admin_view.php:610
+msgid "Completed delivery jobs in the last 300 seconds"
+msgstr "Завершённые задания доставки за последние 300 секунд"
+
+#: includes/admin_view.php:610
+msgid "Completed processing jobs in the last 300 seconds"
+msgstr "Завершённые задания обработки за последние 300 секунд"
+
+#: includes/admin_view.php:610
+msgid "Processing streams blocked behind a failed predecessor"
+msgstr "Потоки обработки, заблокированные из-за сбоя предшественника"
+
+#: includes/admin_view.php:613
+msgid "Pending jobs for destination types without a qualified transport"
+msgstr "Ожидающие задания для типов назначений без подходящего транспорта"
+
+#: includes/admin_view.php:620
+msgid "Failed deliveries and replay"
+msgstr "Неудачные доставки и повторная отправка"
+
+#: includes/admin_view.php:620
+msgid "Failed processing jobs and replay"
+msgstr "Неудачные задания обработки и повторный запуск"
+
+#: includes/admin_view.php:625
+msgid "Authentication"
+msgstr "Аутентификация"
+
+#: includes/admin_view.php:625
+msgid "Authentication type"
+msgstr "Тип аутентификации"
+
+#: includes/admin_view.php:649
+msgid "Saved credentials are encrypted and never displayed. New values replace the saved credential record."
+msgstr "Сохранённые учётные данные шифруются и никогда не отображаются. Новые значения заменяют сохранённую запись учётных данных."
+
+#: includes/polling.php:150
+msgid "Start the Alarm Manager service on this collector before enabling daemon workers."
+msgstr "Запустите службу менеджера тревог на этом коллекторе перед включением рабочих процессов демона."
+
+#: includes/polling.php:163
+msgid "Daemon settings could not be saved. Check the Cacti cache directory permissions."
+msgstr "Не удалось сохранить настройки демона. Проверьте права доступа к каталогу кэша Cacti."
+
+#: includes/reports.php:430
+msgid "Remote history"
+msgstr "Удалённая история"
+
+#: includes/reports.php:459
+msgid "Test send"
+msgstr "Тестовая отправка"
+
+#: includes/reports.php:460
+msgid "No matching rule"
+msgstr "Нет подходящего правила"
+
+#: includes/reports.php:461
+msgid "Destination disabled"
+msgstr "Назначение отключено"
+
+#: includes/reports.php:462
+msgid "Suppressed by source"
+msgstr "Подавлено источником"
+
+#: includes/reports.php:463
+msgid "Maintenance window"
+msgstr "Окно обслуживания"
+
+#: includes/reports.php:464
+msgid "Acknowledged"
+msgstr "Подтверждено"
+
+#: includes/reports.php:465
+msgid "Cooldown"
+msgstr "Период ожидания"
+
+#: includes/reports.php:466
+msgid "Duplicate"
+msgstr "Дублировать"
+
+#: includes/reports.php:467
+msgid "Already routed"
+msgstr "Уже маршрутизировано"
+
+#: includes/reports.php:468
+msgid "Out of order"
+msgstr "Нарушение порядка"
+
+#: includes/reports.php:469
+msgid "Ignored episode"
+msgstr "Игнорируемый эпизод"
+
+#: includes/reports.php:470
+msgid "History only"
+msgstr "Только история"
+
+#: includes/reports.php:518
+#, php-format
+msgid "Deleted destination #%d"
+msgstr "Удалено назначение #%d"
+
+#: includes/reports.php:519
+#, php-format
+msgid "%d destinations"
+msgstr "Назначений: %d"
+
+#: includes/reports.php:531
+msgid "Delivered"
+msgstr "Доставлено"
+
+#: includes/reports.php:531
+msgid "Failed"
+msgstr "Ошибка"
+
+#: includes/reports.php:531
+msgid "Pending"
+msgstr "В ожидании"
+
+#: includes/reports.php:531
+msgid "Sending"
+msgstr "Отправка"
+
+#: includes/reports.php:541
+msgid "Processing failed"
+msgstr "Ошибка обработки"
+
+#: includes/reports.php:542
+msgid "Pending processing"
+msgstr "Ожидает обработки"
+
+#: includes/reports.php:543 includes/web_view.php:264
+msgid "Processing"
+msgstr "Обработка"
+
+#: includes/reports.php:544
+msgid "No matching integration"
+msgstr "Нет подходящей интеграции"
+
+#: includes/reports.php:544
+msgid "Suppressed"
+msgstr "Подавлено"
+
+#: includes/routing.php:106
+msgid "Device description"
+msgstr "Описание устройства"
+
+#: includes/routing.php:106
+msgid "Hostname"
+msgstr "Имя хоста"
+
+#: includes/routing.php:106
+msgid "Location"
+msgstr "Местоположение"
+
+#: includes/routing.php:106
+msgid "SNMP system location"
+msgstr "Расположение системы SNMP"
+
+#: includes/routing.php:110 includes/routing.php:125
+msgid "Collector"
+msgstr "Сборщик"
+
+#: includes/routing.php:110
+msgid "Device Site Association"
+msgstr "Привязка устройства к площадке"
+
+#: includes/routing.php:110
+msgid "Device Template"
+msgstr "Шаблон Устройства"
+
+#: includes/routing.php:121
+msgid "Alarm change"
+msgstr "Изменение тревоги"
+
+#: includes/routing.php:121
+msgid "Alarm source"
+msgstr "Источник тревоги"
+
+#: includes/routing.php:121
+msgid "Alarm summary"
+msgstr "Сводка по тревогам"
+
+#: includes/routing.php:121 includes/web_view.php:161
+msgid "Severity"
+msgstr "Важность"
+
+#: includes/routing.php:125
+msgid "Device"
+msgstr "Устройство"
+
+#: includes/routing.php:128
+msgid "Device tag"
+msgstr "Тег устройства"
+
+#: includes/web_view.php:93
+msgid "Report unavailable or permission denied."
+msgstr "Отчёт недоступен или доступ запрещён."
+
+#: includes/web_view.php:119
+msgid "Statistics could not be rendered."
+msgstr "Не удалось отобразить статистику."
+
+#: includes/web_view.php:129 setup.php:131 setup.php:273 setup.php:289
+#: setup.php:290
+msgid "Alarm Manager"
+msgstr "Диспетчер тревог"
+
+#: includes/web_view.php:136
+msgid "Alarm Manager pages"
+msgstr "Страницы менеджера тревог"
+
+#: includes/web_view.php:149 includes/web_view.php:152
+msgid "Alarm statistics"
+msgstr "Статистика тревог"
+
+#: includes/web_view.php:149
+msgid "Filters"
+msgstr "Фильтры"
+
+#: includes/web_view.php:152
+msgid "Time range"
+msgstr "Временной интервал"
+
+#: includes/web_view.php:158
+msgid "Off"
+msgstr "Выкл."
+
+#: includes/web_view.php:158
+msgid "Refresh"
+msgstr "Обновить"
+
+#: includes/web_view.php:160
+msgid "Advanced filter JSON"
+msgstr "Расширенный фильтр JSON"
+
+#: includes/web_view.php:160
+msgid "Filter document"
+msgstr "Документ фильтра"
+
+#: includes/web_view.php:160
+msgid "Quick filters"
+msgstr "Быстрые фильтры"
+
+#: includes/web_view.php:160
+msgid "Search conditions"
+msgstr "Условия поиска"
+
+#: includes/web_view.php:161 includes/web_view.php:181
+msgid "All"
+msgstr "Все"
+
+#: includes/web_view.php:161
+msgid "Source"
+msgstr "Источник"
+
+#: includes/web_view.php:168
+msgid "Device ID"
+msgstr "ID Устройства"
+
+#: includes/web_view.php:171
+msgid "Status type"
+msgstr "Тип состояния"
+
+#: includes/web_view.php:190
+msgid "event_id"
+msgstr "event_id"
+
+#: includes/web_view.php:195
+msgid "Collector ID"
+msgstr "ID коллектора"
+
+#: includes/web_view.php:195
+msgid "Local and mirrored collectors"
+msgstr "Локальные и зеркалируемые коллекторы"
+
+#: includes/web_view.php:198
+msgid "mirrored"
+msgstr "зеркалировано"
+
+#: includes/web_view.php:203
+msgid "Mirrored events carry no Record ID and no detail view."
+msgstr "Зеркалируемые события не имеют идентификатора записи и подробного просмотра."
+
+#: includes/web_view.php:205
+msgid "Mirrored collector events are always included here unless you narrow by a specific remote Collector ID."
+msgstr "События зеркалируемых коллекторов всегда включаются здесь, если не сузить выборку по конкретному удалённому ID коллектора."
+
+#: includes/web_view.php:211
+msgid "Apply"
+msgstr "Применить"
+
+#: includes/web_view.php:211
+msgid "Reset"
+msgstr "Сброс"
+
+#: includes/web_view.php:213
+msgid "Historical window uses UTC. Current conditions and queues ignore the time window."
+msgstr "Исторический период использует UTC. Текущие состояния и очереди игнорируют временной интервал."
+
+#: includes/web_view.php:235
+msgid "Loading statistics…"
+msgstr "Загрузка статистики…"
+
+#: includes/web_view.php:248
+msgid "Collapse"
+msgstr "Свернуть"
+
+#: includes/web_view.php:261
+msgid "Integration results"
+msgstr "Результаты интеграции"
+
+#: includes/web_view.php:262
+msgid "Delivery attempts"
+msgstr "Попытки доставки"
+
+#: includes/web_view.php:263
+msgid "Routing decisions"
+msgstr "Решения маршрутизации"
+
+#: includes/web_view.php:265
+msgid "conditions"
+msgstr "условия"
+
+#: includes/web_view.php:270
+msgid "No matching records."
+msgstr "Нет подходящих записей."
+
+#: includes/web_view.php:290
+msgid "Integration status"
+msgstr "Состояние интеграции"
+
+#: includes/web_view.php:291
+msgid "Collector Name"
+msgstr "Имя сборщика данных"
+
+#: includes/web_view.php:292
+msgid "Attempts in current retry cycle"
+msgstr "Попытки в текущем цикле повторов"
+
+#: includes/web_view.php:298
+msgid "Action"
+msgstr "Действие"
+
+#: includes/web_view.php:314
+msgid "Display"
+msgstr "Показать"
+
+#: includes/web_view.php:349
+msgid "Latest 100 records for this event."
+msgstr "Последние 100 записей для этого события."
+
+#: includes/web_view.php:354
+msgid "Showing at most 50 records per page."
+msgstr "Показывается не более 50 записей на странице."
+
+#: includes/web_view.php:355
+msgid "Pages"
+msgstr "Страницы"
+
+#: includes/web_view.php:358
+msgid "Previous"
+msgstr "Предыдущая"
+
+#: includes/web_view.php:361
+#, php-format
+msgid "Page %d"
+msgstr "Страница %d"
+
+#: includes/web_view.php:364
+msgid "Next"
+msgstr "Следующая"
+
+#: includes/web_view.php:371
+msgid "Selected event details"
+msgstr "Подробности выбранного события"
+
+#: includes/web_view.php:378
+msgid "Show metadata"
+msgstr "Показать метаданные"
+
+#: includes/web_view.php:400
+msgid "Confirm replay may repeat an external effect"
+msgstr "Подтвердите, что повторное воспроизведение может повторить внешнее действие"
+
+#: setup.php:102
+msgid "Alarm Manager View"
+msgstr "Просмотр менеджера тревог"
+
+#: setup.php:103
+msgid "Alarm Manager Administration"
+msgstr "Администрирование менеджера тревог"
+
+#: setup.php:133
+msgid "0 Worker Processes"
+msgstr "0 рабочих процессов"
+
+#: setup.php:133
+msgid "1 Worker Process"
+msgstr "1 рабочий процесс"
+
+#: setup.php:136
+#, php-format
+msgid "%d Worker Processes"
+msgstr "%d рабочих процессов"
+
+#: setup.php:144
+msgid "Device Alarm Summaries"
+msgstr "Сводки тревог устройств"
+
+#: setup.php:148
+msgid "Offline Summary"
+msgstr "Сводка о переходе в автономный режим"
+
+#: setup.php:149
+msgid "Summary for new Cacti device down alarms. Existing history retains its original summary."
+msgstr "Сводка для новых тревог Cacti о недоступности устройства. Существующая история сохраняет исходную сводку."
+
+#: setup.php:156
+msgid "Recovering Summary"
+msgstr "Сводка о восстановлении"
+
+#: setup.php:157
+msgid "Summary for device recovering updates within the same outage."
+msgstr "Сводка для обновлений о восстановлении устройства в рамках того же сбоя."
+
+#: setup.php:164
+msgid "Online Summary"
+msgstr "Сводка о возвращении в сеть"
+
+#: setup.php:165
+msgid "Summary for device recovery alarms once Cacti confirms the device is up."
+msgstr "Сводка для тревог о восстановлении устройства после подтверждения Cacti его доступности."
+
+#: setup.php:172
+msgid "Alert History Retention"
+msgstr "Хранение истории оповещений"
+
+#: setup.php:177
+msgid "Keep Alert History For"
+msgstr "Хранить историю оповещений в течение"
+
+#: setup.php:178
+msgid "Enter how many days, weeks or months to keep alert history, or choose Indefinitely to keep everything (the number is then ignored). Maximum 3650 days, 520 weeks or 120 months. A purge job runs with the Cacti poller and removes aged events with their decisions, deliveries and attempts. Active conditions and queued or failed work are never purged. Each collector purges its own history."
+msgstr "Укажите, сколько дней, недель или месяцев хранить историю оповещений, или выберите «Бессрочно», чтобы сохранять всё (число при этом игнорируется). Максимум 3650 дней, 520 недель или 120 месяцев. Задание очистки запускается вместе с опросчиком Cacti и удаляет устаревшие события вместе с их решениями, доставками и попытками. Активные состояния, а также ожидающие или неудачные задания никогда не удаляются. Каждый коллектор очищает собственную историю."
+
+#: setup.php:187
+msgid "Retention Unit"
+msgstr "Единица хранения"
+
+#: setup.php:188
+msgid "The unit for the retention period."
+msgstr "Единица измерения периода хранения."
+
+#: setup.php:191
+msgid "Indefinitely"
+msgstr "Бессрочно"
+
+#: setup.php:191
+msgid "Months"
+msgstr "Месяцы"
+
+#: setup.php:191
+msgid "Weeks"
+msgstr "Недели"
+
+#: setup.php:194
+msgid "Daemon"
+msgstr "Демон"
+
+#: setup.php:198
+msgid "Enable Daemon"
+msgstr "Включить демон"
+
+#: setup.php:199
+msgid "Run processing and delivery workers in the resident Alarm Manager service instead of the Cacti poller. The service must be installed and running; disabling it lets current jobs finish and returns processing to the poller. Changes apply within a few seconds and synchronize to collectors."
+msgstr "Запуск рабочих процессов обработки и доставки в резидентной службе менеджера тревог вместо опросчика Cacti. Служба должна быть установлена и запущена; при отключении текущие задания завершатся, и обработка вернётся к опросчику. Изменения применяются в течение нескольких секунд и синхронизируются с коллекторами."
+
+#: setup.php:204
+msgid "Processing Workers"
+msgstr "Рабочие процессы обработки"
+
+#: setup.php:205
+msgid "Number of daemon workers that evaluate rules."
+msgstr "Количество рабочих процессов демона, вычисляющих правила."
+
+#: setup.php:211
+msgid "Delivery Workers"
+msgstr "Рабочие процессы доставки"
+
+#: setup.php:212
+msgid "Number of daemon workers that deliver notifications."
+msgstr "Количество рабочих процессов демона, доставляющих уведомления."
+
+#: setup.php:257
+msgid "Import/Export"
+msgstr "Импорт/Экспорт"
+
+#: setup.php:259 setup.php:265 setup.php:271
+msgid "Alarm Manager Settings"
+msgstr "Настройки менеджера тревог"

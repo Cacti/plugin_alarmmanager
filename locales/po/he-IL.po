@@ -1,0 +1,1230 @@
+# Hebrew (Israel) translations for Alarm Manager package.
+# Copyright (C) 2004-2026 The Cacti Group
+# This file is distributed under the same license as the Alarm Manager package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Alarm Manager 0.12.2\n"
+"Report-Msgid-Bugs-To: https://github.com/bmfmancini/plugin_alarmmanager/issues\n"
+"POT-Creation-Date: 2026-11-02 13:02-0500\n"
+"PO-Revision-Date: 2026-11-28 02:15+0000\n"
+"Last-Translator: Thomas Vincent <thomasvincent@gmail.com>\n"
+"Language-Team: Hebrew (Israel) <https://translate.cacti.net/projects/cacti/core/he_IL/>\n"
+"Language: he-IL\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=(n == 1) ? 0 : ((n == 2) ? 1 : ((n > 10 && n % 10 == 0) ? 2 : 3));\n"
+
+#: alarmmanager_admin.php:50
+msgid "The administration action succeeded."
+msgstr "פעולת הניהול הצליחה."
+
+#: alarmmanager_admin.php:86
+msgid "Administration unavailable or permission denied."
+msgstr "הניהול אינו זמין או שההרשאה נדחתה."
+
+#: includes/admin_view.php:78
+msgid "Choose the alarm information to send to any service. Use Combined text to arrange device details, or Use device message to start with a complete message. Email uses Subject and Message; API destinations use the field names required by the receiving service."
+msgstr "בחר את מידע ההתראה לשליחה לכל שירות. השתמש בטקסט משולב כדי לסדר פרטי התקן, או בהשתמש בהודעת התקן כדי להתחיל מהודעה מלאה. דוא\"ל משתמש בנושא והודעה; יעדי API משתמשים בשמות השדות הנדרשים על ידי השירות המקבל."
+
+#: includes/admin_view.php:79
+msgid "Advanced message configuration"
+msgstr "תצורת הודעה מתקדמת"
+
+#: includes/admin_view.php:90
+msgid "New endpoint"
+msgstr "נקודת קצה חדשה"
+
+#: includes/admin_view.php:100
+msgid "Custom integration"
+msgstr "אינטגרציה מותאמת אישית"
+
+#: includes/admin_view.php:100
+msgid "Integration provider"
+msgstr "ספק אינטגרציה"
+
+#: includes/admin_view.php:112
+msgid "API Key SID and Secret (recommended)"
+msgstr "API Key SID ו-Secret (מומלץ)"
+
+#: includes/admin_view.php:112
+msgid "Account SID and Auth Token"
+msgstr "Account SID ו-Auth Token"
+
+#: includes/admin_view.php:112
+msgid "Twilio credentials"
+msgstr "אישורי גישה של Twilio"
+
+#: includes/admin_view.php:113
+msgid "Send using"
+msgstr "שלח באמצעות"
+
+#: includes/admin_view.php:125
+msgid "Event"
+msgstr "אירוע"
+
+#: includes/admin_view.php:125
+msgid "Incident"
+msgstr "תקרית"
+
+#: includes/admin_view.php:125
+msgid "ServiceNow record type"
+msgstr "סוג רשומה ב-ServiceNow"
+
+#: includes/admin_view.php:126
+msgid "Changing the record type replaces the destination table, message fields and recovery settings with its defaults. Your instance and credentials are retained."
+msgstr "שינוי סוג הרשומה מחליף את טבלת היעד, שדות ההודעה והגדרות ההתאוששות בברירות המחדל שלו. המופע ואישורי הגישה שלך נשמרים."
+
+#: includes/admin_view.php:149
+msgid "Destination"
+msgstr "יעד"
+
+#: includes/admin_view.php:154
+msgid "Email settings"
+msgstr "הגדרות דוא\"ל"
+
+#: includes/admin_view.php:161
+msgid "Delivery uses the Cacti mail settings. Add the people who should receive these alarms."
+msgstr "המסירה משתמשת בהגדרות הדוא\"ל של Cacti. הוסף את האנשים שאמורים לקבל התראות אלו."
+
+#: includes/admin_view.php:162
+msgid "Script settings"
+msgstr "הגדרות סקריפט"
+
+#: includes/admin_view.php:167
+msgid "JSON output is sent to the script on standard input."
+msgstr "פלט JSON נשלח לסקריפט דרך הקלט הסטנדרטי."
+
+#: includes/admin_view.php:167
+msgid "The executable must exist and be executable by the worker on every delivering poller. Arguments are passed directly without a shell."
+msgstr "קובץ ההפעלה חייב להיות קיים וניתן להרצה על ידי תהליך העבודה בכל דוגם מוסר. ארגומנטים מועברים ישירות ללא מעטפת (shell)."
+
+#: includes/admin_view.php:169
+msgid "WebSocket delivery is not implemented."
+msgstr "מסירה באמצעות WebSocket אינה מיושמת."
+
+#: includes/admin_view.php:171
+msgid "Advanced delivery settings"
+msgstr "הגדרות מסירה מתקדמות"
+
+#: includes/admin_view.php:176
+msgid "Connection options"
+msgstr "אפשרויות חיבור"
+
+#: includes/admin_view.php:179
+msgid "Method"
+msgstr "שיטה"
+
+#: includes/admin_view.php:186
+msgid "Certificate and hostname verification remain enabled. Provision the PEM file on every poller. Saved credentials are never displayed."
+msgstr "אימות אישור ושם מארח נשארים מופעלים. ספק את קובץ ה-PEM בכל דוגם. אישורי גישה שמורים אינם מוצגים לעולם."
+
+#: includes/admin_view.php:187
+msgid "Other delivery options"
+msgstr "אפשרויות מסירה נוספות"
+
+#: includes/admin_view.php:189 includes/admin_view.php:458
+msgid "Cancel"
+msgstr "ביטול"
+
+#: includes/admin_view.php:189
+msgid "Test destination saves the current settings and queues a sample alarm for this destination. Enable the destination before testing."
+msgstr "בדיקת יעד שומרת את ההגדרות הנוכחיות ומכניסה לתור התראה לדוגמה עבור יעד זה. הפעל את היעד לפני הבדיקה."
+
+#: includes/admin_view.php:190
+msgid "Save endpoint"
+msgstr "שמור נקודת קצה"
+
+#: includes/admin_view.php:190
+msgid "Test destination"
+msgstr "בדוק יעד"
+
+#: includes/admin_view.php:194
+msgid "Delete endpoint"
+msgstr "מחק נקודת קצה"
+
+#: includes/admin_view.php:194
+msgid "Delete this endpoint, its delivery settings and saved credentials"
+msgstr "מחק נקודת קצה זו, את הגדרות המסירה שלה ואת אישורי הגישה השמורים"
+
+#: includes/admin_view.php:194
+msgid "Deleting stops future delivery and removes the saved settings and credentials. Remove notification rule references and resolve queued or running deliveries first. Completed and failed delivery history is preserved."
+msgstr "מחיקה עוצרת מסירות עתידיות ומסירה את ההגדרות ואישורי הגישה השמורים. הסר תחילה הפניות מכללי התראה וסיים מסירות בתור או פועלות. היסטוריית מסירות שהושלמו או נכשלו נשמרת."
+
+#: includes/admin_view.php:205
+msgid "Chat and messaging"
+msgstr "צ'אט והודעות"
+
+#: includes/admin_view.php:206
+msgid "Post alarms to a Slack channel."
+msgstr "פרסם התראות לערוץ Slack."
+
+#: includes/admin_view.php:207
+msgid "Post alarm cards through a Teams Workflow."
+msgstr "פרסם כרטיסי התראה דרך Teams Workflow."
+
+#: includes/admin_view.php:208
+msgid "Send alarms from a Telegram bot."
+msgstr "שלח התראות מבוט Telegram."
+
+#: includes/admin_view.php:209
+msgid "Text alarms to phone numbers."
+msgstr "שלח התראות SMS למספרי טלפון."
+
+#: includes/admin_view.php:210
+msgid "Send approved WhatsApp templates."
+msgstr "שלח תבניות WhatsApp מאושרות."
+
+#: includes/admin_view.php:211
+msgid "Incident management"
+msgstr "ניהול תקריות"
+
+#: includes/admin_view.php:212
+msgid "Trigger and resolve PagerDuty incidents."
+msgstr "הפעל ופתור תקריות ב-PagerDuty."
+
+#: includes/admin_view.php:213
+msgid "Open and resolve ServiceNow incidents or events."
+msgstr "פתח ופתור תקריות או אירועים ב-ServiceNow."
+
+#: includes/admin_view.php:214
+msgid "Network management"
+msgstr "ניהול רשת"
+
+#: includes/admin_view.php:215
+msgid "Send SNMPv2c or SNMPv3 traps and INFORMs."
+msgstr "שלח מלכודות SNMPv2c או SNMPv3 והודעות INFORM."
+
+#: includes/admin_view.php:216
+msgid "Forward RFC 5424 or RFC 3164 messages over UDP, TCP or TLS."
+msgstr "העבר הודעות RFC 5424 או RFC 3164 דרך UDP, TCP או TLS."
+
+#: includes/admin_view.php:217
+msgid "Custom"
+msgstr "מותאם אישית"
+
+#: includes/admin_view.php:218
+msgid "Start from an empty endpoint."
+msgstr "התחל מנקודת קצה ריקה."
+
+#: includes/admin_view.php:219
+msgid "POST alarm JSON to any HTTPS endpoint."
+msgstr "שלח JSON התראה באמצעות POST לכל נקודת קצה של HTTPS."
+
+#: includes/admin_view.php:220
+msgid "Call an API with your own method, authentication and response checks."
+msgstr "קרא ל-API עם שיטה, אימות ובדיקות תגובה משלך."
+
+#: includes/admin_view.php:221
+msgid "Run a local executable with the alarm as JSON input."
+msgstr "הרץ קובץ הפעלה מקומי עם ההתראה כקלט JSON."
+
+#: includes/admin_view.php:227
+msgid "Add integration"
+msgstr "הוסף אינטגרציה"
+
+#: includes/admin_view.php:228
+msgid "Choose a template. It opens as a disabled draft; nothing is sent until you enable it."
+msgstr "בחר תבנית. היא נפתחת כטיוטה מושבתת; דבר לא נשלח עד שתפעיל אותה."
+
+#: includes/admin_view.php:228
+msgid "Search integrations"
+msgstr "חפש אינטגרציות"
+
+#: includes/admin_view.php:234
+msgid "Blank endpoint"
+msgstr "נקודת קצה ריקה"
+
+#: includes/admin_view.php:239
+msgid "No integrations match your search."
+msgstr "אין אינטגרציות התואמות לחיפוש שלך."
+
+#: includes/admin_view.php:243
+msgid "SNMP trap settings"
+msgstr "הגדרות מלכודות SNMP"
+
+#: includes/admin_view.php:259
+msgid "Saved community and passphrases are encrypted and never displayed. Leave them blank to keep the saved values; entering any value replaces all saved SNMP secrets."
+msgstr "מחרוזות הקהילה והסיסמאות השמורות מוצפנות ואינן מוצגות לעולם. השאר אותן ריקות כדי לשמור את הערכים השמורים; הזנת כל ערך מחליפה את כל סודות ה-SNMP השמורים."
+
+#: includes/admin_view.php:260
+msgid "Traps are sent as Cacti's CACTI-MIB cactiNotify with the snmptrap binary from Cacti Settings > Paths on every delivering poller. Add one destination per receiver."
+msgstr "מלכודות נשלחות כ-CACTI-MIB cactiNotify של Cacti באמצעות הקובץ הבינארי snmptrap מתוך הגדרות Cacti > נתיבים בכל דוגם מוסר. הוסף יעד אחד לכל מקבל."
+
+#: includes/admin_view.php:261
+msgid "Syslog settings"
+msgstr "הגדרות Syslog"
+
+#: includes/admin_view.php:269
+msgid "TLS verifies the receiver certificate and hostname. Use port 6514 for TLS. UDP and TCP are unencrypted, and a UDP message is confirmed only as sent."
+msgstr "TLS מאמת את האישור ושם המארח של המקבל. השתמש בפורט 6514 עבור TLS. UDP ו-TCP אינם מוצפנים, והודעת UDP מאושרת כנשלחה בלבד."
+
+#: includes/admin_view.php:278 setup.php:191
+msgid "Days"
+msgstr "ימים"
+
+#: includes/admin_view.php:283
+msgid "Timezone"
+msgstr "אזור זמן"
+
+#: includes/admin_view.php:291
+msgid "Times use the selected timezone and the alarm event time. An end time before the start runs overnight. Equal times cover the entire selected day."
+msgstr "הזמנים משתמשים באזור הזמן שנבחר ובזמן אירוע ההתראה. שעת סיום לפני שעת התחלה פועלת לאורך הלילה. שעות שוות מכסות את כל היום שנבחר."
+
+#: includes/admin_view.php:332 includes/admin_view.php:521
+msgid "Create a rule"
+msgstr "צור כלל"
+
+#: includes/admin_view.php:332
+msgid "Enabled"
+msgstr "מאופשר"
+
+#: includes/admin_view.php:332
+msgid "Priority"
+msgstr "עדיפות"
+
+#: includes/admin_view.php:334
+msgid "Rule and destination"
+msgstr "כלל ויעד"
+
+#: includes/admin_view.php:338
+msgid "Alarm Destination"
+msgstr "יעד התראה"
+
+#: includes/admin_view.php:341
+msgid "disabled"
+msgstr "מושבת"
+
+#: includes/admin_view.php:343
+msgid "Select one or more alarm destinations. Disabled destinations do not send alarms."
+msgstr "בחר יעד התראה אחד או יותר. יעדים מושבתים אינם שולחים התראות."
+
+#: includes/admin_view.php:345
+msgid "Message template"
+msgstr "תבנית הודעה"
+
+#: includes/admin_view.php:345
+msgid "Use each destination default, or customize its message for this rule. Customization starts with a copy of the destination template and does not change other rules. If several rules match the same destination, the first matching rule in priority and ID order supplies its template."
+msgstr "השתמש בברירת המחדל של כל יעד, או התאם אישית את הודעתו עבור כלל זה. ההתאמה האישית מתחילה מעותק של תבנית היעד ואינה משנה כללים אחרים. אם מספר כללים מתאימים לאותו יעד, הכלל התואם הראשון לפי סדר עדיפות ומזהה מספק את התבנית שלו."
+
+#: includes/admin_view.php:352
+msgid "Custom template"
+msgstr "תבנית מותאמת אישית"
+
+#: includes/admin_view.php:355
+msgid "Destination recipient"
+msgstr "נמען יעד"
+
+#: includes/admin_view.php:355
+#, php-format
+msgid "Recipients: %d"
+msgstr "נמענים: %d"
+
+#: includes/admin_view.php:357
+msgid "Customize message for this rule"
+msgstr "התאם אישית הודעה עבור כלל זה"
+
+#: includes/admin_view.php:357
+msgid "Unchecked: Use destination default."
+msgstr "לא מסומן: השתמש בברירת המחדל של היעד."
+
+#: includes/admin_view.php:361
+msgid "Optional: add each phone number in international format, such as +15551234567. These numbers replace the destination recipient for this rule. Leave the list empty to use the destination default. Each number has its own delivery status and retries."
+msgstr "אופציונלי: הוסף כל מספר טלפון בפורמט בינלאומי, כגון +15551234567. מספרים אלו מחליפים את נמען היעד עבור כלל זה. השאר את הרשימה ריקה כדי להשתמש בברירת המחדל של היעד. לכל מספר יש סטטוס מסירה וניסיונות חוזרים משלו."
+
+#: includes/admin_view.php:374
+msgid "None"
+msgstr "ללא"
+
+#: includes/admin_view.php:376
+msgid "Build device conditions using AND, OR and groups. These conditions use the current Cacti device settings and must also satisfy any alarm filters below. With no device conditions, all devices can match."
+msgstr "בנה תנאי התקנים באמצעות AND, OR וקבוצות. תנאים אלו משתמשים בהגדרות ההתקנים הנוכחיות של Cacti וחייבים לעמוד גם במסנני ההתראות שלמטה. ללא תנאי התקנים, כל ההתקנים יכולים להתאים."
+
+#: includes/admin_view.php:376
+msgid "Match devices"
+msgstr "התאמת התקנים"
+
+#: includes/admin_view.php:387
+msgid "Cacti_Admin_Notifications"
+msgstr "Cacti_Admin_Notifications"
+
+#: includes/admin_view.php:387
+msgid "Device Status"
+msgstr "מצב התקן"
+
+#: includes/admin_view.php:387
+msgid "Syslog"
+msgstr "סיסלוג"
+
+#: includes/admin_view.php:387
+msgid "Thold"
+msgstr "Thold"
+
+#: includes/admin_view.php:392
+msgid "Build alarm conditions using AND, OR, NOT and groups. Alarms must also match the device conditions above."
+msgstr "בנה תנאי התראה באמצעות AND, OR, NOT וקבוצות. התראות חייבות להתאים גם לתנאי ההתקנים שלמעלה."
+
+#: includes/admin_view.php:392
+msgid "Match alarms"
+msgstr "התאמת התראות"
+
+#: includes/admin_view.php:395
+msgid "No alarm sources detected yet. Sources appear after their first alarm."
+msgstr "טרם זוהו מקורות התראה. מקורות מופיעים לאחר ההתראה הראשונה שלהם."
+
+#: includes/admin_view.php:397
+msgid "By default, matching alarms can notify at any time. Turn on a schedule to limit when this rule matches."
+msgstr "כברירת מחדל, התראות תואמות יכולות לשלוח הודעה בכל עת. הפעל לוח זמנים כדי להגביל מתי כלל זה מותאם."
+
+#: includes/admin_view.php:397
+msgid "Notification hours"
+msgstr "שעות הודעה"
+
+#: includes/admin_view.php:399
+msgid "Suppress notifications"
+msgstr "השתק הודעות"
+
+#: includes/admin_view.php:399
+msgid "Suppressed alarms remain in history. Recovery notifications bypass acknowledgment, cooldown and duplicate suppression, but still follow notification hours and maintenance windows."
+msgstr "התראות מושתקות נשארות בהיסטוריה. הודעות התאוששות עוקפות אישור, תקופת צינון והשתקת כפילויות, אך עדיין מצייתות לשעות הודעה ולחלונות תחזוקה."
+
+#: includes/admin_view.php:403
+msgid "Set a duration to 0 to turn it off."
+msgstr "הגדר משך זמן ל-0 כדי לכבות."
+
+#: includes/admin_view.php:405
+msgid "Rule order"
+msgstr "סדר כללים"
+
+#: includes/admin_view.php:408
+msgid "Create rule"
+msgstr "צור כלל"
+
+#: includes/admin_view.php:408
+msgid "Rules with equal priority run in ID order. Stopping also applies when this rule suppresses notifications."
+msgstr "כללים בעלי עדיפות שווה רצים לפי סדר המזהים. עצירה חלה גם כאשר כלל זה משתיק הודעות."
+
+#: includes/admin_view.php:417
+msgid "Configuration Backup/Restore"
+msgstr "גיבוי/שחזור תצורה"
+
+#: includes/admin_view.php:427
+msgid "Paused"
+msgstr "מושהה"
+
+#: includes/admin_view.php:427
+msgid "Running"
+msgstr "פועל"
+
+#: includes/admin_view.php:428
+msgid "everything has been delivered"
+msgstr "הכל נמסר"
+
+#: includes/admin_view.php:428
+#, php-format
+msgid "oldest queued %s UTC"
+msgstr "הישן ביותר בתור %s UTC"
+
+#: includes/admin_view.php:428
+msgid "waiting messages"
+msgstr "הודעות ממתינות"
+
+#: includes/admin_view.php:431
+msgid "Hide messages"
+msgstr "הסתר הודעות"
+
+#: includes/admin_view.php:431
+msgid "View messages"
+msgstr "הצג הודעות"
+
+#: includes/admin_view.php:441
+msgid "Endpoint"
+msgstr "נקודת קצה"
+
+#: includes/admin_view.php:441
+msgid "ID"
+msgstr "מזהה"
+
+#: includes/admin_view.php:441
+msgid "Message"
+msgstr "הודעה"
+
+#: includes/admin_view.php:441
+msgid "Next try"
+msgstr "ניסיון הבא"
+
+#: includes/admin_view.php:441 includes/reports.php:458
+msgid "Queued"
+msgstr "בתור"
+
+#: includes/admin_view.php:441
+msgid "Tries"
+msgstr "ניסיונות"
+
+#: includes/admin_view.php:451
+msgid "Times in UTC · first 100 shown"
+msgstr "זמנים ב-UTC · מוצגים 100 הראשונים"
+
+#: includes/admin_view.php:455
+msgid "Pause delivery"
+msgstr "השהה מסירה"
+
+#: includes/admin_view.php:455
+msgid "Resume delivery"
+msgstr "חדש מסירה"
+
+#: includes/admin_view.php:458
+msgid "Clear queue"
+msgstr "נקה תור"
+
+#: includes/admin_view.php:459
+#, php-format
+msgid "Discard all %d waiting notifications on this poller?"
+msgstr "לבטל את כל %d ההודעות הממתינות בדוגם זה?"
+
+#: includes/admin_view.php:460
+msgid "Includes retries. They stay in delivery history as failed, reason queue_cleared."
+msgstr "כולל ניסיונות חוזרים. הם נשארים בהיסטוריית המסירה כנכשלו, מסיבה queue_cleared."
+
+#: includes/admin_view.php:461
+msgid "Messages already sending and alarm state are kept."
+msgstr "הודעות שכבר בשליחה ומצב ההתראות נשמרים."
+
+#: includes/admin_view.php:462
+msgid "Tip: pause delivery first during maintenance."
+msgstr "טיפ: השהה תחילה את המסירה במהלך תחזוקה."
+
+#: includes/admin_view.php:463
+msgid "Clear queue…"
+msgstr "מנקה תור…"
+
+#: includes/admin_view.php:464
+msgid "Controls apply to this poller. While paused, alarms are still received and queued; Resume sends them."
+msgstr "הבקרות חלות על דוגם זה. בזמן השהיה, התראות עדיין מתקבלות ונכנסות לתור; חידוש שולח אותן."
+
+#: includes/admin_view.php:467
+msgid "View delivery results"
+msgstr "הצג תוצאות מסירה"
+
+#: includes/admin_view.php:470
+msgid "Create an integration, configure its destination and credentials, test a sample alarm here, then select it directly in a rule."
+msgstr "צור אינטגרציה, הגדר את היעד ואת אישורי הגישה שלה, בדוק כאן התראה לדוגמה, ולאחר מכן בחר אותה ישירות בתוך כלל."
+
+#: includes/admin_view.php:476
+msgid "Configured integrations"
+msgstr "אינטגרציות מוגדרות"
+
+#: includes/admin_view.php:479
+msgid "No integrations yet. Choose a template above to create one."
+msgstr "אין עדיין אינטגרציות. בחר תבנית למעלה כדי ליצור אחת."
+
+#: includes/admin_view.php:490
+msgid "Alarm Rules"
+msgstr "כללי התראות"
+
+#: includes/admin_view.php:490
+msgid "Choose which alarms should notify, where to send them and when to pause notifications. Rules run from lowest to highest priority."
+msgstr "בחר אילו התראות ישלחו הודעות, לאן לשלוח אותן ומתי להשהות הודעות. הכללים רצים מהעדיפות הנמוכה ביותר לגבוהה ביותר."
+
+#: includes/admin_view.php:493
+msgid "Create an integration before saving your first rule."
+msgstr "צור אינטגרציה לפני שמירת הכלל הראשון שלך."
+
+#: includes/admin_view.php:493
+msgid "Create integration"
+msgstr "צור אינטגרציה"
+
+#: includes/admin_view.php:495
+msgid "Clear"
+msgstr "נקה"
+
+#: includes/admin_view.php:495
+msgid "Critical"
+msgstr "קריטי"
+
+#: includes/admin_view.php:495
+msgid "Information"
+msgstr "מידע"
+
+#: includes/admin_view.php:495
+msgid "Major"
+msgstr "חמור"
+
+#: includes/admin_view.php:495
+msgid "Minor"
+msgstr "קל"
+
+#: includes/admin_view.php:495
+msgid "Occurrence"
+msgstr "מופע"
+
+#: includes/admin_view.php:495
+msgid "Raised"
+msgstr "הופעלה"
+
+#: includes/admin_view.php:495
+msgid "Recovered"
+msgstr "התאוששה"
+
+#: includes/admin_view.php:495
+msgid "Reminder"
+msgstr "תזכורת"
+
+#: includes/admin_view.php:495
+msgid "Updated"
+msgstr "עודכן"
+
+#: includes/admin_view.php:495
+msgid "Warning"
+msgstr "אזהרה"
+
+#: includes/admin_view.php:520
+msgid "Alarm notifications require an enabled matching Alarm Rule. Without one, alarms remain in history but no notifications are sent."
+msgstr "הודעות התראה דורשות כלל התראה מופעל ותואם. בלעדיו, ההתראות נשמרות בהיסטוריה אך לא נשלחות הודעות."
+
+#: includes/admin_view.php:524
+msgid "No rules yet. Create a rule below to start routing alarms to your notification destinations."
+msgstr "אין עדיין כללים. צור כלל למטה כדי להתחיל לנתב התראות ליעדי ההודעות שלך."
+
+#: includes/admin_view.php:533
+msgid "Credential values are never loaded into this page. Saving replaces the endpoint record; blank values do not preserve an old password. Use the CLI for protected backup/restore and poller provisioning."
+msgstr "ערכי אישורי גישה לעולם אינם נטענים לדף זה. שמירה מחליפה את רשומת נקודת הקצה; ערכים ריקים אינם שומרים על סיסמה ישנה. השתמש ב-CLI לגיבוי/שחזור מוגן ולהפצה לדוגמים."
+
+#: includes/admin_view.php:536
+msgid "Create endpoint"
+msgstr "צור נקודת קצה"
+
+#: includes/admin_view.php:536
+msgid "No REST API or webhook endpoints have been saved. Create an endpoint to enter its bearer token, Basic authentication username and password, or API-key headers."
+msgstr "לא נשמרו נקודות קצה של REST API או webhook. צור נקודת קצה כדי להזין את אסימון ה-Bearer שלה, שם המשתמש והסיסמה של אימות Basic או כותרות מפתח ה-API."
+
+#: includes/admin_view.php:540
+msgid "Configured"
+msgstr "הוגדר"
+
+#: includes/admin_view.php:543
+msgid "Replace credential"
+msgstr "החלף אישור גישה"
+
+#: includes/admin_view.php:549
+msgid "Rotate local key"
+msgstr "סובב מפתח מקומי"
+
+#: includes/admin_view.php:553
+msgid "Event log"
+msgstr "יומן אירועים"
+
+#: includes/admin_view.php:553
+msgid "Writes every event as it is processed, independent of which rules match or whether any destination is notified — a complete audit trail for external analysis, for example with Splunk."
+msgstr "כותב כל אירוע בעת עיבודו, ללא תלות באילו כללים מתאימים או אם יעד כלשהו מקבל הודעה - נתיב ביקורת מלא לניתוח חיצוני, לדוגמה עם Splunk."
+
+#: includes/admin_view.php:555
+msgid "Cacti log"
+msgstr "יומן Cacti"
+
+#: includes/admin_view.php:555
+msgid "External file"
+msgstr "קובץ חיצוני"
+
+#: includes/admin_view.php:555
+msgid "Write to"
+msgstr "כתוב אל"
+
+#: includes/admin_view.php:559
+msgid "One JSON object per line (occurred_at, transition, severity, device, alarm key…). The path must already exist, outside the plugin directory and Cacti's web root. Past the size limit, the file rotates to one .1 backup."
+msgstr "אובייקט JSON אחד בכל שורה (occurred_at, transition, severity, device, מפתח התראה…). הנתיב חייב להיות קיים כבר, מחוץ לתיקיית התוסף ולתיקיית השורש של ממשק ה-Web ב-Cacti. מעבר למגבלת הגודל, הקובץ עובר סבב לגיבוי .1 אחד."
+
+#: includes/admin_view.php:559
+msgid "Save event log settings"
+msgstr "שמור הגדרות יומן אירועים"
+
+#: includes/admin_view.php:561
+msgid "Backup and restore"
+msgstr "גיבוי ושחזור"
+
+#: includes/admin_view.php:561
+msgid "Export"
+msgstr "ייצא"
+
+#: includes/admin_view.php:562
+msgid "Endpoints, message templates, and rules as JSON. Credentials and settings are not included. Endpoint URLs can contain secrets, so keep the file private."
+msgstr "נקודות קצה, תבניות הודעה וכללים בפורמט JSON. אישורי גישה והגדרות אינם כלולים. כתובות URL של נקודות קצה עשויות להכיל סודות, לכן שמור על הקובץ פרטי."
+
+#: includes/admin_view.php:563
+msgid "Export configuration"
+msgstr "ייצוא תצורה"
+
+#: includes/admin_view.php:563
+msgid "Import"
+msgstr "ייבוא"
+
+#: includes/admin_view.php:567
+msgid "Replaces the routing configuration using the IDs in the file. Endpoints and rules missing from the file are disabled, not deleted. Saved credentials are kept."
+msgstr "מחליף את תצורת הניתוב באמצעות המזהים שבקובץ. נקודות קצה וכללים שחסרים בקובץ מושבתים, לא נמחקים. אישורי הגישה השמורים נשמרים."
+
+#: includes/admin_view.php:568
+msgid "Import configuration"
+msgstr "ייבוא תצורה"
+
+#: includes/admin_view.php:572
+msgid "Local queue health"
+msgstr "תקינות תור מקומי"
+
+#: includes/admin_view.php:573
+msgid "Jobs"
+msgstr "משימות"
+
+#: includes/admin_view.php:573
+msgid "Oldest job age (seconds)"
+msgstr "גיל העבודה הישנה ביותר (שניות)"
+
+#: includes/admin_view.php:573
+msgid "Queue"
+msgstr "תור"
+
+#: includes/admin_view.php:573
+msgid "Retries"
+msgstr "נסה שוב"
+
+#: includes/admin_view.php:573 includes/admin_view.php:592
+#: includes/web_view.php:181
+msgid "Status"
+msgstr "סטטוס"
+
+#: includes/admin_view.php:588
+msgid "No queue activity recorded."
+msgstr "לא נרשמה פעילות תור."
+
+#: includes/admin_view.php:591
+msgid "Local worker health"
+msgstr "תקינות תהליכי עבודה מקומיים"
+
+#: includes/admin_view.php:592
+msgid "Current job"
+msgstr "עבודה נוכחית"
+
+#: includes/admin_view.php:592
+msgid "Heartbeat age (seconds)"
+msgstr "גיל אות חיים (שניות)"
+
+#: includes/admin_view.php:592
+msgid "PID"
+msgstr "PID"
+
+#: includes/admin_view.php:592
+msgid "Poller"
+msgstr "פולר"
+
+#: includes/admin_view.php:592
+msgid "Role"
+msgstr "תפקיד"
+
+#: includes/admin_view.php:592
+msgid "Worker"
+msgstr "תהליך עבודה"
+
+#: includes/admin_view.php:607
+msgid "No local worker heartbeats recorded."
+msgstr "לא נרשמו אותות חיים של תהליכי עבודה מקומיים."
+
+#: includes/admin_view.php:610
+msgid "Completed delivery jobs in the last 300 seconds"
+msgstr "עבודות מסירה שהושלמו ב-300 השניות האחרונות"
+
+#: includes/admin_view.php:610
+msgid "Completed processing jobs in the last 300 seconds"
+msgstr "עבודות עיבוד שהושלמו ב-300 השניות האחרונות"
+
+#: includes/admin_view.php:610
+msgid "Processing streams blocked behind a failed predecessor"
+msgstr "זרמי עיבוד החסומים מאחורי קודם שנכשל"
+
+#: includes/admin_view.php:613
+msgid "Pending jobs for destination types without a qualified transport"
+msgstr "עבודות ממתינות לסוגי יעדים ללא תעבורה מתאימה"
+
+#: includes/admin_view.php:620
+msgid "Failed deliveries and replay"
+msgstr "מסירות שנכשלו ושליחה חוזרת"
+
+#: includes/admin_view.php:620
+msgid "Failed processing jobs and replay"
+msgstr "עבודות עיבוד שנכשלו והפעלה חוזרת"
+
+#: includes/admin_view.php:625
+msgid "Authentication"
+msgstr "אימות"
+
+#: includes/admin_view.php:625
+msgid "Authentication type"
+msgstr "סוג אימות"
+
+#: includes/admin_view.php:649
+msgid "Saved credentials are encrypted and never displayed. New values replace the saved credential record."
+msgstr "אישורי הגישה השמורים מוצפנים ואינם מוצגים לעולם. ערכים חדשים מחליפים את רשומת אישור הגישה השמורה."
+
+#: includes/polling.php:150
+msgid "Start the Alarm Manager service on this collector before enabling daemon workers."
+msgstr "הפעל את שירות מנהל ההתראות באספן זה לפני הפעלת תהליכי עבודה של תהליך הרקע."
+
+#: includes/polling.php:163
+msgid "Daemon settings could not be saved. Check the Cacti cache directory permissions."
+msgstr "לא ניתן היה לשמור את הגדרות תהליך הרקע. בדוק את הרשאות תיקיית המטמון של Cacti."
+
+#: includes/reports.php:430
+msgid "Remote history"
+msgstr "היסטוריה מרוחקת"
+
+#: includes/reports.php:459
+msgid "Test send"
+msgstr "בדיקת שליחה"
+
+#: includes/reports.php:460
+msgid "No matching rule"
+msgstr "אין כלל תואם"
+
+#: includes/reports.php:461
+msgid "Destination disabled"
+msgstr "היעד מושבת"
+
+#: includes/reports.php:462
+msgid "Suppressed by source"
+msgstr "מושתק על ידי המקור"
+
+#: includes/reports.php:463
+msgid "Maintenance window"
+msgstr "חלון תחזוקה"
+
+#: includes/reports.php:464
+msgid "Acknowledged"
+msgstr "אושר"
+
+#: includes/reports.php:465
+msgid "Cooldown"
+msgstr "תקופת צינון"
+
+#: includes/reports.php:466
+msgid "Duplicate"
+msgstr "שכפל"
+
+#: includes/reports.php:467
+msgid "Already routed"
+msgstr "כבר נותב"
+
+#: includes/reports.php:468
+msgid "Out of order"
+msgstr "שלא לפי הסדר"
+
+#: includes/reports.php:469
+msgid "Ignored episode"
+msgstr "אירוע שהתעלמו ממנו"
+
+#: includes/reports.php:470
+msgid "History only"
+msgstr "היסטוריה בלבד"
+
+#: includes/reports.php:518
+#, php-format
+msgid "Deleted destination #%d"
+msgstr "יעד #%d נמחק"
+
+#: includes/reports.php:519
+#, php-format
+msgid "%d destinations"
+msgstr "%d יעדים"
+
+#: includes/reports.php:531
+msgid "Delivered"
+msgstr "נמסר"
+
+#: includes/reports.php:531
+msgid "Failed"
+msgstr "נכשל"
+
+#: includes/reports.php:531
+msgid "Pending"
+msgstr "ממתין"
+
+#: includes/reports.php:531
+msgid "Sending"
+msgstr "שולח"
+
+#: includes/reports.php:541
+msgid "Processing failed"
+msgstr "העיבוד נכשל"
+
+#: includes/reports.php:542
+msgid "Pending processing"
+msgstr "ממתין לעיבוד"
+
+#: includes/reports.php:543 includes/web_view.php:264
+msgid "Processing"
+msgstr "בעיבוד"
+
+#: includes/reports.php:544
+msgid "No matching integration"
+msgstr "אין אינטגרציה תואמת"
+
+#: includes/reports.php:544
+msgid "Suppressed"
+msgstr "מושתק"
+
+#: includes/routing.php:106
+msgid "Device description"
+msgstr "תיאור התקן"
+
+#: includes/routing.php:106
+msgid "Hostname"
+msgstr "Hostname"
+
+#: includes/routing.php:106
+msgid "Location"
+msgstr "מיקום"
+
+#: includes/routing.php:106
+msgid "SNMP system location"
+msgstr "מיקום מערכת SNMP"
+
+#: includes/routing.php:110 includes/routing.php:125
+msgid "Collector"
+msgstr "אספנים"
+
+#: includes/routing.php:110
+msgid "Device Site Association"
+msgstr "שיוך התקן לאתר"
+
+#: includes/routing.php:110
+msgid "Device Template"
+msgstr "תבנית התקן"
+
+#: includes/routing.php:121
+msgid "Alarm change"
+msgstr "שינוי התראה"
+
+#: includes/routing.php:121
+msgid "Alarm source"
+msgstr "מקור התראה"
+
+#: includes/routing.php:121
+msgid "Alarm summary"
+msgstr "סיכום התראות"
+
+#: includes/routing.php:121 includes/web_view.php:161
+msgid "Severity"
+msgstr "חומרת"
+
+#: includes/routing.php:125
+msgid "Device"
+msgstr "התקן"
+
+#: includes/routing.php:128
+msgid "Device tag"
+msgstr "תג התקן"
+
+#: includes/web_view.php:93
+msgid "Report unavailable or permission denied."
+msgstr "הדוח אינו זמין או שההרשאה נדחתה."
+
+#: includes/web_view.php:119
+msgid "Statistics could not be rendered."
+msgstr "לא ניתן היה להציג את הסטטיסטיקות."
+
+#: includes/web_view.php:129 setup.php:131 setup.php:273 setup.php:289
+#: setup.php:290
+msgid "Alarm Manager"
+msgstr "מנהל אזעקות"
+
+#: includes/web_view.php:136
+msgid "Alarm Manager pages"
+msgstr "דפי מנהל ההתראות"
+
+#: includes/web_view.php:149 includes/web_view.php:152
+msgid "Alarm statistics"
+msgstr "סטטיסטיקת התראות"
+
+#: includes/web_view.php:149
+msgid "Filters"
+msgstr "מסננים"
+
+#: includes/web_view.php:152
+msgid "Time range"
+msgstr "טווח זמן"
+
+#: includes/web_view.php:158
+msgid "Off"
+msgstr "כבוי"
+
+#: includes/web_view.php:158
+msgid "Refresh"
+msgstr "רענן"
+
+#: includes/web_view.php:160
+msgid "Advanced filter JSON"
+msgstr "מסנן JSON מתקדם"
+
+#: includes/web_view.php:160
+msgid "Filter document"
+msgstr "מסמך מסנן"
+
+#: includes/web_view.php:160
+msgid "Quick filters"
+msgstr "מסננים מהירים"
+
+#: includes/web_view.php:160
+msgid "Search conditions"
+msgstr "תנאי חיפוש"
+
+#: includes/web_view.php:161 includes/web_view.php:181
+msgid "All"
+msgstr "הכל"
+
+#: includes/web_view.php:161
+msgid "Source"
+msgstr "מקור"
+
+#: includes/web_view.php:168
+msgid "Device ID"
+msgstr "מזהה התקן"
+
+#: includes/web_view.php:171
+msgid "Status type"
+msgstr "סוג סטטוס"
+
+#: includes/web_view.php:190
+msgid "event_id"
+msgstr "מזהה אירוע"
+
+#: includes/web_view.php:195
+msgid "Collector ID"
+msgstr "מזהה אספן"
+
+#: includes/web_view.php:195
+msgid "Local and mirrored collectors"
+msgstr "אספנים מקומיים ומשוקפים"
+
+#: includes/web_view.php:198
+msgid "mirrored"
+msgstr "משוקף"
+
+#: includes/web_view.php:203
+msgid "Mirrored events carry no Record ID and no detail view."
+msgstr "אירועים משוקפים אינם כוללים מזהה רשומה או תצוגת פרטים."
+
+#: includes/web_view.php:205
+msgid "Mirrored collector events are always included here unless you narrow by a specific remote Collector ID."
+msgstr "אירועי אספנים משוקפים כלולים כאן תמיד אלא אם תצמצם לפי מזהה אספן מרוחק ספציפי."
+
+#: includes/web_view.php:211
+msgid "Apply"
+msgstr "החל"
+
+#: includes/web_view.php:211
+msgid "Reset"
+msgstr "איפוס"
+
+#: includes/web_view.php:213
+msgid "Historical window uses UTC. Current conditions and queues ignore the time window."
+msgstr "חלון ההיסטוריה משתמש ב-UTC. מצבים נוכחיים ותורים מתעלמים מחלון הזמן."
+
+#: includes/web_view.php:235
+msgid "Loading statistics…"
+msgstr "טוען סטטיסטיקות…"
+
+#: includes/web_view.php:248
+msgid "Collapse"
+msgstr "כווץ"
+
+#: includes/web_view.php:261
+msgid "Integration results"
+msgstr "תוצאות אינטגרציה"
+
+#: includes/web_view.php:262
+msgid "Delivery attempts"
+msgstr "ניסיונות מסירה"
+
+#: includes/web_view.php:263
+msgid "Routing decisions"
+msgstr "החלטות ניתוב"
+
+#: includes/web_view.php:265
+msgid "conditions"
+msgstr "תנאים"
+
+#: includes/web_view.php:270
+msgid "No matching records."
+msgstr "אין רשומות תואמות."
+
+#: includes/web_view.php:290
+msgid "Integration status"
+msgstr "סטטוס אינטגרציה"
+
+#: includes/web_view.php:291
+msgid "Collector Name"
+msgstr "שם אספן"
+
+#: includes/web_view.php:292
+msgid "Attempts in current retry cycle"
+msgstr "ניסיונות במחזור הניסיונות החוזרים הנוכחי"
+
+#: includes/web_view.php:298
+msgid "Action"
+msgstr "פעולה"
+
+#: includes/web_view.php:314
+msgid "Display"
+msgstr "הצג"
+
+#: includes/web_view.php:349
+msgid "Latest 100 records for this event."
+msgstr "100 הרשומות האחרונות עבור אירוע זה."
+
+#: includes/web_view.php:354
+msgid "Showing at most 50 records per page."
+msgstr "מציג לכל היותר 50 רשומות בדף."
+
+#: includes/web_view.php:355
+msgid "Pages"
+msgstr "דפים"
+
+#: includes/web_view.php:358
+msgid "Previous"
+msgstr "הקודם"
+
+#: includes/web_view.php:361
+#, php-format
+msgid "Page %d"
+msgstr "דף %d"
+
+#: includes/web_view.php:364
+msgid "Next"
+msgstr "הבא"
+
+#: includes/web_view.php:371
+msgid "Selected event details"
+msgstr "פרטי האירוע שנבחר"
+
+#: includes/web_view.php:378
+msgid "Show metadata"
+msgstr "הצג מטא-נתונים"
+
+#: includes/web_view.php:400
+msgid "Confirm replay may repeat an external effect"
+msgstr "אשר כי שליחה חוזרת עלולה לחזור על השפעה חיצונית"
+
+#: setup.php:102
+msgid "Alarm Manager View"
+msgstr "תצוגת מנהל ההתראות"
+
+#: setup.php:103
+msgid "Alarm Manager Administration"
+msgstr "ניהול מנהל ההתראות"
+
+#: setup.php:133
+msgid "0 Worker Processes"
+msgstr "0 תהליכי עבודה"
+
+#: setup.php:133
+msgid "1 Worker Process"
+msgstr "תהליך עבודה 1"
+
+#: setup.php:136
+#, php-format
+msgid "%d Worker Processes"
+msgstr "%d תהליכי עבודה"
+
+#: setup.php:144
+msgid "Device Alarm Summaries"
+msgstr "סיכומי התראות התקנים"
+
+#: setup.php:148
+msgid "Offline Summary"
+msgstr "סיכום לא מקוון"
+
+#: setup.php:149
+msgid "Summary for new Cacti device down alarms. Existing history retains its original summary."
+msgstr "סיכום עבור התראות חדשות על השבתת התקן ב-Cacti. ההיסטוריה הקיימת שומרת על הסיכום המקורי שלה."
+
+#: setup.php:156
+msgid "Recovering Summary"
+msgstr "סיכום התאוששות"
+
+#: setup.php:157
+msgid "Summary for device recovering updates within the same outage."
+msgstr "סיכום עבור עדכוני התאוששות התקן במסגרת אותה השבתה."
+
+#: setup.php:164
+msgid "Online Summary"
+msgstr "סיכום מקוון"
+
+#: setup.php:165
+msgid "Summary for device recovery alarms once Cacti confirms the device is up."
+msgstr "סיכום עבור התראות התאוששות התקן ברגע ש-Cacti מאשר שההתקן פועל."
+
+#: setup.php:172
+msgid "Alert History Retention"
+msgstr "שמירת היסטוריית התראות"
+
+#: setup.php:177
+msgid "Keep Alert History For"
+msgstr "שמור היסטוריית התראות למשך"
+
+#: setup.php:178
+msgid "Enter how many days, weeks or months to keep alert history, or choose Indefinitely to keep everything (the number is then ignored). Maximum 3650 days, 520 weeks or 120 months. A purge job runs with the Cacti poller and removes aged events with their decisions, deliveries and attempts. Active conditions and queued or failed work are never purged. Each collector purges its own history."
+msgstr "הזן כמה ימים, שבועות או חודשים לשמור היסטוריית התראות, או בחר ללא הגבלת זמן כדי לשמור הכל (המספר יתעלם). מקסימום 3650 ימים, 520 שבועות או 120 חודשים. משימת ניקוי רצה עם דוגם Cacti ומסירה אירועים ישנים יחד עם ההחלטות, המסירות והניסיונות שלהם. מצבים פעילים ועבודות בתור או שנכשלו לעולם אינם נמחקים. כל אספן מנקה את ההיסטוריה של עצמו."
+
+#: setup.php:187
+msgid "Retention Unit"
+msgstr "יחידת שמירה"
+
+#: setup.php:188
+msgid "The unit for the retention period."
+msgstr "היחידה עבור תקופת השמירה."
+
+#: setup.php:191
+msgid "Indefinitely"
+msgstr "ללא הגבלת זמן"
+
+#: setup.php:191
+msgid "Months"
+msgstr "חודשים"
+
+#: setup.php:191
+msgid "Weeks"
+msgstr "שבועות"
+
+#: setup.php:194
+msgid "Daemon"
+msgstr "תהליך רקע (Daemon)"
+
+#: setup.php:198
+msgid "Enable Daemon"
+msgstr "הפעל תהליך רקע"
+
+#: setup.php:199
+msgid "Run processing and delivery workers in the resident Alarm Manager service instead of the Cacti poller. The service must be installed and running; disabling it lets current jobs finish and returns processing to the poller. Changes apply within a few seconds and synchronize to collectors."
+msgstr "הרץ תהליכי עיבוד ומסירה בשירות הקבוע של מנהל ההתראות במקום בדוגם של Cacti. השירות חייב להיות מותקן ופועל; השבתתו מאפשרת לעבודות הנוכחיות להסתיים ומחזירה את העיבוד לדוגם. שינויים נכנסים לתוקף תוך שניות אחדות ומסתנכרנים עם האספנים."
+
+#: setup.php:204
+msgid "Processing Workers"
+msgstr "תהליכי עיבוד"
+
+#: setup.php:205
+msgid "Number of daemon workers that evaluate rules."
+msgstr "מספר תהליכי העבודה של תהליך הרקע המעריכים כללים."
+
+#: setup.php:211
+msgid "Delivery Workers"
+msgstr "תהליכי מסירה"
+
+#: setup.php:212
+msgid "Number of daemon workers that deliver notifications."
+msgstr "מספר תהליכי העבודה של תהליך הרקע המוסרים הודעות."
+
+#: setup.php:257
+msgid "Import/Export"
+msgstr "ייבוא/ייצוא"
+
+#: setup.php:259 setup.php:265 setup.php:271
+msgid "Alarm Manager Settings"
+msgstr "הגדרות מנהל ההתראות"
