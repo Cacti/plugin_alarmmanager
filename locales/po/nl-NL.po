@@ -1,0 +1,1230 @@
+# Dutch translations for Alarm Manager package.
+# Copyright (C) 2004-2026 The Cacti Group
+# This file is distributed under the same license as the Alarm Manager package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Alarm Manager 0.12.2\n"
+"Report-Msgid-Bugs-To: https://github.com/bmfmancini/plugin_alarmmanager/issues\n"
+"POT-Creation-Date: 2026-11-02 13:02-0500\n"
+"PO-Revision-Date: 2026-11-28 02:15+0000\n"
+"Last-Translator: Thomas Vincent <thomasvincent@gmail.com>\n"
+"Language-Team: Dutch <https://translate.cacti.net/projects/cacti/core/nl/>\n"
+"Language: nl-NL\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+
+#: alarmmanager_admin.php:50
+msgid "The administration action succeeded."
+msgstr "De beheeractie is geslaagd."
+
+#: alarmmanager_admin.php:86
+msgid "Administration unavailable or permission denied."
+msgstr "Beheer niet beschikbaar of toestemming geweigerd."
+
+#: includes/admin_view.php:78
+msgid "Choose the alarm information to send to any service. Use Combined text to arrange device details, or Use device message to start with a complete message. Email uses Subject and Message; API destinations use the field names required by the receiving service."
+msgstr "Kies welke alarminformatie naar een service moet worden verzonden. Gebruik Gecombineerde tekst om apparaatdetails te ordenen, of Gebruik apparaatbericht om met een volledig bericht te beginnen. E-mail gebruikt Onderwerp en Bericht; API-bestemmingen gebruiken de veldnamen die door de ontvangende service worden vereist."
+
+#: includes/admin_view.php:79
+msgid "Advanced message configuration"
+msgstr "Geavanceerde berichtconfiguratie"
+
+#: includes/admin_view.php:90
+msgid "New endpoint"
+msgstr "Nieuw eindpunt"
+
+#: includes/admin_view.php:100
+msgid "Custom integration"
+msgstr "Aangepaste integratie"
+
+#: includes/admin_view.php:100
+msgid "Integration provider"
+msgstr "Integratieprovider"
+
+#: includes/admin_view.php:112
+msgid "API Key SID and Secret (recommended)"
+msgstr "API-sleutel-SID en geheim (aanbevolen)"
+
+#: includes/admin_view.php:112
+msgid "Account SID and Auth Token"
+msgstr "Account-SID en Auth-token"
+
+#: includes/admin_view.php:112
+msgid "Twilio credentials"
+msgstr "Twilio-inloggegevens"
+
+#: includes/admin_view.php:113
+msgid "Send using"
+msgstr "Verzenden met"
+
+#: includes/admin_view.php:125
+msgid "Event"
+msgstr "Gebeurtenis"
+
+#: includes/admin_view.php:125
+msgid "Incident"
+msgstr "Incident"
+
+#: includes/admin_view.php:125
+msgid "ServiceNow record type"
+msgstr "ServiceNow-recordtype"
+
+#: includes/admin_view.php:126
+msgid "Changing the record type replaces the destination table, message fields and recovery settings with its defaults. Your instance and credentials are retained."
+msgstr "Het wijzigen van het recordtype vervangt de bestemmingstabel, berichtvelden en herstelinstellingen door de standaardwaarden. Uw instantie en inloggegevens blijven behouden."
+
+#: includes/admin_view.php:149
+msgid "Destination"
+msgstr "Bestemming"
+
+#: includes/admin_view.php:154
+msgid "Email settings"
+msgstr "E-mailinstellingen"
+
+#: includes/admin_view.php:161
+msgid "Delivery uses the Cacti mail settings. Add the people who should receive these alarms."
+msgstr "Bezorging gebruikt de Cacti-e-mailinstellingen. Voeg de personen toe die deze alarmen moeten ontvangen."
+
+#: includes/admin_view.php:162
+msgid "Script settings"
+msgstr "Scriptinstellingen"
+
+#: includes/admin_view.php:167
+msgid "JSON output is sent to the script on standard input."
+msgstr "JSON-uitvoer wordt via standaardinvoer naar het script verzonden."
+
+#: includes/admin_view.php:167
+msgid "The executable must exist and be executable by the worker on every delivering poller. Arguments are passed directly without a shell."
+msgstr "Het uitvoerbare bestand moet bestaan en uitvoerbaar zijn voor de worker op elke bezorgende poller. Argumenten worden rechtstreeks zonder shell doorgegeven."
+
+#: includes/admin_view.php:169
+msgid "WebSocket delivery is not implemented."
+msgstr "WebSocket-bezorging is niet geïmplementeerd."
+
+#: includes/admin_view.php:171
+msgid "Advanced delivery settings"
+msgstr "Geavanceerde bezorgingsinstellingen"
+
+#: includes/admin_view.php:176
+msgid "Connection options"
+msgstr "Verbindingsopties"
+
+#: includes/admin_view.php:179
+msgid "Method"
+msgstr "Methode"
+
+#: includes/admin_view.php:186
+msgid "Certificate and hostname verification remain enabled. Provision the PEM file on every poller. Saved credentials are never displayed."
+msgstr "Certificaat- en hostnaamverificatie blijven ingeschakeld. Plaats het PEM-bestand op elke poller. Opgeslagen inloggegevens worden nooit weergegeven."
+
+#: includes/admin_view.php:187
+msgid "Other delivery options"
+msgstr "Overige bezorgingsopties"
+
+#: includes/admin_view.php:189 includes/admin_view.php:458
+msgid "Cancel"
+msgstr "Annuleer"
+
+#: includes/admin_view.php:189
+msgid "Test destination saves the current settings and queues a sample alarm for this destination. Enable the destination before testing."
+msgstr "Bestemming testen slaat de huidige instellingen op en plaatst een voorbeeldalarm in de wachtrij voor deze bestemming. Schakel de bestemming in voordat u test."
+
+#: includes/admin_view.php:190
+msgid "Save endpoint"
+msgstr "Eindpunt opslaan"
+
+#: includes/admin_view.php:190
+msgid "Test destination"
+msgstr "Bestemming testen"
+
+#: includes/admin_view.php:194
+msgid "Delete endpoint"
+msgstr "Eindpunt verwijderen"
+
+#: includes/admin_view.php:194
+msgid "Delete this endpoint, its delivery settings and saved credentials"
+msgstr "Dit eindpunt, de bezorgingsinstellingen en opgeslagen inloggegevens verwijderen"
+
+#: includes/admin_view.php:194
+msgid "Deleting stops future delivery and removes the saved settings and credentials. Remove notification rule references and resolve queued or running deliveries first. Completed and failed delivery history is preserved."
+msgstr "Verwijderen stopt toekomstige bezorging en verwijdert de opgeslagen instellingen en inloggegevens. Verwijder eerst verwijzingen uit meldingsregels en rond wachtende of lopende bezorgingen af. De geschiedenis van voltooide en mislukte bezorgingen blijft behouden."
+
+#: includes/admin_view.php:205
+msgid "Chat and messaging"
+msgstr "Chat en berichten"
+
+#: includes/admin_view.php:206
+msgid "Post alarms to a Slack channel."
+msgstr "Plaats alarmen in een Slack-kanaal."
+
+#: includes/admin_view.php:207
+msgid "Post alarm cards through a Teams Workflow."
+msgstr "Plaats alarmkaarten via een Teams-workflow."
+
+#: includes/admin_view.php:208
+msgid "Send alarms from a Telegram bot."
+msgstr "Alarmen verzenden via een Telegram-bot."
+
+#: includes/admin_view.php:209
+msgid "Text alarms to phone numbers."
+msgstr "Sms-alarmen naar telefoonnummers verzenden."
+
+#: includes/admin_view.php:210
+msgid "Send approved WhatsApp templates."
+msgstr "Goedgekeurde WhatsApp-sjablonen verzenden."
+
+#: includes/admin_view.php:211
+msgid "Incident management"
+msgstr "Incidentbeheer"
+
+#: includes/admin_view.php:212
+msgid "Trigger and resolve PagerDuty incidents."
+msgstr "PagerDuty-incidenten activeren en oplossen."
+
+#: includes/admin_view.php:213
+msgid "Open and resolve ServiceNow incidents or events."
+msgstr "ServiceNow-incidenten of -gebeurtenissen openen en oplossen."
+
+#: includes/admin_view.php:214
+msgid "Network management"
+msgstr "Netwerkbeheer"
+
+#: includes/admin_view.php:215
+msgid "Send SNMPv2c or SNMPv3 traps and INFORMs."
+msgstr "SNMPv2c- of SNMPv3-traps en INFORMs verzenden."
+
+#: includes/admin_view.php:216
+msgid "Forward RFC 5424 or RFC 3164 messages over UDP, TCP or TLS."
+msgstr "Stuur RFC 5424- of RFC 3164-berichten door via UDP, TCP of TLS."
+
+#: includes/admin_view.php:217
+msgid "Custom"
+msgstr "Aangepast"
+
+#: includes/admin_view.php:218
+msgid "Start from an empty endpoint."
+msgstr "Begin met een leeg eindpunt."
+
+#: includes/admin_view.php:219
+msgid "POST alarm JSON to any HTTPS endpoint."
+msgstr "Verstuur alarm-JSON via POST naar een willekeurig HTTPS-eindpunt."
+
+#: includes/admin_view.php:220
+msgid "Call an API with your own method, authentication and response checks."
+msgstr "Roep een API aan met uw eigen methode, verificatie en antwoordcontroles."
+
+#: includes/admin_view.php:221
+msgid "Run a local executable with the alarm as JSON input."
+msgstr "Voer een lokaal uitvoerbaar bestand uit met het alarm als JSON-invoer."
+
+#: includes/admin_view.php:227
+msgid "Add integration"
+msgstr "Integratie toevoegen"
+
+#: includes/admin_view.php:228
+msgid "Choose a template. It opens as a disabled draft; nothing is sent until you enable it."
+msgstr "Kies een sjabloon. Deze wordt geopend als uitgeschakeld concept; er wordt niets verzonden totdat u deze inschakelt."
+
+#: includes/admin_view.php:228
+msgid "Search integrations"
+msgstr "Integraties zoeken"
+
+#: includes/admin_view.php:234
+msgid "Blank endpoint"
+msgstr "Leeg eindpunt"
+
+#: includes/admin_view.php:239
+msgid "No integrations match your search."
+msgstr "Geen integraties komen overeen met uw zoekopdracht."
+
+#: includes/admin_view.php:243
+msgid "SNMP trap settings"
+msgstr "SNMP-trapinstellingen"
+
+#: includes/admin_view.php:259
+msgid "Saved community and passphrases are encrypted and never displayed. Leave them blank to keep the saved values; entering any value replaces all saved SNMP secrets."
+msgstr "Opgeslagen community en wachtwoordzinnen worden versleuteld en nooit weergegeven. Laat ze leeg om de opgeslagen waarden te behouden; het invoeren van een waarde vervangt alle opgeslagen SNMP-geheimen."
+
+#: includes/admin_view.php:260
+msgid "Traps are sent as Cacti's CACTI-MIB cactiNotify with the snmptrap binary from Cacti Settings > Paths on every delivering poller. Add one destination per receiver."
+msgstr "Traps worden verzonden als Cacti's CACTI-MIB cactiNotify met het snmptrap-programma uit Cacti-instellingen > Paden op elke bezorgende poller. Voeg één bestemming per ontvanger toe."
+
+#: includes/admin_view.php:261
+msgid "Syslog settings"
+msgstr "Syslog-instellingen"
+
+#: includes/admin_view.php:269
+msgid "TLS verifies the receiver certificate and hostname. Use port 6514 for TLS. UDP and TCP are unencrypted, and a UDP message is confirmed only as sent."
+msgstr "TLS verifieert het certificaat en de hostnaam van de ontvanger. Gebruik poort 6514 voor TLS. UDP en TCP zijn onversleuteld en een UDP-bericht wordt alleen bevestigd als verzonden."
+
+#: includes/admin_view.php:278 setup.php:191
+msgid "Days"
+msgstr "Dagen"
+
+#: includes/admin_view.php:283
+msgid "Timezone"
+msgstr "Tijdzone"
+
+#: includes/admin_view.php:291
+msgid "Times use the selected timezone and the alarm event time. An end time before the start runs overnight. Equal times cover the entire selected day."
+msgstr "Tijden gebruiken de geselecteerde tijdzone en de tijd van de alarmgebeurtenis. Een eindtijd vóór de starttijd loopt door de nacht. Gelijke tijden bestrijken de volledige geselecteerde dag."
+
+#: includes/admin_view.php:332 includes/admin_view.php:521
+msgid "Create a rule"
+msgstr "Regel maken"
+
+#: includes/admin_view.php:332
+msgid "Enabled"
+msgstr "Ingeschakeld"
+
+#: includes/admin_view.php:332
+msgid "Priority"
+msgstr "Prioriteit"
+
+#: includes/admin_view.php:334
+msgid "Rule and destination"
+msgstr "Regel en bestemming"
+
+#: includes/admin_view.php:338
+msgid "Alarm Destination"
+msgstr "Alarmbestemming"
+
+#: includes/admin_view.php:341
+msgid "disabled"
+msgstr "uitgeschakeld"
+
+#: includes/admin_view.php:343
+msgid "Select one or more alarm destinations. Disabled destinations do not send alarms."
+msgstr "Selecteer een of meer alarmbestemmingen. Uitgeschakelde bestemmingen verzenden geen alarmen."
+
+#: includes/admin_view.php:345
+msgid "Message template"
+msgstr "Berichtsjabloon"
+
+#: includes/admin_view.php:345
+msgid "Use each destination default, or customize its message for this rule. Customization starts with a copy of the destination template and does not change other rules. If several rules match the same destination, the first matching rule in priority and ID order supplies its template."
+msgstr "Gebruik de standaard van elke bestemming of pas het bericht aan voor deze regel. Aanpassing begint met een kopie van het bestemmingssjabloon en wijzigt geen andere regels. Als meerdere regels overeenkomen met dezelfde bestemming, levert de eerste overeenkomende regel op volgorde van prioriteit en ID het sjabloon."
+
+#: includes/admin_view.php:352
+msgid "Custom template"
+msgstr "Aangepast sjabloon"
+
+#: includes/admin_view.php:355
+msgid "Destination recipient"
+msgstr "Bestemmingsontvanger"
+
+#: includes/admin_view.php:355
+#, php-format
+msgid "Recipients: %d"
+msgstr "Ontvangers: %d"
+
+#: includes/admin_view.php:357
+msgid "Customize message for this rule"
+msgstr "Bericht voor deze regel aanpassen"
+
+#: includes/admin_view.php:357
+msgid "Unchecked: Use destination default."
+msgstr "Uitgeschakeld: gebruik bestemmingsstandaard."
+
+#: includes/admin_view.php:361
+msgid "Optional: add each phone number in international format, such as +15551234567. These numbers replace the destination recipient for this rule. Leave the list empty to use the destination default. Each number has its own delivery status and retries."
+msgstr "Optioneel: voeg elk telefoonnummer in internationaal formaat toe, zoals +15551234567. Deze nummers vervangen de bestemmingsontvanger voor deze regel. Laat de lijst leeg om de standaardwaarde van de bestemming te gebruiken. Elk nummer heeft een eigen bezorgingsstatus en herhaalpogingen."
+
+#: includes/admin_view.php:374
+msgid "None"
+msgstr "Geen"
+
+#: includes/admin_view.php:376
+msgid "Build device conditions using AND, OR and groups. These conditions use the current Cacti device settings and must also satisfy any alarm filters below. With no device conditions, all devices can match."
+msgstr "Stel apparaatvoorwaarden samen met AND, OR en groepen. Deze voorwaarden gebruiken de huidige Cacti-apparaatinstellingen en moeten ook voldoen aan eventuele alarmfilters hieronder. Zonder apparaatvoorwaarden kunnen alle apparaten overeenkomen."
+
+#: includes/admin_view.php:376
+msgid "Match devices"
+msgstr "Apparaten matchen"
+
+#: includes/admin_view.php:387
+msgid "Cacti_Admin_Notifications"
+msgstr "Cacti_Admin_Meldingen"
+
+#: includes/admin_view.php:387
+msgid "Device Status"
+msgstr "Apparaatstatus"
+
+#: includes/admin_view.php:387
+msgid "Syslog"
+msgstr "Syslog"
+
+#: includes/admin_view.php:387
+msgid "Thold"
+msgstr "Thold"
+
+#: includes/admin_view.php:392
+msgid "Build alarm conditions using AND, OR, NOT and groups. Alarms must also match the device conditions above."
+msgstr "Stel alarmvoorwaarden samen met AND, OR, NOT en groepen. Alarmen moeten ook voldoen aan de bovenstaande apparaatvoorwaarden."
+
+#: includes/admin_view.php:392
+msgid "Match alarms"
+msgstr "Alarmen matchen"
+
+#: includes/admin_view.php:395
+msgid "No alarm sources detected yet. Sources appear after their first alarm."
+msgstr "Nog geen alarmbronnen gedetecteerd. Bronnen verschijnen na hun eerste alarm."
+
+#: includes/admin_view.php:397
+msgid "By default, matching alarms can notify at any time. Turn on a schedule to limit when this rule matches."
+msgstr "Standaard kunnen overeenkomende alarmen op elk moment melden. Schakel een schema in om te beperken wanneer deze regel van toepassing is."
+
+#: includes/admin_view.php:397
+msgid "Notification hours"
+msgstr "Meldingsuren"
+
+#: includes/admin_view.php:399
+msgid "Suppress notifications"
+msgstr "Meldingen onderdrukken"
+
+#: includes/admin_view.php:399
+msgid "Suppressed alarms remain in history. Recovery notifications bypass acknowledgment, cooldown and duplicate suppression, but still follow notification hours and maintenance windows."
+msgstr "Onderdrukte alarmen blijven in de geschiedenis. Herstelmeldingen omzeilen bevestiging, afkoelperiode en duplicaatonderdrukking, maar volgen nog steeds meldingsuren en onderhoudsvensters."
+
+#: includes/admin_view.php:403
+msgid "Set a duration to 0 to turn it off."
+msgstr "Stel een duur in op 0 om deze uit te schakelen."
+
+#: includes/admin_view.php:405
+msgid "Rule order"
+msgstr "Regelvolgorde"
+
+#: includes/admin_view.php:408
+msgid "Create rule"
+msgstr "Regel maken"
+
+#: includes/admin_view.php:408
+msgid "Rules with equal priority run in ID order. Stopping also applies when this rule suppresses notifications."
+msgstr "Regels met gelijke prioriteit worden in ID-volgorde uitgevoerd. Stoppen geldt ook wanneer deze regel meldingen onderdrukt."
+
+#: includes/admin_view.php:417
+msgid "Configuration Backup/Restore"
+msgstr "Configuratieback-up/-herstel"
+
+#: includes/admin_view.php:427
+msgid "Paused"
+msgstr "Gepauzeerd"
+
+#: includes/admin_view.php:427
+msgid "Running"
+msgstr "Wordt uitgevoerd"
+
+#: includes/admin_view.php:428
+msgid "everything has been delivered"
+msgstr "alles is bezorgd"
+
+#: includes/admin_view.php:428
+#, php-format
+msgid "oldest queued %s UTC"
+msgstr "oudste in wachtrij %s UTC"
+
+#: includes/admin_view.php:428
+msgid "waiting messages"
+msgstr "wachtende berichten"
+
+#: includes/admin_view.php:431
+msgid "Hide messages"
+msgstr "Berichten verbergen"
+
+#: includes/admin_view.php:431
+msgid "View messages"
+msgstr "Berichten weergeven"
+
+#: includes/admin_view.php:441
+msgid "Endpoint"
+msgstr "Eindpunt"
+
+#: includes/admin_view.php:441
+msgid "ID"
+msgstr "ID"
+
+#: includes/admin_view.php:441
+msgid "Message"
+msgstr "Bericht"
+
+#: includes/admin_view.php:441
+msgid "Next try"
+msgstr "Volgende poging"
+
+#: includes/admin_view.php:441 includes/reports.php:458
+msgid "Queued"
+msgstr "In wachtrij"
+
+#: includes/admin_view.php:441
+msgid "Tries"
+msgstr "Pogingen"
+
+#: includes/admin_view.php:451
+msgid "Times in UTC · first 100 shown"
+msgstr "Tijden in UTC · eerste 100 weergegeven"
+
+#: includes/admin_view.php:455
+msgid "Pause delivery"
+msgstr "Bezorging pauzeren"
+
+#: includes/admin_view.php:455
+msgid "Resume delivery"
+msgstr "Bezorging hervatten"
+
+#: includes/admin_view.php:458
+msgid "Clear queue"
+msgstr "Wachtrij legen"
+
+#: includes/admin_view.php:459
+#, php-format
+msgid "Discard all %d waiting notifications on this poller?"
+msgstr "Alle %d wachtende meldingen op deze poller verwijderen?"
+
+#: includes/admin_view.php:460
+msgid "Includes retries. They stay in delivery history as failed, reason queue_cleared."
+msgstr "Inclusief herhaalpogingen. Ze blijven in de bezorgingsgeschiedenis als mislukt, reden queue_cleared."
+
+#: includes/admin_view.php:461
+msgid "Messages already sending and alarm state are kept."
+msgstr "Berichten die al worden verzonden en de alarmstatus blijven behouden."
+
+#: includes/admin_view.php:462
+msgid "Tip: pause delivery first during maintenance."
+msgstr "Tip: pauzeer de bezorging eerst tijdens onderhoud."
+
+#: includes/admin_view.php:463
+msgid "Clear queue…"
+msgstr "Wachtrij legen…"
+
+#: includes/admin_view.php:464
+msgid "Controls apply to this poller. While paused, alarms are still received and queued; Resume sends them."
+msgstr "Bedieningselementen gelden voor deze poller. Tijdens een pauze worden alarmen nog steeds ontvangen en in de wachtrij geplaatst; Hervatten verzendt ze."
+
+#: includes/admin_view.php:467
+msgid "View delivery results"
+msgstr "Bezorgingsresultaten weergeven"
+
+#: includes/admin_view.php:470
+msgid "Create an integration, configure its destination and credentials, test a sample alarm here, then select it directly in a rule."
+msgstr "Maak een integratie, configureer de bestemming en inloggegevens, test hier een voorbeeldalarm en selecteer deze vervolgens direct in een regel."
+
+#: includes/admin_view.php:476
+msgid "Configured integrations"
+msgstr "Geconfigureerde integraties"
+
+#: includes/admin_view.php:479
+msgid "No integrations yet. Choose a template above to create one."
+msgstr "Nog geen integraties. Kies hierboven een sjabloon om er een te maken."
+
+#: includes/admin_view.php:490
+msgid "Alarm Rules"
+msgstr "Alarmregels"
+
+#: includes/admin_view.php:490
+msgid "Choose which alarms should notify, where to send them and when to pause notifications. Rules run from lowest to highest priority."
+msgstr "Kies welke alarmen moeten melden, waar ze naartoe moeten worden gestuurd en wanneer meldingen moeten worden gepauzeerd. Regels worden uitgevoerd van laagste naar hoogste prioriteit."
+
+#: includes/admin_view.php:493
+msgid "Create an integration before saving your first rule."
+msgstr "Maak een integratie voordat u uw eerste regel opslaat."
+
+#: includes/admin_view.php:493
+msgid "Create integration"
+msgstr "Integratie maken"
+
+#: includes/admin_view.php:495
+msgid "Clear"
+msgstr "Wissen"
+
+#: includes/admin_view.php:495
+msgid "Critical"
+msgstr "Kritiek"
+
+#: includes/admin_view.php:495
+msgid "Information"
+msgstr "Informatie"
+
+#: includes/admin_view.php:495
+msgid "Major"
+msgstr "Groot"
+
+#: includes/admin_view.php:495
+msgid "Minor"
+msgstr "Klein"
+
+#: includes/admin_view.php:495
+msgid "Occurrence"
+msgstr "Voorkomen"
+
+#: includes/admin_view.php:495
+msgid "Raised"
+msgstr "Geactiveerd"
+
+#: includes/admin_view.php:495
+msgid "Recovered"
+msgstr "Hersteld"
+
+#: includes/admin_view.php:495
+msgid "Reminder"
+msgstr "Herinnering"
+
+#: includes/admin_view.php:495
+msgid "Updated"
+msgstr "Bijgewerkt"
+
+#: includes/admin_view.php:495
+msgid "Warning"
+msgstr "Waarschuwing"
+
+#: includes/admin_view.php:520
+msgid "Alarm notifications require an enabled matching Alarm Rule. Without one, alarms remain in history but no notifications are sent."
+msgstr "Alarmmeldingen vereisen een ingeschakelde overeenkomende alarmregel. Zonder een dergelijke regel blijven alarmen in de geschiedenis staan, maar worden er geen meldingen verzonden."
+
+#: includes/admin_view.php:524
+msgid "No rules yet. Create a rule below to start routing alarms to your notification destinations."
+msgstr "Nog geen regels. Maak hieronder een regel om alarmen naar uw meldingsbestemmingen te routeren."
+
+#: includes/admin_view.php:533
+msgid "Credential values are never loaded into this page. Saving replaces the endpoint record; blank values do not preserve an old password. Use the CLI for protected backup/restore and poller provisioning."
+msgstr "Waarden van inloggegevens worden nooit op deze pagina geladen. Opslaan vervangt het eindpuntrecord; lege velden behouden geen oud wachtwoord. Gebruik de CLI voor beveiligde back-up/herstel en poller-provisioning."
+
+#: includes/admin_view.php:536
+msgid "Create endpoint"
+msgstr "Eindpunt maken"
+
+#: includes/admin_view.php:536
+msgid "No REST API or webhook endpoints have been saved. Create an endpoint to enter its bearer token, Basic authentication username and password, or API-key headers."
+msgstr "Er zijn geen REST API- of webhook-eindpunten opgeslagen. Maak een eindpunt om het bearer-token, gebruikersnaam en wachtwoord voor Basic-verificatie of API-sleutelheaders in te voeren."
+
+#: includes/admin_view.php:540
+msgid "Configured"
+msgstr "Geconfigureerd"
+
+#: includes/admin_view.php:543
+msgid "Replace credential"
+msgstr "Inloggegeven vervangen"
+
+#: includes/admin_view.php:549
+msgid "Rotate local key"
+msgstr "Lokale sleutel roteren"
+
+#: includes/admin_view.php:553
+msgid "Event log"
+msgstr "Gebeurtenislogboek"
+
+#: includes/admin_view.php:553
+msgid "Writes every event as it is processed, independent of which rules match or whether any destination is notified — a complete audit trail for external analysis, for example with Splunk."
+msgstr "Schrijft elke gebeurtenis terwijl deze wordt verwerkt, ongeacht welke regels overeenkomen of dat er een bestemming wordt gemeld - een volledig auditspoor voor externe analyse, bijvoorbeeld met Splunk."
+
+#: includes/admin_view.php:555
+msgid "Cacti log"
+msgstr "Cacti-logboek"
+
+#: includes/admin_view.php:555
+msgid "External file"
+msgstr "Extern bestand"
+
+#: includes/admin_view.php:555
+msgid "Write to"
+msgstr "Schrijven naar"
+
+#: includes/admin_view.php:559
+msgid "One JSON object per line (occurred_at, transition, severity, device, alarm key…). The path must already exist, outside the plugin directory and Cacti's web root. Past the size limit, the file rotates to one .1 backup."
+msgstr "Eén JSON-object per regel (occurred_at, transition, severity, device, alarmsleutel…). Het pad moet al bestaan, buiten de plug-inmap en de webroot van Cacti. Voorbij de groottelimiet roteert het bestand naar één .1-back-up."
+
+#: includes/admin_view.php:559
+msgid "Save event log settings"
+msgstr "Instellingen gebeurtenislogboek opslaan"
+
+#: includes/admin_view.php:561
+msgid "Backup and restore"
+msgstr "Back-up en herstel"
+
+#: includes/admin_view.php:561
+msgid "Export"
+msgstr "Exporteer"
+
+#: includes/admin_view.php:562
+msgid "Endpoints, message templates, and rules as JSON. Credentials and settings are not included. Endpoint URLs can contain secrets, so keep the file private."
+msgstr "Eindpunten, berichtsjablonen en regels als JSON. Inloggegevens en instellingen zijn niet inbegrepen. Eindpunt-URL's kunnen geheimen bevatten, dus houd het bestand vertrouwelijk."
+
+#: includes/admin_view.php:563
+msgid "Export configuration"
+msgstr "Configuratie exporteren"
+
+#: includes/admin_view.php:563
+msgid "Import"
+msgstr "Importeren"
+
+#: includes/admin_view.php:567
+msgid "Replaces the routing configuration using the IDs in the file. Endpoints and rules missing from the file are disabled, not deleted. Saved credentials are kept."
+msgstr "Vervangt de routeringsconfiguratie met behulp van de ID's in het bestand. Eindpunten en regels die in het bestand ontbreken, worden uitgeschakeld, niet verwijderd. Opgeslagen inloggegevens blijven behouden."
+
+#: includes/admin_view.php:568
+msgid "Import configuration"
+msgstr "Configuratie importeren"
+
+#: includes/admin_view.php:572
+msgid "Local queue health"
+msgstr "Status lokale wachtrij"
+
+#: includes/admin_view.php:573
+msgid "Jobs"
+msgstr "Taken"
+
+#: includes/admin_view.php:573
+msgid "Oldest job age (seconds)"
+msgstr "Leeftijd oudste taak (seconden)"
+
+#: includes/admin_view.php:573
+msgid "Queue"
+msgstr "Wachtrij"
+
+#: includes/admin_view.php:573
+msgid "Retries"
+msgstr "Pogingen"
+
+#: includes/admin_view.php:573 includes/admin_view.php:592
+#: includes/web_view.php:181
+msgid "Status"
+msgstr "Status"
+
+#: includes/admin_view.php:588
+msgid "No queue activity recorded."
+msgstr "Geen wachtrijactiviteit geregistreerd."
+
+#: includes/admin_view.php:591
+msgid "Local worker health"
+msgstr "Status lokale workers"
+
+#: includes/admin_view.php:592
+msgid "Current job"
+msgstr "Huidige taak"
+
+#: includes/admin_view.php:592
+msgid "Heartbeat age (seconds)"
+msgstr "Heartbeat-leeftijd (seconden)"
+
+#: includes/admin_view.php:592
+msgid "PID"
+msgstr "PID"
+
+#: includes/admin_view.php:592
+msgid "Poller"
+msgstr "Poller"
+
+#: includes/admin_view.php:592
+msgid "Role"
+msgstr "Rol"
+
+#: includes/admin_view.php:592
+msgid "Worker"
+msgstr "Worker"
+
+#: includes/admin_view.php:607
+msgid "No local worker heartbeats recorded."
+msgstr "Geen lokale worker-heartbeats geregistreerd."
+
+#: includes/admin_view.php:610
+msgid "Completed delivery jobs in the last 300 seconds"
+msgstr "Voltooide bezorgingstaken in de afgelopen 300 seconden"
+
+#: includes/admin_view.php:610
+msgid "Completed processing jobs in the last 300 seconds"
+msgstr "Voltooide verwerkingstaken in de afgelopen 300 seconden"
+
+#: includes/admin_view.php:610
+msgid "Processing streams blocked behind a failed predecessor"
+msgstr "Verwerkingsstromen geblokkeerd achter een mislukte voorganger"
+
+#: includes/admin_view.php:613
+msgid "Pending jobs for destination types without a qualified transport"
+msgstr "Openstaande taken voor bestemmingstypen zonder gekwalificeerd transport"
+
+#: includes/admin_view.php:620
+msgid "Failed deliveries and replay"
+msgstr "Mislukte bezorgingen en opnieuw afspelen"
+
+#: includes/admin_view.php:620
+msgid "Failed processing jobs and replay"
+msgstr "Mislukte verwerkingstaken en opnieuw afspelen"
+
+#: includes/admin_view.php:625
+msgid "Authentication"
+msgstr "Authenticatie"
+
+#: includes/admin_view.php:625
+msgid "Authentication type"
+msgstr "Verificatietype"
+
+#: includes/admin_view.php:649
+msgid "Saved credentials are encrypted and never displayed. New values replace the saved credential record."
+msgstr "Opgeslagen inloggegevens worden versleuteld en nooit weergegeven. Nieuwe waarden vervangen het opgeslagen inloggegevenrecord."
+
+#: includes/polling.php:150
+msgid "Start the Alarm Manager service on this collector before enabling daemon workers."
+msgstr "Start de Alarmbeheerservice op deze collector voordat u daemon-workers inschakelt."
+
+#: includes/polling.php:163
+msgid "Daemon settings could not be saved. Check the Cacti cache directory permissions."
+msgstr "Daemon-instellingen konden niet worden opgeslagen. Controleer de machtigingen van de Cacti-cachemap."
+
+#: includes/reports.php:430
+msgid "Remote history"
+msgstr "Externe geschiedenis"
+
+#: includes/reports.php:459
+msgid "Test send"
+msgstr "Test verzenden"
+
+#: includes/reports.php:460
+msgid "No matching rule"
+msgstr "Geen overeenkomende regel"
+
+#: includes/reports.php:461
+msgid "Destination disabled"
+msgstr "Bestemming uitgeschakeld"
+
+#: includes/reports.php:462
+msgid "Suppressed by source"
+msgstr "Onderdrukt door bron"
+
+#: includes/reports.php:463
+msgid "Maintenance window"
+msgstr "Onderhoudsvenster"
+
+#: includes/reports.php:464
+msgid "Acknowledged"
+msgstr "Bevestigd"
+
+#: includes/reports.php:465
+msgid "Cooldown"
+msgstr "Afkoelperiode"
+
+#: includes/reports.php:466
+msgid "Duplicate"
+msgstr "Dupliceer"
+
+#: includes/reports.php:467
+msgid "Already routed"
+msgstr "Al gerouteerd"
+
+#: includes/reports.php:468
+msgid "Out of order"
+msgstr "Buiten volgorde"
+
+#: includes/reports.php:469
+msgid "Ignored episode"
+msgstr "Genegeerde episode"
+
+#: includes/reports.php:470
+msgid "History only"
+msgstr "Alleen geschiedenis"
+
+#: includes/reports.php:518
+#, php-format
+msgid "Deleted destination #%d"
+msgstr "Bestemming #%d verwijderd"
+
+#: includes/reports.php:519
+#, php-format
+msgid "%d destinations"
+msgstr "%d bestemmingen"
+
+#: includes/reports.php:531
+msgid "Delivered"
+msgstr "Bezorgd"
+
+#: includes/reports.php:531
+msgid "Failed"
+msgstr "Mislukt"
+
+#: includes/reports.php:531
+msgid "Pending"
+msgstr "In wachtrij"
+
+#: includes/reports.php:531
+msgid "Sending"
+msgstr "Bezig met verzenden"
+
+#: includes/reports.php:541
+msgid "Processing failed"
+msgstr "Verwerking mislukt"
+
+#: includes/reports.php:542
+msgid "Pending processing"
+msgstr "In afwachting van verwerking"
+
+#: includes/reports.php:543 includes/web_view.php:264
+msgid "Processing"
+msgstr "Bezig met verwerken"
+
+#: includes/reports.php:544
+msgid "No matching integration"
+msgstr "Geen overeenkomende integratie"
+
+#: includes/reports.php:544
+msgid "Suppressed"
+msgstr "Onderdrukt"
+
+#: includes/routing.php:106
+msgid "Device description"
+msgstr "Apparaatbeschrijving"
+
+#: includes/routing.php:106
+msgid "Hostname"
+msgstr "Hostname"
+
+#: includes/routing.php:106
+msgid "Location"
+msgstr "Locatie"
+
+#: includes/routing.php:106
+msgid "SNMP system location"
+msgstr "SNMP-systeemlocatie"
+
+#: includes/routing.php:110 includes/routing.php:125
+msgid "Collector"
+msgstr "Data verzamelaars"
+
+#: includes/routing.php:110
+msgid "Device Site Association"
+msgstr "Locatie van het apparaat"
+
+#: includes/routing.php:110
+msgid "Device Template"
+msgstr "Apparaatsjabloon"
+
+#: includes/routing.php:121
+msgid "Alarm change"
+msgstr "Alarmwijziging"
+
+#: includes/routing.php:121
+msgid "Alarm source"
+msgstr "Alarmbron"
+
+#: includes/routing.php:121
+msgid "Alarm summary"
+msgstr "Alarmoverzicht"
+
+#: includes/routing.php:121 includes/web_view.php:161
+msgid "Severity"
+msgstr "Gevoeligheid"
+
+#: includes/routing.php:125
+msgid "Device"
+msgstr "Apparaat"
+
+#: includes/routing.php:128
+msgid "Device tag"
+msgstr "Apparaattag"
+
+#: includes/web_view.php:93
+msgid "Report unavailable or permission denied."
+msgstr "Rapport niet beschikbaar of toestemming geweigerd."
+
+#: includes/web_view.php:119
+msgid "Statistics could not be rendered."
+msgstr "Statistieken konden niet worden weergegeven."
+
+#: includes/web_view.php:129 setup.php:131 setup.php:273 setup.php:289
+#: setup.php:290
+msgid "Alarm Manager"
+msgstr "Alarmbeheer"
+
+#: includes/web_view.php:136
+msgid "Alarm Manager pages"
+msgstr "Alarmbeheerpagina's"
+
+#: includes/web_view.php:149 includes/web_view.php:152
+msgid "Alarm statistics"
+msgstr "Alarmstatistieken"
+
+#: includes/web_view.php:149
+msgid "Filters"
+msgstr "Filters"
+
+#: includes/web_view.php:152
+msgid "Time range"
+msgstr "Tijdsbereik"
+
+#: includes/web_view.php:158
+msgid "Off"
+msgstr "Uit"
+
+#: includes/web_view.php:158
+msgid "Refresh"
+msgstr "Vernieuwen"
+
+#: includes/web_view.php:160
+msgid "Advanced filter JSON"
+msgstr "Geavanceerde filter-JSON"
+
+#: includes/web_view.php:160
+msgid "Filter document"
+msgstr "Filterdocument"
+
+#: includes/web_view.php:160
+msgid "Quick filters"
+msgstr "Snelfilters"
+
+#: includes/web_view.php:160
+msgid "Search conditions"
+msgstr "Zoekvoorwaarden"
+
+#: includes/web_view.php:161 includes/web_view.php:181
+msgid "All"
+msgstr "Alle"
+
+#: includes/web_view.php:161
+msgid "Source"
+msgstr "Bron"
+
+#: includes/web_view.php:168
+msgid "Device ID"
+msgstr "Apparaat-ID"
+
+#: includes/web_view.php:171
+msgid "Status type"
+msgstr "Statustype"
+
+#: includes/web_view.php:190
+msgid "event_id"
+msgstr "event_id"
+
+#: includes/web_view.php:195
+msgid "Collector ID"
+msgstr "Collector-ID"
+
+#: includes/web_view.php:195
+msgid "Local and mirrored collectors"
+msgstr "Lokale en gespiegelde collectors"
+
+#: includes/web_view.php:198
+msgid "mirrored"
+msgstr "gespiegeld"
+
+#: includes/web_view.php:203
+msgid "Mirrored events carry no Record ID and no detail view."
+msgstr "Gespiegelde gebeurtenissen hebben geen Record-ID en geen detailweergave."
+
+#: includes/web_view.php:205
+msgid "Mirrored collector events are always included here unless you narrow by a specific remote Collector ID."
+msgstr "Gespiegelde collectorgebeurtenissen zijn hier altijd inbegrepen, tenzij u filtert op een specifieke externe Collector-ID."
+
+#: includes/web_view.php:211
+msgid "Apply"
+msgstr "Toepassen"
+
+#: includes/web_view.php:211
+msgid "Reset"
+msgstr "Reset"
+
+#: includes/web_view.php:213
+msgid "Historical window uses UTC. Current conditions and queues ignore the time window."
+msgstr "Het historische tijdvenster gebruikt UTC. Huidige voorwaarden en wachtrijen negeren het tijdvenster."
+
+#: includes/web_view.php:235
+msgid "Loading statistics…"
+msgstr "Statistieken laden…"
+
+#: includes/web_view.php:248
+msgid "Collapse"
+msgstr "Inklappen"
+
+#: includes/web_view.php:261
+msgid "Integration results"
+msgstr "Integratieresultaten"
+
+#: includes/web_view.php:262
+msgid "Delivery attempts"
+msgstr "Bezorgingspogingen"
+
+#: includes/web_view.php:263
+msgid "Routing decisions"
+msgstr "Routeringsbeslissingen"
+
+#: includes/web_view.php:265
+msgid "conditions"
+msgstr "voorwaarden"
+
+#: includes/web_view.php:270
+msgid "No matching records."
+msgstr "Geen overeenkomende records."
+
+#: includes/web_view.php:290
+msgid "Integration status"
+msgstr "Integratiestatus"
+
+#: includes/web_view.php:291
+msgid "Collector Name"
+msgstr "Naam van de verzamelaar"
+
+#: includes/web_view.php:292
+msgid "Attempts in current retry cycle"
+msgstr "Pogingen in huidige herhaalcyclus"
+
+#: includes/web_view.php:298
+msgid "Action"
+msgstr "Actie"
+
+#: includes/web_view.php:314
+msgid "Display"
+msgstr "Scherm"
+
+#: includes/web_view.php:349
+msgid "Latest 100 records for this event."
+msgstr "Laatste 100 records voor deze gebeurtenis."
+
+#: includes/web_view.php:354
+msgid "Showing at most 50 records per page."
+msgstr "Er worden maximaal 50 records per pagina weergegeven."
+
+#: includes/web_view.php:355
+msgid "Pages"
+msgstr "Pagina's"
+
+#: includes/web_view.php:358
+msgid "Previous"
+msgstr "Vorige"
+
+#: includes/web_view.php:361
+#, php-format
+msgid "Page %d"
+msgstr "Pagina %d"
+
+#: includes/web_view.php:364
+msgid "Next"
+msgstr "Volgende"
+
+#: includes/web_view.php:371
+msgid "Selected event details"
+msgstr "Details van geselecteerde gebeurtenis"
+
+#: includes/web_view.php:378
+msgid "Show metadata"
+msgstr "Metagegevens weergeven"
+
+#: includes/web_view.php:400
+msgid "Confirm replay may repeat an external effect"
+msgstr "Bevestig dat opnieuw afspelen een extern effect kan herhalen"
+
+#: setup.php:102
+msgid "Alarm Manager View"
+msgstr "Alarmbeheer - Weergave"
+
+#: setup.php:103
+msgid "Alarm Manager Administration"
+msgstr "Alarmbeheer - Administratie"
+
+#: setup.php:133
+msgid "0 Worker Processes"
+msgstr "0 werkprocessen"
+
+#: setup.php:133
+msgid "1 Worker Process"
+msgstr "1 werkproces"
+
+#: setup.php:136
+#, php-format
+msgid "%d Worker Processes"
+msgstr "%d worker-processen"
+
+#: setup.php:144
+msgid "Device Alarm Summaries"
+msgstr "Apparaatalarmoverzichten"
+
+#: setup.php:148
+msgid "Offline Summary"
+msgstr "Offline-overzicht"
+
+#: setup.php:149
+msgid "Summary for new Cacti device down alarms. Existing history retains its original summary."
+msgstr "Overzicht voor nieuwe Cacti-alarmen voor uitgevallen apparaten. Bestaande geschiedenis behoudt het oorspronkelijke overzicht."
+
+#: setup.php:156
+msgid "Recovering Summary"
+msgstr "Hersteloverzicht"
+
+#: setup.php:157
+msgid "Summary for device recovering updates within the same outage."
+msgstr "Overzicht voor updates over apparaatherstel binnen dezelfde storing."
+
+#: setup.php:164
+msgid "Online Summary"
+msgstr "Online-overzicht"
+
+#: setup.php:165
+msgid "Summary for device recovery alarms once Cacti confirms the device is up."
+msgstr "Overzicht voor apparaatherstelalarmen zodra Cacti bevestigt dat het apparaat weer actief is."
+
+#: setup.php:172
+msgid "Alert History Retention"
+msgstr "Bewaartermijn meldingsgeschiedenis"
+
+#: setup.php:177
+msgid "Keep Alert History For"
+msgstr "Meldingsgeschiedenis bewaren gedurende"
+
+#: setup.php:178
+msgid "Enter how many days, weeks or months to keep alert history, or choose Indefinitely to keep everything (the number is then ignored). Maximum 3650 days, 520 weeks or 120 months. A purge job runs with the Cacti poller and removes aged events with their decisions, deliveries and attempts. Active conditions and queued or failed work are never purged. Each collector purges its own history."
+msgstr "Voer in hoeveel dagen, weken of maanden de meldingsgeschiedenis moet worden bewaard, of kies Onbeperkt om alles te bewaren (het getal wordt dan genegeerd). Maximaal 3650 dagen, 520 weken of 120 maanden. Een opschoontaak draait met de Cacti-poller en verwijdert verouderde gebeurtenissen met hun beslissingen, bezorgingen en pogingen. Actieve voorwaarden en wachtend of mislukt werk worden nooit opgeschoond. Elke collector schoont zijn eigen geschiedenis op."
+
+#: setup.php:187
+msgid "Retention Unit"
+msgstr "Bewaareenheid"
+
+#: setup.php:188
+msgid "The unit for the retention period."
+msgstr "De eenheid voor de bewaarperiode."
+
+#: setup.php:191
+msgid "Indefinitely"
+msgstr "Voor onbepaalde tijd"
+
+#: setup.php:191
+msgid "Months"
+msgstr "Maanden"
+
+#: setup.php:191
+msgid "Weeks"
+msgstr "Weken"
+
+#: setup.php:194
+msgid "Daemon"
+msgstr "Daemon"
+
+#: setup.php:198
+msgid "Enable Daemon"
+msgstr "Daemon inschakelen"
+
+#: setup.php:199
+msgid "Run processing and delivery workers in the resident Alarm Manager service instead of the Cacti poller. The service must be installed and running; disabling it lets current jobs finish and returns processing to the poller. Changes apply within a few seconds and synchronize to collectors."
+msgstr "Voer verwerkings- en bezorgingsworkers uit in de residente Alarmbeheerservice in plaats van de Cacti-poller. De service moet zijn geïnstalleerd en actief zijn; uitschakelen laat lopende taken voltooien en zet de verwerking terug naar de poller. Wijzigingen worden binnen enkele seconden toegepast en gesynchroniseerd met collectors."
+
+#: setup.php:204
+msgid "Processing Workers"
+msgstr "Verwerkingsworkers"
+
+#: setup.php:205
+msgid "Number of daemon workers that evaluate rules."
+msgstr "Aantal daemon-workers dat regels evalueert."
+
+#: setup.php:211
+msgid "Delivery Workers"
+msgstr "Bezorgingsworkers"
+
+#: setup.php:212
+msgid "Number of daemon workers that deliver notifications."
+msgstr "Aantal daemon-workers dat meldingen bezorgt."
+
+#: setup.php:257
+msgid "Import/Export"
+msgstr "Importeren/exporteren"
+
+#: setup.php:259 setup.php:265 setup.php:271
+msgid "Alarm Manager Settings"
+msgstr "Alarmbeheer - Instellingen"

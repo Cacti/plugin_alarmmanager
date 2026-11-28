@@ -1,0 +1,1230 @@
+# Greek translations for Alarm Manager package.
+# Copyright (C) 2004-2026 The Cacti Group
+# This file is distributed under the same license as the Alarm Manager package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Alarm Manager 0.12.2\n"
+"Report-Msgid-Bugs-To: https://github.com/bmfmancini/plugin_alarmmanager/issues\n"
+"POT-Creation-Date: 2026-11-02 13:02-0500\n"
+"PO-Revision-Date: 2026-11-28 02:15+0000\n"
+"Last-Translator: Thomas Vincent <thomasvincent@gmail.com>\n"
+"Language-Team: Greek <https://translate.cacti.net/projects/cacti/core/el/>\n"
+"Language: el-GR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+
+#: alarmmanager_admin.php:50
+msgid "The administration action succeeded."
+msgstr "Η ενέργεια διαχείρισης ολοκληρώθηκε με επιτυχία."
+
+#: alarmmanager_admin.php:86
+msgid "Administration unavailable or permission denied."
+msgstr "Η διαχείριση δεν είναι διαθέσιμη ή δεν επιτρέπεται η πρόσβαση."
+
+#: includes/admin_view.php:78
+msgid "Choose the alarm information to send to any service. Use Combined text to arrange device details, or Use device message to start with a complete message. Email uses Subject and Message; API destinations use the field names required by the receiving service."
+msgstr "Επιλέξτε τις πληροφορίες συναγερμού που θα αποστέλλονται σε οποιαδήποτε υπηρεσία. Χρησιμοποιήστε Συνδυασμένο κείμενο για να οργανώσετε τις λεπτομέρειες της συσκευής ή Χρήση μηνύματος συσκευής για να ξεκινήσετε με ένα πλήρες μήνυμα. Το email χρησιμοποιεί Θέμα και Μήνυμα. Οι προορισμοί API χρησιμοποιούν τα ονόματα πεδίων που απαιτεί η υπηρεσία παραλαβής."
+
+#: includes/admin_view.php:79
+msgid "Advanced message configuration"
+msgstr "Σύνθετη διαμόρφωση μηνύματος"
+
+#: includes/admin_view.php:90
+msgid "New endpoint"
+msgstr "Νέο τελικό σημείο"
+
+#: includes/admin_view.php:100
+msgid "Custom integration"
+msgstr "Προσαρμοσμένη ενσωμάτωση"
+
+#: includes/admin_view.php:100
+msgid "Integration provider"
+msgstr "Πάροχος ενσωμάτωσης"
+
+#: includes/admin_view.php:112
+msgid "API Key SID and Secret (recommended)"
+msgstr "API Key SID και Secret (προτείνεται)"
+
+#: includes/admin_view.php:112
+msgid "Account SID and Auth Token"
+msgstr "Account SID και Auth Token"
+
+#: includes/admin_view.php:112
+msgid "Twilio credentials"
+msgstr "Διαπιστευτήρια Twilio"
+
+#: includes/admin_view.php:113
+msgid "Send using"
+msgstr "Αποστολή με χρήση"
+
+#: includes/admin_view.php:125
+msgid "Event"
+msgstr "Συμβάν"
+
+#: includes/admin_view.php:125
+msgid "Incident"
+msgstr "Περιστατικό"
+
+#: includes/admin_view.php:125
+msgid "ServiceNow record type"
+msgstr "Τύπος εγγραφής ServiceNow"
+
+#: includes/admin_view.php:126
+msgid "Changing the record type replaces the destination table, message fields and recovery settings with its defaults. Your instance and credentials are retained."
+msgstr "Η αλλαγή του τύπου εγγραφής αντικαθιστά τον πίνακα προορισμού, τα πεδία μηνύματος και τις ρυθμίσεις αποκατάστασης με τις προεπιλογές του. Η παρουσία και τα διαπιστευτήριά σας διατηρούνται."
+
+#: includes/admin_view.php:149
+msgid "Destination"
+msgstr "Προορισμός"
+
+#: includes/admin_view.php:154
+msgid "Email settings"
+msgstr "Ρυθμίσεις email"
+
+#: includes/admin_view.php:161
+msgid "Delivery uses the Cacti mail settings. Add the people who should receive these alarms."
+msgstr "Η παράδοση χρησιμοποιεί τις ρυθμίσεις email του Cacti. Προσθέστε τα άτομα που πρέπει να λαμβάνουν αυτούς τους συναγερμούς."
+
+#: includes/admin_view.php:162
+msgid "Script settings"
+msgstr "Ρυθμίσεις σεναρίου"
+
+#: includes/admin_view.php:167
+msgid "JSON output is sent to the script on standard input."
+msgstr "Η έξοδος JSON αποστέλλεται στο σενάριο μέσω της τυπικής εισόδου."
+
+#: includes/admin_view.php:167
+msgid "The executable must exist and be executable by the worker on every delivering poller. Arguments are passed directly without a shell."
+msgstr "Το εκτελέσιμο αρχείο πρέπει να υπάρχει και να είναι εκτελέσιμο από τον worker σε κάθε poller παράδοσης. Τα ορίσματα μεταβιβάζονται απευθείας χωρίς κέλυφος."
+
+#: includes/admin_view.php:169
+msgid "WebSocket delivery is not implemented."
+msgstr "Η παράδοση WebSocket δεν έχει υλοποιηθεί."
+
+#: includes/admin_view.php:171
+msgid "Advanced delivery settings"
+msgstr "Σύνθετες ρυθμίσεις παράδοσης"
+
+#: includes/admin_view.php:176
+msgid "Connection options"
+msgstr "Επιλογές σύνδεσης"
+
+#: includes/admin_view.php:179
+msgid "Method"
+msgstr "Μέθοδος"
+
+#: includes/admin_view.php:186
+msgid "Certificate and hostname verification remain enabled. Provision the PEM file on every poller. Saved credentials are never displayed."
+msgstr "Η επαλήθευση πιστοποιητικού και ονόματος κεντρικού υπολογιστή παραμένει ενεργοποιημένη. Τοποθετήστε το αρχείο PEM σε κάθε poller. Τα αποθηκευμένα διαπιστευτήρια δεν εμφανίζονται ποτέ."
+
+#: includes/admin_view.php:187
+msgid "Other delivery options"
+msgstr "Άλλες επιλογές παράδοσης"
+
+#: includes/admin_view.php:189 includes/admin_view.php:458
+msgid "Cancel"
+msgstr "Ακύρωση"
+
+#: includes/admin_view.php:189
+msgid "Test destination saves the current settings and queues a sample alarm for this destination. Enable the destination before testing."
+msgstr "Η Δοκιμή προορισμού αποθηκεύει τις τρέχουσες ρυθμίσεις και τοποθετεί στην ουρά έναν δοκιμαστικό συναγερμό για αυτόν τον προορισμό. Ενεργοποιήστε τον προορισμό πριν τη δοκιμή."
+
+#: includes/admin_view.php:190
+msgid "Save endpoint"
+msgstr "Αποθήκευση τελικού σημείου"
+
+#: includes/admin_view.php:190
+msgid "Test destination"
+msgstr "Δοκιμή προορισμού"
+
+#: includes/admin_view.php:194
+msgid "Delete endpoint"
+msgstr "Διαγραφή τελικού σημείου"
+
+#: includes/admin_view.php:194
+msgid "Delete this endpoint, its delivery settings and saved credentials"
+msgstr "Διαγραφή αυτού του τελικού σημείου, των ρυθμίσεων παράδοσης και των αποθηκευμένων διαπιστευτηρίων του"
+
+#: includes/admin_view.php:194
+msgid "Deleting stops future delivery and removes the saved settings and credentials. Remove notification rule references and resolve queued or running deliveries first. Completed and failed delivery history is preserved."
+msgstr "Η διαγραφή διακόπτει τις μελλοντικές παραδόσεις και καταργεί τις αποθηκευμένες ρυθμίσεις και τα διαπιστευτήρια. Καταργήστε πρώτα τις αναφορές στους κανόνες ειδοποίησης και επιλύστε τις παραδόσεις που βρίσκονται στην ουρά ή σε εκτέλεση. Το ιστορικό ολοκληρωμένων και αποτυχημένων παραδόσεων διατηρείται."
+
+#: includes/admin_view.php:205
+msgid "Chat and messaging"
+msgstr "Συνομιλία και μηνύματα"
+
+#: includes/admin_view.php:206
+msgid "Post alarms to a Slack channel."
+msgstr "Δημοσίευση συναγερμών σε κανάλι Slack."
+
+#: includes/admin_view.php:207
+msgid "Post alarm cards through a Teams Workflow."
+msgstr "Δημοσίευση καρτών συναγερμού μέσω Teams Workflow."
+
+#: includes/admin_view.php:208
+msgid "Send alarms from a Telegram bot."
+msgstr "Αποστολή συναγερμών από bot Telegram."
+
+#: includes/admin_view.php:209
+msgid "Text alarms to phone numbers."
+msgstr "Αποστολή SMS συναγερμών σε αριθμούς τηλεφώνου."
+
+#: includes/admin_view.php:210
+msgid "Send approved WhatsApp templates."
+msgstr "Αποστολή εγκεκριμένων προτύπων WhatsApp."
+
+#: includes/admin_view.php:211
+msgid "Incident management"
+msgstr "Διαχείριση περιστατικών"
+
+#: includes/admin_view.php:212
+msgid "Trigger and resolve PagerDuty incidents."
+msgstr "Ενεργοποίηση και επίλυση περιστατικών PagerDuty."
+
+#: includes/admin_view.php:213
+msgid "Open and resolve ServiceNow incidents or events."
+msgstr "Άνοιγμα και επίλυση περιστατικών ή συμβάντων ServiceNow."
+
+#: includes/admin_view.php:214
+msgid "Network management"
+msgstr "Διαχείριση δικτύου"
+
+#: includes/admin_view.php:215
+msgid "Send SNMPv2c or SNMPv3 traps and INFORMs."
+msgstr "Αποστολή SNMPv2c ή SNMPv3 traps και INFORMs."
+
+#: includes/admin_view.php:216
+msgid "Forward RFC 5424 or RFC 3164 messages over UDP, TCP or TLS."
+msgstr "Προώθηση μηνυμάτων RFC 5424 ή RFC 3164 μέσω UDP, TCP ή TLS."
+
+#: includes/admin_view.php:217
+msgid "Custom"
+msgstr "Προσαρμογή"
+
+#: includes/admin_view.php:218
+msgid "Start from an empty endpoint."
+msgstr "Ξεκινήστε από ένα κενό τελικό σημείο."
+
+#: includes/admin_view.php:219
+msgid "POST alarm JSON to any HTTPS endpoint."
+msgstr "Αποστολή JSON συναγερμού με POST σε οποιοδήποτε τελικό σημείο HTTPS."
+
+#: includes/admin_view.php:220
+msgid "Call an API with your own method, authentication and response checks."
+msgstr "Κλήση ενός API με τη δική σας μέθοδο, έλεγχο ταυτότητας και ελέγχους απόκρισης."
+
+#: includes/admin_view.php:221
+msgid "Run a local executable with the alarm as JSON input."
+msgstr "Εκτέλεση τοπικού εκτελέσιμου αρχείου με τον συναγερμό ως είσοδο JSON."
+
+#: includes/admin_view.php:227
+msgid "Add integration"
+msgstr "Προσθήκη ενσωμάτωσης"
+
+#: includes/admin_view.php:228
+msgid "Choose a template. It opens as a disabled draft; nothing is sent until you enable it."
+msgstr "Επιλέξτε ένα πρότυπο. Ανοίγει ως απενεργοποιημένο πρόχειρο. Δεν αποστέλλεται τίποτα μέχρι να το ενεργοποιήσετε."
+
+#: includes/admin_view.php:228
+msgid "Search integrations"
+msgstr "Αναζήτηση ενσωματώσεων"
+
+#: includes/admin_view.php:234
+msgid "Blank endpoint"
+msgstr "Κενό τελικό σημείο"
+
+#: includes/admin_view.php:239
+msgid "No integrations match your search."
+msgstr "Καμία ενσωμάτωση δεν ταιριάζει με την αναζήτησή σας."
+
+#: includes/admin_view.php:243
+msgid "SNMP trap settings"
+msgstr "Ρυθμίσεις SNMP trap"
+
+#: includes/admin_view.php:259
+msgid "Saved community and passphrases are encrypted and never displayed. Leave them blank to keep the saved values; entering any value replaces all saved SNMP secrets."
+msgstr "Η αποθηκευμένη κοινότητα και οι φράσεις πρόσβασης είναι κρυπτογραφημένες και δεν εμφανίζονται ποτέ. Αφήστε τα κενά για να διατηρήσετε τις αποθηκευμένες τιμές. Η εισαγωγή οποιασδήποτε τιμής αντικαθιστά όλα τα αποθηκευμένα μυστικά SNMP."
+
+#: includes/admin_view.php:260
+msgid "Traps are sent as Cacti's CACTI-MIB cactiNotify with the snmptrap binary from Cacti Settings > Paths on every delivering poller. Add one destination per receiver."
+msgstr "Τα traps αποστέλλονται ως CACTI-MIB cactiNotify του Cacti με το εκτελέσιμο snmptrap από τις Ρυθμίσεις Cacti > Διαδρομές σε κάθε poller παράδοσης. Προσθέστε έναν προορισμό ανά παραλήπτη."
+
+#: includes/admin_view.php:261
+msgid "Syslog settings"
+msgstr "Ρυθμίσεις Syslog"
+
+#: includes/admin_view.php:269
+msgid "TLS verifies the receiver certificate and hostname. Use port 6514 for TLS. UDP and TCP are unencrypted, and a UDP message is confirmed only as sent."
+msgstr "Το TLS επαληθεύει το πιστοποιητικό και το όνομα κεντρικού υπολογιστή του παραλήπτη. Χρησιμοποιήστε τη θύρα 6514 για TLS. Τα UDP και TCP δεν είναι κρυπτογραφημένα και ένα μήνυμα UDP επιβεβαιώνεται μόνο ως απεσταλμένο."
+
+#: includes/admin_view.php:278 setup.php:191
+msgid "Days"
+msgstr "Ημέρες"
+
+#: includes/admin_view.php:283
+msgid "Timezone"
+msgstr "Ζώνη ώρας"
+
+#: includes/admin_view.php:291
+msgid "Times use the selected timezone and the alarm event time. An end time before the start runs overnight. Equal times cover the entire selected day."
+msgstr "Οι ώρες χρησιμοποιούν την επιλεγμένη ζώνη ώρας και την ώρα του συμβάντος συναγερμού. Μια ώρα λήξης πριν από την έναρξη εκτείνεται κατά τη διάρκεια της νύχτας. Ίσες ώρες καλύπτουν ολόκληρη την επιλεγμένη ημέρα."
+
+#: includes/admin_view.php:332 includes/admin_view.php:521
+msgid "Create a rule"
+msgstr "Δημιουργία κανόνα"
+
+#: includes/admin_view.php:332
+msgid "Enabled"
+msgstr "Ενεργοποιημένο"
+
+#: includes/admin_view.php:332
+msgid "Priority"
+msgstr "Προτεραιότητα"
+
+#: includes/admin_view.php:334
+msgid "Rule and destination"
+msgstr "Κανόνας και προορισμός"
+
+#: includes/admin_view.php:338
+msgid "Alarm Destination"
+msgstr "Προορισμός συναγερμού"
+
+#: includes/admin_view.php:341
+msgid "disabled"
+msgstr "απενεργοποιημένο"
+
+#: includes/admin_view.php:343
+msgid "Select one or more alarm destinations. Disabled destinations do not send alarms."
+msgstr "Επιλέξτε έναν ή περισσότερους προορισμούς συναγερμού. Οι απενεργοποιημένοι προορισμοί δεν αποστέλλουν συναγερμούς."
+
+#: includes/admin_view.php:345
+msgid "Message template"
+msgstr "Πρότυπο μηνύματος"
+
+#: includes/admin_view.php:345
+msgid "Use each destination default, or customize its message for this rule. Customization starts with a copy of the destination template and does not change other rules. If several rules match the same destination, the first matching rule in priority and ID order supplies its template."
+msgstr "Χρησιμοποιήστε την προεπιλογή κάθε προορισμού ή προσαρμόστε το μήνυμά του για αυτόν τον κανόνα. Η προσαρμογή ξεκινά από ένα αντίγραφο του προτύπου προορισμού και δεν αλλάζει άλλους κανόνες. Εάν πολλοί κανόνες ταιριάζουν με τον ίδιο προορισμό, ο πρώτος αντίστοιχος κανόνας κατά σειρά προτεραιότητας και αναγνωριστικού παρέχει το πρότυπό του."
+
+#: includes/admin_view.php:352
+msgid "Custom template"
+msgstr "Προσαρμοσμένο πρότυπο"
+
+#: includes/admin_view.php:355
+msgid "Destination recipient"
+msgstr "Παραλήπτης προορισμού"
+
+#: includes/admin_view.php:355
+#, php-format
+msgid "Recipients: %d"
+msgstr "Παραλήπτες: %d"
+
+#: includes/admin_view.php:357
+msgid "Customize message for this rule"
+msgstr "Προσαρμογή μηνύματος για αυτόν τον κανόνα"
+
+#: includes/admin_view.php:357
+msgid "Unchecked: Use destination default."
+msgstr "Ανεπιλεγμένο: Χρήση προεπιλογής προορισμού."
+
+#: includes/admin_view.php:361
+msgid "Optional: add each phone number in international format, such as +15551234567. These numbers replace the destination recipient for this rule. Leave the list empty to use the destination default. Each number has its own delivery status and retries."
+msgstr "Προαιρετικό: προσθέστε κάθε αριθμό τηλεφώνου σε διεθνή μορφή, όπως +15551234567. Αυτοί οι αριθμοί αντικαθιστούν τον παραλήπτη προορισμού για αυτόν τον κανόνα. Αφήστε τη λίστα κενή για να χρησιμοποιηθεί η προεπιλογή του προορισμού. Κάθε αριθμός έχει τη δική του κατάσταση παράδοσης και επαναλήψεις."
+
+#: includes/admin_view.php:374
+msgid "None"
+msgstr "Κανένα"
+
+#: includes/admin_view.php:376
+msgid "Build device conditions using AND, OR and groups. These conditions use the current Cacti device settings and must also satisfy any alarm filters below. With no device conditions, all devices can match."
+msgstr "Δημιουργήστε συνθήκες συσκευής χρησιμοποιώντας AND, OR και ομάδες. Αυτές οι συνθήκες χρησιμοποιούν τις τρέχουσες ρυθμίσεις συσκευής Cacti και πρέπει επίσης να πληρούν τυχόν φίλτρα συναγερμού παρακάτω. Χωρίς συνθήκες συσκευής, μπορούν να ταιριάξουν όλες οι συσκευές."
+
+#: includes/admin_view.php:376
+msgid "Match devices"
+msgstr "Αντιστοίχιση συσκευών"
+
+#: includes/admin_view.php:387
+msgid "Cacti_Admin_Notifications"
+msgstr "Cacti_Admin_Notifications"
+
+#: includes/admin_view.php:387
+msgid "Device Status"
+msgstr "Κατάσταση συσκευής"
+
+#: includes/admin_view.php:387
+msgid "Syslog"
+msgstr "Syslog"
+
+#: includes/admin_view.php:387
+msgid "Thold"
+msgstr "Thold"
+
+#: includes/admin_view.php:392
+msgid "Build alarm conditions using AND, OR, NOT and groups. Alarms must also match the device conditions above."
+msgstr "Δημιουργήστε συνθήκες συναγερμού χρησιμοποιώντας AND, OR, NOT και ομάδες. Οι συναγερμοί πρέπει επίσης να ταιριάζουν με τις παραπάνω συνθήκες συσκευής."
+
+#: includes/admin_view.php:392
+msgid "Match alarms"
+msgstr "Αντιστοίχιση συναγερμών"
+
+#: includes/admin_view.php:395
+msgid "No alarm sources detected yet. Sources appear after their first alarm."
+msgstr "Δεν έχουν εντοπιστεί ακόμη πηγές συναγερμών. Οι πηγές εμφανίζονται μετά τον πρώτο τους συναγερμό."
+
+#: includes/admin_view.php:397
+msgid "By default, matching alarms can notify at any time. Turn on a schedule to limit when this rule matches."
+msgstr "Από προεπιλογή, οι αντίστοιχοι συναγερμοί μπορούν να ειδοποιούν οποιαδήποτε στιγμή. Ενεργοποιήστε ένα χρονοδιάγραμμα για να περιορίσετε πότε εφαρμόζεται αυτός ο κανόνας."
+
+#: includes/admin_view.php:397
+msgid "Notification hours"
+msgstr "Ώρες ειδοποίησης"
+
+#: includes/admin_view.php:399
+msgid "Suppress notifications"
+msgstr "Καταστολή ειδοποιήσεων"
+
+#: includes/admin_view.php:399
+msgid "Suppressed alarms remain in history. Recovery notifications bypass acknowledgment, cooldown and duplicate suppression, but still follow notification hours and maintenance windows."
+msgstr "Οι κατεσταλμένοι συναγερμοί παραμένουν στο ιστορικό. Οι ειδοποιήσεις αποκατάστασης παρακάμπτουν την επιβεβαίωση, τον χρόνο αναμονής και την καταστολή διπλοτύπων, αλλά εξακολουθούν να ακολουθούν τις ώρες ειδοποίησης και τα παράθυρα συντήρησης."
+
+#: includes/admin_view.php:403
+msgid "Set a duration to 0 to turn it off."
+msgstr "Ορίστε τη διάρκεια σε 0 για απενεργοποίηση."
+
+#: includes/admin_view.php:405
+msgid "Rule order"
+msgstr "Σειρά κανόνων"
+
+#: includes/admin_view.php:408
+msgid "Create rule"
+msgstr "Δημιουργία κανόνα"
+
+#: includes/admin_view.php:408
+msgid "Rules with equal priority run in ID order. Stopping also applies when this rule suppresses notifications."
+msgstr "Οι κανόνες με ίση προτεραιότητα εκτελούνται κατά σειρά αναγνωριστικού. Η διακοπή ισχύει επίσης όταν αυτός ο κανόνας καταστέλλει ειδοποιήσεις."
+
+#: includes/admin_view.php:417
+msgid "Configuration Backup/Restore"
+msgstr "Αντίγραφο ασφαλείας/επαναφορά διαμόρφωσης"
+
+#: includes/admin_view.php:427
+msgid "Paused"
+msgstr "Σε παύση"
+
+#: includes/admin_view.php:427
+msgid "Running"
+msgstr "Τρέχουσες"
+
+#: includes/admin_view.php:428
+msgid "everything has been delivered"
+msgstr "όλα έχουν παραδοθεί"
+
+#: includes/admin_view.php:428
+#, php-format
+msgid "oldest queued %s UTC"
+msgstr "παλαιότερο στην ουρά %s UTC"
+
+#: includes/admin_view.php:428
+msgid "waiting messages"
+msgstr "μηνύματα σε αναμονή"
+
+#: includes/admin_view.php:431
+msgid "Hide messages"
+msgstr "Απόκρυψη μηνυμάτων"
+
+#: includes/admin_view.php:431
+msgid "View messages"
+msgstr "Προβολή μηνυμάτων"
+
+#: includes/admin_view.php:441
+msgid "Endpoint"
+msgstr "Τελικό σημείο"
+
+#: includes/admin_view.php:441
+msgid "ID"
+msgstr "ID"
+
+#: includes/admin_view.php:441
+msgid "Message"
+msgstr "Μήνυμα"
+
+#: includes/admin_view.php:441
+msgid "Next try"
+msgstr "Επόμενη προσπάθεια"
+
+#: includes/admin_view.php:441 includes/reports.php:458
+msgid "Queued"
+msgstr "Στην ουρά"
+
+#: includes/admin_view.php:441
+msgid "Tries"
+msgstr "Προσπάθειες"
+
+#: includes/admin_view.php:451
+msgid "Times in UTC · first 100 shown"
+msgstr "Ώρες σε UTC · εμφανίζονται τα πρώτα 100"
+
+#: includes/admin_view.php:455
+msgid "Pause delivery"
+msgstr "Παύση παράδοσης"
+
+#: includes/admin_view.php:455
+msgid "Resume delivery"
+msgstr "Συνέχιση παράδοσης"
+
+#: includes/admin_view.php:458
+msgid "Clear queue"
+msgstr "Εκκαθάριση ουράς"
+
+#: includes/admin_view.php:459
+#, php-format
+msgid "Discard all %d waiting notifications on this poller?"
+msgstr "Απόρριψη όλων των %d ειδοποιήσεων σε αναμονή σε αυτόν τον poller;"
+
+#: includes/admin_view.php:460
+msgid "Includes retries. They stay in delivery history as failed, reason queue_cleared."
+msgstr "Περιλαμβάνει επαναλήψεις. Παραμένουν στο ιστορικό παραδόσεων ως αποτυχημένες με αιτία queue_cleared."
+
+#: includes/admin_view.php:461
+msgid "Messages already sending and alarm state are kept."
+msgstr "Τα μηνύματα που ήδη αποστέλλονται και η κατάσταση των συναγερμών διατηρούνται."
+
+#: includes/admin_view.php:462
+msgid "Tip: pause delivery first during maintenance."
+msgstr "Συμβουλή: κάντε πρώτα παύση παράδοσης κατά τη διάρκεια της συντήρησης."
+
+#: includes/admin_view.php:463
+msgid "Clear queue…"
+msgstr "Εκκαθάριση ουράς…"
+
+#: includes/admin_view.php:464
+msgid "Controls apply to this poller. While paused, alarms are still received and queued; Resume sends them."
+msgstr "Τα στοιχεία ελέγχου ισχύουν για αυτόν τον poller. Κατά την παύση, οι συναγερμοί εξακολουθούν να λαμβάνονται και να μπαίνουν στην ουρά. Η Συνέχιση τους αποστέλλει."
+
+#: includes/admin_view.php:467
+msgid "View delivery results"
+msgstr "Προβολή αποτελεσμάτων παράδοσης"
+
+#: includes/admin_view.php:470
+msgid "Create an integration, configure its destination and credentials, test a sample alarm here, then select it directly in a rule."
+msgstr "Δημιουργήστε μια ενσωμάτωση, διαμορφώστε τον προορισμό και τα διαπιστευτήριά της, δοκιμάστε εδώ έναν δοκιμαστικό συναγερμό και στη συνέχεια επιλέξτε την απευθείας σε έναν κανόνα."
+
+#: includes/admin_view.php:476
+msgid "Configured integrations"
+msgstr "Διαμορφωμένες ενσωματώσεις"
+
+#: includes/admin_view.php:479
+msgid "No integrations yet. Choose a template above to create one."
+msgstr "Δεν υπάρχουν ακόμη ενσωματώσεις. Επιλέξτε ένα πρότυπο παραπάνω για να δημιουργήσετε μία."
+
+#: includes/admin_view.php:490
+msgid "Alarm Rules"
+msgstr "Κανόνες συναγερμού"
+
+#: includes/admin_view.php:490
+msgid "Choose which alarms should notify, where to send them and when to pause notifications. Rules run from lowest to highest priority."
+msgstr "Επιλέξτε ποιοι συναγερμοί πρέπει να ειδοποιούν, πού να αποστέλλονται και πότε να γίνεται παύση των ειδοποιήσεων. Οι κανόνες εκτελούνται από τη χαμηλότερη προς την υψηλότερη προτεραιότητα."
+
+#: includes/admin_view.php:493
+msgid "Create an integration before saving your first rule."
+msgstr "Δημιουργήστε μια ενσωμάτωση πριν αποθηκεύσετε τον πρώτο σας κανόνα."
+
+#: includes/admin_view.php:493
+msgid "Create integration"
+msgstr "Δημιουργία ενσωμάτωσης"
+
+#: includes/admin_view.php:495
+msgid "Clear"
+msgstr "Καθαρισμός"
+
+#: includes/admin_view.php:495
+msgid "Critical"
+msgstr "Κρίσιμο"
+
+#: includes/admin_view.php:495
+msgid "Information"
+msgstr "Πληροφορίες"
+
+#: includes/admin_view.php:495
+msgid "Major"
+msgstr "Σοβαρό"
+
+#: includes/admin_view.php:495
+msgid "Minor"
+msgstr "Μικρό"
+
+#: includes/admin_view.php:495
+msgid "Occurrence"
+msgstr "Εμφάνιση"
+
+#: includes/admin_view.php:495
+msgid "Raised"
+msgstr "Ενεργοποιημένος"
+
+#: includes/admin_view.php:495
+msgid "Recovered"
+msgstr "Αποκαταστάθηκε"
+
+#: includes/admin_view.php:495
+msgid "Reminder"
+msgstr "Υπενθύμιση"
+
+#: includes/admin_view.php:495
+msgid "Updated"
+msgstr "Ενημερώθηκε"
+
+#: includes/admin_view.php:495
+msgid "Warning"
+msgstr "Προσοχή"
+
+#: includes/admin_view.php:520
+msgid "Alarm notifications require an enabled matching Alarm Rule. Without one, alarms remain in history but no notifications are sent."
+msgstr "Οι ειδοποιήσεις συναγερμού απαιτούν έναν ενεργοποιημένο αντίστοιχο Κανόνα συναγερμού. Χωρίς αυτόν, οι συναγερμοί παραμένουν στο ιστορικό αλλά δεν αποστέλλονται ειδοποιήσεις."
+
+#: includes/admin_view.php:524
+msgid "No rules yet. Create a rule below to start routing alarms to your notification destinations."
+msgstr "Δεν υπάρχουν ακόμη κανόνες. Δημιουργήστε έναν κανόνα παρακάτω για να ξεκινήσετε τη δρομολόγηση συναγερμών στους προορισμούς ειδοποίησής σας."
+
+#: includes/admin_view.php:533
+msgid "Credential values are never loaded into this page. Saving replaces the endpoint record; blank values do not preserve an old password. Use the CLI for protected backup/restore and poller provisioning."
+msgstr "Οι τιμές διαπιστευτηρίων δεν φορτώνονται ποτέ σε αυτή τη σελίδα. Η αποθήκευση αντικαθιστά την εγγραφή τελικού σημείου. Οι κενές τιμές δεν διατηρούν παλιό κωδικό πρόσβασης. Χρησιμοποιήστε το CLI για προστατευμένο αντίγραφο ασφαλείας/επαναφορά και προετοιμασία poller."
+
+#: includes/admin_view.php:536
+msgid "Create endpoint"
+msgstr "Δημιουργία τελικού σημείου"
+
+#: includes/admin_view.php:536
+msgid "No REST API or webhook endpoints have been saved. Create an endpoint to enter its bearer token, Basic authentication username and password, or API-key headers."
+msgstr "Δεν έχουν αποθηκευτεί τελικά σημεία REST API ή webhook. Δημιουργήστε ένα τελικό σημείο για να εισαγάγετε το διακριτικό Bearer, το όνομα χρήστη και τον κωδικό πρόσβασης ελέγχου ταυτότητας Basic ή τις κεφαλίδες κλειδιού API."
+
+#: includes/admin_view.php:540
+msgid "Configured"
+msgstr "Διαμορφωμένο"
+
+#: includes/admin_view.php:543
+msgid "Replace credential"
+msgstr "Αντικατάσταση διαπιστευτηρίου"
+
+#: includes/admin_view.php:549
+msgid "Rotate local key"
+msgstr "Περιστροφή τοπικού κλειδιού"
+
+#: includes/admin_view.php:553
+msgid "Event log"
+msgstr "Αρχείο καταγραφής συμβάντων"
+
+#: includes/admin_view.php:553
+msgid "Writes every event as it is processed, independent of which rules match or whether any destination is notified — a complete audit trail for external analysis, for example with Splunk."
+msgstr "Καταγράφει κάθε συμβάν καθώς επεξεργάζεται, ανεξάρτητα από το ποιοι κανόνες ταιριάζουν ή εάν ειδοποιείται κάποιος προορισμός: ένα πλήρες ιστορικό ελέγχου για εξωτερική ανάλυση, για παράδειγμα με το Splunk."
+
+#: includes/admin_view.php:555
+msgid "Cacti log"
+msgstr "Αρχείο καταγραφής Cacti"
+
+#: includes/admin_view.php:555
+msgid "External file"
+msgstr "Εξωτερικό αρχείο"
+
+#: includes/admin_view.php:555
+msgid "Write to"
+msgstr "Εγγραφή σε"
+
+#: includes/admin_view.php:559
+msgid "One JSON object per line (occurred_at, transition, severity, device, alarm key…). The path must already exist, outside the plugin directory and Cacti's web root. Past the size limit, the file rotates to one .1 backup."
+msgstr "Ένα αντικείμενο JSON ανά γραμμή (occurred_at, transition, severity, device, κλειδί συναγερμού…). Η διαδρομή πρέπει να υπάρχει ήδη, εκτός του καταλόγου του πρόσθετου και της ρίζας web του Cacti. Όταν ξεπεραστεί το όριο μεγέθους, το αρχείο περιστρέφεται σε ένα αντίγραφο .1."
+
+#: includes/admin_view.php:559
+msgid "Save event log settings"
+msgstr "Αποθήκευση ρυθμίσεων αρχείου καταγραφής συμβάντων"
+
+#: includes/admin_view.php:561
+msgid "Backup and restore"
+msgstr "Αντίγραφο ασφαλείας και επαναφορά"
+
+#: includes/admin_view.php:561
+msgid "Export"
+msgstr "Εξαγωγή"
+
+#: includes/admin_view.php:562
+msgid "Endpoints, message templates, and rules as JSON. Credentials and settings are not included. Endpoint URLs can contain secrets, so keep the file private."
+msgstr "Τελικά σημεία, πρότυπα μηνυμάτων και κανόνες σε μορφή JSON. Τα διαπιστευτήρια και οι ρυθμίσεις δεν περιλαμβάνονται. Οι διευθύνσεις URL τελικών σημείων ενδέχεται να περιέχουν μυστικά, επομένως διατηρήστε το αρχείο ιδιωτικό."
+
+#: includes/admin_view.php:563
+msgid "Export configuration"
+msgstr "Εξαγωγή διαμόρφωσης"
+
+#: includes/admin_view.php:563
+msgid "Import"
+msgstr "Εισαγωγή"
+
+#: includes/admin_view.php:567
+msgid "Replaces the routing configuration using the IDs in the file. Endpoints and rules missing from the file are disabled, not deleted. Saved credentials are kept."
+msgstr "Αντικαθιστά τη διαμόρφωση δρομολόγησης χρησιμοποιώντας τα αναγνωριστικά του αρχείου. Τα τελικά σημεία και οι κανόνες που λείπουν από το αρχείο απενεργοποιούνται, δεν διαγράφονται. Τα αποθηκευμένα διαπιστευτήρια διατηρούνται."
+
+#: includes/admin_view.php:568
+msgid "Import configuration"
+msgstr "Εισαγωγή διαμόρφωσης"
+
+#: includes/admin_view.php:572
+msgid "Local queue health"
+msgstr "Κατάσταση τοπικής ουράς"
+
+#: includes/admin_view.php:573
+msgid "Jobs"
+msgstr "Εργασίες"
+
+#: includes/admin_view.php:573
+msgid "Oldest job age (seconds)"
+msgstr "Ηλικία παλαιότερης εργασίας (δευτερόλεπτα)"
+
+#: includes/admin_view.php:573
+msgid "Queue"
+msgstr "Ουρά"
+
+#: includes/admin_view.php:573
+msgid "Retries"
+msgstr "Προσπάθειες"
+
+#: includes/admin_view.php:573 includes/admin_view.php:592
+#: includes/web_view.php:181
+msgid "Status"
+msgstr "Κατάσταση"
+
+#: includes/admin_view.php:588
+msgid "No queue activity recorded."
+msgstr "Δεν έχει καταγραφεί δραστηριότητα ουράς."
+
+#: includes/admin_view.php:591
+msgid "Local worker health"
+msgstr "Κατάσταση τοπικών workers"
+
+#: includes/admin_view.php:592
+msgid "Current job"
+msgstr "Τρέχουσα εργασία"
+
+#: includes/admin_view.php:592
+msgid "Heartbeat age (seconds)"
+msgstr "Ηλικία παλμού (δευτερόλεπτα)"
+
+#: includes/admin_view.php:592
+msgid "PID"
+msgstr "PID"
+
+#: includes/admin_view.php:592
+msgid "Poller"
+msgstr "Poller"
+
+#: includes/admin_view.php:592
+msgid "Role"
+msgstr "Ρόλος"
+
+#: includes/admin_view.php:592
+msgid "Worker"
+msgstr "Worker"
+
+#: includes/admin_view.php:607
+msgid "No local worker heartbeats recorded."
+msgstr "Δεν έχουν καταγραφεί παλμοί τοπικών workers."
+
+#: includes/admin_view.php:610
+msgid "Completed delivery jobs in the last 300 seconds"
+msgstr "Ολοκληρωμένες εργασίες παράδοσης τα τελευταία 300 δευτερόλεπτα"
+
+#: includes/admin_view.php:610
+msgid "Completed processing jobs in the last 300 seconds"
+msgstr "Ολοκληρωμένες εργασίες επεξεργασίας τα τελευταία 300 δευτερόλεπτα"
+
+#: includes/admin_view.php:610
+msgid "Processing streams blocked behind a failed predecessor"
+msgstr "Ροές επεξεργασίας μπλοκαρισμένες πίσω από αποτυχημένο προκάτοχο"
+
+#: includes/admin_view.php:613
+msgid "Pending jobs for destination types without a qualified transport"
+msgstr "Εκκρεμείς εργασίες για τύπους προορισμού χωρίς κατάλληλη μεταφορά"
+
+#: includes/admin_view.php:620
+msgid "Failed deliveries and replay"
+msgstr "Αποτυχημένες παραδόσεις και επανάληψη"
+
+#: includes/admin_view.php:620
+msgid "Failed processing jobs and replay"
+msgstr "Αποτυχημένες εργασίες επεξεργασίας και επανάληψη"
+
+#: includes/admin_view.php:625
+msgid "Authentication"
+msgstr "Πιστοποίηση"
+
+#: includes/admin_view.php:625
+msgid "Authentication type"
+msgstr "Τύπος ελέγχου ταυτότητας"
+
+#: includes/admin_view.php:649
+msgid "Saved credentials are encrypted and never displayed. New values replace the saved credential record."
+msgstr "Τα αποθηκευμένα διαπιστευτήρια είναι κρυπτογραφημένα και δεν εμφανίζονται ποτέ. Οι νέες τιμές αντικαθιστούν την αποθηκευμένη εγγραφή διαπιστευτηρίου."
+
+#: includes/polling.php:150
+msgid "Start the Alarm Manager service on this collector before enabling daemon workers."
+msgstr "Εκκινήστε την υπηρεσία Alarm Manager σε αυτόν τον συλλέκτη πριν ενεργοποιήσετε τους workers δαίμονα."
+
+#: includes/polling.php:163
+msgid "Daemon settings could not be saved. Check the Cacti cache directory permissions."
+msgstr "Δεν ήταν δυνατή η αποθήκευση των ρυθμίσεων δαίμονα. Ελέγξτε τα δικαιώματα του καταλόγου προσωρινής μνήμης του Cacti."
+
+#: includes/reports.php:430
+msgid "Remote history"
+msgstr "Απομακρυσμένο ιστορικό"
+
+#: includes/reports.php:459
+msgid "Test send"
+msgstr "Δοκιμαστική αποστολή"
+
+#: includes/reports.php:460
+msgid "No matching rule"
+msgstr "Κανένας αντίστοιχος κανόνας"
+
+#: includes/reports.php:461
+msgid "Destination disabled"
+msgstr "Προορισμός απενεργοποιημένος"
+
+#: includes/reports.php:462
+msgid "Suppressed by source"
+msgstr "Κατεσταλμένος από πηγή"
+
+#: includes/reports.php:463
+msgid "Maintenance window"
+msgstr "Παράθυρο συντήρησης"
+
+#: includes/reports.php:464
+msgid "Acknowledged"
+msgstr "Επιβεβαιωμένος"
+
+#: includes/reports.php:465
+msgid "Cooldown"
+msgstr "Χρόνος αναμονής"
+
+#: includes/reports.php:466
+msgid "Duplicate"
+msgstr "Αντιγραφή"
+
+#: includes/reports.php:467
+msgid "Already routed"
+msgstr "Ήδη δρομολογημένο"
+
+#: includes/reports.php:468
+msgid "Out of order"
+msgstr "Εκτός σειράς"
+
+#: includes/reports.php:469
+msgid "Ignored episode"
+msgstr "Αγνοημένο επεισόδιο"
+
+#: includes/reports.php:470
+msgid "History only"
+msgstr "Μόνο ιστορικό"
+
+#: includes/reports.php:518
+#, php-format
+msgid "Deleted destination #%d"
+msgstr "Διαγράφηκε ο προορισμός #%d"
+
+#: includes/reports.php:519
+#, php-format
+msgid "%d destinations"
+msgstr "%d προορισμοί"
+
+#: includes/reports.php:531
+msgid "Delivered"
+msgstr "Παραδόθηκε"
+
+#: includes/reports.php:531
+msgid "Failed"
+msgstr "Απέτυχε"
+
+#: includes/reports.php:531
+msgid "Pending"
+msgstr "Σε εκκρεμότητα"
+
+#: includes/reports.php:531
+msgid "Sending"
+msgstr "Αποστολή σε εξέλιξη"
+
+#: includes/reports.php:541
+msgid "Processing failed"
+msgstr "Η επεξεργασία απέτυχε"
+
+#: includes/reports.php:542
+msgid "Pending processing"
+msgstr "Σε αναμονή επεξεργασίας"
+
+#: includes/reports.php:543 includes/web_view.php:264
+msgid "Processing"
+msgstr "Σε επεξεργασία"
+
+#: includes/reports.php:544
+msgid "No matching integration"
+msgstr "Καμία αντίστοιχη ενσωμάτωση"
+
+#: includes/reports.php:544
+msgid "Suppressed"
+msgstr "Κατεσταλμένος"
+
+#: includes/routing.php:106
+msgid "Device description"
+msgstr "Περιγραφή συσκευής"
+
+#: includes/routing.php:106
+msgid "Hostname"
+msgstr "Νέο όνομα φιλοξενίας"
+
+#: includes/routing.php:106
+msgid "Location"
+msgstr "Τοποθεσία"
+
+#: includes/routing.php:106
+msgid "SNMP system location"
+msgstr "Θέση συστήματος SNMP"
+
+#: includes/routing.php:110 includes/routing.php:125
+msgid "Collector"
+msgstr "Συλλέκτης"
+
+#: includes/routing.php:110
+msgid "Device Site Association"
+msgstr "Συσχέτιση τοποθεσίας συσκευής"
+
+#: includes/routing.php:110
+msgid "Device Template"
+msgstr "Πρότυπο συσκευής"
+
+#: includes/routing.php:121
+msgid "Alarm change"
+msgstr "Αλλαγή συναγερμού"
+
+#: includes/routing.php:121
+msgid "Alarm source"
+msgstr "Πηγή συναγερμού"
+
+#: includes/routing.php:121
+msgid "Alarm summary"
+msgstr "Σύνοψη συναγερμών"
+
+#: includes/routing.php:121 includes/web_view.php:161
+msgid "Severity"
+msgstr "Σοβαρότητα"
+
+#: includes/routing.php:125
+msgid "Device"
+msgstr "Συσκευή"
+
+#: includes/routing.php:128
+msgid "Device tag"
+msgstr "Ετικέτα συσκευής"
+
+#: includes/web_view.php:93
+msgid "Report unavailable or permission denied."
+msgstr "Η αναφορά δεν είναι διαθέσιμη ή δεν επιτρέπεται η πρόσβαση."
+
+#: includes/web_view.php:119
+msgid "Statistics could not be rendered."
+msgstr "Δεν ήταν δυνατή η απόδοση των στατιστικών."
+
+#: includes/web_view.php:129 setup.php:131 setup.php:273 setup.php:289
+#: setup.php:290
+msgid "Alarm Manager"
+msgstr "Διαχείριση συναγερμών"
+
+#: includes/web_view.php:136
+msgid "Alarm Manager pages"
+msgstr "Σελίδες Alarm Manager"
+
+#: includes/web_view.php:149 includes/web_view.php:152
+msgid "Alarm statistics"
+msgstr "Στατιστικά συναγερμών"
+
+#: includes/web_view.php:149
+msgid "Filters"
+msgstr "Φίλτρα"
+
+#: includes/web_view.php:152
+msgid "Time range"
+msgstr "Χρονικό εύρος"
+
+#: includes/web_view.php:158
+msgid "Off"
+msgstr "Ανενεργό"
+
+#: includes/web_view.php:158
+msgid "Refresh"
+msgstr "Ανανέωση"
+
+#: includes/web_view.php:160
+msgid "Advanced filter JSON"
+msgstr "Σύνθετο φίλτρο JSON"
+
+#: includes/web_view.php:160
+msgid "Filter document"
+msgstr "Έγγραφο φίλτρου"
+
+#: includes/web_view.php:160
+msgid "Quick filters"
+msgstr "Γρήγορα φίλτρα"
+
+#: includes/web_view.php:160
+msgid "Search conditions"
+msgstr "Συνθήκες αναζήτησης"
+
+#: includes/web_view.php:161 includes/web_view.php:181
+msgid "All"
+msgstr "Όλα"
+
+#: includes/web_view.php:161
+msgid "Source"
+msgstr "Πηγή"
+
+#: includes/web_view.php:168
+msgid "Device ID"
+msgstr "ID συσκευής"
+
+#: includes/web_view.php:171
+msgid "Status type"
+msgstr "Τύπος κατάστασης"
+
+#: includes/web_view.php:190
+msgid "event_id"
+msgstr "event_id"
+
+#: includes/web_view.php:195
+msgid "Collector ID"
+msgstr "Αναγνωριστικό συλλέκτη"
+
+#: includes/web_view.php:195
+msgid "Local and mirrored collectors"
+msgstr "Τοπικοί και κατοπτρισμένοι συλλέκτες"
+
+#: includes/web_view.php:198
+msgid "mirrored"
+msgstr "κατοπτρισμένο"
+
+#: includes/web_view.php:203
+msgid "Mirrored events carry no Record ID and no detail view."
+msgstr "Τα κατοπτρισμένα συμβάντα δεν διαθέτουν αναγνωριστικό εγγραφής ούτε προβολή λεπτομερειών."
+
+#: includes/web_view.php:205
+msgid "Mirrored collector events are always included here unless you narrow by a specific remote Collector ID."
+msgstr "Τα συμβάντα κατοπτρισμένων συλλεκτών περιλαμβάνονται πάντα εδώ, εκτός εάν φιλτράρετε με ένα συγκεκριμένο απομακρυσμένο αναγνωριστικό συλλέκτη."
+
+#: includes/web_view.php:211
+msgid "Apply"
+msgstr "Εφαρμογή"
+
+#: includes/web_view.php:211
+msgid "Reset"
+msgstr "Επαναφορά"
+
+#: includes/web_view.php:213
+msgid "Historical window uses UTC. Current conditions and queues ignore the time window."
+msgstr "Το ιστορικό παράθυρο χρησιμοποιεί UTC. Οι τρέχουσες συνθήκες και οι ουρές αγνοούν το χρονικό παράθυρο."
+
+#: includes/web_view.php:235
+msgid "Loading statistics…"
+msgstr "Φόρτωση στατιστικών…"
+
+#: includes/web_view.php:248
+msgid "Collapse"
+msgstr "Σύμπτυξη"
+
+#: includes/web_view.php:261
+msgid "Integration results"
+msgstr "Αποτελέσματα ενσωμάτωσης"
+
+#: includes/web_view.php:262
+msgid "Delivery attempts"
+msgstr "Προσπάθειες παράδοσης"
+
+#: includes/web_view.php:263
+msgid "Routing decisions"
+msgstr "Αποφάσεις δρομολόγησης"
+
+#: includes/web_view.php:265
+msgid "conditions"
+msgstr "συνθήκες"
+
+#: includes/web_view.php:270
+msgid "No matching records."
+msgstr "Δεν υπάρχουν αντίστοιχες εγγραφές."
+
+#: includes/web_view.php:290
+msgid "Integration status"
+msgstr "Κατάσταση ενσωμάτωσης"
+
+#: includes/web_view.php:291
+msgid "Collector Name"
+msgstr "διακλαδωτήρας"
+
+#: includes/web_view.php:292
+msgid "Attempts in current retry cycle"
+msgstr "Προσπάθειες στον τρέχοντα κύκλο επανάληψης"
+
+#: includes/web_view.php:298
+msgid "Action"
+msgstr "Ενέργεια"
+
+#: includes/web_view.php:314
+msgid "Display"
+msgstr "Εμφάνιση"
+
+#: includes/web_view.php:349
+msgid "Latest 100 records for this event."
+msgstr "Τελευταίες 100 εγγραφές για αυτό το συμβάν."
+
+#: includes/web_view.php:354
+msgid "Showing at most 50 records per page."
+msgstr "Εμφανίζονται το πολύ 50 εγγραφές ανά σελίδα."
+
+#: includes/web_view.php:355
+msgid "Pages"
+msgstr "Σελίδες"
+
+#: includes/web_view.php:358
+msgid "Previous"
+msgstr "Προηγούμενο"
+
+#: includes/web_view.php:361
+#, php-format
+msgid "Page %d"
+msgstr "Σελίδα %d"
+
+#: includes/web_view.php:364
+msgid "Next"
+msgstr "Επόμενο"
+
+#: includes/web_view.php:371
+msgid "Selected event details"
+msgstr "Λεπτομέρειες επιλεγμένου συμβάντος"
+
+#: includes/web_view.php:378
+msgid "Show metadata"
+msgstr "Εμφάνιση μεταδεδομένων"
+
+#: includes/web_view.php:400
+msgid "Confirm replay may repeat an external effect"
+msgstr "Επιβεβαίωση ότι η επανάληψη ενδέχεται να επαναλάβει μια εξωτερική ενέργεια"
+
+#: setup.php:102
+msgid "Alarm Manager View"
+msgstr "Προβολή Alarm Manager"
+
+#: setup.php:103
+msgid "Alarm Manager Administration"
+msgstr "Διαχείριση Alarm Manager"
+
+#: setup.php:133
+msgid "0 Worker Processes"
+msgstr "0 διεργασίες worker"
+
+#: setup.php:133
+msgid "1 Worker Process"
+msgstr "1 διεργασία worker"
+
+#: setup.php:136
+#, php-format
+msgid "%d Worker Processes"
+msgstr "%d διεργασίες Worker"
+
+#: setup.php:144
+msgid "Device Alarm Summaries"
+msgstr "Συνόψεις συναγερμών συσκευών"
+
+#: setup.php:148
+msgid "Offline Summary"
+msgstr "Σύνοψη εκτός σύνδεσης"
+
+#: setup.php:149
+msgid "Summary for new Cacti device down alarms. Existing history retains its original summary."
+msgstr "Σύνοψη για νέους συναγερμούς εκτός λειτουργίας συσκευής Cacti. Το υπάρχον ιστορικό διατηρεί την αρχική του σύνοψη."
+
+#: setup.php:156
+msgid "Recovering Summary"
+msgstr "Σύνοψη σε αποκατάσταση"
+
+#: setup.php:157
+msgid "Summary for device recovering updates within the same outage."
+msgstr "Σύνοψη για ενημερώσεις αποκατάστασης συσκευής εντός της ίδιας διακοπής."
+
+#: setup.php:164
+msgid "Online Summary"
+msgstr "Σύνοψη εντός σύνδεσης"
+
+#: setup.php:165
+msgid "Summary for device recovery alarms once Cacti confirms the device is up."
+msgstr "Σύνοψη για συναγερμούς αποκατάστασης συσκευής μόλις το Cacti επιβεβαιώσει ότι η συσκευή είναι ενεργή."
+
+#: setup.php:172
+msgid "Alert History Retention"
+msgstr "Διατήρηση ιστορικού ειδοποιήσεων"
+
+#: setup.php:177
+msgid "Keep Alert History For"
+msgstr "Διατήρηση ιστορικού ειδοποιήσεων για"
+
+#: setup.php:178
+msgid "Enter how many days, weeks or months to keep alert history, or choose Indefinitely to keep everything (the number is then ignored). Maximum 3650 days, 520 weeks or 120 months. A purge job runs with the Cacti poller and removes aged events with their decisions, deliveries and attempts. Active conditions and queued or failed work are never purged. Each collector purges its own history."
+msgstr "Εισαγάγετε για πόσες ημέρες, εβδομάδες ή μήνες θα διατηρείται το ιστορικό ειδοποιήσεων ή επιλέξτε Επ' αόριστον για να διατηρηθούν τα πάντα (ο αριθμός αγνοείται). Μέγιστο 3650 ημέρες, 520 εβδομάδες ή 120 μήνες. Μια εργασία εκκαθάρισης εκτελείται με τον poller του Cacti και αφαιρεί τα παλιά συμβάντα μαζί με τις αποφάσεις, τις παραδόσεις και τις προσπάθειές τους. Οι ενεργές συνθήκες και οι εργασίες σε ουρά ή αποτυχημένες δεν διαγράφονται ποτέ. Κάθε συλλέκτης εκκαθαρίζει το δικό του ιστορικό."
+
+#: setup.php:187
+msgid "Retention Unit"
+msgstr "Μονάδα διατήρησης"
+
+#: setup.php:188
+msgid "The unit for the retention period."
+msgstr "Η μονάδα για την περίοδο διατήρησης."
+
+#: setup.php:191
+msgid "Indefinitely"
+msgstr "Επ' αόριστον"
+
+#: setup.php:191
+msgid "Months"
+msgstr "Μήνες"
+
+#: setup.php:191
+msgid "Weeks"
+msgstr "Εβδομάδες"
+
+#: setup.php:194
+msgid "Daemon"
+msgstr "Δαίμονας"
+
+#: setup.php:198
+msgid "Enable Daemon"
+msgstr "Ενεργοποίηση δαίμονα"
+
+#: setup.php:199
+msgid "Run processing and delivery workers in the resident Alarm Manager service instead of the Cacti poller. The service must be installed and running; disabling it lets current jobs finish and returns processing to the poller. Changes apply within a few seconds and synchronize to collectors."
+msgstr "Εκτέλεση των workers επεξεργασίας και παράδοσης στη μόνιμη υπηρεσία Alarm Manager αντί του poller του Cacti. Η υπηρεσία πρέπει να είναι εγκατεστημένη και σε εκτέλεση. Η απενεργοποίησή της επιτρέπει στις τρέχουσες εργασίες να ολοκληρωθούν και επιστρέφει την επεξεργασία στον poller. Οι αλλαγές εφαρμόζονται μέσα σε λίγα δευτερόλεπτα και συγχρονίζονται με τους συλλέκτες."
+
+#: setup.php:204
+msgid "Processing Workers"
+msgstr "Workers επεξεργασίας"
+
+#: setup.php:205
+msgid "Number of daemon workers that evaluate rules."
+msgstr "Αριθμός workers δαίμονα που αξιολογούν κανόνες."
+
+#: setup.php:211
+msgid "Delivery Workers"
+msgstr "Workers παράδοσης"
+
+#: setup.php:212
+msgid "Number of daemon workers that deliver notifications."
+msgstr "Αριθμός workers δαίμονα που παραδίδουν ειδοποιήσεις."
+
+#: setup.php:257
+msgid "Import/Export"
+msgstr "Εισαγωγή/Εξαγωγή"
+
+#: setup.php:259 setup.php:265 setup.php:271
+msgid "Alarm Manager Settings"
+msgstr "Ρυθμίσεις Alarm Manager"

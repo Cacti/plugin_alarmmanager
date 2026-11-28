@@ -1,0 +1,1230 @@
+# Malagasy translations for Alarm Manager package.
+# Copyright (C) 2004-2026 The Cacti Group
+# This file is distributed under the same license as the Alarm Manager package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Alarm Manager 0.12.2\n"
+"Report-Msgid-Bugs-To: https://github.com/bmfmancini/plugin_alarmmanager/issues\n"
+"POT-Creation-Date: 2026-11-02 13:02-0500\n"
+"PO-Revision-Date: 2026-11-28 02:15+0000\n"
+"Last-Translator: Thomas Vincent <thomasvincent@gmail.com>\n"
+"Language-Team: Malagasy <developers@cacti.net>\n"
+"Language: mg_MG\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: alarmmanager_admin.php:50
+msgid "The administration action succeeded."
+msgstr "Nahomby ny hetsika fitantanana."
+
+#: alarmmanager_admin.php:86
+msgid "Administration unavailable or permission denied."
+msgstr "Tsy misy ny fitantanana na tsy nahazoana alalana."
+
+#: includes/admin_view.php:78
+msgid "Choose the alarm information to send to any service. Use Combined text to arrange device details, or Use device message to start with a complete message. Email uses Subject and Message; API destinations use the field names required by the receiving service."
+msgstr "Safidio ny fampahalalana fanairana halefa any amin'ny serivisy rehetra. Ampiasao ny lahatsoratra natambatra handaminana ny antsipirian'ny fitaovana, na Ampiasao ny hafatry ny fitaovana hanombohana amin'ny hafatra feno. Mampiasa Lohahevitra sy Hafatra ny mailaka; mampiasa ny anaran-tsaha takian'ny serivisy mpandray ny fiafarana API."
+
+#: includes/admin_view.php:79
+msgid "Advanced message configuration"
+msgstr "Fikirakirana hafatra mandroso"
+
+#: includes/admin_view.php:90
+msgid "New endpoint"
+msgstr "Teboka fiafarana vaovao"
+
+#: includes/admin_view.php:100
+msgid "Custom integration"
+msgstr "Fampifandraisana manokana"
+
+#: includes/admin_view.php:100
+msgid "Integration provider"
+msgstr "Mpanome fampifandraisana"
+
+#: includes/admin_view.php:112
+msgid "API Key SID and Secret (recommended)"
+msgstr "API Key SID sy Secret (atoro)"
+
+#: includes/admin_view.php:112
+msgid "Account SID and Auth Token"
+msgstr "Account SID sy Auth Token"
+
+#: includes/admin_view.php:112
+msgid "Twilio credentials"
+msgstr "Fahazoan-dalana Twilio"
+
+#: includes/admin_view.php:113
+msgid "Send using"
+msgstr "Alefa amin'ny alalan'ny"
+
+#: includes/admin_view.php:125
+msgid "Event"
+msgstr "Zava-nitranga"
+
+#: includes/admin_view.php:125
+msgid "Incident"
+msgstr "Tranga"
+
+#: includes/admin_view.php:125
+msgid "ServiceNow record type"
+msgstr "Karazana rakitra ServiceNow"
+
+#: includes/admin_view.php:126
+msgid "Changing the record type replaces the destination table, message fields and recovery settings with its defaults. Your instance and credentials are retained."
+msgstr "Ny fanovana ny karazana rakitra dia manolo ny tabilao fiafarana, ny saha hafatra ary ny fikirakirana famerenana amin'ny sanda voafaritra mialoha. Tazonina ny instance sy ny fahazoan-dalanao."
+
+#: includes/admin_view.php:149
+msgid "Destination"
+msgstr "Fiafarana"
+
+#: includes/admin_view.php:154
+msgid "Email settings"
+msgstr "Fikirakirana mailaka"
+
+#: includes/admin_view.php:161
+msgid "Delivery uses the Cacti mail settings. Add the people who should receive these alarms."
+msgstr "Mampiasa ny fikirakirana mailaka Cacti ny fanaterana. Ampio ny olona tokony handray ireo fanairana ireo."
+
+#: includes/admin_view.php:162
+msgid "Script settings"
+msgstr "Fikirakirana script"
+
+#: includes/admin_view.php:167
+msgid "JSON output is sent to the script on standard input."
+msgstr "Alefa any amin'ny script amin'ny fampidirana mahazatra ny vokatra JSON."
+
+#: includes/admin_view.php:167
+msgid "The executable must exist and be executable by the worker on every delivering poller. Arguments are passed directly without a shell."
+msgstr "Tsy maintsy misy ary azon'ny mpiasa tanterahina ao amin'ny poller mpanatitra tsirairay ilay programa. Alefa mivantana tsy misy shell ny masontsivana."
+
+#: includes/admin_view.php:169
+msgid "WebSocket delivery is not implemented."
+msgstr "Tsy mbola napetraka ny fanaterana WebSocket."
+
+#: includes/admin_view.php:171
+msgid "Advanced delivery settings"
+msgstr "Fikirakirana fanaterana mandroso"
+
+#: includes/admin_view.php:176
+msgid "Connection options"
+msgstr "Safidy fifandraisana"
+
+#: includes/admin_view.php:179
+msgid "Method"
+msgstr "Fomba"
+
+#: includes/admin_view.php:186
+msgid "Certificate and hostname verification remain enabled. Provision the PEM file on every poller. Saved credentials are never displayed."
+msgstr "Mijanona ho mavitrika ny fanamarinana taratasy fanamarinana sy anaran'ny mpampiantrano. Apetraho ny rakitra PEM ao amin'ny poller tsirairay. Tsy aseho mihitsy ny fahazoan-dalana voatahiry."
+
+#: includes/admin_view.php:187
+msgid "Other delivery options"
+msgstr "Safidy fanaterana hafa"
+
+#: includes/admin_view.php:189 includes/admin_view.php:458
+msgid "Cancel"
+msgstr "Foano"
+
+#: includes/admin_view.php:189
+msgid "Test destination saves the current settings and queues a sample alarm for this destination. Enable the destination before testing."
+msgstr "Ny Andramo ny fiafarana dia mitahiry ny fikirakirana ankehitriny ary mametraka fanairana ohatra ao an-daharana ho an'ity fiafarana ity. Alefaso aloha ny fiafarana alohan'ny hitsapana."
+
+#: includes/admin_view.php:190
+msgid "Save endpoint"
+msgstr "Tehirizo ny teboka fiafarana"
+
+#: includes/admin_view.php:190
+msgid "Test destination"
+msgstr "Andramo ny fiafarana"
+
+#: includes/admin_view.php:194
+msgid "Delete endpoint"
+msgstr "Fafao ny teboka fiafarana"
+
+#: includes/admin_view.php:194
+msgid "Delete this endpoint, its delivery settings and saved credentials"
+msgstr "Fafao ity teboka fiafarana ity, ny fikirakirana fanaterana ary ny fahazoan-dalana voatahiry"
+
+#: includes/admin_view.php:194
+msgid "Deleting stops future delivery and removes the saved settings and credentials. Remove notification rule references and resolve queued or running deliveries first. Completed and failed delivery history is preserved."
+msgstr "Ny famafana dia mampitsahatra ny fanaterana amin'ny ho avy ary manala ny fikirakirana sy ny fahazoan-dalana voatahiry. Esory aloha ny fanondroana fitsipika fampandrenesana ary vahao ny fanaterana ao an-daharana na mandeha. Tazonina ny tantaran'ny fanaterana vita sy tsy nahomby."
+
+#: includes/admin_view.php:205
+msgid "Chat and messaging"
+msgstr "Resaka sy hafatra"
+
+#: includes/admin_view.php:206
+msgid "Post alarms to a Slack channel."
+msgstr "Mandefa fanairana any amin'ny fantsona Slack."
+
+#: includes/admin_view.php:207
+msgid "Post alarm cards through a Teams Workflow."
+msgstr "Mandefa karatra fanairana amin'ny alalan'ny Teams Workflow."
+
+#: includes/admin_view.php:208
+msgid "Send alarms from a Telegram bot."
+msgstr "Mandefa fanairana avy amin'ny bot Telegram."
+
+#: includes/admin_view.php:209
+msgid "Text alarms to phone numbers."
+msgstr "Mandefa hafatra an-tsoratra fanairana amin'ny laharana finday."
+
+#: includes/admin_view.php:210
+msgid "Send approved WhatsApp templates."
+msgstr "Mandefa modely WhatsApp nekena."
+
+#: includes/admin_view.php:211
+msgid "Incident management"
+msgstr "Fitantanana tranga"
+
+#: includes/admin_view.php:212
+msgid "Trigger and resolve PagerDuty incidents."
+msgstr "Mandrehitra sy mamaha tranga PagerDuty."
+
+#: includes/admin_view.php:213
+msgid "Open and resolve ServiceNow incidents or events."
+msgstr "Manokatra sy mamaha tranga na zava-nitranga ServiceNow."
+
+#: includes/admin_view.php:214
+msgid "Network management"
+msgstr "Fitantanana tambajotra"
+
+#: includes/admin_view.php:215
+msgid "Send SNMPv2c or SNMPv3 traps and INFORMs."
+msgstr "Mandefa fandrika SNMPv2c na SNMPv3 sy INFORM."
+
+#: includes/admin_view.php:216
+msgid "Forward RFC 5424 or RFC 3164 messages over UDP, TCP or TLS."
+msgstr "Ampitao ny hafatra RFC 5424 na RFC 3164 amin'ny alalan'ny UDP, TCP na TLS."
+
+#: includes/admin_view.php:217
+msgid "Custom"
+msgstr "Manokana"
+
+#: includes/admin_view.php:218
+msgid "Start from an empty endpoint."
+msgstr "Manomboka amin'ny teboka fiafarana banga."
+
+#: includes/admin_view.php:219
+msgid "POST alarm JSON to any HTTPS endpoint."
+msgstr "Mandefa JSON fanairana amin'ny POST mankany amin'ny teboka fiafarana HTTPS rehetra."
+
+#: includes/admin_view.php:220
+msgid "Call an API with your own method, authentication and response checks."
+msgstr "Antsoy ny API miaraka amin'ny fombanao, fanamarinanao ary fanaraha-maso ny valiny."
+
+#: includes/admin_view.php:221
+msgid "Run a local executable with the alarm as JSON input."
+msgstr "Tanterahena programa eo an-toerana miaraka amin'ny fanairana ho fampidirana JSON."
+
+#: includes/admin_view.php:227
+msgid "Add integration"
+msgstr "Ampio fampifandraisana"
+
+#: includes/admin_view.php:228
+msgid "Choose a template. It opens as a disabled draft; nothing is sent until you enable it."
+msgstr "Misafidiana modely. Misokatra ho drafitra tsy mavitrika izany; tsy misy alefa raha tsy alefanao aloha."
+
+#: includes/admin_view.php:228
+msgid "Search integrations"
+msgstr "Karohy fampifandraisana"
+
+#: includes/admin_view.php:234
+msgid "Blank endpoint"
+msgstr "Teboka fiafarana banga"
+
+#: includes/admin_view.php:239
+msgid "No integrations match your search."
+msgstr "Tsy misy fampifandraisana mifanaraka amin'ny fikarohanao."
+
+#: includes/admin_view.php:243
+msgid "SNMP trap settings"
+msgstr "Fikirakirana fandrika SNMP"
+
+#: includes/admin_view.php:259
+msgid "Saved community and passphrases are encrypted and never displayed. Leave them blank to keep the saved values; entering any value replaces all saved SNMP secrets."
+msgstr "Voakody ary tsy aseho mihitsy ny fiarahamonina sy ny fehezanteny voatahiry. Avelao ho banga izany hitazonana ny sanda voatahiry; ny fampidirana sanda rehetra dia manolo ny tsiambaratelo SNMP voatahiry rehetra."
+
+#: includes/admin_view.php:260
+msgid "Traps are sent as Cacti's CACTI-MIB cactiNotify with the snmptrap binary from Cacti Settings > Paths on every delivering poller. Add one destination per receiver."
+msgstr "Alefa toy ny CACTI-MIB cactiNotify an'ny Cacti miaraka amin'ny programa snmptrap avy amin'ny Fikirakirana Cacti > Lalana ao amin'ny poller mpanatitra tsirairay ny fandrika. Ampio fiafarana iray isaky ny mpandray."
+
+#: includes/admin_view.php:261
+msgid "Syslog settings"
+msgstr "Fikirakirana Syslog"
+
+#: includes/admin_view.php:269
+msgid "TLS verifies the receiver certificate and hostname. Use port 6514 for TLS. UDP and TCP are unencrypted, and a UDP message is confirmed only as sent."
+msgstr "Manamarina ny taratasy fanamarinana sy ny anaran'ny mpampiantrano mpandray ny TLS. Ampiasao ny seranana 6514 ho an'ny TLS. Tsy voakody ny UDP sy TCP, ary voamarina ho lasa ihany ny hafatra UDP."
+
+#: includes/admin_view.php:278 setup.php:191
+msgid "Days"
+msgstr "Andro"
+
+#: includes/admin_view.php:283
+msgid "Timezone"
+msgstr "Faritra ora"
+
+#: includes/admin_view.php:291
+msgid "Times use the selected timezone and the alarm event time. An end time before the start runs overnight. Equal times cover the entire selected day."
+msgstr "Mampiasa ny faritra ora voafantina sy ny fotoana nitrangan'ny fanairana ny fotoana. Mandeha mandritra ny alina ny ora fiafarana alohan'ny fanombohana. Mandrakotra ny andro voafantina manontolo ny ora mitovy."
+
+#: includes/admin_view.php:332 includes/admin_view.php:521
+msgid "Create a rule"
+msgstr "Mamorona fitsipika"
+
+#: includes/admin_view.php:332
+msgid "Enabled"
+msgstr "Mavitrika"
+
+#: includes/admin_view.php:332
+msgid "Priority"
+msgstr "Laharam-pahamehana"
+
+#: includes/admin_view.php:334
+msgid "Rule and destination"
+msgstr "Fitsipika sy fiafarana"
+
+#: includes/admin_view.php:338
+msgid "Alarm Destination"
+msgstr "Toerana alehan'ny fanairana"
+
+#: includes/admin_view.php:341
+msgid "disabled"
+msgstr "tsy mandeha"
+
+#: includes/admin_view.php:343
+msgid "Select one or more alarm destinations. Disabled destinations do not send alarms."
+msgstr "Safidio fiafarana fanairana iray na maromaro. Tsy mandefa fanairana ny fiafarana tsy mavitrika."
+
+#: includes/admin_view.php:345
+msgid "Message template"
+msgstr "Modely hafatra"
+
+#: includes/admin_view.php:345
+msgid "Use each destination default, or customize its message for this rule. Customization starts with a copy of the destination template and does not change other rules. If several rules match the same destination, the first matching rule in priority and ID order supplies its template."
+msgstr "Ampiasao ny voafaritra mialoha amin'ny fiafarana tsirairay, na amboary manokana ny hafany ho an'ity fitsipika ity. Manomboka amin'ny dika mitovy amin'ny modely fiafarana ny fanamboarana manokana ary tsy manova fitsipika hafa. Raha fitsipika maromaro no mifanaraka amin'ny fiafarana iray ihany, ny fitsipika voalohany mifanaraka araka ny filaharan'ny laharam-pahamehana sy ny ID no manome ny modeliny."
+
+#: includes/admin_view.php:352
+msgid "Custom template"
+msgstr "Modely manokana"
+
+#: includes/admin_view.php:355
+msgid "Destination recipient"
+msgstr "Mpandray ny fiafarana"
+
+#: includes/admin_view.php:355
+#, php-format
+msgid "Recipients: %d"
+msgstr "Mpandray: %d"
+
+#: includes/admin_view.php:357
+msgid "Customize message for this rule"
+msgstr "Amboary manokana ny hafatra ho an'ity fitsipika ity"
+
+#: includes/admin_view.php:357
+msgid "Unchecked: Use destination default."
+msgstr "Tsy voamarika: Ampiasao ny voafaritra mialoha amin'ny fiafarana."
+
+#: includes/admin_view.php:361
+msgid "Optional: add each phone number in international format, such as +15551234567. These numbers replace the destination recipient for this rule. Leave the list empty to use the destination default. Each number has its own delivery status and retries."
+msgstr "Tsy voatery: ampio ny laharana finday tsirairay amin'ny endrika iraisam-pirenena, toy ny +15551234567. Manolo ny mpandray fiafarana ho an'ity fitsipika ity ireo laharana ireo. Avelao ho banga ny lisitra hampiasana ny voafaritra mialoha amin'ny fiafarana. Samy manana ny satan'ny fanaterana sy ny famerenana ny laharana tsirairay."
+
+#: includes/admin_view.php:374
+msgid "None"
+msgstr "Tsy misy"
+
+#: includes/admin_view.php:376
+msgid "Build device conditions using AND, OR and groups. These conditions use the current Cacti device settings and must also satisfy any alarm filters below. With no device conditions, all devices can match."
+msgstr "Manamboara fepetra fitaovana amin'ny alalan'ny AND, OR ary vondrona. Mampiasa ny fikirakirana fitaovana Cacti ankehitriny ireo fepetra ireo ary tsy maintsy mahafeno ny sivana fanairana etsy ambany koa. Raha tsy misy fepetra fitaovana dia mety hifanaraka avokoa ny fitaovana rehetra."
+
+#: includes/admin_view.php:376
+msgid "Match devices"
+msgstr "Mampifanaraka fitaovana"
+
+#: includes/admin_view.php:387
+msgid "Cacti_Admin_Notifications"
+msgstr "Cacti_Admin_Notifications"
+
+#: includes/admin_view.php:387
+msgid "Device Status"
+msgstr "Satan'ny Fitaovana"
+
+#: includes/admin_view.php:387
+msgid "Syslog"
+msgstr "Syslog"
+
+#: includes/admin_view.php:387
+msgid "Thold"
+msgstr "Thold"
+
+#: includes/admin_view.php:392
+msgid "Build alarm conditions using AND, OR, NOT and groups. Alarms must also match the device conditions above."
+msgstr "Manamboara fepetra fanairana amin'ny alalan'ny AND, OR, NOT ary vondrona. Tsy maintsy mifanaraka amin'ny fepetra fitaovana etsy ambony koa ny fanairana."
+
+#: includes/admin_view.php:392
+msgid "Match alarms"
+msgstr "Mampifanaraka fanairana"
+
+#: includes/admin_view.php:395
+msgid "No alarm sources detected yet. Sources appear after their first alarm."
+msgstr "Tsy mbola misy loharanon'ny fanairana hita. Miseho ny loharano aorian'ny fanairana voalohany avy aminy."
+
+#: includes/admin_view.php:397
+msgid "By default, matching alarms can notify at any time. Turn on a schedule to limit when this rule matches."
+msgstr "Amin'ny fomba mahazatra, afaka mampandre amin'ny fotoana rehetra ny fanairana mifanaraka. Alefaso ny fandaharam-potoana mba hametra ny fotoana ifanarahan'ity fitsipika ity."
+
+#: includes/admin_view.php:397
+msgid "Notification hours"
+msgstr "Ora fampandrenesana"
+
+#: includes/admin_view.php:399
+msgid "Suppress notifications"
+msgstr "Sakano ny fampandrenesana"
+
+#: includes/admin_view.php:399
+msgid "Suppressed alarms remain in history. Recovery notifications bypass acknowledgment, cooldown and duplicate suppression, but still follow notification hours and maintenance windows."
+msgstr "Mijanona ao amin'ny tantara ny fanairana voasakana. Mandingana ny fanamarinana, ny fotoana fiatoana ary ny fanakanana dika mitovy ny fampandrenesana fanasitranana, saingy mbola manaraka ny ora fampandrenesana sy ny fotoana fikojakojana."
+
+#: includes/admin_view.php:403
+msgid "Set a duration to 0 to turn it off."
+msgstr "Apetraho ho 0 ny faharetana hamonoana azy."
+
+#: includes/admin_view.php:405
+msgid "Rule order"
+msgstr "Filaharan'ny fitsipika"
+
+#: includes/admin_view.php:408
+msgid "Create rule"
+msgstr "Mamorona fitsipika"
+
+#: includes/admin_view.php:408
+msgid "Rules with equal priority run in ID order. Stopping also applies when this rule suppresses notifications."
+msgstr "Mandeha araka ny filaharan'ny ID ny fitsipika mitovy laharam-pahamehana. Mihatra koa ny fijanonana rehefa manakana fampandrenesana ity fitsipika ity."
+
+#: includes/admin_view.php:417
+msgid "Configuration Backup/Restore"
+msgstr "Tahiry Fiarovana/Famerenana ny Fikirakirana"
+
+#: includes/admin_view.php:427
+msgid "Paused"
+msgstr "Miato vetivety"
+
+#: includes/admin_view.php:427
+msgid "Running"
+msgstr "Mandeha"
+
+#: includes/admin_view.php:428
+msgid "everything has been delivered"
+msgstr "efa tonga avokoa ny zava-drehetra"
+
+#: includes/admin_view.php:428
+#, php-format
+msgid "oldest queued %s UTC"
+msgstr "tranainy indrindra ao an-daharana %s UTC"
+
+#: includes/admin_view.php:428
+msgid "waiting messages"
+msgstr "hafatra miandry"
+
+#: includes/admin_view.php:431
+msgid "Hide messages"
+msgstr "Afeno ny hafatra"
+
+#: includes/admin_view.php:431
+msgid "View messages"
+msgstr "Jereo ny hafatra"
+
+#: includes/admin_view.php:441
+msgid "Endpoint"
+msgstr "Teboka fiafarana"
+
+#: includes/admin_view.php:441
+msgid "ID"
+msgstr "ID"
+
+#: includes/admin_view.php:441
+msgid "Message"
+msgstr "Hafatra"
+
+#: includes/admin_view.php:441
+msgid "Next try"
+msgstr "Andrana manaraka"
+
+#: includes/admin_view.php:441 includes/reports.php:458
+msgid "Queued"
+msgstr "Ao an-daharana"
+
+#: includes/admin_view.php:441
+msgid "Tries"
+msgstr "Andrana"
+
+#: includes/admin_view.php:451
+msgid "Times in UTC · first 100 shown"
+msgstr "Fotoana amin'ny UTC · 100 voalohany aseho"
+
+#: includes/admin_view.php:455
+msgid "Pause delivery"
+msgstr "Ajanony vetivety ny fanaterana"
+
+#: includes/admin_view.php:455
+msgid "Resume delivery"
+msgstr "Tohizo ny fanaterana"
+
+#: includes/admin_view.php:458
+msgid "Clear queue"
+msgstr "Diovy ny laharana"
+
+#: includes/admin_view.php:459
+#, php-format
+msgid "Discard all %d waiting notifications on this poller?"
+msgstr "Hanafoana ny fampandrenesana miandry %d rehetra amin'ity poller ity ve?"
+
+#: includes/admin_view.php:460
+msgid "Includes retries. They stay in delivery history as failed, reason queue_cleared."
+msgstr "Ahitana ny andrana famerenana. Mijanona ao amin'ny tantaran'ny fanaterana ho tsy nahomby izy ireo, antony queue_cleared."
+
+#: includes/admin_view.php:461
+msgid "Messages already sending and alarm state are kept."
+msgstr "Tazonina ny hafatra efa alefa sy ny satan'ny fanairana."
+
+#: includes/admin_view.php:462
+msgid "Tip: pause delivery first during maintenance."
+msgstr "Torohevitra: ajanony vetivety aloha ny fanaterana mandritra ny fikojakojana."
+
+#: includes/admin_view.php:463
+msgid "Clear queue…"
+msgstr "Diovy ny laharana…"
+
+#: includes/admin_view.php:464
+msgid "Controls apply to this poller. While paused, alarms are still received and queued; Resume sends them."
+msgstr "Mihatra amin'ity poller ity ny fifehezana. Raha miato vetivety, mbola raisina sy atao an-daharana ny fanairana; mandefa azy ny Tohizo."
+
+#: includes/admin_view.php:467
+msgid "View delivery results"
+msgstr "Jereo ny valin'ny fanaterana"
+
+#: includes/admin_view.php:470
+msgid "Create an integration, configure its destination and credentials, test a sample alarm here, then select it directly in a rule."
+msgstr "Mamorona fampifandraisana, amboary ny fiafarany sy ny fahazoan-dalany, andramo fanairana ohatra eto, avy eo safidio mivantana ao amin'ny fitsipika."
+
+#: includes/admin_view.php:476
+msgid "Configured integrations"
+msgstr "Fampifandraisana voarindra"
+
+#: includes/admin_view.php:479
+msgid "No integrations yet. Choose a template above to create one."
+msgstr "Tsy mbola misy fampifandraisana. Misafidiana modely etsy ambony hamoronana iray."
+
+#: includes/admin_view.php:490
+msgid "Alarm Rules"
+msgstr "Fitsipika Fanairana"
+
+#: includes/admin_view.php:490
+msgid "Choose which alarms should notify, where to send them and when to pause notifications. Rules run from lowest to highest priority."
+msgstr "Safidio izay fanairana tokony hampandre, aiza no handefasana azy ary rahoviana no ajanona vetivety ny fampandrenesana. Mandeha avy amin'ny laharam-pahamehana ambany indrindra mankany amin'ny avo indrindra ny fitsipika."
+
+#: includes/admin_view.php:493
+msgid "Create an integration before saving your first rule."
+msgstr "Mamorona fampifandraisana alohan'ny hitahirizana ny fitsipikao voalohany."
+
+#: includes/admin_view.php:493
+msgid "Create integration"
+msgstr "Mamorona fampifandraisana"
+
+#: includes/admin_view.php:495
+msgid "Clear"
+msgstr "Fafao"
+
+#: includes/admin_view.php:495
+msgid "Critical"
+msgstr "Henjana"
+
+#: includes/admin_view.php:495
+msgid "Information"
+msgstr "Fampahalalana"
+
+#: includes/admin_view.php:495
+msgid "Major"
+msgstr "Lehibe"
+
+#: includes/admin_view.php:495
+msgid "Minor"
+msgstr "Kely"
+
+#: includes/admin_view.php:495
+msgid "Occurrence"
+msgstr "Fisehoana"
+
+#: includes/admin_view.php:495
+msgid "Raised"
+msgstr "Nisondrotra"
+
+#: includes/admin_view.php:495
+msgid "Recovered"
+msgstr "Sitrana"
+
+#: includes/admin_view.php:495
+msgid "Reminder"
+msgstr "Fampahatsiahivana"
+
+#: includes/admin_view.php:495
+msgid "Updated"
+msgstr "Nohavaozina"
+
+#: includes/admin_view.php:495
+msgid "Warning"
+msgstr "Fampitandremana"
+
+#: includes/admin_view.php:520
+msgid "Alarm notifications require an enabled matching Alarm Rule. Without one, alarms remain in history but no notifications are sent."
+msgstr "Mitaky Fitsipika Fanairana mavitrika mifanaraka ny fampandrenesana fanairana. Raha tsy misy izany dia mijanona ao amin'ny tantara ny fanairana fa tsy misy fampandrenesana alefa."
+
+#: includes/admin_view.php:524
+msgid "No rules yet. Create a rule below to start routing alarms to your notification destinations."
+msgstr "Tsy mbola misy fitsipika. Mamorona fitsipika etsy ambany hanombohana ny fandefasana fanairana mankany amin'ny fiafarana fampandrenesanao."
+
+#: includes/admin_view.php:533
+msgid "Credential values are never loaded into this page. Saving replaces the endpoint record; blank values do not preserve an old password. Use the CLI for protected backup/restore and poller provisioning."
+msgstr "Tsy ampidirina amin'ity pejy ity mihitsy ny sandan'ny fahazoan-dalana. Ny fitahirizana dia manolo ny rakitra teboka fiafarana; tsy mitazona tenimiafina taloha ny sanda banga. Ampiasao ny CLI ho an'ny tahiry fiarovana/famerenana voaaro sy ny fametrahana poller."
+
+#: includes/admin_view.php:536
+msgid "Create endpoint"
+msgstr "Mamorona teboka fiafarana"
+
+#: includes/admin_view.php:536
+msgid "No REST API or webhook endpoints have been saved. Create an endpoint to enter its bearer token, Basic authentication username and password, or API-key headers."
+msgstr "Tsy misy teboka fiafarana REST API na webhook voatahiry. Mamorona teboka fiafarana hampidirana ny bearer token, anaran'ny mpampiasa sy tenimiafina Basic authentication, na loha-hafatra lakile API."
+
+#: includes/admin_view.php:540
+msgid "Configured"
+msgstr "Voarindra"
+
+#: includes/admin_view.php:543
+msgid "Replace credential"
+msgstr "Soloy ny fahazoan-dalana"
+
+#: includes/admin_view.php:549
+msgid "Rotate local key"
+msgstr "Ahodino ny lakile eo an-toerana"
+
+#: includes/admin_view.php:553
+msgid "Event log"
+msgstr "Rakitsoratra zava-nitranga"
+
+#: includes/admin_view.php:553
+msgid "Writes every event as it is processed, independent of which rules match or whether any destination is notified — a complete audit trail for external analysis, for example with Splunk."
+msgstr "Manoratra ny zava-nitranga tsirairay rehefa karakaraina, tsy miankina amin'izay fitsipika mifanaraka na misy fiafarana ampandrenesina - dian-tsoratra fanaraha-maso feno ho an'ny fanadihadiana ivelany, ohatra miaraka amin'ny Splunk."
+
+#: includes/admin_view.php:555
+msgid "Cacti log"
+msgstr "Rakitsoratra Cacti"
+
+#: includes/admin_view.php:555
+msgid "External file"
+msgstr "Rakitra ivelany"
+
+#: includes/admin_view.php:555
+msgid "Write to"
+msgstr "Soraty any amin'ny"
+
+#: includes/admin_view.php:559
+msgid "One JSON object per line (occurred_at, transition, severity, device, alarm key…). The path must already exist, outside the plugin directory and Cacti's web root. Past the size limit, the file rotates to one .1 backup."
+msgstr "Zavatra JSON iray isaky ny andalana (occurred_at, transition, severity, device, alarm key…). Tsy maintsy efa misy ny lalana, ivelan'ny lahatahiry plugin sy ny fakan'ny tranonkala Cacti. Rehefa mihoatra ny fetran'ny habe, mihodina ho tahiry fiarovana .1 iray ilay rakitra."
+
+#: includes/admin_view.php:559
+msgid "Save event log settings"
+msgstr "Tehirizo ny fikirakirana rakitsoratra zava-nitranga"
+
+#: includes/admin_view.php:561
+msgid "Backup and restore"
+msgstr "Tahiry fiarovana sy famerenana"
+
+#: includes/admin_view.php:561
+msgid "Export"
+msgstr "Aondrana"
+
+#: includes/admin_view.php:562
+msgid "Endpoints, message templates, and rules as JSON. Credentials and settings are not included. Endpoint URLs can contain secrets, so keep the file private."
+msgstr "Teboka fiafarana, modely hafatra ary fitsipika amin'ny endrika JSON. Tsy tafiditra ny fahazoan-dalana sy ny fikirakirana. Mety ahitana tsiambaratelo ny URL teboka fiafarana, koa tazony ho manokana ny rakitra."
+
+#: includes/admin_view.php:563
+msgid "Export configuration"
+msgstr "Aondrana ny fikirakirana"
+
+#: includes/admin_view.php:563
+msgid "Import"
+msgstr "Manafatra"
+
+#: includes/admin_view.php:567
+msgid "Replaces the routing configuration using the IDs in the file. Endpoints and rules missing from the file are disabled, not deleted. Saved credentials are kept."
+msgstr "Manolo ny fikirakirana fandefasana amin'ny alalan'ny ID ao anaty rakitra. Tsy fafana fa ajanona ny teboka fiafarana sy fitsipika tsy hita ao anaty rakitra. Tazonina ny fahazoan-dalana voatahiry."
+
+#: includes/admin_view.php:568
+msgid "Import configuration"
+msgstr "Ampidiro ny fikirakirana"
+
+#: includes/admin_view.php:572
+msgid "Local queue health"
+msgstr "Fahasalaman'ny laharana eo an-toerana"
+
+#: includes/admin_view.php:573
+msgid "Jobs"
+msgstr "Asa"
+
+#: includes/admin_view.php:573
+msgid "Oldest job age (seconds)"
+msgstr "Taonan'ny asa tranainy indrindra (segondra)"
+
+#: includes/admin_view.php:573
+msgid "Queue"
+msgstr "Laharana"
+
+#: includes/admin_view.php:573
+msgid "Retries"
+msgstr "Famerenana"
+
+#: includes/admin_view.php:573 includes/admin_view.php:592
+#: includes/web_view.php:181
+msgid "Status"
+msgstr "Sata"
+
+#: includes/admin_view.php:588
+msgid "No queue activity recorded."
+msgstr "Tsy misy hetsika laharana voarakitra."
+
+#: includes/admin_view.php:591
+msgid "Local worker health"
+msgstr "Fahasalaman'ny mpiasa eo an-toerana"
+
+#: includes/admin_view.php:592
+msgid "Current job"
+msgstr "Asa ankehitriny"
+
+#: includes/admin_view.php:592
+msgid "Heartbeat age (seconds)"
+msgstr "Taonan'ny fitempon'ny fo (segondra)"
+
+#: includes/admin_view.php:592
+msgid "PID"
+msgstr "PID"
+
+#: includes/admin_view.php:592
+msgid "Poller"
+msgstr "Poller"
+
+#: includes/admin_view.php:592
+msgid "Role"
+msgstr "Andraikitra"
+
+#: includes/admin_view.php:592
+msgid "Worker"
+msgstr "Mpiasa"
+
+#: includes/admin_view.php:607
+msgid "No local worker heartbeats recorded."
+msgstr "Tsy misy fitempon'ny fo an'ny mpiasa eo an-toerana voarakitra."
+
+#: includes/admin_view.php:610
+msgid "Completed delivery jobs in the last 300 seconds"
+msgstr "Asa fanaterana vita tao anatin'ny 300 segondra farany"
+
+#: includes/admin_view.php:610
+msgid "Completed processing jobs in the last 300 seconds"
+msgstr "Asa fanodinana vita tao anatin'ny 300 segondra farany"
+
+#: includes/admin_view.php:610
+msgid "Processing streams blocked behind a failed predecessor"
+msgstr "Koran'ny fanodinana voasakana ao ambadiky ny teo aloha tsy nahomby"
+
+#: includes/admin_view.php:613
+msgid "Pending jobs for destination types without a qualified transport"
+msgstr "Asa miandry ho an'ny karazana fiafarana tsy manana fitaterana voamarina"
+
+#: includes/admin_view.php:620
+msgid "Failed deliveries and replay"
+msgstr "Fanaterana tsy nahomby sy famerenana"
+
+#: includes/admin_view.php:620
+msgid "Failed processing jobs and replay"
+msgstr "Asa fanodinana tsy nahomby sy famerenana"
+
+#: includes/admin_view.php:625
+msgid "Authentication"
+msgstr "Fanamarinana"
+
+#: includes/admin_view.php:625
+msgid "Authentication type"
+msgstr "Karazana fanamarinana"
+
+#: includes/admin_view.php:649
+msgid "Saved credentials are encrypted and never displayed. New values replace the saved credential record."
+msgstr "Voakody ary tsy aseho mihitsy ny fahazoan-dalana voatahiry. Manolo ny rakitra fahazoan-dalana voatahiry ny sanda vaovao."
+
+#: includes/polling.php:150
+msgid "Start the Alarm Manager service on this collector before enabling daemon workers."
+msgstr "Alefaso ny serivisy Alarm Manager ao amin'ity mpanangona ity alohan'ny handefasana ny mpiasa daemon."
+
+#: includes/polling.php:163
+msgid "Daemon settings could not be saved. Check the Cacti cache directory permissions."
+msgstr "Tsy voatahiry ny fikirakirana daemon. Hamarino ny alalana amin'ny lahatahiry cache an'ny Cacti."
+
+#: includes/reports.php:430
+msgid "Remote history"
+msgstr "Tantara lavitra"
+
+#: includes/reports.php:459
+msgid "Test send"
+msgstr "Andrana fandefasana"
+
+#: includes/reports.php:460
+msgid "No matching rule"
+msgstr "Tsy misy fitsipika mifanaraka"
+
+#: includes/reports.php:461
+msgid "Destination disabled"
+msgstr "Tsy mavitrika ny fiafarana"
+
+#: includes/reports.php:462
+msgid "Suppressed by source"
+msgstr "Voasakana avy amin'ny loharano"
+
+#: includes/reports.php:463
+msgid "Maintenance window"
+msgstr "Fotoana fikojakojana"
+
+#: includes/reports.php:464
+msgid "Acknowledged"
+msgstr "Voamarina"
+
+#: includes/reports.php:465
+msgid "Cooldown"
+msgstr "Fotoana fiatoana"
+
+#: includes/reports.php:466
+msgid "Duplicate"
+msgstr "Dika mitovy"
+
+#: includes/reports.php:467
+msgid "Already routed"
+msgstr "Efa voatondro lalana"
+
+#: includes/reports.php:468
+msgid "Out of order"
+msgstr "Tsy milahatra"
+
+#: includes/reports.php:469
+msgid "Ignored episode"
+msgstr "Fizarana tsy noraharahiana"
+
+#: includes/reports.php:470
+msgid "History only"
+msgstr "Tantara ihany"
+
+#: includes/reports.php:518
+#, php-format
+msgid "Deleted destination #%d"
+msgstr "Voafafa ny fiafarana #%d"
+
+#: includes/reports.php:519
+#, php-format
+msgid "%d destinations"
+msgstr "Fiafarana %d"
+
+#: includes/reports.php:531
+msgid "Delivered"
+msgstr "Tonga"
+
+#: includes/reports.php:531
+msgid "Failed"
+msgstr "Tsy nahomby"
+
+#: includes/reports.php:531
+msgid "Pending"
+msgstr "Miandry"
+
+#: includes/reports.php:531
+msgid "Sending"
+msgstr "Mandefa"
+
+#: includes/reports.php:541
+msgid "Processing failed"
+msgstr "Tsy nahomby ny fanodinana"
+
+#: includes/reports.php:542
+msgid "Pending processing"
+msgstr "Miandry fanodinana"
+
+#: includes/reports.php:543 includes/web_view.php:264
+msgid "Processing"
+msgstr "Fanodinana"
+
+#: includes/reports.php:544
+msgid "No matching integration"
+msgstr "Tsy misy fampifandraisana mifanaraka"
+
+#: includes/reports.php:544
+msgid "Suppressed"
+msgstr "Voasakana"
+
+#: includes/routing.php:106
+msgid "Device description"
+msgstr "Famaritana fitaovana"
+
+#: includes/routing.php:106
+msgid "Hostname"
+msgstr "Anaran'ny mpampiantrano"
+
+#: includes/routing.php:106
+msgid "Location"
+msgstr "Toerana"
+
+#: includes/routing.php:106
+msgid "SNMP system location"
+msgstr "Toeran'ny rafitra SNMP"
+
+#: includes/routing.php:110 includes/routing.php:125
+msgid "Collector"
+msgstr "Mpanangona"
+
+#: includes/routing.php:110
+msgid "Device Site Association"
+msgstr "Fampifandraisana ny fitaovana amin'ny toerana"
+
+#: includes/routing.php:110
+msgid "Device Template"
+msgstr "Modely fitaovana"
+
+#: includes/routing.php:121
+msgid "Alarm change"
+msgstr "Fiovan'ny fanairana"
+
+#: includes/routing.php:121
+msgid "Alarm source"
+msgstr "Loharanon'ny fanairana"
+
+#: includes/routing.php:121
+msgid "Alarm summary"
+msgstr "Famintinana fanairana"
+
+#: includes/routing.php:121 includes/web_view.php:161
+msgid "Severity"
+msgstr "Hamafiny"
+
+#: includes/routing.php:125
+msgid "Device"
+msgstr "Fitaovana"
+
+#: includes/routing.php:128
+msgid "Device tag"
+msgstr "Marika fitaovana"
+
+#: includes/web_view.php:93
+msgid "Report unavailable or permission denied."
+msgstr "Tsy misy ny tatitra na tsy nahazoana alalana."
+
+#: includes/web_view.php:119
+msgid "Statistics could not be rendered."
+msgstr "Tsy azo naseho ny antontan'isa."
+
+#: includes/web_view.php:129 setup.php:131 setup.php:273 setup.php:289
+#: setup.php:290
+msgid "Alarm Manager"
+msgstr "Mpitantana fanairana"
+
+#: includes/web_view.php:136
+msgid "Alarm Manager pages"
+msgstr "Pejy Alarm Manager"
+
+#: includes/web_view.php:149 includes/web_view.php:152
+msgid "Alarm statistics"
+msgstr "Antontan'isa fanairana"
+
+#: includes/web_view.php:149
+msgid "Filters"
+msgstr "Sivana"
+
+#: includes/web_view.php:152
+msgid "Time range"
+msgstr "Elanelam-potoana"
+
+#: includes/web_view.php:158
+msgid "Off"
+msgstr "Tsy alefa"
+
+#: includes/web_view.php:158
+msgid "Refresh"
+msgstr "Havaozy"
+
+#: includes/web_view.php:160
+msgid "Advanced filter JSON"
+msgstr "Sivana JSON mandroso"
+
+#: includes/web_view.php:160
+msgid "Filter document"
+msgstr "Rakitra sivana"
+
+#: includes/web_view.php:160
+msgid "Quick filters"
+msgstr "Sivana haingana"
+
+#: includes/web_view.php:160
+msgid "Search conditions"
+msgstr "Karohy fepetra"
+
+#: includes/web_view.php:161 includes/web_view.php:181
+msgid "All"
+msgstr "Rehetra"
+
+#: includes/web_view.php:161
+msgid "Source"
+msgstr "Loharano"
+
+#: includes/web_view.php:168
+msgid "Device ID"
+msgstr "ID-n'ny fitaovana"
+
+#: includes/web_view.php:171
+msgid "Status type"
+msgstr "Karazana sata"
+
+#: includes/web_view.php:190
+msgid "event_id"
+msgstr "event_id"
+
+#: includes/web_view.php:195
+msgid "Collector ID"
+msgstr "ID Mpanangona"
+
+#: includes/web_view.php:195
+msgid "Local and mirrored collectors"
+msgstr "Mpanangona eo an-toerana sy fitaratra"
+
+#: includes/web_view.php:198
+msgid "mirrored"
+msgstr "fitaratra"
+
+#: includes/web_view.php:203
+msgid "Mirrored events carry no Record ID and no detail view."
+msgstr "Tsy mitondra ID Rakitra sy fijery antsipiriany ny zava-nitranga fitaratra."
+
+#: includes/web_view.php:205
+msgid "Mirrored collector events are always included here unless you narrow by a specific remote Collector ID."
+msgstr "Tafiditra eto foana ny zava-nitranga avy amin'ny mpanangona fitaratra raha tsy hoe mifantina ID Mpanangona lavitra manokana ianao."
+
+#: includes/web_view.php:211
+msgid "Apply"
+msgstr "Ampiharo"
+
+#: includes/web_view.php:211
+msgid "Reset"
+msgstr "Averina amin'ny laoniny"
+
+#: includes/web_view.php:213
+msgid "Historical window uses UTC. Current conditions and queues ignore the time window."
+msgstr "Mampiasa UTC ny vanim-potoana tantara. Tsy miraharaha ny vanim-potoana ny toe-javatra ankehitriny sy ny laharana."
+
+#: includes/web_view.php:235
+msgid "Loading statistics…"
+msgstr "Mampiditra antontan'isa…"
+
+#: includes/web_view.php:248
+msgid "Collapse"
+msgstr "Ahena"
+
+#: includes/web_view.php:261
+msgid "Integration results"
+msgstr "Valin'ny fampifandraisana"
+
+#: includes/web_view.php:262
+msgid "Delivery attempts"
+msgstr "Andrana fanaterana"
+
+#: includes/web_view.php:263
+msgid "Routing decisions"
+msgstr "Fanapahan-kevitra fandefasana"
+
+#: includes/web_view.php:265
+msgid "conditions"
+msgstr "fepetra"
+
+#: includes/web_view.php:270
+msgid "No matching records."
+msgstr "Tsy misy rakitra mifanaraka."
+
+#: includes/web_view.php:290
+msgid "Integration status"
+msgstr "Satan'ny fampifandraisana"
+
+#: includes/web_view.php:291
+msgid "Collector Name"
+msgstr "Anaran'ny Mpanangona"
+
+#: includes/web_view.php:292
+msgid "Attempts in current retry cycle"
+msgstr "Andrana ao amin'ny tsingerina famerenana ankehitriny"
+
+#: includes/web_view.php:298
+msgid "Action"
+msgstr "Hetsika"
+
+#: includes/web_view.php:314
+msgid "Display"
+msgstr "Fampisehoana"
+
+#: includes/web_view.php:349
+msgid "Latest 100 records for this event."
+msgstr "Rakitra 100 farany ho an'ity zava-nitranga ity."
+
+#: includes/web_view.php:354
+msgid "Showing at most 50 records per page."
+msgstr "Mampiseho rakitra 50 fara-fahabetsany isaky ny pejy."
+
+#: includes/web_view.php:355
+msgid "Pages"
+msgstr "Pejy"
+
+#: includes/web_view.php:358
+msgid "Previous"
+msgstr "Teo aloha"
+
+#: includes/web_view.php:361
+#, php-format
+msgid "Page %d"
+msgstr "Pejy %d"
+
+#: includes/web_view.php:364
+msgid "Next"
+msgstr "Manaraka"
+
+#: includes/web_view.php:371
+msgid "Selected event details"
+msgstr "Antsipirian'ny zava-nitranga voafantina"
+
+#: includes/web_view.php:378
+msgid "Show metadata"
+msgstr "Asehoy ny metadata"
+
+#: includes/web_view.php:400
+msgid "Confirm replay may repeat an external effect"
+msgstr "Hamarino fa mety hamerina fiantraikany ivelany ny famerenana fandefasana"
+
+#: setup.php:102
+msgid "Alarm Manager View"
+msgstr "Fijery Alarm Manager"
+
+#: setup.php:103
+msgid "Alarm Manager Administration"
+msgstr "Fitantanana Alarm Manager"
+
+#: setup.php:133
+msgid "0 Worker Processes"
+msgstr "Dingana mpiasa 0"
+
+#: setup.php:133
+msgid "1 Worker Process"
+msgstr "Dingana mpiasa 1"
+
+#: setup.php:136
+#, php-format
+msgid "%d Worker Processes"
+msgstr "%d Fizotra mpanatanteraka"
+
+#: setup.php:144
+msgid "Device Alarm Summaries"
+msgstr "Famintinana Fanairana Fitaovana"
+
+#: setup.php:148
+msgid "Offline Summary"
+msgstr "Famintinana Tsy Mifandray"
+
+#: setup.php:149
+msgid "Summary for new Cacti device down alarms. Existing history retains its original summary."
+msgstr "Famintinana ho an'ny fanairana vaovao momba ny fitaovana Cacti tapaka. Mitazona ny famintinany tany am-boalohany ny tantara efa misy."
+
+#: setup.php:156
+msgid "Recovering Summary"
+msgstr "Famintinana Fanasitranana"
+
+#: setup.php:157
+msgid "Summary for device recovering updates within the same outage."
+msgstr "Famintinana ho an'ny fanavaozana fanasitranana fitaovana ao anatin'ny fahatapahana iray ihany."
+
+#: setup.php:164
+msgid "Online Summary"
+msgstr "Famintinana Mifandray"
+
+#: setup.php:165
+msgid "Summary for device recovery alarms once Cacti confirms the device is up."
+msgstr "Famintinana ho an'ny fanairana fanasitranana fitaovana rehefa manamarina ny Cacti fa miasa ilay fitaovana."
+
+#: setup.php:172
+msgid "Alert History Retention"
+msgstr "Fitahirizana Tantaran'ny Fanairana"
+
+#: setup.php:177
+msgid "Keep Alert History For"
+msgstr "Tehirizo ny Tantaran'ny Fanairana Mandritra ny"
+
+#: setup.php:178
+msgid "Enter how many days, weeks or months to keep alert history, or choose Indefinitely to keep everything (the number is then ignored). Maximum 3650 days, 520 weeks or 120 months. A purge job runs with the Cacti poller and removes aged events with their decisions, deliveries and attempts. Active conditions and queued or failed work are never purged. Each collector purges its own history."
+msgstr "Ampidiro ny isan'ny andro, herinandro na volana hitahirizana ny tantaran'ny fanairana, na safidio Tsy voafetra hitahirizana ny zava-drehetra (tsy raharahiana ilay isa avy eo). Fara-tampony 3650 andro, 520 herinandro na 120 volana. Mandeha miaraka amin'ny poller Cacti ny asa fanadiovana ary manala ny zava-nitranga antitra miaraka amin'ny fanapahan-keviny, fanaterany ary andrany. Tsy voafafa mihitsy ny toe-javatra mavitrika sy ny asa ao an-daharana na tsy nahomby. Ny mpanangona tsirairay no manadio ny tantarany manokana."
+
+#: setup.php:187
+msgid "Retention Unit"
+msgstr "Singa Fitahirizana"
+
+#: setup.php:188
+msgid "The unit for the retention period."
+msgstr "Ny singa ho an'ny fe-potoana fitahirizana."
+
+#: setup.php:191
+msgid "Indefinitely"
+msgstr "Mandritra ny fotoana tsy voafetra"
+
+#: setup.php:191
+msgid "Months"
+msgstr "Volana"
+
+#: setup.php:191
+msgid "Weeks"
+msgstr "Herinandro"
+
+#: setup.php:194
+msgid "Daemon"
+msgstr "Daemon"
+
+#: setup.php:198
+msgid "Enable Daemon"
+msgstr "Alefaso ny Daemon"
+
+#: setup.php:199
+msgid "Run processing and delivery workers in the resident Alarm Manager service instead of the Cacti poller. The service must be installed and running; disabling it lets current jobs finish and returns processing to the poller. Changes apply within a few seconds and synchronize to collectors."
+msgstr "Alefaso ao amin'ny serivisy Alarm Manager miorina fa tsy ao amin'ny poller Cacti ny mpiasa fanodinana sy fanaterana. Tsy maintsy napetraka sy mandeha ny serivisy; ny fanajanonana azy dia mamela ny asa ankehitriny ho vita ary mamerina ny fanodinana any amin'ny poller. Mihatra ao anatin'ny segondra vitsy ny fanovana ary mifanaraka amin'ny mpanangona."
+
+#: setup.php:204
+msgid "Processing Workers"
+msgstr "Mpiasa Fanodinana"
+
+#: setup.php:205
+msgid "Number of daemon workers that evaluate rules."
+msgstr "Isan'ny mpiasa daemon izay manombatombana fitsipika."
+
+#: setup.php:211
+msgid "Delivery Workers"
+msgstr "Mpiasa Fanaterana"
+
+#: setup.php:212
+msgid "Number of daemon workers that deliver notifications."
+msgstr "Isan'ny mpiasa daemon izay manatitra fampandrenesana."
+
+#: setup.php:257
+msgid "Import/Export"
+msgstr "Fanafarana/Fanondranana"
+
+#: setup.php:259 setup.php:265 setup.php:271
+msgid "Alarm Manager Settings"
+msgstr "Fikirakirana Alarm Manager"

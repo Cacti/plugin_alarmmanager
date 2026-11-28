@@ -1,0 +1,1230 @@
+# Amharic translations for Alarm Manager package.
+# Copyright (C) 2004-2026 The Cacti Group
+# This file is distributed under the same license as the Alarm Manager package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Alarm Manager 0.12.2\n"
+"Report-Msgid-Bugs-To: https://github.com/bmfmancini/plugin_alarmmanager/issues\n"
+"POT-Creation-Date: 2026-11-02 13:02-0500\n"
+"PO-Revision-Date: 2026-11-28 02:15+0000\n"
+"Last-Translator: Thomas Vincent <thomasvincent@gmail.com>\n"
+"Language-Team: Amharic <developers@cacti.net>\n"
+"Language: am_ET\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: alarmmanager_admin.php:50
+msgid "The administration action succeeded."
+msgstr "የአስተዳደር እርምጃው ተሳክቷል።"
+
+#: alarmmanager_admin.php:86
+msgid "Administration unavailable or permission denied."
+msgstr "አስተዳደር አይገኝም ወይም ፈቃድ ተከልክሏል።"
+
+#: includes/admin_view.php:78
+msgid "Choose the alarm information to send to any service. Use Combined text to arrange device details, or Use device message to start with a complete message. Email uses Subject and Message; API destinations use the field names required by the receiving service."
+msgstr "ወደ ማንኛውም አገልግሎት የሚላከውን የማንቂያ መረጃ ይምረጡ። የመሳሪያ ዝርዝሮችን ለማደራጀት የተዋሃደ ጽሑፍ ይጠቀሙ፣ ወይም በሙሉ መልእክት ለመጀመር የመሳሪያ መልእክትን ይጠቀሙ። ኢሜይል ርዕስ እና መልእክትን ይጠቀማል፤ የAPI መድረሻዎች ተቀባዩ አገልግሎት የሚፈልጋቸውን የመስክ ስሞች ይጠቀማሉ።"
+
+#: includes/admin_view.php:79
+msgid "Advanced message configuration"
+msgstr "የላቀ የመልእክት ውቅር"
+
+#: includes/admin_view.php:90
+msgid "New endpoint"
+msgstr "አዲስ መድረሻ ነጥብ"
+
+#: includes/admin_view.php:100
+msgid "Custom integration"
+msgstr "ብጁ ውህደት"
+
+#: includes/admin_view.php:100
+msgid "Integration provider"
+msgstr "የውህደት አቅራቢ"
+
+#: includes/admin_view.php:112
+msgid "API Key SID and Secret (recommended)"
+msgstr "API ቁልፍ SID እና ሚስጥር (የሚመከር)"
+
+#: includes/admin_view.php:112
+msgid "Account SID and Auth Token"
+msgstr "የመለያ SID እና የማረጋገጫ ቶከን"
+
+#: includes/admin_view.php:112
+msgid "Twilio credentials"
+msgstr "የTwilio ምስክርነቶች"
+
+#: includes/admin_view.php:113
+msgid "Send using"
+msgstr "በዚህ በኩል ላክ"
+
+#: includes/admin_view.php:125
+msgid "Event"
+msgstr "ክስተት"
+
+#: includes/admin_view.php:125
+msgid "Incident"
+msgstr "ክስተት (Incident)"
+
+#: includes/admin_view.php:125
+msgid "ServiceNow record type"
+msgstr "የServiceNow መዝገብ አይነት"
+
+#: includes/admin_view.php:126
+msgid "Changing the record type replaces the destination table, message fields and recovery settings with its defaults. Your instance and credentials are retained."
+msgstr "የመዝገብ አይነቱን መቀየር የመድረሻ ሰንጠረዡን፣ የመልእክት መስኮችን እና የመልሶ ማግኛ ቅንብሮችን በነባሪዎቹ ይተካል። የእርስዎ ኢንስታንስ እና ምስክርነቶች እንደተጠበቁ ይቆያሉ።"
+
+#: includes/admin_view.php:149
+msgid "Destination"
+msgstr "መድረሻ"
+
+#: includes/admin_view.php:154
+msgid "Email settings"
+msgstr "የኢሜይል ቅንብሮች"
+
+#: includes/admin_view.php:161
+msgid "Delivery uses the Cacti mail settings. Add the people who should receive these alarms."
+msgstr "ማድረስ የCacti ኢሜይል ቅንብሮችን ይጠቀማል። እነዚህን ማንቂያዎች መቀበል ያለባቸውን ሰዎች ያክሉ።"
+
+#: includes/admin_view.php:162
+msgid "Script settings"
+msgstr "የስክሪፕት ቅንብሮች"
+
+#: includes/admin_view.php:167
+msgid "JSON output is sent to the script on standard input."
+msgstr "የJSON ውፅዓት በመደበኛ ግብዓት ወደ ስክሪፕቱ ይላካል።"
+
+#: includes/admin_view.php:167
+msgid "The executable must exist and be executable by the worker on every delivering poller. Arguments are passed directly without a shell."
+msgstr "ሊሄድ የሚችለው ፋይል በእያንዳንዱ አድራሽ ፖለር ላይ መኖር እና በሰራተኛው ሊሄድ የሚችል መሆን አለበት። አርጊውመንቶች ያለ ሼል በቀጥታ ይተላለፋሉ።"
+
+#: includes/admin_view.php:169
+msgid "WebSocket delivery is not implemented."
+msgstr "የWebSocket ማድረስ አልተተገበረም።"
+
+#: includes/admin_view.php:171
+msgid "Advanced delivery settings"
+msgstr "የላቁ የማድረስ ቅንብሮች"
+
+#: includes/admin_view.php:176
+msgid "Connection options"
+msgstr "የግንኙነት አማራጮች"
+
+#: includes/admin_view.php:179
+msgid "Method"
+msgstr "ዘዴ"
+
+#: includes/admin_view.php:186
+msgid "Certificate and hostname verification remain enabled. Provision the PEM file on every poller. Saved credentials are never displayed."
+msgstr "የሰርተፊኬት እና የአስተናጋጅ ስም ማረጋገጫ እንደነቃ ይቆያል። የPEM ፋይሉን በእያንዳንዱ ፖለር ላይ ያዘጋጁ። የተቀመጡ ምስክርነቶች በጭራሽ አይታዩም።"
+
+#: includes/admin_view.php:187
+msgid "Other delivery options"
+msgstr "ሌሎች የማድረስ አማራጮች"
+
+#: includes/admin_view.php:189 includes/admin_view.php:458
+msgid "Cancel"
+msgstr "ይቅር"
+
+#: includes/admin_view.php:189
+msgid "Test destination saves the current settings and queues a sample alarm for this destination. Enable the destination before testing."
+msgstr "መድረሻን ሞክር የአሁኑን ቅንብሮች ያስቀምጣል እና ለዚህ መድረሻ የናሙና ማንቂያ ወደ ወረፋ ያስገባል። ከመሞከርዎ በፊት መድረሻውን ያንቁ።"
+
+#: includes/admin_view.php:190
+msgid "Save endpoint"
+msgstr "መድረሻ ነጥብ አስቀምጥ"
+
+#: includes/admin_view.php:190
+msgid "Test destination"
+msgstr "መድረሻን ሞክር"
+
+#: includes/admin_view.php:194
+msgid "Delete endpoint"
+msgstr "መድረሻ ነጥብ ሰርዝ"
+
+#: includes/admin_view.php:194
+msgid "Delete this endpoint, its delivery settings and saved credentials"
+msgstr "ይህን መድረሻ ነጥብ፣ የማድረስ ቅንብሮቹን እና የተቀመጡ ምስክርነቶቹን ሰርዝ"
+
+#: includes/admin_view.php:194
+msgid "Deleting stops future delivery and removes the saved settings and credentials. Remove notification rule references and resolve queued or running deliveries first. Completed and failed delivery history is preserved."
+msgstr "መሰረዝ የወደፊት ማድረስን ያቆማል እንዲሁም የተቀመጡ ቅንብሮችን እና ምስክርነቶችን ያስወግዳል። በመጀመሪያ የማሳወቂያ ደንብ ማጣቀሻዎችን ያስወግዱ እና በወረፋ ላይ ያሉ ወይም በመሄድ ላይ ያሉ ማድረሶችን ይፍቱ። የተጠናቀቁ እና ያልተሳኩ የማድረስ ታሪኮች ይጠበቃሉ።"
+
+#: includes/admin_view.php:205
+msgid "Chat and messaging"
+msgstr "ውይይት እና መልእክት"
+
+#: includes/admin_view.php:206
+msgid "Post alarms to a Slack channel."
+msgstr "ማንቂያዎችን ወደ Slack ቻናል ይለጥፉ።"
+
+#: includes/admin_view.php:207
+msgid "Post alarm cards through a Teams Workflow."
+msgstr "በTeams Workflow አማካኝነት የማንቂያ ካርዶችን ይለጥፉ።"
+
+#: includes/admin_view.php:208
+msgid "Send alarms from a Telegram bot."
+msgstr "ከTelegram ቦት ማንቂያዎችን ይላኩ።"
+
+#: includes/admin_view.php:209
+msgid "Text alarms to phone numbers."
+msgstr "ማንቂያዎችን በጽሑፍ መልእክት ወደ ስልክ ቁጥሮች ይላኩ።"
+
+#: includes/admin_view.php:210
+msgid "Send approved WhatsApp templates."
+msgstr "የጸደቁ የWhatsApp አብነቶችን ይላኩ።"
+
+#: includes/admin_view.php:211
+msgid "Incident management"
+msgstr "የክስተት አስተዳደር"
+
+#: includes/admin_view.php:212
+msgid "Trigger and resolve PagerDuty incidents."
+msgstr "የPagerDuty ክስተቶችን ያስነሱ እና ይፍቱ።"
+
+#: includes/admin_view.php:213
+msgid "Open and resolve ServiceNow incidents or events."
+msgstr "የServiceNow ክስተቶችን ወይም ኢቨንቶችን ይክፈቱ እና ይፍቱ።"
+
+#: includes/admin_view.php:214
+msgid "Network management"
+msgstr "የአውታረ መረብ አስተዳደር"
+
+#: includes/admin_view.php:215
+msgid "Send SNMPv2c or SNMPv3 traps and INFORMs."
+msgstr "SNMPv2c ወይም SNMPv3 trap እና INFORM ይላኩ።"
+
+#: includes/admin_view.php:216
+msgid "Forward RFC 5424 or RFC 3164 messages over UDP, TCP or TLS."
+msgstr "የRFC 5424 ወይም RFC 3164 መልእክቶችን በUDP፣ TCP ወይም TLS ያስተላልፉ።"
+
+#: includes/admin_view.php:217
+msgid "Custom"
+msgstr "ብጁ"
+
+#: includes/admin_view.php:218
+msgid "Start from an empty endpoint."
+msgstr "ከባዶ መድረሻ ነጥብ ይጀምሩ።"
+
+#: includes/admin_view.php:219
+msgid "POST alarm JSON to any HTTPS endpoint."
+msgstr "የማንቂያ JSON ወደ ማንኛውም HTTPS መድረሻ ነጥብ በPOST ይላኩ።"
+
+#: includes/admin_view.php:220
+msgid "Call an API with your own method, authentication and response checks."
+msgstr "በራስዎ ዘዴ፣ ማረጋገጫ እና የምላሽ ፍተሻዎች API ይጥሩ።"
+
+#: includes/admin_view.php:221
+msgid "Run a local executable with the alarm as JSON input."
+msgstr "ማንቂያውን እንደ JSON ግብዓት በመስጠት አካባቢያዊ ሊሄድ የሚችል ፋይል ያስኪዱ።"
+
+#: includes/admin_view.php:227
+msgid "Add integration"
+msgstr "ውህደት አክል"
+
+#: includes/admin_view.php:228
+msgid "Choose a template. It opens as a disabled draft; nothing is sent until you enable it."
+msgstr "አብነት ይምረጡ። እንደ ተሰናከለ ረቂቅ ይከፈታል፤ እስኪያነቁት ድረስ ምንም አይላክም።"
+
+#: includes/admin_view.php:228
+msgid "Search integrations"
+msgstr "ውህደቶችን ፈልግ"
+
+#: includes/admin_view.php:234
+msgid "Blank endpoint"
+msgstr "ባዶ መድረሻ ነጥብ"
+
+#: includes/admin_view.php:239
+msgid "No integrations match your search."
+msgstr "ከፍለጋዎ ጋር የሚዛመዱ ውህደቶች የሉም።"
+
+#: includes/admin_view.php:243
+msgid "SNMP trap settings"
+msgstr "የSNMP trap ቅንብሮች"
+
+#: includes/admin_view.php:259
+msgid "Saved community and passphrases are encrypted and never displayed. Leave them blank to keep the saved values; entering any value replaces all saved SNMP secrets."
+msgstr "የተቀመጡ ማህበረሰብ እና የይለፍ ሐረጎች ተመስጥረዋል እና በጭራሽ አይታዩም። የተቀመጡ እሴቶችን ለማቆየት ባዶ ይተዉአቸው፤ ማንኛውንም እሴት ማስገባት ሁሉንም የተቀመጡ የSNMP ሚስጥሮችን ይተካል።"
+
+#: includes/admin_view.php:260
+msgid "Traps are sent as Cacti's CACTI-MIB cactiNotify with the snmptrap binary from Cacti Settings > Paths on every delivering poller. Add one destination per receiver."
+msgstr "Trapዎች በእያንዳንዱ አድራሽ ፖለር ላይ ከCacti ቅንብሮች > መንገዶች ባለው snmptrap ባይናሪ አማካኝነት እንደ Cacti CACTI-MIB cactiNotify ይላካሉ። ለእያንዳንዱ ተቀባይ አንድ መድረሻ ያክሉ።"
+
+#: includes/admin_view.php:261
+msgid "Syslog settings"
+msgstr "የSyslog ቅንብሮች"
+
+#: includes/admin_view.php:269
+msgid "TLS verifies the receiver certificate and hostname. Use port 6514 for TLS. UDP and TCP are unencrypted, and a UDP message is confirmed only as sent."
+msgstr "TLS የተቀባዩን ሰርተፊኬት እና የአስተናጋጅ ስም ያረጋግጣል። ለTLS ወደብ 6514 ይጠቀሙ። UDP እና TCP ያልተመሰጠሩ ናቸው፣ እና የUDP መልእክት እንደተላከ ብቻ ይረጋገጣል።"
+
+#: includes/admin_view.php:278 setup.php:191
+msgid "Days"
+msgstr "ቀናት"
+
+#: includes/admin_view.php:283
+msgid "Timezone"
+msgstr "የሰዓት ሰቅ"
+
+#: includes/admin_view.php:291
+msgid "Times use the selected timezone and the alarm event time. An end time before the start runs overnight. Equal times cover the entire selected day."
+msgstr "ጊዜያት የተመረጠውን የሰዓት ሰቅ እና የማንቂያ ክስተት ጊዜ ይጠቀማሉ። ከመጀመሪያው በፊት ያለ የመጨረሻ ጊዜ በሌሊት ያልፋል። እኩል ጊዜያት የተመረጠውን ቀን ሙሉ ይሸፍናሉ።"
+
+#: includes/admin_view.php:332 includes/admin_view.php:521
+msgid "Create a rule"
+msgstr "ደንብ ፍጠር"
+
+#: includes/admin_view.php:332
+msgid "Enabled"
+msgstr "ነቅቷል"
+
+#: includes/admin_view.php:332
+msgid "Priority"
+msgstr "ቅድሚያ"
+
+#: includes/admin_view.php:334
+msgid "Rule and destination"
+msgstr "ደንብ እና መድረሻ"
+
+#: includes/admin_view.php:338
+msgid "Alarm Destination"
+msgstr "የማንቂያ መድረሻ"
+
+#: includes/admin_view.php:341
+msgid "disabled"
+msgstr "ተሰናክሏል"
+
+#: includes/admin_view.php:343
+msgid "Select one or more alarm destinations. Disabled destinations do not send alarms."
+msgstr "አንድ ወይም ከዚያ በላይ የማንቂያ መድረሻዎችን ይምረጡ። የተሰናከሉ መድረሻዎች ማንቂያዎችን አይልኩም።"
+
+#: includes/admin_view.php:345
+msgid "Message template"
+msgstr "የመልእክት አብነት"
+
+#: includes/admin_view.php:345
+msgid "Use each destination default, or customize its message for this rule. Customization starts with a copy of the destination template and does not change other rules. If several rules match the same destination, the first matching rule in priority and ID order supplies its template."
+msgstr "የእያንዳንዱን መድረሻ ነባሪ ይጠቀሙ፣ ወይም ለዚህ ደንብ መልእክቱን ያብጁ። ማበጀት የሚጀምረው ከመድረሻው አብነት ቅጂ ሲሆን ሌሎች ደንቦችን አይቀይርም። በርካታ ደንቦች ከተመሳሳይ መድረሻ ጋር ከተዛመዱ በቅድሚያ እና በመታወቂያ ቅደም ተከተል የመጀመሪያው ተዛማጅ ደንብ አብነቱን ያቀርባል።"
+
+#: includes/admin_view.php:352
+msgid "Custom template"
+msgstr "ብጁ አብነት"
+
+#: includes/admin_view.php:355
+msgid "Destination recipient"
+msgstr "የመድረሻ ተቀባይ"
+
+#: includes/admin_view.php:355
+#, php-format
+msgid "Recipients: %d"
+msgstr "ተቀባዮች: %d"
+
+#: includes/admin_view.php:357
+msgid "Customize message for this rule"
+msgstr "ለዚህ ደንብ መልእክት አብጅ"
+
+#: includes/admin_view.php:357
+msgid "Unchecked: Use destination default."
+msgstr "ያልተመረጠ: የመድረሻ ነባሪውን ይጠቀሙ።"
+
+#: includes/admin_view.php:361
+msgid "Optional: add each phone number in international format, such as +15551234567. These numbers replace the destination recipient for this rule. Leave the list empty to use the destination default. Each number has its own delivery status and retries."
+msgstr "አማራጭ: እያንዳንዱን ስልክ ቁጥር በዓለም አቀፍ ቅርጸት ያክሉ፣ ለምሳሌ +15551234567። እነዚህ ቁጥሮች ለዚህ ደንብ የመድረሻ ተቀባዩን ይተካሉ። የመድረሻ ነባሪውን ለመጠቀም ዝርዝሩን ባዶ ይተዉት። እያንዳንዱ ቁጥር የራሱ የማድረስ ሁኔታ እና ድጋሚ ሙከራዎች አሉት።"
+
+#: includes/admin_view.php:374
+msgid "None"
+msgstr "ምንም"
+
+#: includes/admin_view.php:376
+msgid "Build device conditions using AND, OR and groups. These conditions use the current Cacti device settings and must also satisfy any alarm filters below. With no device conditions, all devices can match."
+msgstr "AND፣ OR እና ቡድኖችን በመጠቀም የመሳሪያ ሁኔታዎችን ይገንቡ። እነዚህ ሁኔታዎች የአሁኑን የCacti መሳሪያ ቅንብሮች ይጠቀማሉ እና ከታች ያሉትን ማናቸውንም የማንቂያ ማጣሪያዎች ማሟላት አለባቸው። የመሳሪያ ሁኔታዎች ከሌሉ ሁሉም መሳሪያዎች ሊዛመዱ ይችላሉ።"
+
+#: includes/admin_view.php:376
+msgid "Match devices"
+msgstr "መሳሪያዎችን አዛምድ"
+
+#: includes/admin_view.php:387
+msgid "Cacti_Admin_Notifications"
+msgstr "Cacti_Admin_Notifications"
+
+#: includes/admin_view.php:387
+msgid "Device Status"
+msgstr "የመሣሪያ ሁኔታ"
+
+#: includes/admin_view.php:387
+msgid "Syslog"
+msgstr "Syslog"
+
+#: includes/admin_view.php:387
+msgid "Thold"
+msgstr "Thold"
+
+#: includes/admin_view.php:392
+msgid "Build alarm conditions using AND, OR, NOT and groups. Alarms must also match the device conditions above."
+msgstr "AND፣ OR፣ NOT እና ቡድኖችን በመጠቀም የማንቂያ ሁኔታዎችን ይገንቡ። ማንቂያዎች ከላይ ካሉት የመሳሪያ ሁኔታዎች ጋርም መዛመድ አለባቸው።"
+
+#: includes/admin_view.php:392
+msgid "Match alarms"
+msgstr "ማንቂያዎችን አዛምድ"
+
+#: includes/admin_view.php:395
+msgid "No alarm sources detected yet. Sources appear after their first alarm."
+msgstr "እስካሁን ምንም የማንቂያ ምንጮች አልተገኙም። ምንጮች ከመጀመሪያው ማንቂያቸው በኋላ ይታያሉ።"
+
+#: includes/admin_view.php:397
+msgid "By default, matching alarms can notify at any time. Turn on a schedule to limit when this rule matches."
+msgstr "በነባሪነት ተዛማጅ ማንቂያዎች በማንኛውም ጊዜ ማሳወቅ ይችላሉ። ይህ ደንብ መቼ እንደሚዛመድ ለመገደብ መርሐ ግብር ያብሩ።"
+
+#: includes/admin_view.php:397
+msgid "Notification hours"
+msgstr "የማሳወቂያ ሰዓታት"
+
+#: includes/admin_view.php:399
+msgid "Suppress notifications"
+msgstr "ማሳወቂያዎችን አፍን"
+
+#: includes/admin_view.php:399
+msgid "Suppressed alarms remain in history. Recovery notifications bypass acknowledgment, cooldown and duplicate suppression, but still follow notification hours and maintenance windows."
+msgstr "የታፈኑ ማንቂያዎች በታሪክ ውስጥ ይቆያሉ። የማገገም ማሳወቂያዎች እውቅናን፣ የማቀዝቀዣ ጊዜን እና የድግግሞሽ ማፈንን ያልፋሉ፣ ነገር ግን አሁንም የማሳወቂያ ሰዓታትን እና የጥገና መስኮቶችን ይከተላሉ።"
+
+#: includes/admin_view.php:403
+msgid "Set a duration to 0 to turn it off."
+msgstr "ለማጥፋት የቆይታ ጊዜውን ወደ 0 ያቀናብሩ።"
+
+#: includes/admin_view.php:405
+msgid "Rule order"
+msgstr "የደንብ ቅደም ተከተል"
+
+#: includes/admin_view.php:408
+msgid "Create rule"
+msgstr "ደንብ ፍጠር"
+
+#: includes/admin_view.php:408
+msgid "Rules with equal priority run in ID order. Stopping also applies when this rule suppresses notifications."
+msgstr "እኩል ቅድሚያ ያላቸው ደንቦች በመታወቂያ ቅደም ተከተል ይሰራሉ። ይህ ደንብ ማሳወቂያዎችን ሲያፍን ማቆምም እንዲሁ ተፈጻሚ ይሆናል።"
+
+#: includes/admin_view.php:417
+msgid "Configuration Backup/Restore"
+msgstr "የውቅር ምትኬ/መመለስ"
+
+#: includes/admin_view.php:427
+msgid "Paused"
+msgstr "ለጊዜው ቆሟል"
+
+#: includes/admin_view.php:427
+msgid "Running"
+msgstr "በመካሄድ ላይ"
+
+#: includes/admin_view.php:428
+msgid "everything has been delivered"
+msgstr "ሁሉም ነገር ደርሷል"
+
+#: includes/admin_view.php:428
+#, php-format
+msgid "oldest queued %s UTC"
+msgstr "የቆየው ወረፋ ውስጥ የገባ %s UTC"
+
+#: includes/admin_view.php:428
+msgid "waiting messages"
+msgstr "በመጠባበቅ ላይ ያሉ መልእክቶች"
+
+#: includes/admin_view.php:431
+msgid "Hide messages"
+msgstr "መልእክቶችን ደብቅ"
+
+#: includes/admin_view.php:431
+msgid "View messages"
+msgstr "መልእክቶችን ይመልከቱ"
+
+#: includes/admin_view.php:441
+msgid "Endpoint"
+msgstr "የመጨረሻ ነጥብ"
+
+#: includes/admin_view.php:441
+msgid "ID"
+msgstr "መለያ"
+
+#: includes/admin_view.php:441
+msgid "Message"
+msgstr "መልዕክት"
+
+#: includes/admin_view.php:441
+msgid "Next try"
+msgstr "ቀጣይ ሙከራ"
+
+#: includes/admin_view.php:441 includes/reports.php:458
+msgid "Queued"
+msgstr "ወረፋ ውስጥ ገብቷል"
+
+#: includes/admin_view.php:441
+msgid "Tries"
+msgstr "ሙከራዎች"
+
+#: includes/admin_view.php:451
+msgid "Times in UTC · first 100 shown"
+msgstr "ጊዜያት በUTC · የመጀመሪያዎቹ 100 ይታያሉ"
+
+#: includes/admin_view.php:455
+msgid "Pause delivery"
+msgstr "ማድረስን ለጊዜው አቁም"
+
+#: includes/admin_view.php:455
+msgid "Resume delivery"
+msgstr "ማድረስን ቀጥል"
+
+#: includes/admin_view.php:458
+msgid "Clear queue"
+msgstr "ወረፋ አጽዳ"
+
+#: includes/admin_view.php:459
+#, php-format
+msgid "Discard all %d waiting notifications on this poller?"
+msgstr "በዚህ ፖለር ላይ ያሉት ሁሉም %d በመጠባበቅ ላይ ያሉ ማሳወቂያዎች ይወገዱ?"
+
+#: includes/admin_view.php:460
+msgid "Includes retries. They stay in delivery history as failed, reason queue_cleared."
+msgstr "ድጋሚ ሙከራዎችን ያካትታል። በማድረስ ታሪክ ውስጥ እንደ ያልተሳካ በqueue_cleared ምክንያት ይቆያሉ።"
+
+#: includes/admin_view.php:461
+msgid "Messages already sending and alarm state are kept."
+msgstr "ቀድሞውኑ በመላክ ላይ ያሉ መልእክቶች እና የማንቂያ ሁኔታ ይጠበቃሉ።"
+
+#: includes/admin_view.php:462
+msgid "Tip: pause delivery first during maintenance."
+msgstr "ጠቃሚ ምክር: በጥገና ወቅት መጀመሪያ ማድረስን ለጊዜው ያቁሙ።"
+
+#: includes/admin_view.php:463
+msgid "Clear queue…"
+msgstr "ወረፋ በማጽዳት ላይ…"
+
+#: includes/admin_view.php:464
+msgid "Controls apply to this poller. While paused, alarms are still received and queued; Resume sends them."
+msgstr "መቆጣጠሪያዎች በዚህ ፖለር ላይ ይተገበራሉ። በቆመበት ጊዜ ማንቂያዎች አሁንም ይቀበላሉ እና ወረፋ ይይዛሉ፤ ቀጥል ሲጫኑ ይላካሉ።"
+
+#: includes/admin_view.php:467
+msgid "View delivery results"
+msgstr "የማድረስ ውጤቶችን ይመልከቱ"
+
+#: includes/admin_view.php:470
+msgid "Create an integration, configure its destination and credentials, test a sample alarm here, then select it directly in a rule."
+msgstr "ውህደት ይፍጠሩ፣ መድረሻውን እና ምስክርነቶቹን ያዋቅሩ፣ የናሙና ማንቂያ እዚህ ይሞክሩ፣ ከዚያም በደንብ ውስጥ በቀጥታ ይምረጡት።"
+
+#: includes/admin_view.php:476
+msgid "Configured integrations"
+msgstr "የተዋቀሩ ውህደቶች"
+
+#: includes/admin_view.php:479
+msgid "No integrations yet. Choose a template above to create one."
+msgstr "እስካሁን ምንም ውህደቶች የሉም። አንድ ለመፍጠር ከላይ አብነት ይምረጡ።"
+
+#: includes/admin_view.php:490
+msgid "Alarm Rules"
+msgstr "የማንቂያ ደንቦች"
+
+#: includes/admin_view.php:490
+msgid "Choose which alarms should notify, where to send them and when to pause notifications. Rules run from lowest to highest priority."
+msgstr "የትኞቹ ማንቂያዎች ማሳወቅ እንዳለባቸው፣ የት እንደሚላኩ እና ማሳወቂያዎችን መቼ ማቆም እንዳለብዎ ይምረጡ። ደንቦች ከዝቅተኛ ወደ ከፍተኛ ቅድሚያ ይሰራሉ።"
+
+#: includes/admin_view.php:493
+msgid "Create an integration before saving your first rule."
+msgstr "የመጀመሪያ ደንብዎን ከማስቀመጥዎ በፊት ውህደት ይፍጠሩ።"
+
+#: includes/admin_view.php:493
+msgid "Create integration"
+msgstr "ውህደት ፍጠር"
+
+#: includes/admin_view.php:495
+msgid "Clear"
+msgstr "አጽዳ"
+
+#: includes/admin_view.php:495
+msgid "Critical"
+msgstr "ወሳኝ"
+
+#: includes/admin_view.php:495
+msgid "Information"
+msgstr "መረጃ"
+
+#: includes/admin_view.php:495
+msgid "Major"
+msgstr "ከፍተኛ"
+
+#: includes/admin_view.php:495
+msgid "Minor"
+msgstr "አነስተኛ"
+
+#: includes/admin_view.php:495
+msgid "Occurrence"
+msgstr "ክስተት ብዛት"
+
+#: includes/admin_view.php:495
+msgid "Raised"
+msgstr "ተነስቷል"
+
+#: includes/admin_view.php:495
+msgid "Recovered"
+msgstr "አገግሟል"
+
+#: includes/admin_view.php:495
+msgid "Reminder"
+msgstr "አስታዋሽ"
+
+#: includes/admin_view.php:495
+msgid "Updated"
+msgstr "ተዘምኗል"
+
+#: includes/admin_view.php:495
+msgid "Warning"
+msgstr "ማስጠንቀቂያ"
+
+#: includes/admin_view.php:520
+msgid "Alarm notifications require an enabled matching Alarm Rule. Without one, alarms remain in history but no notifications are sent."
+msgstr "የማንቂያ ማሳወቂያዎች የነቃ ተዛማጅ የማንቂያ ደንብ ያስፈልጋቸዋል። ያለዚያ ማንቂያዎች በታሪክ ውስጥ ይቆያሉ ነገር ግን ምንም ማሳወቂያ አይላክም።"
+
+#: includes/admin_view.php:524
+msgid "No rules yet. Create a rule below to start routing alarms to your notification destinations."
+msgstr "እስካሁን ምንም ደንቦች የሉም። ማንቂያዎችን ወደ ማሳወቂያ መድረሻዎችዎ መምራት ለመጀመር ከታች ደንብ ይፍጠሩ።"
+
+#: includes/admin_view.php:533
+msgid "Credential values are never loaded into this page. Saving replaces the endpoint record; blank values do not preserve an old password. Use the CLI for protected backup/restore and poller provisioning."
+msgstr "የምስክርነት እሴቶች በጭራሽ ወደዚህ ገጽ አይጫኑም። ማስቀመጥ የመድረሻ ነጥብ መዝገቡን ይተካል፤ ባዶ እሴቶች የድሮውን የይለፍ ቃል አያቆዩም። ለተጠበቀ ምትኬ/መመለስ እና የፖለር ዝግጅት CLI ይጠቀሙ።"
+
+#: includes/admin_view.php:536
+msgid "Create endpoint"
+msgstr "መድረሻ ነጥብ ፍጠር"
+
+#: includes/admin_view.php:536
+msgid "No REST API or webhook endpoints have been saved. Create an endpoint to enter its bearer token, Basic authentication username and password, or API-key headers."
+msgstr "ምንም የREST API ወይም የWebhook መድረሻ ነጥቦች አልተቀመጡም። የBearer ቶከኑን፣ የBasic ማረጋገጫ የተጠቃሚ ስም እና የይለፍ ቃሉን ወይም የAPI-key ራስጌዎቹን ለማስገባት መድረሻ ነጥብ ይፍጠሩ።"
+
+#: includes/admin_view.php:540
+msgid "Configured"
+msgstr "ተዋቅሯል"
+
+#: includes/admin_view.php:543
+msgid "Replace credential"
+msgstr "ምስክርነትን ተካ"
+
+#: includes/admin_view.php:549
+msgid "Rotate local key"
+msgstr "አካባቢያዊ ቁልፍን አዙር"
+
+#: includes/admin_view.php:553
+msgid "Event log"
+msgstr "የክስተት መዝገብ"
+
+#: includes/admin_view.php:553
+msgid "Writes every event as it is processed, independent of which rules match or whether any destination is notified — a complete audit trail for external analysis, for example with Splunk."
+msgstr "የትኞቹ ደንቦች እንደሚዛመዱ ወይም ማንኛውም መድረሻ እንደሚሳወቅ ሳይወሰን እያንዳንዱን ክስተት በሚሰራበት ጊዜ ይጽፋል፤ ለውጫዊ ትንተና (ለምሳሌ ከSplunk ጋር) ሙሉ የኦዲት መከታተያ ይሰጣል።"
+
+#: includes/admin_view.php:555
+msgid "Cacti log"
+msgstr "የCacti መዝገብ"
+
+#: includes/admin_view.php:555
+msgid "External file"
+msgstr "ውጫዊ ፋይል"
+
+#: includes/admin_view.php:555
+msgid "Write to"
+msgstr "ወደዚህ ጻፍ"
+
+#: includes/admin_view.php:559
+msgid "One JSON object per line (occurred_at, transition, severity, device, alarm key…). The path must already exist, outside the plugin directory and Cacti's web root. Past the size limit, the file rotates to one .1 backup."
+msgstr "በእያንዳንዱ መስመር አንድ የJSON ነገር (occurred_at፣ transition፣ severity፣ device፣ alarm key…)። መንገዱ ከተሰኪው ማውጫ እና ከCacti የድር ሥር ውጭ አስቀድሞ መኖር አለበት። ከመጠን ገደቡ ሲያልፍ ፋይሉ ወደ አንድ .1 ምትኬ ይዞራል።"
+
+#: includes/admin_view.php:559
+msgid "Save event log settings"
+msgstr "የክስተት መዝገብ ቅንብሮችን አስቀምጥ"
+
+#: includes/admin_view.php:561
+msgid "Backup and restore"
+msgstr "ምትኬ እና መመለስ"
+
+#: includes/admin_view.php:561
+msgid "Export"
+msgstr "ወደ ውጭ ላክ"
+
+#: includes/admin_view.php:562
+msgid "Endpoints, message templates, and rules as JSON. Credentials and settings are not included. Endpoint URLs can contain secrets, so keep the file private."
+msgstr "መድረሻ ነጥቦች፣ የመልእክት አብነቶች እና ደንቦች በJSON ቅርጸት። ምስክርነቶች እና ቅንብሮች አልተካተቱም። የመድረሻ ነጥብ URLዎች ሚስጥሮችን ሊይዙ ስለሚችሉ ፋይሉን በሚስጥር ያስቀምጡ።"
+
+#: includes/admin_view.php:563
+msgid "Export configuration"
+msgstr "ውቅር ወደ ውጭ ላክ"
+
+#: includes/admin_view.php:563
+msgid "Import"
+msgstr "አስመጣ"
+
+#: includes/admin_view.php:567
+msgid "Replaces the routing configuration using the IDs in the file. Endpoints and rules missing from the file are disabled, not deleted. Saved credentials are kept."
+msgstr "በፋይሉ ውስጥ ያሉትን መታወቂያዎች በመጠቀም የማዞሪያ ውቅሩን ይተካል። በፋይሉ ውስጥ የሌሉ መድረሻ ነጥቦች እና ደንቦች ከመሰረዝ ይልቅ ይሰናከላሉ። የተቀመጡ ምስክርነቶች ይጠበቃሉ።"
+
+#: includes/admin_view.php:568
+msgid "Import configuration"
+msgstr "ውቅር አስገባ"
+
+#: includes/admin_view.php:572
+msgid "Local queue health"
+msgstr "የአካባቢያዊ ወረፋ ጤና"
+
+#: includes/admin_view.php:573
+msgid "Jobs"
+msgstr "ስራዎች"
+
+#: includes/admin_view.php:573
+msgid "Oldest job age (seconds)"
+msgstr "የቆየው ስራ ዕድሜ (ሰከንዶች)"
+
+#: includes/admin_view.php:573
+msgid "Queue"
+msgstr "ወረፋ"
+
+#: includes/admin_view.php:573
+msgid "Retries"
+msgstr "ድጋሚ ሙከራዎች"
+
+#: includes/admin_view.php:573 includes/admin_view.php:592
+#: includes/web_view.php:181
+msgid "Status"
+msgstr "ሁኔታ"
+
+#: includes/admin_view.php:588
+msgid "No queue activity recorded."
+msgstr "ምንም የወረፋ እንቅስቃሴ አልተመዘገበም።"
+
+#: includes/admin_view.php:591
+msgid "Local worker health"
+msgstr "የአካባቢያዊ ሰራተኛ ጤና"
+
+#: includes/admin_view.php:592
+msgid "Current job"
+msgstr "የአሁኑ ስራ"
+
+#: includes/admin_view.php:592
+msgid "Heartbeat age (seconds)"
+msgstr "የልብ ምት ዕድሜ (ሰከንዶች)"
+
+#: includes/admin_view.php:592
+msgid "PID"
+msgstr "PID"
+
+#: includes/admin_view.php:592
+msgid "Poller"
+msgstr "ፖለር"
+
+#: includes/admin_view.php:592
+msgid "Role"
+msgstr "ሚና"
+
+#: includes/admin_view.php:592
+msgid "Worker"
+msgstr "ሰራተኛ"
+
+#: includes/admin_view.php:607
+msgid "No local worker heartbeats recorded."
+msgstr "ምንም የአካባቢያዊ ሰራተኛ የልብ ምቶች አልተመዘገቡም።"
+
+#: includes/admin_view.php:610
+msgid "Completed delivery jobs in the last 300 seconds"
+msgstr "ባለፉት 300 ሰከንዶች ውስጥ የተጠናቀቁ የማድረስ ስራዎች"
+
+#: includes/admin_view.php:610
+msgid "Completed processing jobs in the last 300 seconds"
+msgstr "ባለፉት 300 ሰከንዶች ውስጥ የተጠናቀቁ የማስኬድ ስራዎች"
+
+#: includes/admin_view.php:610
+msgid "Processing streams blocked behind a failed predecessor"
+msgstr "ባልተሳካ ቀዳሚ ምክንያት የታገዱ የማስኬድ ፍሰቶች"
+
+#: includes/admin_view.php:613
+msgid "Pending jobs for destination types without a qualified transport"
+msgstr "ብቁ የማጓጓዣ ዘዴ ለሌላቸው የመድረሻ አይነቶች በመጠባበቅ ላይ ያሉ ስራዎች"
+
+#: includes/admin_view.php:620
+msgid "Failed deliveries and replay"
+msgstr "ያልተሳኩ ማድረሶች እና ድጋሚ ማስኬድ"
+
+#: includes/admin_view.php:620
+msgid "Failed processing jobs and replay"
+msgstr "ያልተሳኩ የማስኬድ ስራዎች እና ድጋሚ ማስኬድ"
+
+#: includes/admin_view.php:625
+msgid "Authentication"
+msgstr "ማረጋገጫ"
+
+#: includes/admin_view.php:625
+msgid "Authentication type"
+msgstr "የማረጋገጫ አይነት"
+
+#: includes/admin_view.php:649
+msgid "Saved credentials are encrypted and never displayed. New values replace the saved credential record."
+msgstr "የተቀመጡ ምስክርነቶች ተመስጥረዋል እና በጭራሽ አይታዩም። አዲስ እሴቶች የተቀመጠውን የምስክርነት መዝገብ ይተካሉ።"
+
+#: includes/polling.php:150
+msgid "Start the Alarm Manager service on this collector before enabling daemon workers."
+msgstr "የዴሞን ሰራተኞችን ከማንቃትዎ በፊት በዚህ ሰብሳቢ ላይ የማንቂያ አስተዳዳሪ አገልግሎቱን ያስጀምሩ።"
+
+#: includes/polling.php:163
+msgid "Daemon settings could not be saved. Check the Cacti cache directory permissions."
+msgstr "የዴሞን ቅንብሮች ሊቀመጡ አልቻሉም። የCacti መሸጎጫ ማውጫ ፈቃዶችን ያረጋግጡ።"
+
+#: includes/reports.php:430
+msgid "Remote history"
+msgstr "የርቀት ታሪክ"
+
+#: includes/reports.php:459
+msgid "Test send"
+msgstr "የሙከራ መላክ"
+
+#: includes/reports.php:460
+msgid "No matching rule"
+msgstr "ምንም ተዛማጅ ደንብ የለም"
+
+#: includes/reports.php:461
+msgid "Destination disabled"
+msgstr "መድረሻው ተሰናክሏል"
+
+#: includes/reports.php:462
+msgid "Suppressed by source"
+msgstr "በምንጩ ታፍኗል"
+
+#: includes/reports.php:463
+msgid "Maintenance window"
+msgstr "የጥገና መስኮት"
+
+#: includes/reports.php:464
+msgid "Acknowledged"
+msgstr "እውቅና የተሰጠው"
+
+#: includes/reports.php:465
+msgid "Cooldown"
+msgstr "የማቀዝቀዣ ጊዜ"
+
+#: includes/reports.php:466
+msgid "Duplicate"
+msgstr "አባዛ"
+
+#: includes/reports.php:467
+msgid "Already routed"
+msgstr "አስቀድሞ ተመርቷል"
+
+#: includes/reports.php:468
+msgid "Out of order"
+msgstr "ከቅደም ተከተል ውጭ"
+
+#: includes/reports.php:469
+msgid "Ignored episode"
+msgstr "ችላ የተባለ ክፍል"
+
+#: includes/reports.php:470
+msgid "History only"
+msgstr "ታሪክ ብቻ"
+
+#: includes/reports.php:518
+#, php-format
+msgid "Deleted destination #%d"
+msgstr "መድረሻ #%d ተሰርዟል"
+
+#: includes/reports.php:519
+#, php-format
+msgid "%d destinations"
+msgstr "%d መድረሻዎች"
+
+#: includes/reports.php:531
+msgid "Delivered"
+msgstr "ደርሷል"
+
+#: includes/reports.php:531
+msgid "Failed"
+msgstr "አልተሳካም"
+
+#: includes/reports.php:531
+msgid "Pending"
+msgstr "በመጠባበቅ ላይ"
+
+#: includes/reports.php:531
+msgid "Sending"
+msgstr "በመላክ ላይ"
+
+#: includes/reports.php:541
+msgid "Processing failed"
+msgstr "ማስኬድ አልተሳካም"
+
+#: includes/reports.php:542
+msgid "Pending processing"
+msgstr "ማስኬድ በመጠባበቅ ላይ"
+
+#: includes/reports.php:543 includes/web_view.php:264
+msgid "Processing"
+msgstr "በማካሄድ ላይ"
+
+#: includes/reports.php:544
+msgid "No matching integration"
+msgstr "ምንም ተዛማጅ ውህደት የለም"
+
+#: includes/reports.php:544
+msgid "Suppressed"
+msgstr "ታፍኗል"
+
+#: includes/routing.php:106
+msgid "Device description"
+msgstr "የመሳሪያ መግለጫ"
+
+#: includes/routing.php:106
+msgid "Hostname"
+msgstr "የአስተናጋጅ ስም"
+
+#: includes/routing.php:106
+msgid "Location"
+msgstr "ቦታ"
+
+#: includes/routing.php:106
+msgid "SNMP system location"
+msgstr "የSNMP ስርዓት ቦታ"
+
+#: includes/routing.php:110 includes/routing.php:125
+msgid "Collector"
+msgstr "ሰብሳቢ"
+
+#: includes/routing.php:110
+msgid "Device Site Association"
+msgstr "የመሣሪያ ጣቢያ ትስስር"
+
+#: includes/routing.php:110
+msgid "Device Template"
+msgstr "የመሳሪያ አብነት"
+
+#: includes/routing.php:121
+msgid "Alarm change"
+msgstr "የማንቂያ ለውጥ"
+
+#: includes/routing.php:121
+msgid "Alarm source"
+msgstr "የማንቂያ ምንጭ"
+
+#: includes/routing.php:121
+msgid "Alarm summary"
+msgstr "የማንቂያ ማጠቃለያ"
+
+#: includes/routing.php:121 includes/web_view.php:161
+msgid "Severity"
+msgstr "አሳሳቢነት"
+
+#: includes/routing.php:125
+msgid "Device"
+msgstr "መሣሪያ"
+
+#: includes/routing.php:128
+msgid "Device tag"
+msgstr "የመሳሪያ መለያ"
+
+#: includes/web_view.php:93
+msgid "Report unavailable or permission denied."
+msgstr "ሪፖርት አይገኝም ወይም ፈቃድ ተከልክሏል።"
+
+#: includes/web_view.php:119
+msgid "Statistics could not be rendered."
+msgstr "ስታቲስቲክስ መታየት አልቻለም።"
+
+#: includes/web_view.php:129 setup.php:131 setup.php:273 setup.php:289
+#: setup.php:290
+msgid "Alarm Manager"
+msgstr "የማንቂያ አስተዳዳሪ"
+
+#: includes/web_view.php:136
+msgid "Alarm Manager pages"
+msgstr "የማንቂያ አስተዳዳሪ ገጾች"
+
+#: includes/web_view.php:149 includes/web_view.php:152
+msgid "Alarm statistics"
+msgstr "የማንቂያ ስታቲስቲክስ"
+
+#: includes/web_view.php:149
+msgid "Filters"
+msgstr "ማጣሪያዎች"
+
+#: includes/web_view.php:152
+msgid "Time range"
+msgstr "የጊዜ ክልል"
+
+#: includes/web_view.php:158
+msgid "Off"
+msgstr "ጠፍቷል"
+
+#: includes/web_view.php:158
+msgid "Refresh"
+msgstr "አድስ"
+
+#: includes/web_view.php:160
+msgid "Advanced filter JSON"
+msgstr "የላቀ ማጣሪያ JSON"
+
+#: includes/web_view.php:160
+msgid "Filter document"
+msgstr "የማጣሪያ ሰነድ"
+
+#: includes/web_view.php:160
+msgid "Quick filters"
+msgstr "ፈጣን ማጣሪያዎች"
+
+#: includes/web_view.php:160
+msgid "Search conditions"
+msgstr "የፍለጋ ሁኔታዎች"
+
+#: includes/web_view.php:161 includes/web_view.php:181
+msgid "All"
+msgstr "ሁሉም"
+
+#: includes/web_view.php:161
+msgid "Source"
+msgstr "ምንጭ"
+
+#: includes/web_view.php:168
+msgid "Device ID"
+msgstr "የመሳሪያ መታወቂያ"
+
+#: includes/web_view.php:171
+msgid "Status type"
+msgstr "የሁኔታ አይነት"
+
+#: includes/web_view.php:190
+msgid "event_id"
+msgstr "የክስተት መታወቂያ"
+
+#: includes/web_view.php:195
+msgid "Collector ID"
+msgstr "የሰብሳቢ መታወቂያ"
+
+#: includes/web_view.php:195
+msgid "Local and mirrored collectors"
+msgstr "አካባቢያዊ እና የተንጸባረቁ ሰብሳቢዎች"
+
+#: includes/web_view.php:198
+msgid "mirrored"
+msgstr "የተንጸባረቀ"
+
+#: includes/web_view.php:203
+msgid "Mirrored events carry no Record ID and no detail view."
+msgstr "የተንጸባረቁ ክስተቶች የመዝገብ መታወቂያ እና የዝርዝር እይታ የላቸውም።"
+
+#: includes/web_view.php:205
+msgid "Mirrored collector events are always included here unless you narrow by a specific remote Collector ID."
+msgstr "በተወሰነ የርቀት ሰብሳቢ መታወቂያ ካላጠበቡ በስተቀር የተንጸባረቁ ሰብሳቢ ክስተቶች ሁልጊዜ እዚህ ይካተታሉ።"
+
+#: includes/web_view.php:211
+msgid "Apply"
+msgstr "ተግብር"
+
+#: includes/web_view.php:211
+msgid "Reset"
+msgstr "ዳግም አስጀምር"
+
+#: includes/web_view.php:213
+msgid "Historical window uses UTC. Current conditions and queues ignore the time window."
+msgstr "የታሪክ መስኮት UTC ይጠቀማል። የአሁኑ ሁኔታዎች እና ወረፋዎች የጊዜ መስኮቱን ችላ ይላሉ።"
+
+#: includes/web_view.php:235
+msgid "Loading statistics…"
+msgstr "ስታቲስቲክስ በመጫን ላይ…"
+
+#: includes/web_view.php:248
+msgid "Collapse"
+msgstr "ሰብስብ"
+
+#: includes/web_view.php:261
+msgid "Integration results"
+msgstr "የውህደት ውጤቶች"
+
+#: includes/web_view.php:262
+msgid "Delivery attempts"
+msgstr "የማድረስ ሙከራዎች"
+
+#: includes/web_view.php:263
+msgid "Routing decisions"
+msgstr "የማዞሪያ ውሳኔዎች"
+
+#: includes/web_view.php:265
+msgid "conditions"
+msgstr "ሁኔታዎች"
+
+#: includes/web_view.php:270
+msgid "No matching records."
+msgstr "ምንም ተዛማጅ መዝገቦች የሉም።"
+
+#: includes/web_view.php:290
+msgid "Integration status"
+msgstr "የውህደት ሁኔታ"
+
+#: includes/web_view.php:291
+msgid "Collector Name"
+msgstr "የሰብሳቢ ስም"
+
+#: includes/web_view.php:292
+msgid "Attempts in current retry cycle"
+msgstr "በአሁኑ የድጋሚ ሙከራ ዑደት ውስጥ ያሉ ሙከራዎች"
+
+#: includes/web_view.php:298
+msgid "Action"
+msgstr "እርምጃ"
+
+#: includes/web_view.php:314
+msgid "Display"
+msgstr "ማሳያ"
+
+#: includes/web_view.php:349
+msgid "Latest 100 records for this event."
+msgstr "ለዚህ ክስተት የቅርብ ጊዜዎቹ 100 መዝገቦች።"
+
+#: includes/web_view.php:354
+msgid "Showing at most 50 records per page."
+msgstr "በገጽ ቢበዛ 50 መዝገቦችን በማሳየት ላይ።"
+
+#: includes/web_view.php:355
+msgid "Pages"
+msgstr "ገጾች"
+
+#: includes/web_view.php:358
+msgid "Previous"
+msgstr "ቀዳሚ"
+
+#: includes/web_view.php:361
+#, php-format
+msgid "Page %d"
+msgstr "ገጽ %d"
+
+#: includes/web_view.php:364
+msgid "Next"
+msgstr "ቀጣይ"
+
+#: includes/web_view.php:371
+msgid "Selected event details"
+msgstr "የተመረጠው ክስተት ዝርዝሮች"
+
+#: includes/web_view.php:378
+msgid "Show metadata"
+msgstr "ሜታዳታ አሳይ"
+
+#: includes/web_view.php:400
+msgid "Confirm replay may repeat an external effect"
+msgstr "እንደገና ማስኬድ ውጫዊ ተጽእኖን ሊደግም እንደሚችል ያረጋግጡ"
+
+#: setup.php:102
+msgid "Alarm Manager View"
+msgstr "የማንቂያ አስተዳዳሪ እይታ"
+
+#: setup.php:103
+msgid "Alarm Manager Administration"
+msgstr "የማንቂያ አስተዳዳሪ አስተዳደር"
+
+#: setup.php:133
+msgid "0 Worker Processes"
+msgstr "0 የሰራተኛ ሂደቶች"
+
+#: setup.php:133
+msgid "1 Worker Process"
+msgstr "1 የሰራተኛ ሂደት"
+
+#: setup.php:136
+#, php-format
+msgid "%d Worker Processes"
+msgstr "%d የሥራ ሂደቶች"
+
+#: setup.php:144
+msgid "Device Alarm Summaries"
+msgstr "የመሳሪያ ማንቂያ ማጠቃለያዎች"
+
+#: setup.php:148
+msgid "Offline Summary"
+msgstr "ከመስመር ውጭ ማጠቃለያ"
+
+#: setup.php:149
+msgid "Summary for new Cacti device down alarms. Existing history retains its original summary."
+msgstr "ለአዲስ የCacti መሳሪያ መውደቅ ማንቂያዎች ማጠቃለያ። ነባር ታሪክ የመጀመሪያ ማጠቃለያውን ይይዛል።"
+
+#: setup.php:156
+msgid "Recovering Summary"
+msgstr "በማገገም ላይ ማጠቃለያ"
+
+#: setup.php:157
+msgid "Summary for device recovering updates within the same outage."
+msgstr "በተመሳሳይ መቋረጥ ውስጥ ለመሳሪያ ማገገም ዝማኔዎች ማጠቃለያ።"
+
+#: setup.php:164
+msgid "Online Summary"
+msgstr "በመስመር ላይ ማጠቃለያ"
+
+#: setup.php:165
+msgid "Summary for device recovery alarms once Cacti confirms the device is up."
+msgstr "Cacti መሳሪያው መስራቱን ካረጋገጠ በኋላ ለመሳሪያ ማገገም ማንቂያዎች ማጠቃለያ።"
+
+#: setup.php:172
+msgid "Alert History Retention"
+msgstr "የማስጠንቀቂያ ታሪክ ማቆያ ጊዜ"
+
+#: setup.php:177
+msgid "Keep Alert History For"
+msgstr "የማስጠንቀቂያ ታሪክ ማቆያ ጊዜ"
+
+#: setup.php:178
+msgid "Enter how many days, weeks or months to keep alert history, or choose Indefinitely to keep everything (the number is then ignored). Maximum 3650 days, 520 weeks or 120 months. A purge job runs with the Cacti poller and removes aged events with their decisions, deliveries and attempts. Active conditions and queued or failed work are never purged. Each collector purges its own history."
+msgstr "የማስጠንቀቂያ ታሪክ ለስንት ቀናት፣ ሳምንታት ወይም ወራት እንደሚቀመጥ ያስገቡ፣ ወይም ሁሉንም ለማቆየት ላልተወሰነ ጊዜ የሚለውን ይምረጡ (ቁጥሩ ችላ ይባላል)። ከፍተኛው 3650 ቀናት፣ 520 ሳምንታት ወይም 120 ወራት ነው። የማጽዳት ስራ ከCacti ፖለር ጋር ይሰራል እና ያረጁ ክስተቶችን ከውሳኔዎቻቸው፣ ማድረሶቻቸው እና ሙከራዎቻቸው ጋር ያስወግዳል። ንቁ ሁኔታዎች እና በወረፋ ላይ ያሉ ወይም ያልተሳኩ ስራዎች በጭራሽ አይጸዱም። እያንዳንዱ ሰብሳቢ የራሱን ታሪክ ያጸዳል።"
+
+#: setup.php:187
+msgid "Retention Unit"
+msgstr "የማቆያ አሃድ"
+
+#: setup.php:188
+msgid "The unit for the retention period."
+msgstr "ለማቆያ ጊዜው አሃድ።"
+
+#: setup.php:191
+msgid "Indefinitely"
+msgstr "ላልተወሰነ ጊዜ"
+
+#: setup.php:191
+msgid "Months"
+msgstr "ወራት"
+
+#: setup.php:191
+msgid "Weeks"
+msgstr "ሳምንታት"
+
+#: setup.php:194
+msgid "Daemon"
+msgstr "ዴሞን"
+
+#: setup.php:198
+msgid "Enable Daemon"
+msgstr "ዴሞንን አንቃ"
+
+#: setup.php:199
+msgid "Run processing and delivery workers in the resident Alarm Manager service instead of the Cacti poller. The service must be installed and running; disabling it lets current jobs finish and returns processing to the poller. Changes apply within a few seconds and synchronize to collectors."
+msgstr "የማስኬድ እና የማድረስ ሰራተኞችን ከCacti ፖለር ይልቅ በነዋሪው የማንቂያ አስተዳዳሪ አገልግሎት ውስጥ ያስኪዱ። አገልግሎቱ ተጭኖ በመሄድ ላይ መሆን አለበት፤ ማሰናከሉ የአሁኑ ስራዎች እንዲጠናቀቁ ያደርጋል እና ማስኬዱን ወደ ፖለሩ ይመልሳል። ለውጦች በጥቂት ሰከንዶች ውስጥ ተፈጻሚ ይሆናሉ እና ከሰብሳቢዎች ጋር ይመሳሰላሉ።"
+
+#: setup.php:204
+msgid "Processing Workers"
+msgstr "የማስኬድ ሰራተኞች"
+
+#: setup.php:205
+msgid "Number of daemon workers that evaluate rules."
+msgstr "ደንቦችን የሚገመግሙ የዴሞን ሰራተኞች ብዛት።"
+
+#: setup.php:211
+msgid "Delivery Workers"
+msgstr "የማድረስ ሰራተኞች"
+
+#: setup.php:212
+msgid "Number of daemon workers that deliver notifications."
+msgstr "ማሳወቂያዎችን የሚያደርሱ የዴሞን ሰራተኞች ብዛት።"
+
+#: setup.php:257
+msgid "Import/Export"
+msgstr "ማስገባት/ማውጣት"
+
+#: setup.php:259 setup.php:265 setup.php:271
+msgid "Alarm Manager Settings"
+msgstr "የማንቂያ አስተዳዳሪ ቅንብሮች"

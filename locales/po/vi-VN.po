@@ -1,0 +1,1230 @@
+# Vietnamese translations for Alarm Manager package.
+# Copyright (C) 2004-2026 The Cacti Group
+# This file is distributed under the same license as the Alarm Manager package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Alarm Manager 0.12.2\n"
+"Report-Msgid-Bugs-To: https://github.com/bmfmancini/plugin_alarmmanager/issues\n"
+"POT-Creation-Date: 2026-11-02 13:02-0500\n"
+"PO-Revision-Date: 2026-11-28 02:15+0000\n"
+"Last-Translator: Thomas Vincent <thomasvincent@gmail.com>\n"
+"Language-Team: Vietnamese <https://translate.cacti.net/projects/cacti/core/vi/>\n"
+"Language: vi-VN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: alarmmanager_admin.php:50
+msgid "The administration action succeeded."
+msgstr "Hành động quản trị đã thành công."
+
+#: alarmmanager_admin.php:86
+msgid "Administration unavailable or permission denied."
+msgstr "Quản trị không khả dụng hoặc bị từ chối quyền."
+
+#: includes/admin_view.php:78
+msgid "Choose the alarm information to send to any service. Use Combined text to arrange device details, or Use device message to start with a complete message. Email uses Subject and Message; API destinations use the field names required by the receiving service."
+msgstr "Chọn thông tin cảnh báo để gửi tới bất kỳ dịch vụ nào. Dùng Văn bản kết hợp để sắp xếp chi tiết thiết bị, hoặc Dùng thông báo thiết bị để bắt đầu với một thông báo hoàn chỉnh. Email sử dụng Tiêu đề và Thông báo; các đích API sử dụng tên trường mà dịch vụ nhận yêu cầu."
+
+#: includes/admin_view.php:79
+msgid "Advanced message configuration"
+msgstr "Cấu hình thông báo nâng cao"
+
+#: includes/admin_view.php:90
+msgid "New endpoint"
+msgstr "Điểm cuối mới"
+
+#: includes/admin_view.php:100
+msgid "Custom integration"
+msgstr "Tích hợp tùy chỉnh"
+
+#: includes/admin_view.php:100
+msgid "Integration provider"
+msgstr "Nhà cung cấp tích hợp"
+
+#: includes/admin_view.php:112
+msgid "API Key SID and Secret (recommended)"
+msgstr "API Key SID và Secret (khuyến nghị)"
+
+#: includes/admin_view.php:112
+msgid "Account SID and Auth Token"
+msgstr "Account SID và Auth Token"
+
+#: includes/admin_view.php:112
+msgid "Twilio credentials"
+msgstr "Thông tin xác thực Twilio"
+
+#: includes/admin_view.php:113
+msgid "Send using"
+msgstr "Gửi bằng"
+
+#: includes/admin_view.php:125
+msgid "Event"
+msgstr "Sự kiện"
+
+#: includes/admin_view.php:125
+msgid "Incident"
+msgstr "Sự cố"
+
+#: includes/admin_view.php:125
+msgid "ServiceNow record type"
+msgstr "Loại bản ghi ServiceNow"
+
+#: includes/admin_view.php:126
+msgid "Changing the record type replaces the destination table, message fields and recovery settings with its defaults. Your instance and credentials are retained."
+msgstr "Thay đổi loại bản ghi sẽ thay thế bảng đích, các trường thông báo và cài đặt khôi phục bằng giá trị mặc định của nó. Phiên bản và thông tin xác thực của bạn vẫn được giữ nguyên."
+
+#: includes/admin_view.php:149
+msgid "Destination"
+msgstr "Điểm đến"
+
+#: includes/admin_view.php:154
+msgid "Email settings"
+msgstr "Cài đặt email"
+
+#: includes/admin_view.php:161
+msgid "Delivery uses the Cacti mail settings. Add the people who should receive these alarms."
+msgstr "Việc gửi sử dụng cài đặt email của Cacti. Thêm những người sẽ nhận các cảnh báo này."
+
+#: includes/admin_view.php:162
+msgid "Script settings"
+msgstr "Cài đặt tập lệnh"
+
+#: includes/admin_view.php:167
+msgid "JSON output is sent to the script on standard input."
+msgstr "Đầu ra JSON được gửi tới tập lệnh qua đầu vào chuẩn."
+
+#: includes/admin_view.php:167
+msgid "The executable must exist and be executable by the worker on every delivering poller. Arguments are passed directly without a shell."
+msgstr "Tệp thực thi phải tồn tại và worker có quyền thực thi trên mọi poller thực hiện gửi. Các tham số được truyền trực tiếp mà không qua shell."
+
+#: includes/admin_view.php:169
+msgid "WebSocket delivery is not implemented."
+msgstr "Chưa triển khai việc gửi qua WebSocket."
+
+#: includes/admin_view.php:171
+msgid "Advanced delivery settings"
+msgstr "Cài đặt gửi nâng cao"
+
+#: includes/admin_view.php:176
+msgid "Connection options"
+msgstr "Tùy chọn kết nối"
+
+#: includes/admin_view.php:179
+msgid "Method"
+msgstr "Phương thức"
+
+#: includes/admin_view.php:186
+msgid "Certificate and hostname verification remain enabled. Provision the PEM file on every poller. Saved credentials are never displayed."
+msgstr "Xác minh chứng chỉ và tên máy chủ vẫn được bật. Cung cấp tệp PEM trên mọi poller. Thông tin xác thực đã lưu không bao giờ được hiển thị."
+
+#: includes/admin_view.php:187
+msgid "Other delivery options"
+msgstr "Các tùy chọn gửi khác"
+
+#: includes/admin_view.php:189 includes/admin_view.php:458
+msgid "Cancel"
+msgstr "Hủy"
+
+#: includes/admin_view.php:189
+msgid "Test destination saves the current settings and queues a sample alarm for this destination. Enable the destination before testing."
+msgstr "Kiểm tra đích gửi sẽ lưu cài đặt hiện tại và xếp hàng một cảnh báo mẫu cho đích này. Hãy bật đích gửi trước khi kiểm tra."
+
+#: includes/admin_view.php:190
+msgid "Save endpoint"
+msgstr "Lưu điểm cuối"
+
+#: includes/admin_view.php:190
+msgid "Test destination"
+msgstr "Kiểm tra đích gửi"
+
+#: includes/admin_view.php:194
+msgid "Delete endpoint"
+msgstr "Xóa điểm cuối"
+
+#: includes/admin_view.php:194
+msgid "Delete this endpoint, its delivery settings and saved credentials"
+msgstr "Xóa điểm cuối này, cài đặt gửi và thông tin xác thực đã lưu của nó"
+
+#: includes/admin_view.php:194
+msgid "Deleting stops future delivery and removes the saved settings and credentials. Remove notification rule references and resolve queued or running deliveries first. Completed and failed delivery history is preserved."
+msgstr "Xóa sẽ dừng các lần gửi trong tương lai và xóa cài đặt cùng thông tin xác thực đã lưu. Hãy gỡ bỏ các tham chiếu quy tắc thông báo và xử lý các lần gửi đang xếp hàng hoặc đang chạy trước. Lịch sử gửi đã hoàn thành và thất bại vẫn được giữ lại."
+
+#: includes/admin_view.php:205
+msgid "Chat and messaging"
+msgstr "Trò chuyện và nhắn tin"
+
+#: includes/admin_view.php:206
+msgid "Post alarms to a Slack channel."
+msgstr "Đăng cảnh báo tới một kênh Slack."
+
+#: includes/admin_view.php:207
+msgid "Post alarm cards through a Teams Workflow."
+msgstr "Đăng thẻ cảnh báo thông qua Teams Workflow."
+
+#: includes/admin_view.php:208
+msgid "Send alarms from a Telegram bot."
+msgstr "Gửi cảnh báo từ bot Telegram."
+
+#: includes/admin_view.php:209
+msgid "Text alarms to phone numbers."
+msgstr "Nhắn tin cảnh báo tới số điện thoại."
+
+#: includes/admin_view.php:210
+msgid "Send approved WhatsApp templates."
+msgstr "Gửi các mẫu WhatsApp đã được phê duyệt."
+
+#: includes/admin_view.php:211
+msgid "Incident management"
+msgstr "Quản lý sự cố"
+
+#: includes/admin_view.php:212
+msgid "Trigger and resolve PagerDuty incidents."
+msgstr "Kích hoạt và giải quyết sự cố PagerDuty."
+
+#: includes/admin_view.php:213
+msgid "Open and resolve ServiceNow incidents or events."
+msgstr "Mở và giải quyết sự cố hoặc sự kiện ServiceNow."
+
+#: includes/admin_view.php:214
+msgid "Network management"
+msgstr "Quản lý mạng"
+
+#: includes/admin_view.php:215
+msgid "Send SNMPv2c or SNMPv3 traps and INFORMs."
+msgstr "Gửi bẫy và INFORM SNMPv2c hoặc SNMPv3."
+
+#: includes/admin_view.php:216
+msgid "Forward RFC 5424 or RFC 3164 messages over UDP, TCP or TLS."
+msgstr "Chuyển tiếp thông điệp RFC 5424 hoặc RFC 3164 qua UDP, TCP hoặc TLS."
+
+#: includes/admin_view.php:217
+msgid "Custom"
+msgstr "Tùy chỉnh"
+
+#: includes/admin_view.php:218
+msgid "Start from an empty endpoint."
+msgstr "Bắt đầu từ một điểm cuối trống."
+
+#: includes/admin_view.php:219
+msgid "POST alarm JSON to any HTTPS endpoint."
+msgstr "Gửi POST JSON cảnh báo tới bất kỳ điểm cuối HTTPS nào."
+
+#: includes/admin_view.php:220
+msgid "Call an API with your own method, authentication and response checks."
+msgstr "Gọi API bằng phương thức, xác thực và kiểm tra phản hồi của riêng bạn."
+
+#: includes/admin_view.php:221
+msgid "Run a local executable with the alarm as JSON input."
+msgstr "Chạy tệp thực thi cục bộ với cảnh báo ở dạng đầu vào JSON."
+
+#: includes/admin_view.php:227
+msgid "Add integration"
+msgstr "Thêm tích hợp"
+
+#: includes/admin_view.php:228
+msgid "Choose a template. It opens as a disabled draft; nothing is sent until you enable it."
+msgstr "Chọn một mẫu. Mẫu sẽ mở ở dạng bản nháp đang tắt; không có gì được gửi cho đến khi bạn bật nó."
+
+#: includes/admin_view.php:228
+msgid "Search integrations"
+msgstr "Tìm kiếm tích hợp"
+
+#: includes/admin_view.php:234
+msgid "Blank endpoint"
+msgstr "Điểm cuối trống"
+
+#: includes/admin_view.php:239
+msgid "No integrations match your search."
+msgstr "Không có tích hợp nào khớp với tìm kiếm của bạn."
+
+#: includes/admin_view.php:243
+msgid "SNMP trap settings"
+msgstr "Cài đặt bẫy SNMP"
+
+#: includes/admin_view.php:259
+msgid "Saved community and passphrases are encrypted and never displayed. Leave them blank to keep the saved values; entering any value replaces all saved SNMP secrets."
+msgstr "Chuỗi cộng đồng và cụm mật khẩu đã lưu được mã hóa và không bao giờ hiển thị. Để trống để giữ nguyên giá trị đã lưu; nhập bất kỳ giá trị nào sẽ thay thế toàn bộ bí mật SNMP đã lưu."
+
+#: includes/admin_view.php:260
+msgid "Traps are sent as Cacti's CACTI-MIB cactiNotify with the snmptrap binary from Cacti Settings > Paths on every delivering poller. Add one destination per receiver."
+msgstr "Bẫy được gửi dưới dạng CACTI-MIB cactiNotify của Cacti bằng tệp thực thi snmptrap từ Cài đặt Cacti > Đường dẫn trên mọi poller thực hiện gửi. Thêm một đích cho mỗi bên nhận."
+
+#: includes/admin_view.php:261
+msgid "Syslog settings"
+msgstr "Cài đặt Syslog"
+
+#: includes/admin_view.php:269
+msgid "TLS verifies the receiver certificate and hostname. Use port 6514 for TLS. UDP and TCP are unencrypted, and a UDP message is confirmed only as sent."
+msgstr "TLS xác minh chứng chỉ và tên máy chủ của bên nhận. Dùng cổng 6514 cho TLS. UDP và TCP không được mã hóa, và thông điệp UDP chỉ được xác nhận là đã gửi."
+
+#: includes/admin_view.php:278 setup.php:191
+msgid "Days"
+msgstr "Ngày"
+
+#: includes/admin_view.php:283
+msgid "Timezone"
+msgstr "Múi giờ"
+
+#: includes/admin_view.php:291
+msgid "Times use the selected timezone and the alarm event time. An end time before the start runs overnight. Equal times cover the entire selected day."
+msgstr "Thời gian sử dụng múi giờ đã chọn và thời điểm sự kiện cảnh báo. Thời gian kết thúc sớm hơn thời gian bắt đầu sẽ chạy qua đêm. Thời gian bằng nhau sẽ áp dụng cho cả ngày đã chọn."
+
+#: includes/admin_view.php:332 includes/admin_view.php:521
+msgid "Create a rule"
+msgstr "Tạo quy tắc"
+
+#: includes/admin_view.php:332
+msgid "Enabled"
+msgstr "Bật"
+
+#: includes/admin_view.php:332
+msgid "Priority"
+msgstr "Ưu tiên"
+
+#: includes/admin_view.php:334
+msgid "Rule and destination"
+msgstr "Quy tắc và đích gửi"
+
+#: includes/admin_view.php:338
+msgid "Alarm Destination"
+msgstr "Đích nhận cảnh báo"
+
+#: includes/admin_view.php:341
+msgid "disabled"
+msgstr "đã tắt"
+
+#: includes/admin_view.php:343
+msgid "Select one or more alarm destinations. Disabled destinations do not send alarms."
+msgstr "Chọn một hoặc nhiều đích gửi cảnh báo. Các đích đang tắt sẽ không gửi cảnh báo."
+
+#: includes/admin_view.php:345
+msgid "Message template"
+msgstr "Mẫu thông báo"
+
+#: includes/admin_view.php:345
+msgid "Use each destination default, or customize its message for this rule. Customization starts with a copy of the destination template and does not change other rules. If several rules match the same destination, the first matching rule in priority and ID order supplies its template."
+msgstr "Dùng mặc định của từng đích gửi hoặc tùy chỉnh thông báo cho quy tắc này. Việc tùy chỉnh bắt đầu từ bản sao của mẫu đích gửi và không làm thay đổi các quy tắc khác. Nếu nhiều quy tắc khớp với cùng một đích gửi, quy tắc khớp đầu tiên theo thứ tự ưu tiên và ID sẽ cung cấp mẫu."
+
+#: includes/admin_view.php:352
+msgid "Custom template"
+msgstr "Mẫu tùy chỉnh"
+
+#: includes/admin_view.php:355
+msgid "Destination recipient"
+msgstr "Người nhận đích"
+
+#: includes/admin_view.php:355
+#, php-format
+msgid "Recipients: %d"
+msgstr "Người nhận: %d"
+
+#: includes/admin_view.php:357
+msgid "Customize message for this rule"
+msgstr "Tùy chỉnh thông báo cho quy tắc này"
+
+#: includes/admin_view.php:357
+msgid "Unchecked: Use destination default."
+msgstr "Bỏ chọn: Dùng mặc định của đích gửi."
+
+#: includes/admin_view.php:361
+msgid "Optional: add each phone number in international format, such as +15551234567. These numbers replace the destination recipient for this rule. Leave the list empty to use the destination default. Each number has its own delivery status and retries."
+msgstr "Tùy chọn: thêm từng số điện thoại theo định dạng quốc tế, chẳng hạn như +15551234567. Các số này sẽ thay thế người nhận đích cho quy tắc này. Để trống danh sách để dùng giá trị mặc định của đích. Mỗi số có trạng thái gửi và số lần thử lại riêng."
+
+#: includes/admin_view.php:374
+msgid "None"
+msgstr "Không"
+
+#: includes/admin_view.php:376
+msgid "Build device conditions using AND, OR and groups. These conditions use the current Cacti device settings and must also satisfy any alarm filters below. With no device conditions, all devices can match."
+msgstr "Xây dựng điều kiện thiết bị bằng AND, OR và các nhóm. Các điều kiện này sử dụng cài đặt thiết bị Cacti hiện tại và cũng phải đáp ứng mọi bộ lọc cảnh báo bên dưới. Nếu không có điều kiện thiết bị, tất cả thiết bị đều có thể khớp."
+
+#: includes/admin_view.php:376
+msgid "Match devices"
+msgstr "Khớp thiết bị"
+
+#: includes/admin_view.php:387
+msgid "Cacti_Admin_Notifications"
+msgstr "Cacti_Admin_Notifications"
+
+#: includes/admin_view.php:387
+msgid "Device Status"
+msgstr "Tình trạng thiết bị"
+
+#: includes/admin_view.php:387
+msgid "Syslog"
+msgstr "Syslog"
+
+#: includes/admin_view.php:387
+msgid "Thold"
+msgstr "Thold"
+
+#: includes/admin_view.php:392
+msgid "Build alarm conditions using AND, OR, NOT and groups. Alarms must also match the device conditions above."
+msgstr "Xây dựng điều kiện cảnh báo bằng AND, OR, NOT và các nhóm. Cảnh báo cũng phải khớp với điều kiện thiết bị ở trên."
+
+#: includes/admin_view.php:392
+msgid "Match alarms"
+msgstr "Khớp cảnh báo"
+
+#: includes/admin_view.php:395
+msgid "No alarm sources detected yet. Sources appear after their first alarm."
+msgstr "Chưa phát hiện nguồn cảnh báo nào. Nguồn sẽ xuất hiện sau cảnh báo đầu tiên."
+
+#: includes/admin_view.php:397
+msgid "By default, matching alarms can notify at any time. Turn on a schedule to limit when this rule matches."
+msgstr "Theo mặc định, các cảnh báo khớp điều kiện có thể gửi thông báo bất kỳ lúc nào. Bật lịch trình để giới hạn thời điểm quy tắc này khớp."
+
+#: includes/admin_view.php:397
+msgid "Notification hours"
+msgstr "Giờ gửi thông báo"
+
+#: includes/admin_view.php:399
+msgid "Suppress notifications"
+msgstr "Chặn thông báo"
+
+#: includes/admin_view.php:399
+msgid "Suppressed alarms remain in history. Recovery notifications bypass acknowledgment, cooldown and duplicate suppression, but still follow notification hours and maintenance windows."
+msgstr "Các cảnh báo bị chặn vẫn nằm trong lịch sử. Thông báo khôi phục bỏ qua xác nhận, thời gian chờ và chặn trùng lặp, nhưng vẫn tuân theo giờ gửi thông báo và khung thời gian bảo trì."
+
+#: includes/admin_view.php:403
+msgid "Set a duration to 0 to turn it off."
+msgstr "Đặt thời lượng thành 0 để tắt."
+
+#: includes/admin_view.php:405
+msgid "Rule order"
+msgstr "Thứ tự quy tắc"
+
+#: includes/admin_view.php:408
+msgid "Create rule"
+msgstr "Tạo quy tắc"
+
+#: includes/admin_view.php:408
+msgid "Rules with equal priority run in ID order. Stopping also applies when this rule suppresses notifications."
+msgstr "Các quy tắc có cùng mức ưu tiên sẽ chạy theo thứ tự ID. Việc dừng cũng áp dụng khi quy tắc này chặn thông báo."
+
+#: includes/admin_view.php:417
+msgid "Configuration Backup/Restore"
+msgstr "Sao lưu/Khôi phục cấu hình"
+
+#: includes/admin_view.php:427
+msgid "Paused"
+msgstr "Đã tạm dừng"
+
+#: includes/admin_view.php:427
+msgid "Running"
+msgstr "Đang chạy"
+
+#: includes/admin_view.php:428
+msgid "everything has been delivered"
+msgstr "tất cả đã được gửi"
+
+#: includes/admin_view.php:428
+#, php-format
+msgid "oldest queued %s UTC"
+msgstr "xếp hàng cũ nhất %s UTC"
+
+#: includes/admin_view.php:428
+msgid "waiting messages"
+msgstr "thông báo đang chờ"
+
+#: includes/admin_view.php:431
+msgid "Hide messages"
+msgstr "Ẩn thông báo"
+
+#: includes/admin_view.php:431
+msgid "View messages"
+msgstr "Xem thông báo"
+
+#: includes/admin_view.php:441
+msgid "Endpoint"
+msgstr "Điểm cuối"
+
+#: includes/admin_view.php:441
+msgid "ID"
+msgstr "ID"
+
+#: includes/admin_view.php:441
+msgid "Message"
+msgstr "Tin nhắn"
+
+#: includes/admin_view.php:441
+msgid "Next try"
+msgstr "Lần thử tiếp theo"
+
+#: includes/admin_view.php:441 includes/reports.php:458
+msgid "Queued"
+msgstr "Đang xếp hàng"
+
+#: includes/admin_view.php:441
+msgid "Tries"
+msgstr "Số lần thử"
+
+#: includes/admin_view.php:451
+msgid "Times in UTC · first 100 shown"
+msgstr "Thời gian theo UTC · hiển thị 100 bản ghi đầu tiên"
+
+#: includes/admin_view.php:455
+msgid "Pause delivery"
+msgstr "Tạm dừng gửi"
+
+#: includes/admin_view.php:455
+msgid "Resume delivery"
+msgstr "Tiếp tục gửi"
+
+#: includes/admin_view.php:458
+msgid "Clear queue"
+msgstr "Xóa hàng đợi"
+
+#: includes/admin_view.php:459
+#, php-format
+msgid "Discard all %d waiting notifications on this poller?"
+msgstr "Hủy bỏ tất cả %d thông báo đang chờ trên poller này?"
+
+#: includes/admin_view.php:460
+msgid "Includes retries. They stay in delivery history as failed, reason queue_cleared."
+msgstr "Bao gồm cả các lần thử lại. Chúng vẫn nằm trong lịch sử gửi ở trạng thái thất bại với lý do queue_cleared."
+
+#: includes/admin_view.php:461
+msgid "Messages already sending and alarm state are kept."
+msgstr "Các thông báo đang được gửi và trạng thái cảnh báo vẫn được giữ nguyên."
+
+#: includes/admin_view.php:462
+msgid "Tip: pause delivery first during maintenance."
+msgstr "Mẹo: hãy tạm dừng gửi trước trong thời gian bảo trì."
+
+#: includes/admin_view.php:463
+msgid "Clear queue…"
+msgstr "Đang xóa hàng đợi…"
+
+#: includes/admin_view.php:464
+msgid "Controls apply to this poller. While paused, alarms are still received and queued; Resume sends them."
+msgstr "Các điều khiển áp dụng cho poller này. Khi tạm dừng, cảnh báo vẫn được nhận và đưa vào hàng đợi; Tiếp tục sẽ gửi chúng đi."
+
+#: includes/admin_view.php:467
+msgid "View delivery results"
+msgstr "Xem kết quả gửi"
+
+#: includes/admin_view.php:470
+msgid "Create an integration, configure its destination and credentials, test a sample alarm here, then select it directly in a rule."
+msgstr "Tạo một tích hợp, cấu hình đích gửi và thông tin xác thực, thử nghiệm một cảnh báo mẫu tại đây, sau đó chọn trực tiếp trong một quy tắc."
+
+#: includes/admin_view.php:476
+msgid "Configured integrations"
+msgstr "Các tích hợp đã cấu hình"
+
+#: includes/admin_view.php:479
+msgid "No integrations yet. Choose a template above to create one."
+msgstr "Chưa có tích hợp nào. Chọn một mẫu ở trên để tạo."
+
+#: includes/admin_view.php:490
+msgid "Alarm Rules"
+msgstr "Quy tắc cảnh báo"
+
+#: includes/admin_view.php:490
+msgid "Choose which alarms should notify, where to send them and when to pause notifications. Rules run from lowest to highest priority."
+msgstr "Chọn cảnh báo nào sẽ gửi thông báo, nơi gửi và khi nào tạm dừng thông báo. Các quy tắc chạy theo thứ tự ưu tiên từ thấp nhất đến cao nhất."
+
+#: includes/admin_view.php:493
+msgid "Create an integration before saving your first rule."
+msgstr "Hãy tạo một tích hợp trước khi lưu quy tắc đầu tiên của bạn."
+
+#: includes/admin_view.php:493
+msgid "Create integration"
+msgstr "Tạo tích hợp"
+
+#: includes/admin_view.php:495
+msgid "Clear"
+msgstr "Xóa"
+
+#: includes/admin_view.php:495
+msgid "Critical"
+msgstr "Chỉ trích"
+
+#: includes/admin_view.php:495
+msgid "Information"
+msgstr "Thông tin"
+
+#: includes/admin_view.php:495
+msgid "Major"
+msgstr "Nghiêm trọng"
+
+#: includes/admin_view.php:495
+msgid "Minor"
+msgstr "Nhẹ"
+
+#: includes/admin_view.php:495
+msgid "Occurrence"
+msgstr "Lần xảy ra"
+
+#: includes/admin_view.php:495
+msgid "Raised"
+msgstr "Đã kích hoạt"
+
+#: includes/admin_view.php:495
+msgid "Recovered"
+msgstr "Đã khôi phục"
+
+#: includes/admin_view.php:495
+msgid "Reminder"
+msgstr "Nhắc nhở"
+
+#: includes/admin_view.php:495
+msgid "Updated"
+msgstr "Cập nhật"
+
+#: includes/admin_view.php:495
+msgid "Warning"
+msgstr "Cảnh báo"
+
+#: includes/admin_view.php:520
+msgid "Alarm notifications require an enabled matching Alarm Rule. Without one, alarms remain in history but no notifications are sent."
+msgstr "Thông báo cảnh báo yêu cầu một Quy tắc cảnh báo phù hợp đang được bật. Nếu không có, cảnh báo vẫn nằm trong lịch sử nhưng không có thông báo nào được gửi."
+
+#: includes/admin_view.php:524
+msgid "No rules yet. Create a rule below to start routing alarms to your notification destinations."
+msgstr "Chưa có quy tắc nào. Hãy tạo một quy tắc bên dưới để bắt đầu định tuyến cảnh báo đến các đích thông báo của bạn."
+
+#: includes/admin_view.php:533
+msgid "Credential values are never loaded into this page. Saving replaces the endpoint record; blank values do not preserve an old password. Use the CLI for protected backup/restore and poller provisioning."
+msgstr "Giá trị thông tin xác thực không bao giờ được tải lên trang này. Lưu sẽ thay thế bản ghi điểm cuối; các giá trị trống không giữ lại mật khẩu cũ. Hãy dùng CLI cho việc sao lưu/khôi phục được bảo vệ và cấp phát cho poller."
+
+#: includes/admin_view.php:536
+msgid "Create endpoint"
+msgstr "Tạo điểm cuối"
+
+#: includes/admin_view.php:536
+msgid "No REST API or webhook endpoints have been saved. Create an endpoint to enter its bearer token, Basic authentication username and password, or API-key headers."
+msgstr "Chưa có điểm cuối REST API hoặc webhook nào được lưu. Hãy tạo một điểm cuối để nhập mã thông báo bearer, tên người dùng và mật khẩu xác thực Basic hoặc tiêu đề khóa API."
+
+#: includes/admin_view.php:540
+msgid "Configured"
+msgstr "Được cấu hình"
+
+#: includes/admin_view.php:543
+msgid "Replace credential"
+msgstr "Thay thế thông tin xác thực"
+
+#: includes/admin_view.php:549
+msgid "Rotate local key"
+msgstr "Xoay vòng khóa cục bộ"
+
+#: includes/admin_view.php:553
+msgid "Event log"
+msgstr "Nhật ký sự kiện"
+
+#: includes/admin_view.php:553
+msgid "Writes every event as it is processed, independent of which rules match or whether any destination is notified — a complete audit trail for external analysis, for example with Splunk."
+msgstr "Ghi mọi sự kiện khi được xử lý, độc lập với việc quy tắc nào khớp hay có đích gửi nào được thông báo hay không, tạo thành nhật ký kiểm toán đầy đủ cho phân tích bên ngoài, ví dụ với Splunk."
+
+#: includes/admin_view.php:555
+msgid "Cacti log"
+msgstr "Nhật ký Cacti"
+
+#: includes/admin_view.php:555
+msgid "External file"
+msgstr "Tệp bên ngoài"
+
+#: includes/admin_view.php:555
+msgid "Write to"
+msgstr "Ghi tới"
+
+#: includes/admin_view.php:559
+msgid "One JSON object per line (occurred_at, transition, severity, device, alarm key…). The path must already exist, outside the plugin directory and Cacti's web root. Past the size limit, the file rotates to one .1 backup."
+msgstr "Một đối tượng JSON trên mỗi dòng (occurred_at, transition, severity, device, alarm key…). Đường dẫn phải đã tồn tại, nằm ngoài thư mục plugin và thư mục gốc web của Cacti. Khi vượt quá giới hạn kích thước, tệp sẽ xoay vòng sang một bản sao lưu .1."
+
+#: includes/admin_view.php:559
+msgid "Save event log settings"
+msgstr "Lưu cài đặt nhật ký sự kiện"
+
+#: includes/admin_view.php:561
+msgid "Backup and restore"
+msgstr "Sao lưu và khôi phục"
+
+#: includes/admin_view.php:561
+msgid "Export"
+msgstr "Xuất ra"
+
+#: includes/admin_view.php:562
+msgid "Endpoints, message templates, and rules as JSON. Credentials and settings are not included. Endpoint URLs can contain secrets, so keep the file private."
+msgstr "Các điểm cuối, mẫu thông báo và quy tắc ở dạng JSON. Thông tin xác thực và cài đặt không được bao gồm. URL điểm cuối có thể chứa bí mật, vì vậy hãy giữ tệp này riêng tư."
+
+#: includes/admin_view.php:563
+msgid "Export configuration"
+msgstr "Xuất cấu hình"
+
+#: includes/admin_view.php:563
+msgid "Import"
+msgstr "Nhập"
+
+#: includes/admin_view.php:567
+msgid "Replaces the routing configuration using the IDs in the file. Endpoints and rules missing from the file are disabled, not deleted. Saved credentials are kept."
+msgstr "Thay thế cấu hình định tuyến bằng các ID trong tệp. Các điểm cuối và quy tắc không có trong tệp sẽ bị tắt chứ không bị xóa. Thông tin xác thực đã lưu vẫn được giữ nguyên."
+
+#: includes/admin_view.php:568
+msgid "Import configuration"
+msgstr "Nhập cấu hình"
+
+#: includes/admin_view.php:572
+msgid "Local queue health"
+msgstr "Tình trạng hàng đợi cục bộ"
+
+#: includes/admin_view.php:573
+msgid "Jobs"
+msgstr "Tác vụ"
+
+#: includes/admin_view.php:573
+msgid "Oldest job age (seconds)"
+msgstr "Tuổi tác vụ cũ nhất (giây)"
+
+#: includes/admin_view.php:573
+msgid "Queue"
+msgstr "Hàng đợi"
+
+#: includes/admin_view.php:573
+msgid "Retries"
+msgstr "Thử lại"
+
+#: includes/admin_view.php:573 includes/admin_view.php:592
+#: includes/web_view.php:181
+msgid "Status"
+msgstr "Trạng thái"
+
+#: includes/admin_view.php:588
+msgid "No queue activity recorded."
+msgstr "Chưa ghi nhận hoạt động hàng đợi nào."
+
+#: includes/admin_view.php:591
+msgid "Local worker health"
+msgstr "Tình trạng worker cục bộ"
+
+#: includes/admin_view.php:592
+msgid "Current job"
+msgstr "Tác vụ hiện tại"
+
+#: includes/admin_view.php:592
+msgid "Heartbeat age (seconds)"
+msgstr "Thời gian nhịp tim (giây)"
+
+#: includes/admin_view.php:592
+msgid "PID"
+msgstr "PID"
+
+#: includes/admin_view.php:592
+msgid "Poller"
+msgstr "Poller"
+
+#: includes/admin_view.php:592
+msgid "Role"
+msgstr "Vai trò"
+
+#: includes/admin_view.php:592
+msgid "Worker"
+msgstr "Worker"
+
+#: includes/admin_view.php:607
+msgid "No local worker heartbeats recorded."
+msgstr "Chưa ghi nhận nhịp tim của worker cục bộ nào."
+
+#: includes/admin_view.php:610
+msgid "Completed delivery jobs in the last 300 seconds"
+msgstr "Tác vụ gửi hoàn thành trong 300 giây qua"
+
+#: includes/admin_view.php:610
+msgid "Completed processing jobs in the last 300 seconds"
+msgstr "Tác vụ xử lý hoàn thành trong 300 giây qua"
+
+#: includes/admin_view.php:610
+msgid "Processing streams blocked behind a failed predecessor"
+msgstr "Các luồng xử lý bị chặn phía sau tác vụ trước đó đã thất bại"
+
+#: includes/admin_view.php:613
+msgid "Pending jobs for destination types without a qualified transport"
+msgstr "Các tác vụ đang chờ cho loại đích không có phương thức truyền tải hợp lệ"
+
+#: includes/admin_view.php:620
+msgid "Failed deliveries and replay"
+msgstr "Lần gửi thất bại và chạy lại"
+
+#: includes/admin_view.php:620
+msgid "Failed processing jobs and replay"
+msgstr "Tác vụ xử lý thất bại và chạy lại"
+
+#: includes/admin_view.php:625
+msgid "Authentication"
+msgstr "Xác thực"
+
+#: includes/admin_view.php:625
+msgid "Authentication type"
+msgstr "Loại xác thực"
+
+#: includes/admin_view.php:649
+msgid "Saved credentials are encrypted and never displayed. New values replace the saved credential record."
+msgstr "Thông tin xác thực đã lưu được mã hóa và không bao giờ hiển thị. Giá trị mới sẽ thay thế bản ghi thông tin xác thực đã lưu."
+
+#: includes/polling.php:150
+msgid "Start the Alarm Manager service on this collector before enabling daemon workers."
+msgstr "Hãy khởi động dịch vụ Trình quản lý cảnh báo trên bộ thu thập này trước khi bật worker daemon."
+
+#: includes/polling.php:163
+msgid "Daemon settings could not be saved. Check the Cacti cache directory permissions."
+msgstr "Không thể lưu cài đặt daemon. Hãy kiểm tra quyền truy cập thư mục bộ đệm của Cacti."
+
+#: includes/reports.php:430
+msgid "Remote history"
+msgstr "Lịch sử từ xa"
+
+#: includes/reports.php:459
+msgid "Test send"
+msgstr "Gửi thử nghiệm"
+
+#: includes/reports.php:460
+msgid "No matching rule"
+msgstr "Không có quy tắc nào phù hợp"
+
+#: includes/reports.php:461
+msgid "Destination disabled"
+msgstr "Đích gửi đã tắt"
+
+#: includes/reports.php:462
+msgid "Suppressed by source"
+msgstr "Bị chặn bởi nguồn"
+
+#: includes/reports.php:463
+msgid "Maintenance window"
+msgstr "Khung thời gian bảo trì"
+
+#: includes/reports.php:464
+msgid "Acknowledged"
+msgstr "Đã xác nhận"
+
+#: includes/reports.php:465
+msgid "Cooldown"
+msgstr "Thời gian chờ"
+
+#: includes/reports.php:466
+msgid "Duplicate"
+msgstr "Bản sao"
+
+#: includes/reports.php:467
+msgid "Already routed"
+msgstr "Đã định tuyến"
+
+#: includes/reports.php:468
+msgid "Out of order"
+msgstr "Sai thứ tự"
+
+#: includes/reports.php:469
+msgid "Ignored episode"
+msgstr "Đợt sự kiện bị bỏ qua"
+
+#: includes/reports.php:470
+msgid "History only"
+msgstr "Chỉ lưu lịch sử"
+
+#: includes/reports.php:518
+#, php-format
+msgid "Deleted destination #%d"
+msgstr "Đã xóa đích gửi #%d"
+
+#: includes/reports.php:519
+#, php-format
+msgid "%d destinations"
+msgstr "%d đích gửi"
+
+#: includes/reports.php:531
+msgid "Delivered"
+msgstr "Đã gửi"
+
+#: includes/reports.php:531
+msgid "Failed"
+msgstr "Thất bại"
+
+#: includes/reports.php:531
+msgid "Pending"
+msgstr "Đang chờ xử lý"
+
+#: includes/reports.php:531
+msgid "Sending"
+msgstr "Đang gửi"
+
+#: includes/reports.php:541
+msgid "Processing failed"
+msgstr "Xử lý thất bại"
+
+#: includes/reports.php:542
+msgid "Pending processing"
+msgstr "Đang chờ xử lý"
+
+#: includes/reports.php:543 includes/web_view.php:264
+msgid "Processing"
+msgstr "Đang xử lý"
+
+#: includes/reports.php:544
+msgid "No matching integration"
+msgstr "Không có tích hợp nào phù hợp"
+
+#: includes/reports.php:544
+msgid "Suppressed"
+msgstr "Đã chặn"
+
+#: includes/routing.php:106
+msgid "Device description"
+msgstr "Mô tả thiết bị"
+
+#: includes/routing.php:106
+msgid "Hostname"
+msgstr "Tên máy chủ"
+
+#: includes/routing.php:106
+msgid "Location"
+msgstr "Vị trí"
+
+#: includes/routing.php:106
+msgid "SNMP system location"
+msgstr "Vị trí hệ thống SNMP"
+
+#: includes/routing.php:110 includes/routing.php:125
+msgid "Collector"
+msgstr "Người sưu tầm"
+
+#: includes/routing.php:110
+msgid "Device Site Association"
+msgstr "Liên kết địa điểm thiết bị"
+
+#: includes/routing.php:110
+msgid "Device Template"
+msgstr "Mẫu thiết bị"
+
+#: includes/routing.php:121
+msgid "Alarm change"
+msgstr "Thay đổi cảnh báo"
+
+#: includes/routing.php:121
+msgid "Alarm source"
+msgstr "Nguồn cảnh báo"
+
+#: includes/routing.php:121
+msgid "Alarm summary"
+msgstr "Tóm tắt cảnh báo"
+
+#: includes/routing.php:121 includes/web_view.php:161
+msgid "Severity"
+msgstr "Mức độ nghiêm trọng"
+
+#: includes/routing.php:125
+msgid "Device"
+msgstr "Thiết bị"
+
+#: includes/routing.php:128
+msgid "Device tag"
+msgstr "Thẻ thiết bị"
+
+#: includes/web_view.php:93
+msgid "Report unavailable or permission denied."
+msgstr "Báo cáo không khả dụng hoặc bị từ chối quyền."
+
+#: includes/web_view.php:119
+msgid "Statistics could not be rendered."
+msgstr "Không thể hiển thị thống kê."
+
+#: includes/web_view.php:129 setup.php:131 setup.php:273 setup.php:289
+#: setup.php:290
+msgid "Alarm Manager"
+msgstr "Trình quản lý báo động"
+
+#: includes/web_view.php:136
+msgid "Alarm Manager pages"
+msgstr "Các trang Trình quản lý cảnh báo"
+
+#: includes/web_view.php:149 includes/web_view.php:152
+msgid "Alarm statistics"
+msgstr "Thống kê cảnh báo"
+
+#: includes/web_view.php:149
+msgid "Filters"
+msgstr "Bộ lọc"
+
+#: includes/web_view.php:152
+msgid "Time range"
+msgstr "Khoảng thời gian"
+
+#: includes/web_view.php:158
+msgid "Off"
+msgstr "Tắt"
+
+#: includes/web_view.php:158
+msgid "Refresh"
+msgstr "Làm mới"
+
+#: includes/web_view.php:160
+msgid "Advanced filter JSON"
+msgstr "JSON bộ lọc nâng cao"
+
+#: includes/web_view.php:160
+msgid "Filter document"
+msgstr "Tài liệu bộ lọc"
+
+#: includes/web_view.php:160
+msgid "Quick filters"
+msgstr "Bộ lọc nhanh"
+
+#: includes/web_view.php:160
+msgid "Search conditions"
+msgstr "Điều kiện tìm kiếm"
+
+#: includes/web_view.php:161 includes/web_view.php:181
+msgid "All"
+msgstr "Tất cả"
+
+#: includes/web_view.php:161
+msgid "Source"
+msgstr "Nguồn"
+
+#: includes/web_view.php:168
+msgid "Device ID"
+msgstr "ID thiết bị"
+
+#: includes/web_view.php:171
+msgid "Status type"
+msgstr "Loại trạng thái"
+
+#: includes/web_view.php:190
+msgid "event_id"
+msgstr "ID sự kiện"
+
+#: includes/web_view.php:195
+msgid "Collector ID"
+msgstr "ID bộ thu thập"
+
+#: includes/web_view.php:195
+msgid "Local and mirrored collectors"
+msgstr "Bộ thu thập cục bộ và được phản chiếu"
+
+#: includes/web_view.php:198
+msgid "mirrored"
+msgstr "được phản chiếu"
+
+#: includes/web_view.php:203
+msgid "Mirrored events carry no Record ID and no detail view."
+msgstr "Các sự kiện được phản chiếu không có ID bản ghi và không có chế độ xem chi tiết."
+
+#: includes/web_view.php:205
+msgid "Mirrored collector events are always included here unless you narrow by a specific remote Collector ID."
+msgstr "Các sự kiện từ bộ thu thập được phản chiếu luôn được bao gồm ở đây trừ khi bạn lọc theo một ID bộ thu thập từ xa cụ thể."
+
+#: includes/web_view.php:211
+msgid "Apply"
+msgstr "Áp dụng"
+
+#: includes/web_view.php:211
+msgid "Reset"
+msgstr "Đặt lại"
+
+#: includes/web_view.php:213
+msgid "Historical window uses UTC. Current conditions and queues ignore the time window."
+msgstr "Khung lịch sử sử dụng UTC. Các trạng thái hiện tại và hàng đợi bỏ qua khung thời gian."
+
+#: includes/web_view.php:235
+msgid "Loading statistics…"
+msgstr "Đang tải thống kê…"
+
+#: includes/web_view.php:248
+msgid "Collapse"
+msgstr "Thu gọn"
+
+#: includes/web_view.php:261
+msgid "Integration results"
+msgstr "Kết quả tích hợp"
+
+#: includes/web_view.php:262
+msgid "Delivery attempts"
+msgstr "Số lần thử gửi"
+
+#: includes/web_view.php:263
+msgid "Routing decisions"
+msgstr "Quyết định định tuyến"
+
+#: includes/web_view.php:265
+msgid "conditions"
+msgstr "điều kiện"
+
+#: includes/web_view.php:270
+msgid "No matching records."
+msgstr "Không có bản ghi nào phù hợp."
+
+#: includes/web_view.php:290
+msgid "Integration status"
+msgstr "Trạng thái tích hợp"
+
+#: includes/web_view.php:291
+msgid "Collector Name"
+msgstr "Tên người sưu tầm"
+
+#: includes/web_view.php:292
+msgid "Attempts in current retry cycle"
+msgstr "Số lần thử trong chu kỳ thử lại hiện tại"
+
+#: includes/web_view.php:298
+msgid "Action"
+msgstr "Hành động"
+
+#: includes/web_view.php:314
+msgid "Display"
+msgstr "Hiển thị"
+
+#: includes/web_view.php:349
+msgid "Latest 100 records for this event."
+msgstr "100 bản ghi mới nhất cho sự kiện này."
+
+#: includes/web_view.php:354
+msgid "Showing at most 50 records per page."
+msgstr "Hiển thị tối đa 50 bản ghi mỗi trang."
+
+#: includes/web_view.php:355
+msgid "Pages"
+msgstr "Trang"
+
+#: includes/web_view.php:358
+msgid "Previous"
+msgstr "Trước"
+
+#: includes/web_view.php:361
+#, php-format
+msgid "Page %d"
+msgstr "Trang %d"
+
+#: includes/web_view.php:364
+msgid "Next"
+msgstr "Tiếp"
+
+#: includes/web_view.php:371
+msgid "Selected event details"
+msgstr "Chi tiết sự kiện đã chọn"
+
+#: includes/web_view.php:378
+msgid "Show metadata"
+msgstr "Hiển thị siêu dữ liệu"
+
+#: includes/web_view.php:400
+msgid "Confirm replay may repeat an external effect"
+msgstr "Xác nhận việc chạy lại có thể lặp lại tác động bên ngoài"
+
+#: setup.php:102
+msgid "Alarm Manager View"
+msgstr "Xem Trình quản lý cảnh báo"
+
+#: setup.php:103
+msgid "Alarm Manager Administration"
+msgstr "Quản trị Trình quản lý cảnh báo"
+
+#: setup.php:133
+msgid "0 Worker Processes"
+msgstr "0 tiến trình worker"
+
+#: setup.php:133
+msgid "1 Worker Process"
+msgstr "1 tiến trình worker"
+
+#: setup.php:136
+#, php-format
+msgid "%d Worker Processes"
+msgstr "%d Tiến trình xử lý"
+
+#: setup.php:144
+msgid "Device Alarm Summaries"
+msgstr "Tóm tắt cảnh báo thiết bị"
+
+#: setup.php:148
+msgid "Offline Summary"
+msgstr "Tóm tắt ngoại tuyến"
+
+#: setup.php:149
+msgid "Summary for new Cacti device down alarms. Existing history retains its original summary."
+msgstr "Tóm tắt cho cảnh báo thiết bị ngừng hoạt động mới của Cacti. Lịch sử hiện có vẫn giữ nguyên tóm tắt ban đầu."
+
+#: setup.php:156
+msgid "Recovering Summary"
+msgstr "Tóm tắt đang khôi phục"
+
+#: setup.php:157
+msgid "Summary for device recovering updates within the same outage."
+msgstr "Tóm tắt cho các cập nhật thiết bị đang khôi phục trong cùng một đợt sự cố."
+
+#: setup.php:164
+msgid "Online Summary"
+msgstr "Tóm tắt trực tuyến"
+
+#: setup.php:165
+msgid "Summary for device recovery alarms once Cacti confirms the device is up."
+msgstr "Tóm tắt cho cảnh báo khôi phục thiết bị sau khi Cacti xác nhận thiết bị đã hoạt động trở lại."
+
+#: setup.php:172
+msgid "Alert History Retention"
+msgstr "Thời gian lưu giữ lịch sử cảnh báo"
+
+#: setup.php:177
+msgid "Keep Alert History For"
+msgstr "Lưu giữ lịch sử cảnh báo trong"
+
+#: setup.php:178
+msgid "Enter how many days, weeks or months to keep alert history, or choose Indefinitely to keep everything (the number is then ignored). Maximum 3650 days, 520 weeks or 120 months. A purge job runs with the Cacti poller and removes aged events with their decisions, deliveries and attempts. Active conditions and queued or failed work are never purged. Each collector purges its own history."
+msgstr "Nhập số ngày, tuần hoặc tháng để lưu giữ lịch sử cảnh báo, hoặc chọn Vô thời hạn để giữ tất cả (khi đó con số sẽ bị bỏ qua). Tối đa 3650 ngày, 520 tuần hoặc 120 tháng. Tác vụ dọn dẹp chạy cùng poller của Cacti và xóa các sự kiện cũ cùng quyết định, lần gửi và lần thử của chúng. Các trạng thái đang hoạt động và tác vụ đang xếp hàng hoặc thất bại không bao giờ bị xóa. Mỗi bộ thu thập tự dọn dẹp lịch sử của riêng mình."
+
+#: setup.php:187
+msgid "Retention Unit"
+msgstr "Đơn vị lưu giữ"
+
+#: setup.php:188
+msgid "The unit for the retention period."
+msgstr "Đơn vị cho thời gian lưu giữ."
+
+#: setup.php:191
+msgid "Indefinitely"
+msgstr "Vô thời hạn"
+
+#: setup.php:191
+msgid "Months"
+msgstr "Tháng"
+
+#: setup.php:191
+msgid "Weeks"
+msgstr "Tuần"
+
+#: setup.php:194
+msgid "Daemon"
+msgstr "Daemon"
+
+#: setup.php:198
+msgid "Enable Daemon"
+msgstr "Bật daemon"
+
+#: setup.php:199
+msgid "Run processing and delivery workers in the resident Alarm Manager service instead of the Cacti poller. The service must be installed and running; disabling it lets current jobs finish and returns processing to the poller. Changes apply within a few seconds and synchronize to collectors."
+msgstr "Chạy các worker xử lý và gửi thông báo trong dịch vụ Trình quản lý cảnh báo thường trú thay vì poller của Cacti. Dịch vụ phải được cài đặt và đang chạy; tắt tùy chọn này sẽ cho phép các tác vụ hiện tại hoàn tất rồi chuyển việc xử lý về lại poller. Thay đổi có hiệu lực trong vài giây và đồng bộ tới các bộ thu thập."
+
+#: setup.php:204
+msgid "Processing Workers"
+msgstr "Worker xử lý"
+
+#: setup.php:205
+msgid "Number of daemon workers that evaluate rules."
+msgstr "Số lượng worker daemon thực hiện đánh giá quy tắc."
+
+#: setup.php:211
+msgid "Delivery Workers"
+msgstr "Worker gửi thông báo"
+
+#: setup.php:212
+msgid "Number of daemon workers that deliver notifications."
+msgstr "Số lượng worker daemon thực hiện gửi thông báo."
+
+#: setup.php:257
+msgid "Import/Export"
+msgstr "Nhập vào/Xuất ra"
+
+#: setup.php:259 setup.php:265 setup.php:271
+msgid "Alarm Manager Settings"
+msgstr "Cài đặt Trình quản lý cảnh báo"

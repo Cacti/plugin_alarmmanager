@@ -1,0 +1,1230 @@
+# Swedish translations for Alarm Manager package.
+# Copyright (C) 2004-2026 The Cacti Group
+# This file is distributed under the same license as the Alarm Manager package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Alarm Manager 0.12.2\n"
+"Report-Msgid-Bugs-To: https://github.com/bmfmancini/plugin_alarmmanager/issues\n"
+"POT-Creation-Date: 2026-11-02 13:02-0500\n"
+"PO-Revision-Date: 2026-11-28 02:15+0000\n"
+"Last-Translator: Thomas Vincent <thomasvincent@gmail.com>\n"
+"Language-Team: Swedish <https://translate.cacti.net/projects/cacti/core/sv/>\n"
+"Language: sv-SE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+
+#: alarmmanager_admin.php:50
+msgid "The administration action succeeded."
+msgstr "Administrationsåtgärden lyckades."
+
+#: alarmmanager_admin.php:86
+msgid "Administration unavailable or permission denied."
+msgstr "Administration är otillgänglig eller behörighet saknas."
+
+#: includes/admin_view.php:78
+msgid "Choose the alarm information to send to any service. Use Combined text to arrange device details, or Use device message to start with a complete message. Email uses Subject and Message; API destinations use the field names required by the receiving service."
+msgstr "Välj vilken larminformation som ska skickas till en tjänst. Använd Kombinerad text för att ordna enhetsdetaljer, eller Använd enhetsmeddelande för att utgå från ett komplett meddelande. E-post använder Ämne och Meddelande; API-destinationer använder de fältnamn som mottagande tjänst kräver."
+
+#: includes/admin_view.php:79
+msgid "Advanced message configuration"
+msgstr "Avancerad meddelandekonfiguration"
+
+#: includes/admin_view.php:90
+msgid "New endpoint"
+msgstr "Ny slutpunkt"
+
+#: includes/admin_view.php:100
+msgid "Custom integration"
+msgstr "Anpassad integration"
+
+#: includes/admin_view.php:100
+msgid "Integration provider"
+msgstr "Integrationsleverantör"
+
+#: includes/admin_view.php:112
+msgid "API Key SID and Secret (recommended)"
+msgstr "API-nyckel-SID och hemlighet (rekommenderas)"
+
+#: includes/admin_view.php:112
+msgid "Account SID and Auth Token"
+msgstr "Konto-SID och Auth Token"
+
+#: includes/admin_view.php:112
+msgid "Twilio credentials"
+msgstr "Twilio-inloggningsuppgifter"
+
+#: includes/admin_view.php:113
+msgid "Send using"
+msgstr "Skicka med"
+
+#: includes/admin_view.php:125
+msgid "Event"
+msgstr "Händelse"
+
+#: includes/admin_view.php:125
+msgid "Incident"
+msgstr "Incident"
+
+#: includes/admin_view.php:125
+msgid "ServiceNow record type"
+msgstr "ServiceNow-posttyp"
+
+#: includes/admin_view.php:126
+msgid "Changing the record type replaces the destination table, message fields and recovery settings with its defaults. Your instance and credentials are retained."
+msgstr "Om du ändrar posttypen ersätts måltabellen, meddelandefälten och återställningsinställningarna med standardvärden. Din instans och dina inloggningsuppgifter behålls."
+
+#: includes/admin_view.php:149
+msgid "Destination"
+msgstr "Mål"
+
+#: includes/admin_view.php:154
+msgid "Email settings"
+msgstr "E-postinställningar"
+
+#: includes/admin_view.php:161
+msgid "Delivery uses the Cacti mail settings. Add the people who should receive these alarms."
+msgstr "Leveransen använder Cactis e-postinställningar. Lägg till personerna som ska ta emot dessa larm."
+
+#: includes/admin_view.php:162
+msgid "Script settings"
+msgstr "Skriptinställningar"
+
+#: includes/admin_view.php:167
+msgid "JSON output is sent to the script on standard input."
+msgstr "JSON-utdata skickas till skriptet via standardinmatning."
+
+#: includes/admin_view.php:167
+msgid "The executable must exist and be executable by the worker on every delivering poller. Arguments are passed directly without a shell."
+msgstr "Den körbara filen måste finnas och vara körbar av arbetaren på varje levererande poller. Argument skickas direkt utan ett skal."
+
+#: includes/admin_view.php:169
+msgid "WebSocket delivery is not implemented."
+msgstr "WebSocket-leverans är inte implementerad."
+
+#: includes/admin_view.php:171
+msgid "Advanced delivery settings"
+msgstr "Avancerade leveransinställningar"
+
+#: includes/admin_view.php:176
+msgid "Connection options"
+msgstr "Anslutningsalternativ"
+
+#: includes/admin_view.php:179
+msgid "Method"
+msgstr "Metod"
+
+#: includes/admin_view.php:186
+msgid "Certificate and hostname verification remain enabled. Provision the PEM file on every poller. Saved credentials are never displayed."
+msgstr "Certifikat- och värdnamnsverifiering förblir aktiverade. Tillhandahåll PEM-filen på varje poller. Sparade inloggningsuppgifter visas aldrig."
+
+#: includes/admin_view.php:187
+msgid "Other delivery options"
+msgstr "Andra leveransalternativ"
+
+#: includes/admin_view.php:189 includes/admin_view.php:458
+msgid "Cancel"
+msgstr "Avbryt"
+
+#: includes/admin_view.php:189
+msgid "Test destination saves the current settings and queues a sample alarm for this destination. Enable the destination before testing."
+msgstr "Testa destination sparar aktuella inställningar och köar ett exempellarm för denna destination. Aktivera destinationen innan du testar."
+
+#: includes/admin_view.php:190
+msgid "Save endpoint"
+msgstr "Spara slutpunkt"
+
+#: includes/admin_view.php:190
+msgid "Test destination"
+msgstr "Testa destination"
+
+#: includes/admin_view.php:194
+msgid "Delete endpoint"
+msgstr "Ta bort slutpunkt"
+
+#: includes/admin_view.php:194
+msgid "Delete this endpoint, its delivery settings and saved credentials"
+msgstr "Ta bort denna slutpunkt, dess leveransinställningar och sparade inloggningsuppgifter"
+
+#: includes/admin_view.php:194
+msgid "Deleting stops future delivery and removes the saved settings and credentials. Remove notification rule references and resolve queued or running deliveries first. Completed and failed delivery history is preserved."
+msgstr "Borttagning stoppar framtida leveranser och tar bort sparade inställningar och inloggningsuppgifter. Ta bort referenser i aviseringsregler och hantera köade eller pågående leveranser först. Historik över slutförda och misslyckade leveranser bevaras."
+
+#: includes/admin_view.php:205
+msgid "Chat and messaging"
+msgstr "Chatt och meddelanden"
+
+#: includes/admin_view.php:206
+msgid "Post alarms to a Slack channel."
+msgstr "Skicka larm till en Slack-kanal."
+
+#: includes/admin_view.php:207
+msgid "Post alarm cards through a Teams Workflow."
+msgstr "Skicka larmkort via ett Teams-arbetsflöde."
+
+#: includes/admin_view.php:208
+msgid "Send alarms from a Telegram bot."
+msgstr "Skicka larm från en Telegram-bot."
+
+#: includes/admin_view.php:209
+msgid "Text alarms to phone numbers."
+msgstr "Skicka SMS-larm till telefonnummer."
+
+#: includes/admin_view.php:210
+msgid "Send approved WhatsApp templates."
+msgstr "Skicka godkända WhatsApp-mallar."
+
+#: includes/admin_view.php:211
+msgid "Incident management"
+msgstr "Incidenthantering"
+
+#: includes/admin_view.php:212
+msgid "Trigger and resolve PagerDuty incidents."
+msgstr "Utlös och lös PagerDuty-incidenter."
+
+#: includes/admin_view.php:213
+msgid "Open and resolve ServiceNow incidents or events."
+msgstr "Öppna och lös ServiceNow-incidenter eller -händelser."
+
+#: includes/admin_view.php:214
+msgid "Network management"
+msgstr "Nätverkshantering"
+
+#: includes/admin_view.php:215
+msgid "Send SNMPv2c or SNMPv3 traps and INFORMs."
+msgstr "Skicka SNMPv2c- eller SNMPv3-traps och INFORMs."
+
+#: includes/admin_view.php:216
+msgid "Forward RFC 5424 or RFC 3164 messages over UDP, TCP or TLS."
+msgstr "Vidarebefordra RFC 5424- eller RFC 3164-meddelanden över UDP, TCP eller TLS."
+
+#: includes/admin_view.php:217
+msgid "Custom"
+msgstr "Anpassad"
+
+#: includes/admin_view.php:218
+msgid "Start from an empty endpoint."
+msgstr "Utgå från en tom slutpunkt."
+
+#: includes/admin_view.php:219
+msgid "POST alarm JSON to any HTTPS endpoint."
+msgstr "Skicka larm-JSON med POST till valfri HTTPS-slutpunkt."
+
+#: includes/admin_view.php:220
+msgid "Call an API with your own method, authentication and response checks."
+msgstr "Anropa ett API med egen metod, autentisering och svarskontroller."
+
+#: includes/admin_view.php:221
+msgid "Run a local executable with the alarm as JSON input."
+msgstr "Kör en lokal körbar fil med larmet som JSON-indata."
+
+#: includes/admin_view.php:227
+msgid "Add integration"
+msgstr "Lägg till integration"
+
+#: includes/admin_view.php:228
+msgid "Choose a template. It opens as a disabled draft; nothing is sent until you enable it."
+msgstr "Välj en mall. Den öppnas som ett inaktiverat utkast; inget skickas förrän du aktiverar den."
+
+#: includes/admin_view.php:228
+msgid "Search integrations"
+msgstr "Sök integrationer"
+
+#: includes/admin_view.php:234
+msgid "Blank endpoint"
+msgstr "Tom slutpunkt"
+
+#: includes/admin_view.php:239
+msgid "No integrations match your search."
+msgstr "Inga integrationer matchar din sökning."
+
+#: includes/admin_view.php:243
+msgid "SNMP trap settings"
+msgstr "Inställningar för SNMP-trap"
+
+#: includes/admin_view.php:259
+msgid "Saved community and passphrases are encrypted and never displayed. Leave them blank to keep the saved values; entering any value replaces all saved SNMP secrets."
+msgstr "Sparad community och sparade lösenfraser krypteras och visas aldrig. Lämna dem tomma för att behålla sparade värden; om du anger något värde ersätts alla sparade SNMP-hemligheter."
+
+#: includes/admin_view.php:260
+msgid "Traps are sent as Cacti's CACTI-MIB cactiNotify with the snmptrap binary from Cacti Settings > Paths on every delivering poller. Add one destination per receiver."
+msgstr "Traps skickas som Cactis CACTI-MIB cactiNotify med binärfilen snmptrap från Cacti-inställningar > Sökvägar på varje levererande poller. Lägg till en destination per mottagare."
+
+#: includes/admin_view.php:261
+msgid "Syslog settings"
+msgstr "Syslog-inställningar"
+
+#: includes/admin_view.php:269
+msgid "TLS verifies the receiver certificate and hostname. Use port 6514 for TLS. UDP and TCP are unencrypted, and a UDP message is confirmed only as sent."
+msgstr "TLS verifierar mottagarens certifikat och värdnamn. Använd port 6514 för TLS. UDP och TCP är okrypterade, och ett UDP-meddelande bekräftas endast som skickat."
+
+#: includes/admin_view.php:278 setup.php:191
+msgid "Days"
+msgstr "Dagar"
+
+#: includes/admin_view.php:283
+msgid "Timezone"
+msgstr "Tidszon"
+
+#: includes/admin_view.php:291
+msgid "Times use the selected timezone and the alarm event time. An end time before the start runs overnight. Equal times cover the entire selected day."
+msgstr "Tider använder vald tidszon och larmhändelsens tidpunkt. En sluttid före starttiden löper över natten. Lika tider täcker hela den valda dagen."
+
+#: includes/admin_view.php:332 includes/admin_view.php:521
+msgid "Create a rule"
+msgstr "Skapa en regel"
+
+#: includes/admin_view.php:332
+msgid "Enabled"
+msgstr "Aktiverad"
+
+#: includes/admin_view.php:332
+msgid "Priority"
+msgstr "Prioritet"
+
+#: includes/admin_view.php:334
+msgid "Rule and destination"
+msgstr "Regel och destination"
+
+#: includes/admin_view.php:338
+msgid "Alarm Destination"
+msgstr "Larmdestination"
+
+#: includes/admin_view.php:341
+msgid "disabled"
+msgstr "inaktiverad"
+
+#: includes/admin_view.php:343
+msgid "Select one or more alarm destinations. Disabled destinations do not send alarms."
+msgstr "Välj en eller flera larmdestinationer. Inaktiverade destinationer skickar inga larm."
+
+#: includes/admin_view.php:345
+msgid "Message template"
+msgstr "Meddelandemall"
+
+#: includes/admin_view.php:345
+msgid "Use each destination default, or customize its message for this rule. Customization starts with a copy of the destination template and does not change other rules. If several rules match the same destination, the first matching rule in priority and ID order supplies its template."
+msgstr "Använd varje destinations standard eller anpassa dess meddelande för denna regel. Anpassningen börjar med en kopia av destinationsmallen och påverkar inte andra regler. Om flera regler matchar samma destination levererar den första matchande regeln i prioritets- och ID-ordning sin mall."
+
+#: includes/admin_view.php:352
+msgid "Custom template"
+msgstr "Anpassad mall"
+
+#: includes/admin_view.php:355
+msgid "Destination recipient"
+msgstr "Destinationsmottagare"
+
+#: includes/admin_view.php:355
+#, php-format
+msgid "Recipients: %d"
+msgstr "Mottagare: %d"
+
+#: includes/admin_view.php:357
+msgid "Customize message for this rule"
+msgstr "Anpassa meddelande för denna regel"
+
+#: includes/admin_view.php:357
+msgid "Unchecked: Use destination default."
+msgstr "Avmarkerad: Använd destinationens standard."
+
+#: includes/admin_view.php:361
+msgid "Optional: add each phone number in international format, such as +15551234567. These numbers replace the destination recipient for this rule. Leave the list empty to use the destination default. Each number has its own delivery status and retries."
+msgstr "Valfritt: lägg till varje telefonnummer i internationellt format, till exempel +15551234567. Dessa nummer ersätter destinationsmottagaren för denna regel. Lämna listan tom för att använda destinationens standard. Varje nummer har egen leveransstatus och egna återförsök."
+
+#: includes/admin_view.php:374
+msgid "None"
+msgstr "Ingen"
+
+#: includes/admin_view.php:376
+msgid "Build device conditions using AND, OR and groups. These conditions use the current Cacti device settings and must also satisfy any alarm filters below. With no device conditions, all devices can match."
+msgstr "Bygg enhetsvillkor med AND, OR och grupper. Dessa villkor använder de aktuella Cacti-enhetsinställningarna och måste även uppfylla eventuella larmfilter nedan. Utan enhetsvillkor kan alla enheter matcha."
+
+#: includes/admin_view.php:376
+msgid "Match devices"
+msgstr "Matcha enheter"
+
+#: includes/admin_view.php:387
+msgid "Cacti_Admin_Notifications"
+msgstr "Cacti_Admin_Notifications"
+
+#: includes/admin_view.php:387
+msgid "Device Status"
+msgstr "Enhetsstatus"
+
+#: includes/admin_view.php:387
+msgid "Syslog"
+msgstr "Syslog"
+
+#: includes/admin_view.php:387
+msgid "Thold"
+msgstr "THOLD"
+
+#: includes/admin_view.php:392
+msgid "Build alarm conditions using AND, OR, NOT and groups. Alarms must also match the device conditions above."
+msgstr "Bygg larmvillkor med AND, OR, NOT och grupper. Larm måste också matcha enhetsvillkoren ovan."
+
+#: includes/admin_view.php:392
+msgid "Match alarms"
+msgstr "Matcha larm"
+
+#: includes/admin_view.php:395
+msgid "No alarm sources detected yet. Sources appear after their first alarm."
+msgstr "Inga larmkällor har upptäckts ännu. Källor visas efter sitt första larm."
+
+#: includes/admin_view.php:397
+msgid "By default, matching alarms can notify at any time. Turn on a schedule to limit when this rule matches."
+msgstr "Som standard kan matchande larm avisera när som helst. Aktivera ett schema för att begränsa när denna regel matchar."
+
+#: includes/admin_view.php:397
+msgid "Notification hours"
+msgstr "Aviseringstimmar"
+
+#: includes/admin_view.php:399
+msgid "Suppress notifications"
+msgstr "Undertryck aviseringar"
+
+#: includes/admin_view.php:399
+msgid "Suppressed alarms remain in history. Recovery notifications bypass acknowledgment, cooldown and duplicate suppression, but still follow notification hours and maintenance windows."
+msgstr "Undertryckta larm finns kvar i historiken. Återställningsaviseringar kringgår bekräftelse, avkylningstid och dubblettundertryckning, men följer fortfarande aviseringstimmar och underhållsfönster."
+
+#: includes/admin_view.php:403
+msgid "Set a duration to 0 to turn it off."
+msgstr "Ange varaktigheten 0 för att stänga av den."
+
+#: includes/admin_view.php:405
+msgid "Rule order"
+msgstr "Regelordning"
+
+#: includes/admin_view.php:408
+msgid "Create rule"
+msgstr "Skapa regel"
+
+#: includes/admin_view.php:408
+msgid "Rules with equal priority run in ID order. Stopping also applies when this rule suppresses notifications."
+msgstr "Regler med samma prioritet körs i ID-ordning. Stopp gäller även när denna regel undertrycker aviseringar."
+
+#: includes/admin_view.php:417
+msgid "Configuration Backup/Restore"
+msgstr "Säkerhetskopiering/återställning av konfiguration"
+
+#: includes/admin_view.php:427
+msgid "Paused"
+msgstr "Pausad"
+
+#: includes/admin_view.php:427
+msgid "Running"
+msgstr "Pågår"
+
+#: includes/admin_view.php:428
+msgid "everything has been delivered"
+msgstr "allt har levererats"
+
+#: includes/admin_view.php:428
+#, php-format
+msgid "oldest queued %s UTC"
+msgstr "äldsta köade %s UTC"
+
+#: includes/admin_view.php:428
+msgid "waiting messages"
+msgstr "väntande meddelanden"
+
+#: includes/admin_view.php:431
+msgid "Hide messages"
+msgstr "Dölj meddelanden"
+
+#: includes/admin_view.php:431
+msgid "View messages"
+msgstr "Visa meddelanden"
+
+#: includes/admin_view.php:441
+msgid "Endpoint"
+msgstr "Slutpunkt"
+
+#: includes/admin_view.php:441
+msgid "ID"
+msgstr "ID"
+
+#: includes/admin_view.php:441
+msgid "Message"
+msgstr "Meddelande"
+
+#: includes/admin_view.php:441
+msgid "Next try"
+msgstr "Nästa försök"
+
+#: includes/admin_view.php:441 includes/reports.php:458
+msgid "Queued"
+msgstr "I kö"
+
+#: includes/admin_view.php:441
+msgid "Tries"
+msgstr "Försök"
+
+#: includes/admin_view.php:451
+msgid "Times in UTC · first 100 shown"
+msgstr "Tider i UTC · första 100 visas"
+
+#: includes/admin_view.php:455
+msgid "Pause delivery"
+msgstr "Pausa leverans"
+
+#: includes/admin_view.php:455
+msgid "Resume delivery"
+msgstr "Återuppta leverans"
+
+#: includes/admin_view.php:458
+msgid "Clear queue"
+msgstr "Rensa kö"
+
+#: includes/admin_view.php:459
+#, php-format
+msgid "Discard all %d waiting notifications on this poller?"
+msgstr "Kassera alla %d väntande aviseringar på denna poller?"
+
+#: includes/admin_view.php:460
+msgid "Includes retries. They stay in delivery history as failed, reason queue_cleared."
+msgstr "Inkluderar återförsök. De finns kvar i leveranshistoriken som misslyckade med orsaken queue_cleared."
+
+#: includes/admin_view.php:461
+msgid "Messages already sending and alarm state are kept."
+msgstr "Meddelanden som redan skickas och larmtillstånd behålls."
+
+#: includes/admin_view.php:462
+msgid "Tip: pause delivery first during maintenance."
+msgstr "Tips: pausa leveransen först under underhåll."
+
+#: includes/admin_view.php:463
+msgid "Clear queue…"
+msgstr "Rensar kö…"
+
+#: includes/admin_view.php:464
+msgid "Controls apply to this poller. While paused, alarms are still received and queued; Resume sends them."
+msgstr "Kontrollerna gäller denna poller. Under paus tas larm fortfarande emot och köas; Återuppta skickar dem."
+
+#: includes/admin_view.php:467
+msgid "View delivery results"
+msgstr "Visa leveransresultat"
+
+#: includes/admin_view.php:470
+msgid "Create an integration, configure its destination and credentials, test a sample alarm here, then select it directly in a rule."
+msgstr "Skapa en integration, konfigurera dess destination och inloggningsuppgifter, testa ett exempellarm här och välj den sedan direkt i en regel."
+
+#: includes/admin_view.php:476
+msgid "Configured integrations"
+msgstr "Konfigurerade integrationer"
+
+#: includes/admin_view.php:479
+msgid "No integrations yet. Choose a template above to create one."
+msgstr "Inga integrationer ännu. Välj en mall ovan för att skapa en."
+
+#: includes/admin_view.php:490
+msgid "Alarm Rules"
+msgstr "Larmregler"
+
+#: includes/admin_view.php:490
+msgid "Choose which alarms should notify, where to send them and when to pause notifications. Rules run from lowest to highest priority."
+msgstr "Välj vilka larm som ska avisera, vart de ska skickas och när aviseringar ska pausas. Regler körs från lägsta till högsta prioritet."
+
+#: includes/admin_view.php:493
+msgid "Create an integration before saving your first rule."
+msgstr "Skapa en integration innan du sparar din första regel."
+
+#: includes/admin_view.php:493
+msgid "Create integration"
+msgstr "Skapa integration"
+
+#: includes/admin_view.php:495
+msgid "Clear"
+msgstr "Rensa"
+
+#: includes/admin_view.php:495
+msgid "Critical"
+msgstr "Kritiskt"
+
+#: includes/admin_view.php:495
+msgid "Information"
+msgstr "Information"
+
+#: includes/admin_view.php:495
+msgid "Major"
+msgstr "Allvarlig"
+
+#: includes/admin_view.php:495
+msgid "Minor"
+msgstr "Mindre"
+
+#: includes/admin_view.php:495
+msgid "Occurrence"
+msgstr "Förekomst"
+
+#: includes/admin_view.php:495
+msgid "Raised"
+msgstr "Utlöst"
+
+#: includes/admin_view.php:495
+msgid "Recovered"
+msgstr "Återställd"
+
+#: includes/admin_view.php:495
+msgid "Reminder"
+msgstr "Påminnelse"
+
+#: includes/admin_view.php:495
+msgid "Updated"
+msgstr "Uppdaterad"
+
+#: includes/admin_view.php:495
+msgid "Warning"
+msgstr "Varning"
+
+#: includes/admin_view.php:520
+msgid "Alarm notifications require an enabled matching Alarm Rule. Without one, alarms remain in history but no notifications are sent."
+msgstr "Larmaviseringar kräver en aktiverad matchande larmregel. Utan en sådan finns larmen kvar i historiken, men inga aviseringar skickas."
+
+#: includes/admin_view.php:524
+msgid "No rules yet. Create a rule below to start routing alarms to your notification destinations."
+msgstr "Inga regler ännu. Skapa en regel nedan för att börja dirigera larm till dina aviseringsdestinationer."
+
+#: includes/admin_view.php:533
+msgid "Credential values are never loaded into this page. Saving replaces the endpoint record; blank values do not preserve an old password. Use the CLI for protected backup/restore and poller provisioning."
+msgstr "Värden för inloggningsuppgifter laddas aldrig in på denna sida. Sparande ersätter slutpunktsposten; tomma värden behåller inte ett gammalt lösenord. Använd CLI för skyddad säkerhetskopiering/återställning och polleretablering."
+
+#: includes/admin_view.php:536
+msgid "Create endpoint"
+msgstr "Skapa slutpunkt"
+
+#: includes/admin_view.php:536
+msgid "No REST API or webhook endpoints have been saved. Create an endpoint to enter its bearer token, Basic authentication username and password, or API-key headers."
+msgstr "Inga REST API- eller webhook-slutpunkter har sparats. Skapa en slutpunkt för att ange dess bearer-token, användarnamn och lösenord för Basic-autentisering eller API-nyckelrubriker."
+
+#: includes/admin_view.php:540
+msgid "Configured"
+msgstr "Konfigurerad"
+
+#: includes/admin_view.php:543
+msgid "Replace credential"
+msgstr "Ersätt inloggningsuppgift"
+
+#: includes/admin_view.php:549
+msgid "Rotate local key"
+msgstr "Rotera lokal nyckel"
+
+#: includes/admin_view.php:553
+msgid "Event log"
+msgstr "Händelselogg"
+
+#: includes/admin_view.php:553
+msgid "Writes every event as it is processed, independent of which rules match or whether any destination is notified — a complete audit trail for external analysis, for example with Splunk."
+msgstr "Skriver varje händelse när den bearbetas, oberoende av vilka regler som matchar eller om någon destination aviseras - ett komplett revisionsspår för extern analys, till exempel med Splunk."
+
+#: includes/admin_view.php:555
+msgid "Cacti log"
+msgstr "Cacti-logg"
+
+#: includes/admin_view.php:555
+msgid "External file"
+msgstr "Extern fil"
+
+#: includes/admin_view.php:555
+msgid "Write to"
+msgstr "Skriv till"
+
+#: includes/admin_view.php:559
+msgid "One JSON object per line (occurred_at, transition, severity, device, alarm key…). The path must already exist, outside the plugin directory and Cacti's web root. Past the size limit, the file rotates to one .1 backup."
+msgstr "Ett JSON-objekt per rad (occurred_at, transition, severity, device, alarm key…). Sökvägen måste redan finnas, utanför tilläggskatalogen och Cactis webbrot. Över storleksgränsen roteras filen till en .1-säkerhetskopia."
+
+#: includes/admin_view.php:559
+msgid "Save event log settings"
+msgstr "Spara inställningar för händelselogg"
+
+#: includes/admin_view.php:561
+msgid "Backup and restore"
+msgstr "Säkerhetskopiering och återställning"
+
+#: includes/admin_view.php:561
+msgid "Export"
+msgstr "Exportera"
+
+#: includes/admin_view.php:562
+msgid "Endpoints, message templates, and rules as JSON. Credentials and settings are not included. Endpoint URLs can contain secrets, so keep the file private."
+msgstr "Slutpunkter, meddelandemallar och regler som JSON. Inloggningsuppgifter och inställningar inkluderas inte. Slutpunkts-URL:er kan innehålla hemligheter, så håll filen privat."
+
+#: includes/admin_view.php:563
+msgid "Export configuration"
+msgstr "Exportera konfiguration"
+
+#: includes/admin_view.php:563
+msgid "Import"
+msgstr "Importera"
+
+#: includes/admin_view.php:567
+msgid "Replaces the routing configuration using the IDs in the file. Endpoints and rules missing from the file are disabled, not deleted. Saved credentials are kept."
+msgstr "Ersätter dirigeringskonfigurationen med hjälp av ID:na i filen. Slutpunkter och regler som saknas i filen inaktiveras, men tas inte bort. Sparade inloggningsuppgifter behålls."
+
+#: includes/admin_view.php:568
+msgid "Import configuration"
+msgstr "Importera konfiguration"
+
+#: includes/admin_view.php:572
+msgid "Local queue health"
+msgstr "Lokal köhälsa"
+
+#: includes/admin_view.php:573
+msgid "Jobs"
+msgstr "Jobb"
+
+#: includes/admin_view.php:573
+msgid "Oldest job age (seconds)"
+msgstr "Äldsta jobbets ålder (sekunder)"
+
+#: includes/admin_view.php:573
+msgid "Queue"
+msgstr "Kö"
+
+#: includes/admin_view.php:573
+msgid "Retries"
+msgstr "Försök"
+
+#: includes/admin_view.php:573 includes/admin_view.php:592
+#: includes/web_view.php:181
+msgid "Status"
+msgstr "Status"
+
+#: includes/admin_view.php:588
+msgid "No queue activity recorded."
+msgstr "Ingen köaktivitet registrerad."
+
+#: includes/admin_view.php:591
+msgid "Local worker health"
+msgstr "Lokal arbetarhälsa"
+
+#: includes/admin_view.php:592
+msgid "Current job"
+msgstr "Aktuellt jobb"
+
+#: includes/admin_view.php:592
+msgid "Heartbeat age (seconds)"
+msgstr "Hjärtslagsålder (sekunder)"
+
+#: includes/admin_view.php:592
+msgid "PID"
+msgstr "PID"
+
+#: includes/admin_view.php:592
+msgid "Poller"
+msgstr "Datainsamlare"
+
+#: includes/admin_view.php:592
+msgid "Role"
+msgstr "Roll"
+
+#: includes/admin_view.php:592
+msgid "Worker"
+msgstr "Arbetare"
+
+#: includes/admin_view.php:607
+msgid "No local worker heartbeats recorded."
+msgstr "Inga lokala arbetarhjärtslag registrerade."
+
+#: includes/admin_view.php:610
+msgid "Completed delivery jobs in the last 300 seconds"
+msgstr "Slutförda leveransjobb under de senaste 300 sekunderna"
+
+#: includes/admin_view.php:610
+msgid "Completed processing jobs in the last 300 seconds"
+msgstr "Slutförda bearbetningsjobb under de senaste 300 sekunderna"
+
+#: includes/admin_view.php:610
+msgid "Processing streams blocked behind a failed predecessor"
+msgstr "Bearbetningsströmmar blockerade bakom en misslyckad föregångare"
+
+#: includes/admin_view.php:613
+msgid "Pending jobs for destination types without a qualified transport"
+msgstr "Väntande jobb för destinationstyper utan kvalificerad transport"
+
+#: includes/admin_view.php:620
+msgid "Failed deliveries and replay"
+msgstr "Misslyckade leveranser och återuppspelning"
+
+#: includes/admin_view.php:620
+msgid "Failed processing jobs and replay"
+msgstr "Misslyckade bearbetningsjobb och återuppspelning"
+
+#: includes/admin_view.php:625
+msgid "Authentication"
+msgstr "Autentisering"
+
+#: includes/admin_view.php:625
+msgid "Authentication type"
+msgstr "Autentiseringstyp"
+
+#: includes/admin_view.php:649
+msgid "Saved credentials are encrypted and never displayed. New values replace the saved credential record."
+msgstr "Sparade inloggningsuppgifter krypteras och visas aldrig. Nya värden ersätter den sparade posten för inloggningsuppgifter."
+
+#: includes/polling.php:150
+msgid "Start the Alarm Manager service on this collector before enabling daemon workers."
+msgstr "Starta larmhanterartjänsten på denna insamlare innan du aktiverar demonarbetare."
+
+#: includes/polling.php:163
+msgid "Daemon settings could not be saved. Check the Cacti cache directory permissions."
+msgstr "Demoninställningarna kunde inte sparas. Kontrollera behörigheterna för Cactis cachekatalog."
+
+#: includes/reports.php:430
+msgid "Remote history"
+msgstr "Fjärrhistorik"
+
+#: includes/reports.php:459
+msgid "Test send"
+msgstr "Testskicka"
+
+#: includes/reports.php:460
+msgid "No matching rule"
+msgstr "Ingen matchande regel"
+
+#: includes/reports.php:461
+msgid "Destination disabled"
+msgstr "Destination inaktiverad"
+
+#: includes/reports.php:462
+msgid "Suppressed by source"
+msgstr "Undertryckt av källa"
+
+#: includes/reports.php:463
+msgid "Maintenance window"
+msgstr "Underhållsfönster"
+
+#: includes/reports.php:464
+msgid "Acknowledged"
+msgstr "Bekräftad"
+
+#: includes/reports.php:465
+msgid "Cooldown"
+msgstr "Avkylningstid"
+
+#: includes/reports.php:466
+msgid "Duplicate"
+msgstr "Duplicera"
+
+#: includes/reports.php:467
+msgid "Already routed"
+msgstr "Redan dirigerad"
+
+#: includes/reports.php:468
+msgid "Out of order"
+msgstr "Ur ordning"
+
+#: includes/reports.php:469
+msgid "Ignored episode"
+msgstr "Ignorerad episod"
+
+#: includes/reports.php:470
+msgid "History only"
+msgstr "Endast historik"
+
+#: includes/reports.php:518
+#, php-format
+msgid "Deleted destination #%d"
+msgstr "Tog bort destination #%d"
+
+#: includes/reports.php:519
+#, php-format
+msgid "%d destinations"
+msgstr "%d destinationer"
+
+#: includes/reports.php:531
+msgid "Delivered"
+msgstr "Levererad"
+
+#: includes/reports.php:531
+msgid "Failed"
+msgstr "MISSLYCKADES"
+
+#: includes/reports.php:531
+msgid "Pending"
+msgstr "Väntande"
+
+#: includes/reports.php:531
+msgid "Sending"
+msgstr "Skickar"
+
+#: includes/reports.php:541
+msgid "Processing failed"
+msgstr "Bearbetning misslyckades"
+
+#: includes/reports.php:542
+msgid "Pending processing"
+msgstr "Väntar på bearbetning"
+
+#: includes/reports.php:543 includes/web_view.php:264
+msgid "Processing"
+msgstr "Bearbetning"
+
+#: includes/reports.php:544
+msgid "No matching integration"
+msgstr "Ingen matchande integration"
+
+#: includes/reports.php:544
+msgid "Suppressed"
+msgstr "Undertryckt"
+
+#: includes/routing.php:106
+msgid "Device description"
+msgstr "Enhetsbeskrivning"
+
+#: includes/routing.php:106
+msgid "Hostname"
+msgstr "Värdnamn"
+
+#: includes/routing.php:106
+msgid "Location"
+msgstr "Placering"
+
+#: includes/routing.php:106
+msgid "SNMP system location"
+msgstr "SNMP-systemplats"
+
+#: includes/routing.php:110 includes/routing.php:125
+msgid "Collector"
+msgstr "Datainsamlare"
+
+#: includes/routing.php:110
+msgid "Device Site Association"
+msgstr "Koppling mellan enhet och plats"
+
+#: includes/routing.php:110
+msgid "Device Template"
+msgstr "Enhetsmall"
+
+#: includes/routing.php:121
+msgid "Alarm change"
+msgstr "Larmändring"
+
+#: includes/routing.php:121
+msgid "Alarm source"
+msgstr "Larmkälla"
+
+#: includes/routing.php:121
+msgid "Alarm summary"
+msgstr "Larmsammanfattning"
+
+#: includes/routing.php:121 includes/web_view.php:161
+msgid "Severity"
+msgstr "Allvarlighetsgrad"
+
+#: includes/routing.php:125
+msgid "Device"
+msgstr "Enhet"
+
+#: includes/routing.php:128
+msgid "Device tag"
+msgstr "Enhetstagg"
+
+#: includes/web_view.php:93
+msgid "Report unavailable or permission denied."
+msgstr "Rapporten är otillgänglig eller behörighet saknas."
+
+#: includes/web_view.php:119
+msgid "Statistics could not be rendered."
+msgstr "Statistiken kunde inte återges."
+
+#: includes/web_view.php:129 setup.php:131 setup.php:273 setup.php:289
+#: setup.php:290
+msgid "Alarm Manager"
+msgstr "Larmhanteraren"
+
+#: includes/web_view.php:136
+msgid "Alarm Manager pages"
+msgstr "Sidor i larmhanteraren"
+
+#: includes/web_view.php:149 includes/web_view.php:152
+msgid "Alarm statistics"
+msgstr "Larmstatistik"
+
+#: includes/web_view.php:149
+msgid "Filters"
+msgstr "Filter"
+
+#: includes/web_view.php:152
+msgid "Time range"
+msgstr "Tidsintervall"
+
+#: includes/web_view.php:158
+msgid "Off"
+msgstr "Av"
+
+#: includes/web_view.php:158
+msgid "Refresh"
+msgstr "Uppdatera"
+
+#: includes/web_view.php:160
+msgid "Advanced filter JSON"
+msgstr "Avancerat JSON-filter"
+
+#: includes/web_view.php:160
+msgid "Filter document"
+msgstr "Filterdokument"
+
+#: includes/web_view.php:160
+msgid "Quick filters"
+msgstr "Snabbfilter"
+
+#: includes/web_view.php:160
+msgid "Search conditions"
+msgstr "Sökvillkor"
+
+#: includes/web_view.php:161 includes/web_view.php:181
+msgid "All"
+msgstr "Alla"
+
+#: includes/web_view.php:161
+msgid "Source"
+msgstr "Källa"
+
+#: includes/web_view.php:168
+msgid "Device ID"
+msgstr "Enhets-ID"
+
+#: includes/web_view.php:171
+msgid "Status type"
+msgstr "Statustyp"
+
+#: includes/web_view.php:190
+msgid "event_id"
+msgstr "event_id"
+
+#: includes/web_view.php:195
+msgid "Collector ID"
+msgstr "Insamlare-ID"
+
+#: includes/web_view.php:195
+msgid "Local and mirrored collectors"
+msgstr "Lokala och speglade insamlare"
+
+#: includes/web_view.php:198
+msgid "mirrored"
+msgstr "speglad"
+
+#: includes/web_view.php:203
+msgid "Mirrored events carry no Record ID and no detail view."
+msgstr "Speglade händelser har inget post-ID och ingen detaljvy."
+
+#: includes/web_view.php:205
+msgid "Mirrored collector events are always included here unless you narrow by a specific remote Collector ID."
+msgstr "Speglade insamlarhändelser inkluderas alltid här om du inte filtrerar på ett specifikt fjärrinsamlare-ID."
+
+#: includes/web_view.php:211
+msgid "Apply"
+msgstr "Verkställ"
+
+#: includes/web_view.php:211
+msgid "Reset"
+msgstr "Återställ"
+
+#: includes/web_view.php:213
+msgid "Historical window uses UTC. Current conditions and queues ignore the time window."
+msgstr "Historiskt tidsfönster använder UTC. Aktuella tillstånd och köer ignorerar tidsfönstret."
+
+#: includes/web_view.php:235
+msgid "Loading statistics…"
+msgstr "Läser in statistik…"
+
+#: includes/web_view.php:248
+msgid "Collapse"
+msgstr "Fäll ihop"
+
+#: includes/web_view.php:261
+msgid "Integration results"
+msgstr "Integrationsresultat"
+
+#: includes/web_view.php:262
+msgid "Delivery attempts"
+msgstr "Leveransförsök"
+
+#: includes/web_view.php:263
+msgid "Routing decisions"
+msgstr "Dirigeringsbeslut"
+
+#: includes/web_view.php:265
+msgid "conditions"
+msgstr "villkor"
+
+#: includes/web_view.php:270
+msgid "No matching records."
+msgstr "Inga matchande poster."
+
+#: includes/web_view.php:290
+msgid "Integration status"
+msgstr "Integrationsstatus"
+
+#: includes/web_view.php:291
+msgid "Collector Name"
+msgstr "Datainsamlarens namn"
+
+#: includes/web_view.php:292
+msgid "Attempts in current retry cycle"
+msgstr "Försök i aktuell återförsökscykel"
+
+#: includes/web_view.php:298
+msgid "Action"
+msgstr "Åtgärd"
+
+#: includes/web_view.php:314
+msgid "Display"
+msgstr "Visa"
+
+#: includes/web_view.php:349
+msgid "Latest 100 records for this event."
+msgstr "Senaste 100 posterna för denna händelse."
+
+#: includes/web_view.php:354
+msgid "Showing at most 50 records per page."
+msgstr "Visar högst 50 poster per sida."
+
+#: includes/web_view.php:355
+msgid "Pages"
+msgstr "Sidor"
+
+#: includes/web_view.php:358
+msgid "Previous"
+msgstr "Föregående"
+
+#: includes/web_view.php:361
+#, php-format
+msgid "Page %d"
+msgstr "Sida %d"
+
+#: includes/web_view.php:364
+msgid "Next"
+msgstr "Nästa"
+
+#: includes/web_view.php:371
+msgid "Selected event details"
+msgstr "Detaljer för vald händelse"
+
+#: includes/web_view.php:378
+msgid "Show metadata"
+msgstr "Visa metadata"
+
+#: includes/web_view.php:400
+msgid "Confirm replay may repeat an external effect"
+msgstr "Bekräfta att återuppspelning kan upprepa en extern effekt"
+
+#: setup.php:102
+msgid "Alarm Manager View"
+msgstr "Vy för larmhanterare"
+
+#: setup.php:103
+msgid "Alarm Manager Administration"
+msgstr "Administration av larmhanterare"
+
+#: setup.php:133
+msgid "0 Worker Processes"
+msgstr "0 arbetsprocesser"
+
+#: setup.php:133
+msgid "1 Worker Process"
+msgstr "1 arbetsprocess"
+
+#: setup.php:136
+#, php-format
+msgid "%d Worker Processes"
+msgstr "%d arbetsprocesser"
+
+#: setup.php:144
+msgid "Device Alarm Summaries"
+msgstr "Larmsammanfattningar för enheter"
+
+#: setup.php:148
+msgid "Offline Summary"
+msgstr "Sammanfattning för frånkopplad"
+
+#: setup.php:149
+msgid "Summary for new Cacti device down alarms. Existing history retains its original summary."
+msgstr "Sammanfattning för nya Cacti-larm om nedkopplad enhet. Befintlig historik behåller sin ursprungliga sammanfattning."
+
+#: setup.php:156
+msgid "Recovering Summary"
+msgstr "Sammanfattning för återställning"
+
+#: setup.php:157
+msgid "Summary for device recovering updates within the same outage."
+msgstr "Sammanfattning för återställningsuppdateringar av enheter under samma avbrott."
+
+#: setup.php:164
+msgid "Online Summary"
+msgstr "Sammanfattning för ansluten"
+
+#: setup.php:165
+msgid "Summary for device recovery alarms once Cacti confirms the device is up."
+msgstr "Sammanfattning för enhetsåterställningslarm när Cacti bekräftar att enheten är uppe."
+
+#: setup.php:172
+msgid "Alert History Retention"
+msgstr "Lagringstid för larmhistorik"
+
+#: setup.php:177
+msgid "Keep Alert History For"
+msgstr "Behåll larmhistorik i"
+
+#: setup.php:178
+msgid "Enter how many days, weeks or months to keep alert history, or choose Indefinitely to keep everything (the number is then ignored). Maximum 3650 days, 520 weeks or 120 months. A purge job runs with the Cacti poller and removes aged events with their decisions, deliveries and attempts. Active conditions and queued or failed work are never purged. Each collector purges its own history."
+msgstr "Ange hur många dagar, veckor eller månader larmhistoriken ska behållas, eller välj Obegränsat för att behålla allt (antalet ignoreras då). Max 3650 dagar, 520 veckor eller 120 månader. Ett rensningsjobb körs med Cacti-pollern och tar bort gamla händelser tillsammans med deras beslut, leveranser och försök. Aktiva tillstånd samt köade eller misslyckade jobb rensas aldrig. Varje insamlare rensar sin egen historik."
+
+#: setup.php:187
+msgid "Retention Unit"
+msgstr "Lagringsenhet"
+
+#: setup.php:188
+msgid "The unit for the retention period."
+msgstr "Enheten för lagringsperioden."
+
+#: setup.php:191
+msgid "Indefinitely"
+msgstr "Ingen gräns"
+
+#: setup.php:191
+msgid "Months"
+msgstr "Månader"
+
+#: setup.php:191
+msgid "Weeks"
+msgstr "Veckor"
+
+#: setup.php:194
+msgid "Daemon"
+msgstr "Demon"
+
+#: setup.php:198
+msgid "Enable Daemon"
+msgstr "Aktivera demon"
+
+#: setup.php:199
+msgid "Run processing and delivery workers in the resident Alarm Manager service instead of the Cacti poller. The service must be installed and running; disabling it lets current jobs finish and returns processing to the poller. Changes apply within a few seconds and synchronize to collectors."
+msgstr "Kör bearbetnings- och leveransarbetare i den permanenta larmhanterartjänsten i stället för i Cacti-pollern. Tjänsten måste vara installerad och igång; om du inaktiverar den slutförs pågående jobb och bearbetningen återgår till pollern. Ändringar träder i kraft inom några sekunder och synkroniseras till insamlare."
+
+#: setup.php:204
+msgid "Processing Workers"
+msgstr "Bearbetningsarbetare"
+
+#: setup.php:205
+msgid "Number of daemon workers that evaluate rules."
+msgstr "Antal demonarbetare som utvärderar regler."
+
+#: setup.php:211
+msgid "Delivery Workers"
+msgstr "Leveransarbetare"
+
+#: setup.php:212
+msgid "Number of daemon workers that deliver notifications."
+msgstr "Antal demonarbetare som levererar aviseringar."
+
+#: setup.php:257
+msgid "Import/Export"
+msgstr "Import/export"
+
+#: setup.php:259 setup.php:265 setup.php:271
+msgid "Alarm Manager Settings"
+msgstr "Inställningar för larmhanterare"

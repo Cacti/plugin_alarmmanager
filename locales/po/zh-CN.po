@@ -1,0 +1,1230 @@
+# Chinese (Simplified Han script) translations for Alarm Manager package.
+# Copyright (C) 2004-2026 The Cacti Group
+# This file is distributed under the same license as the Alarm Manager package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Alarm Manager 0.12.2\n"
+"Report-Msgid-Bugs-To: https://github.com/bmfmancini/plugin_alarmmanager/issues\n"
+"POT-Creation-Date: 2026-11-02 13:02-0500\n"
+"PO-Revision-Date: 2026-11-28 02:15+0000\n"
+"Last-Translator: Thomas Vincent <thomasvincent@gmail.com>\n"
+"Language-Team: Chinese (Simplified Han script) <https://translate.cacti.net/projects/cacti/core/zh_Hans/>\n"
+"Language: zh-CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: alarmmanager_admin.php:50
+msgid "The administration action succeeded."
+msgstr "管理操作成功。"
+
+#: alarmmanager_admin.php:86
+msgid "Administration unavailable or permission denied."
+msgstr "管理功能不可用或权限被拒绝。"
+
+#: includes/admin_view.php:78
+msgid "Choose the alarm information to send to any service. Use Combined text to arrange device details, or Use device message to start with a complete message. Email uses Subject and Message; API destinations use the field names required by the receiving service."
+msgstr "选择要发送到任意服务的告警信息。使用“组合文本”编排设备详情，或使用“使用设备消息”以完整消息作为起点。电子邮件使用主题和消息；API 目标使用接收服务所需的字段名。"
+
+#: includes/admin_view.php:79
+msgid "Advanced message configuration"
+msgstr "高级消息配置"
+
+#: includes/admin_view.php:90
+msgid "New endpoint"
+msgstr "新建端点"
+
+#: includes/admin_view.php:100
+msgid "Custom integration"
+msgstr "自定义集成"
+
+#: includes/admin_view.php:100
+msgid "Integration provider"
+msgstr "集成提供程序"
+
+#: includes/admin_view.php:112
+msgid "API Key SID and Secret (recommended)"
+msgstr "API 密钥 SID 和机密（推荐）"
+
+#: includes/admin_view.php:112
+msgid "Account SID and Auth Token"
+msgstr "账号 SID 和认证令牌"
+
+#: includes/admin_view.php:112
+msgid "Twilio credentials"
+msgstr "Twilio 凭据"
+
+#: includes/admin_view.php:113
+msgid "Send using"
+msgstr "发送方式"
+
+#: includes/admin_view.php:125
+msgid "Event"
+msgstr "事件"
+
+#: includes/admin_view.php:125
+msgid "Incident"
+msgstr "事件单"
+
+#: includes/admin_view.php:125
+msgid "ServiceNow record type"
+msgstr "ServiceNow 记录类型"
+
+#: includes/admin_view.php:126
+msgid "Changing the record type replaces the destination table, message fields and recovery settings with its defaults. Your instance and credentials are retained."
+msgstr "更改记录类型会将其目标表、消息字段和恢复设置替换为默认值。您的实例和凭据将被保留。"
+
+#: includes/admin_view.php:149
+msgid "Destination"
+msgstr "目的地"
+
+#: includes/admin_view.php:154
+msgid "Email settings"
+msgstr "邮件设置"
+
+#: includes/admin_view.php:161
+msgid "Delivery uses the Cacti mail settings. Add the people who should receive these alarms."
+msgstr "投递使用 Cacti 邮件设置。请添加应接收这些告警的收件人。"
+
+#: includes/admin_view.php:162
+msgid "Script settings"
+msgstr "脚本设置"
+
+#: includes/admin_view.php:167
+msgid "JSON output is sent to the script on standard input."
+msgstr "JSON 输出通过标准输入发送到脚本。"
+
+#: includes/admin_view.php:167
+msgid "The executable must exist and be executable by the worker on every delivering poller. Arguments are passed directly without a shell."
+msgstr "该可执行文件必须在每个执行投递的轮询器上存在且可由工作进程执行。参数直接传递，不经过 Shell。"
+
+#: includes/admin_view.php:169
+msgid "WebSocket delivery is not implemented."
+msgstr "尚未实现 WebSocket 投递。"
+
+#: includes/admin_view.php:171
+msgid "Advanced delivery settings"
+msgstr "高级投递设置"
+
+#: includes/admin_view.php:176
+msgid "Connection options"
+msgstr "连接选项"
+
+#: includes/admin_view.php:179
+msgid "Method"
+msgstr "方法"
+
+#: includes/admin_view.php:186
+msgid "Certificate and hostname verification remain enabled. Provision the PEM file on every poller. Saved credentials are never displayed."
+msgstr "证书和主机名验证仍保持启用状态。请在每个轮询器上部署 PEM 文件。已保存的凭据永不显示。"
+
+#: includes/admin_view.php:187
+msgid "Other delivery options"
+msgstr "其他投递选项"
+
+#: includes/admin_view.php:189 includes/admin_view.php:458
+msgid "Cancel"
+msgstr "取消"
+
+#: includes/admin_view.php:189
+msgid "Test destination saves the current settings and queues a sample alarm for this destination. Enable the destination before testing."
+msgstr "“测试目标”会保存当前设置并为此目标将一条示例告警加入队列。请先启用该目标再进行测试。"
+
+#: includes/admin_view.php:190
+msgid "Save endpoint"
+msgstr "保存端点"
+
+#: includes/admin_view.php:190
+msgid "Test destination"
+msgstr "测试目标"
+
+#: includes/admin_view.php:194
+msgid "Delete endpoint"
+msgstr "删除端点"
+
+#: includes/admin_view.php:194
+msgid "Delete this endpoint, its delivery settings and saved credentials"
+msgstr "删除此端点、其投递设置及已保存的凭据"
+
+#: includes/admin_view.php:194
+msgid "Deleting stops future delivery and removes the saved settings and credentials. Remove notification rule references and resolve queued or running deliveries first. Completed and failed delivery history is preserved."
+msgstr "删除操作将停止后续投递并移除已保存的设置和凭据。请先移除通知规则中的引用，并处理排队中或运行中的投递任务。已完成和失败的投递历史将被保留。"
+
+#: includes/admin_view.php:205
+msgid "Chat and messaging"
+msgstr "聊天与即时通讯"
+
+#: includes/admin_view.php:206
+msgid "Post alarms to a Slack channel."
+msgstr "将告警发送到 Slack 频道。"
+
+#: includes/admin_view.php:207
+msgid "Post alarm cards through a Teams Workflow."
+msgstr "通过 Teams Workflow 发送告警卡片。"
+
+#: includes/admin_view.php:208
+msgid "Send alarms from a Telegram bot."
+msgstr "通过 Telegram 机器人发送告警。"
+
+#: includes/admin_view.php:209
+msgid "Text alarms to phone numbers."
+msgstr "向电话号码发送短信告警。"
+
+#: includes/admin_view.php:210
+msgid "Send approved WhatsApp templates."
+msgstr "发送经批准的 WhatsApp 模板。"
+
+#: includes/admin_view.php:211
+msgid "Incident management"
+msgstr "事件管理"
+
+#: includes/admin_view.php:212
+msgid "Trigger and resolve PagerDuty incidents."
+msgstr "触发并解决 PagerDuty 事件。"
+
+#: includes/admin_view.php:213
+msgid "Open and resolve ServiceNow incidents or events."
+msgstr "创建并解决 ServiceNow 事件单或事件。"
+
+#: includes/admin_view.php:214
+msgid "Network management"
+msgstr "网络管理"
+
+#: includes/admin_view.php:215
+msgid "Send SNMPv2c or SNMPv3 traps and INFORMs."
+msgstr "发送 SNMPv2c 或 SNMPv3 Trap 和 INFORM。"
+
+#: includes/admin_view.php:216
+msgid "Forward RFC 5424 or RFC 3164 messages over UDP, TCP or TLS."
+msgstr "通过 UDP、TCP 或 TLS 转发 RFC 5424 或 RFC 3164 消息。"
+
+#: includes/admin_view.php:217
+msgid "Custom"
+msgstr "自定义"
+
+#: includes/admin_view.php:218
+msgid "Start from an empty endpoint."
+msgstr "从空白端点开始。"
+
+#: includes/admin_view.php:219
+msgid "POST alarm JSON to any HTTPS endpoint."
+msgstr "将告警 JSON 通过 POST 发送到任意 HTTPS 端点。"
+
+#: includes/admin_view.php:220
+msgid "Call an API with your own method, authentication and response checks."
+msgstr "使用自定义方法、认证方式和响应检查调用 API。"
+
+#: includes/admin_view.php:221
+msgid "Run a local executable with the alarm as JSON input."
+msgstr "运行本地可执行文件并将告警作为 JSON 输入传入。"
+
+#: includes/admin_view.php:227
+msgid "Add integration"
+msgstr "添加集成"
+
+#: includes/admin_view.php:228
+msgid "Choose a template. It opens as a disabled draft; nothing is sent until you enable it."
+msgstr "选择一个模板。它将作为已禁用的草稿打开，在您启用之前不会发送任何消息。"
+
+#: includes/admin_view.php:228
+msgid "Search integrations"
+msgstr "搜索集成"
+
+#: includes/admin_view.php:234
+msgid "Blank endpoint"
+msgstr "空白端点"
+
+#: includes/admin_view.php:239
+msgid "No integrations match your search."
+msgstr "没有匹配您搜索条件的集成。"
+
+#: includes/admin_view.php:243
+msgid "SNMP trap settings"
+msgstr "SNMP 陷阱设置"
+
+#: includes/admin_view.php:259
+msgid "Saved community and passphrases are encrypted and never displayed. Leave them blank to keep the saved values; entering any value replaces all saved SNMP secrets."
+msgstr "已保存的团体名和密码短语均已加密，永不显示。留空将保留已保存的值；输入任意值将替换所有已保存的 SNMP 机密。"
+
+#: includes/admin_view.php:260
+msgid "Traps are sent as Cacti's CACTI-MIB cactiNotify with the snmptrap binary from Cacti Settings > Paths on every delivering poller. Add one destination per receiver."
+msgstr "Trap 会通过每个执行投递的轮询器上“Cacti 设置 > 路径”中的 snmptrap 二进制文件，以 Cacti 的 CACTI-MIB cactiNotify 形式发送。请为每个接收器添加一个目标。"
+
+#: includes/admin_view.php:261
+msgid "Syslog settings"
+msgstr "Syslog 设置"
+
+#: includes/admin_view.php:269
+msgid "TLS verifies the receiver certificate and hostname. Use port 6514 for TLS. UDP and TCP are unencrypted, and a UDP message is confirmed only as sent."
+msgstr "TLS 会验证接收端证书和主机名。TLS 请使用 6514 端口。UDP 和 TCP 不加密，且 UDP 消息仅确认已发送。"
+
+#: includes/admin_view.php:278 setup.php:191
+msgid "Days"
+msgstr "天"
+
+#: includes/admin_view.php:283
+msgid "Timezone"
+msgstr "时区"
+
+#: includes/admin_view.php:291
+msgid "Times use the selected timezone and the alarm event time. An end time before the start runs overnight. Equal times cover the entire selected day."
+msgstr "时间使用所选时区及告警事件时间。结束时间早于开始时间表示跨夜运行。开始与结束时间相同时覆盖整个选定日期。"
+
+#: includes/admin_view.php:332 includes/admin_view.php:521
+msgid "Create a rule"
+msgstr "创建规则"
+
+#: includes/admin_view.php:332
+msgid "Enabled"
+msgstr "已启用"
+
+#: includes/admin_view.php:332
+msgid "Priority"
+msgstr "优先级"
+
+#: includes/admin_view.php:334
+msgid "Rule and destination"
+msgstr "规则与目标"
+
+#: includes/admin_view.php:338
+msgid "Alarm Destination"
+msgstr "告警目标"
+
+#: includes/admin_view.php:341
+msgid "disabled"
+msgstr "已禁用"
+
+#: includes/admin_view.php:343
+msgid "Select one or more alarm destinations. Disabled destinations do not send alarms."
+msgstr "选择一个或多个告警目标。已禁用的目标不会发送告警。"
+
+#: includes/admin_view.php:345
+msgid "Message template"
+msgstr "消息模板"
+
+#: includes/admin_view.php:345
+msgid "Use each destination default, or customize its message for this rule. Customization starts with a copy of the destination template and does not change other rules. If several rules match the same destination, the first matching rule in priority and ID order supplies its template."
+msgstr "使用各目标的默认设置，或为此规则自定义消息。自定义会从目标模板的副本开始，不会影响其他规则。如果多条规则匹配同一目标，则按优先级和 ID 顺序排在最前的匹配规则提供其模板。"
+
+#: includes/admin_view.php:352
+msgid "Custom template"
+msgstr "自定义模板"
+
+#: includes/admin_view.php:355
+msgid "Destination recipient"
+msgstr "目标收件人"
+
+#: includes/admin_view.php:355
+#, php-format
+msgid "Recipients: %d"
+msgstr "收件人：%d"
+
+#: includes/admin_view.php:357
+msgid "Customize message for this rule"
+msgstr "为此规则自定义消息"
+
+#: includes/admin_view.php:357
+msgid "Unchecked: Use destination default."
+msgstr "未勾选：使用目标默认设置。"
+
+#: includes/admin_view.php:361
+msgid "Optional: add each phone number in international format, such as +15551234567. These numbers replace the destination recipient for this rule. Leave the list empty to use the destination default. Each number has its own delivery status and retries."
+msgstr "可选：按国际格式添加每个电话号码，例如 +15551234567。这些号码将替换此规则的目标收件人。留空列表将使用目标默认设置。每个号码都有独立的投递状态和重试机制。"
+
+#: includes/admin_view.php:374
+msgid "None"
+msgstr "无"
+
+#: includes/admin_view.php:376
+msgid "Build device conditions using AND, OR and groups. These conditions use the current Cacti device settings and must also satisfy any alarm filters below. With no device conditions, all devices can match."
+msgstr "使用 AND、OR 和分组构建设备条件。这些条件基于当前的 Cacti 设备设置，并且还必须满足下方的所有告警过滤条件。如果未设置设备条件，则所有设备均可匹配。"
+
+#: includes/admin_view.php:376
+msgid "Match devices"
+msgstr "匹配设备"
+
+#: includes/admin_view.php:387
+msgid "Cacti_Admin_Notifications"
+msgstr "Cacti_Admin_Notifications"
+
+#: includes/admin_view.php:387
+msgid "Device Status"
+msgstr "设备状态"
+
+#: includes/admin_view.php:387
+msgid "Syslog"
+msgstr "系统日志"
+
+#: includes/admin_view.php:387
+msgid "Thold"
+msgstr "阈值"
+
+#: includes/admin_view.php:392
+msgid "Build alarm conditions using AND, OR, NOT and groups. Alarms must also match the device conditions above."
+msgstr "使用 AND、OR、NOT 和分组构建告警条件。告警还必须匹配上方的设备条件。"
+
+#: includes/admin_view.php:392
+msgid "Match alarms"
+msgstr "匹配告警"
+
+#: includes/admin_view.php:395
+msgid "No alarm sources detected yet. Sources appear after their first alarm."
+msgstr "尚未检测到任何告警来源。来源将在首次产生告警后显示。"
+
+#: includes/admin_view.php:397
+msgid "By default, matching alarms can notify at any time. Turn on a schedule to limit when this rule matches."
+msgstr "默认情况下，匹配的告警可在任意时间发送通知。启用时间计划可限制此规则的匹配时段。"
+
+#: includes/admin_view.php:397
+msgid "Notification hours"
+msgstr "通知时段"
+
+#: includes/admin_view.php:399
+msgid "Suppress notifications"
+msgstr "抑制通知"
+
+#: includes/admin_view.php:399
+msgid "Suppressed alarms remain in history. Recovery notifications bypass acknowledgment, cooldown and duplicate suppression, but still follow notification hours and maintenance windows."
+msgstr "被抑制的告警仍保留在历史记录中。恢复通知不受确认状态、冷却时间和重复抑制影响，但仍遵循通知时段和维护窗口。"
+
+#: includes/admin_view.php:403
+msgid "Set a duration to 0 to turn it off."
+msgstr "将时长设为 0 即可关闭。"
+
+#: includes/admin_view.php:405
+msgid "Rule order"
+msgstr "规则顺序"
+
+#: includes/admin_view.php:408
+msgid "Create rule"
+msgstr "创建规则"
+
+#: includes/admin_view.php:408
+msgid "Rules with equal priority run in ID order. Stopping also applies when this rule suppresses notifications."
+msgstr "相同优先级的规则按 ID 顺序运行。当此规则抑制通知时，停止执行同样生效。"
+
+#: includes/admin_view.php:417
+msgid "Configuration Backup/Restore"
+msgstr "配置备份/恢复"
+
+#: includes/admin_view.php:427
+msgid "Paused"
+msgstr "已暂停"
+
+#: includes/admin_view.php:427
+msgid "Running"
+msgstr "运行中"
+
+#: includes/admin_view.php:428
+msgid "everything has been delivered"
+msgstr "所有消息均已投递"
+
+#: includes/admin_view.php:428
+#, php-format
+msgid "oldest queued %s UTC"
+msgstr "最早入队于 %s UTC"
+
+#: includes/admin_view.php:428
+msgid "waiting messages"
+msgstr "条等待中的消息"
+
+#: includes/admin_view.php:431
+msgid "Hide messages"
+msgstr "隐藏消息"
+
+#: includes/admin_view.php:431
+msgid "View messages"
+msgstr "查看消息"
+
+#: includes/admin_view.php:441
+msgid "Endpoint"
+msgstr "端点"
+
+#: includes/admin_view.php:441
+msgid "ID"
+msgstr "ID"
+
+#: includes/admin_view.php:441
+msgid "Message"
+msgstr "信息"
+
+#: includes/admin_view.php:441
+msgid "Next try"
+msgstr "下次尝试"
+
+#: includes/admin_view.php:441 includes/reports.php:458
+msgid "Queued"
+msgstr "已入队"
+
+#: includes/admin_view.php:441
+msgid "Tries"
+msgstr "尝试次数"
+
+#: includes/admin_view.php:451
+msgid "Times in UTC · first 100 shown"
+msgstr "时间采用 UTC · 显示前 100 条"
+
+#: includes/admin_view.php:455
+msgid "Pause delivery"
+msgstr "暂停投递"
+
+#: includes/admin_view.php:455
+msgid "Resume delivery"
+msgstr "恢复投递"
+
+#: includes/admin_view.php:458
+msgid "Clear queue"
+msgstr "清空队列"
+
+#: includes/admin_view.php:459
+#, php-format
+msgid "Discard all %d waiting notifications on this poller?"
+msgstr "确定要丢弃此轮询器上全部 %d 条等待中的通知吗？"
+
+#: includes/admin_view.php:460
+msgid "Includes retries. They stay in delivery history as failed, reason queue_cleared."
+msgstr "包含重试任务。它们将以失败状态保留在投递历史中，原因为 queue_cleared。"
+
+#: includes/admin_view.php:461
+msgid "Messages already sending and alarm state are kept."
+msgstr "正在发送的消息和告警状态将被保留。"
+
+#: includes/admin_view.php:462
+msgid "Tip: pause delivery first during maintenance."
+msgstr "提示：维护期间请先暂停投递。"
+
+#: includes/admin_view.php:463
+msgid "Clear queue…"
+msgstr "清空队列…"
+
+#: includes/admin_view.php:464
+msgid "Controls apply to this poller. While paused, alarms are still received and queued; Resume sends them."
+msgstr "控制操作仅应用于此轮询器。暂停期间，告警仍会继续接收并排队；点击“恢复”即可发送。"
+
+#: includes/admin_view.php:467
+msgid "View delivery results"
+msgstr "查看投递结果"
+
+#: includes/admin_view.php:470
+msgid "Create an integration, configure its destination and credentials, test a sample alarm here, then select it directly in a rule."
+msgstr "创建一个集成，配置其目标和凭据，在此处测试示例告警，然后直接在规则中选择它。"
+
+#: includes/admin_view.php:476
+msgid "Configured integrations"
+msgstr "已配置的集成"
+
+#: includes/admin_view.php:479
+msgid "No integrations yet. Choose a template above to create one."
+msgstr "尚无集成。请从上方选择一个模板来创建。"
+
+#: includes/admin_view.php:490
+msgid "Alarm Rules"
+msgstr "告警规则"
+
+#: includes/admin_view.php:490
+msgid "Choose which alarms should notify, where to send them and when to pause notifications. Rules run from lowest to highest priority."
+msgstr "选择哪些告警应触发通知、发送到何处以及何时暂停通知。规则按优先级从低到高依次执行。"
+
+#: includes/admin_view.php:493
+msgid "Create an integration before saving your first rule."
+msgstr "在保存第一条规则前，请先创建一个集成。"
+
+#: includes/admin_view.php:493
+msgid "Create integration"
+msgstr "创建集成"
+
+#: includes/admin_view.php:495
+msgid "Clear"
+msgstr "清除"
+
+#: includes/admin_view.php:495
+msgid "Critical"
+msgstr "严重"
+
+#: includes/admin_view.php:495
+msgid "Information"
+msgstr "信息"
+
+#: includes/admin_view.php:495
+msgid "Major"
+msgstr "重要"
+
+#: includes/admin_view.php:495
+msgid "Minor"
+msgstr "次要"
+
+#: includes/admin_view.php:495
+msgid "Occurrence"
+msgstr "发生次数"
+
+#: includes/admin_view.php:495
+msgid "Raised"
+msgstr "已触发"
+
+#: includes/admin_view.php:495
+msgid "Recovered"
+msgstr "已恢复"
+
+#: includes/admin_view.php:495
+msgid "Reminder"
+msgstr "提醒"
+
+#: includes/admin_view.php:495
+msgid "Updated"
+msgstr "更新"
+
+#: includes/admin_view.php:495
+msgid "Warning"
+msgstr "警告"
+
+#: includes/admin_view.php:520
+msgid "Alarm notifications require an enabled matching Alarm Rule. Without one, alarms remain in history but no notifications are sent."
+msgstr "告警通知需要存在已启用且匹配的告警规则。如果没有匹配规则，告警仍会保留在历史记录中，但不会发送通知。"
+
+#: includes/admin_view.php:524
+msgid "No rules yet. Create a rule below to start routing alarms to your notification destinations."
+msgstr "尚无规则。请在下方创建规则，开始将告警路由至您的通知目标。"
+
+#: includes/admin_view.php:533
+msgid "Credential values are never loaded into this page. Saving replaces the endpoint record; blank values do not preserve an old password. Use the CLI for protected backup/restore and poller provisioning."
+msgstr "此页面绝不会加载凭据值。保存将替换端点记录；留空不会保留旧密码。请使用 CLI 执行受保护的备份/恢复及轮询器配置分发。"
+
+#: includes/admin_view.php:536
+msgid "Create endpoint"
+msgstr "创建端点"
+
+#: includes/admin_view.php:536
+msgid "No REST API or webhook endpoints have been saved. Create an endpoint to enter its bearer token, Basic authentication username and password, or API-key headers."
+msgstr "尚未保存任何 REST API 或 Webhook 端点。请创建一个端点以输入其 Bearer 令牌、Basic 认证用户名和密码或 API 密钥请求头。"
+
+#: includes/admin_view.php:540
+msgid "Configured"
+msgstr "已配置"
+
+#: includes/admin_view.php:543
+msgid "Replace credential"
+msgstr "替换凭据"
+
+#: includes/admin_view.php:549
+msgid "Rotate local key"
+msgstr "轮换本地密钥"
+
+#: includes/admin_view.php:553
+msgid "Event log"
+msgstr "事件日志"
+
+#: includes/admin_view.php:553
+msgid "Writes every event as it is processed, independent of which rules match or whether any destination is notified — a complete audit trail for external analysis, for example with Splunk."
+msgstr "在处理每个事件时均将其写入，无论哪些规则匹配或是否通知了任何目标，从而为外部分析（例如使用 Splunk）提供完整的审计跟踪。"
+
+#: includes/admin_view.php:555
+msgid "Cacti log"
+msgstr "Cacti 日志"
+
+#: includes/admin_view.php:555
+msgid "External file"
+msgstr "外部文件"
+
+#: includes/admin_view.php:555
+msgid "Write to"
+msgstr "写入到"
+
+#: includes/admin_view.php:559
+msgid "One JSON object per line (occurred_at, transition, severity, device, alarm key…). The path must already exist, outside the plugin directory and Cacti's web root. Past the size limit, the file rotates to one .1 backup."
+msgstr "每行一个 JSON 对象（occurred_at、transition、severity、device、alarm key…）。该路径必须已存在，且位于插件目录和 Cacti Web 根目录之外。超过大小限制后，文件将轮转为单个 .1 备份。"
+
+#: includes/admin_view.php:559
+msgid "Save event log settings"
+msgstr "保存事件日志设置"
+
+#: includes/admin_view.php:561
+msgid "Backup and restore"
+msgstr "备份与恢复"
+
+#: includes/admin_view.php:561
+msgid "Export"
+msgstr "导出"
+
+#: includes/admin_view.php:562
+msgid "Endpoints, message templates, and rules as JSON. Credentials and settings are not included. Endpoint URLs can contain secrets, so keep the file private."
+msgstr "以 JSON 格式导出的端点、消息模板和规则。不包含凭据和设置。端点 URL 可能包含敏感信息，请妥善保管该文件。"
+
+#: includes/admin_view.php:563
+msgid "Export configuration"
+msgstr "导出配置"
+
+#: includes/admin_view.php:563
+msgid "Import"
+msgstr "导入"
+
+#: includes/admin_view.php:567
+msgid "Replaces the routing configuration using the IDs in the file. Endpoints and rules missing from the file are disabled, not deleted. Saved credentials are kept."
+msgstr "使用文件中的 ID 替换路由配置。文件中缺失的端点和规则将被禁用，而不会被删除。已保存的凭据将被保留。"
+
+#: includes/admin_view.php:568
+msgid "Import configuration"
+msgstr "导入配置"
+
+#: includes/admin_view.php:572
+msgid "Local queue health"
+msgstr "本地队列健康状态"
+
+#: includes/admin_view.php:573
+msgid "Jobs"
+msgstr "任务"
+
+#: includes/admin_view.php:573
+msgid "Oldest job age (seconds)"
+msgstr "最旧作业停留时间（秒）"
+
+#: includes/admin_view.php:573
+msgid "Queue"
+msgstr "队列"
+
+#: includes/admin_view.php:573
+msgid "Retries"
+msgstr "重试"
+
+#: includes/admin_view.php:573 includes/admin_view.php:592
+#: includes/web_view.php:181
+msgid "Status"
+msgstr "状态"
+
+#: includes/admin_view.php:588
+msgid "No queue activity recorded."
+msgstr "未记录队列活动。"
+
+#: includes/admin_view.php:591
+msgid "Local worker health"
+msgstr "本地工作进程健康状态"
+
+#: includes/admin_view.php:592
+msgid "Current job"
+msgstr "当前作业"
+
+#: includes/admin_view.php:592
+msgid "Heartbeat age (seconds)"
+msgstr "心跳间隔（秒）"
+
+#: includes/admin_view.php:592
+msgid "PID"
+msgstr "PID"
+
+#: includes/admin_view.php:592
+msgid "Poller"
+msgstr "轮询器"
+
+#: includes/admin_view.php:592
+msgid "Role"
+msgstr "角色"
+
+#: includes/admin_view.php:592
+msgid "Worker"
+msgstr "工作进程"
+
+#: includes/admin_view.php:607
+msgid "No local worker heartbeats recorded."
+msgstr "未记录本地工作进程心跳。"
+
+#: includes/admin_view.php:610
+msgid "Completed delivery jobs in the last 300 seconds"
+msgstr "过去 300 秒内已完成的投递作业数"
+
+#: includes/admin_view.php:610
+msgid "Completed processing jobs in the last 300 seconds"
+msgstr "过去 300 秒内已完成的处理作业数"
+
+#: includes/admin_view.php:610
+msgid "Processing streams blocked behind a failed predecessor"
+msgstr "因前序任务失败而被阻塞的处理流"
+
+#: includes/admin_view.php:613
+msgid "Pending jobs for destination types without a qualified transport"
+msgstr "目标类型缺少合格传输方式的待处理作业"
+
+#: includes/admin_view.php:620
+msgid "Failed deliveries and replay"
+msgstr "失败的投递与重放"
+
+#: includes/admin_view.php:620
+msgid "Failed processing jobs and replay"
+msgstr "失败的处理作业与重放"
+
+#: includes/admin_view.php:625
+msgid "Authentication"
+msgstr "认证"
+
+#: includes/admin_view.php:625
+msgid "Authentication type"
+msgstr "认证类型"
+
+#: includes/admin_view.php:649
+msgid "Saved credentials are encrypted and never displayed. New values replace the saved credential record."
+msgstr "已保存的凭据均已加密，永不显示。输入的新值将替换已保存的凭据记录。"
+
+#: includes/polling.php:150
+msgid "Start the Alarm Manager service on this collector before enabling daemon workers."
+msgstr "启用守护进程工作进程前，请先在此采集器上启动告警管理器服务。"
+
+#: includes/polling.php:163
+msgid "Daemon settings could not be saved. Check the Cacti cache directory permissions."
+msgstr "无法保存守护进程设置。请检查 Cacti 缓存目录的权限。"
+
+#: includes/reports.php:430
+msgid "Remote history"
+msgstr "远程历史"
+
+#: includes/reports.php:459
+msgid "Test send"
+msgstr "测试发送"
+
+#: includes/reports.php:460
+msgid "No matching rule"
+msgstr "无匹配的规则"
+
+#: includes/reports.php:461
+msgid "Destination disabled"
+msgstr "目标已禁用"
+
+#: includes/reports.php:462
+msgid "Suppressed by source"
+msgstr "已被来源抑制"
+
+#: includes/reports.php:463
+msgid "Maintenance window"
+msgstr "维护窗口"
+
+#: includes/reports.php:464
+msgid "Acknowledged"
+msgstr "已确认"
+
+#: includes/reports.php:465
+msgid "Cooldown"
+msgstr "冷却时间"
+
+#: includes/reports.php:466
+msgid "Duplicate"
+msgstr "复制"
+
+#: includes/reports.php:467
+msgid "Already routed"
+msgstr "已路由"
+
+#: includes/reports.php:468
+msgid "Out of order"
+msgstr "乱序"
+
+#: includes/reports.php:469
+msgid "Ignored episode"
+msgstr "已忽略事件周期"
+
+#: includes/reports.php:470
+msgid "History only"
+msgstr "仅记录历史"
+
+#: includes/reports.php:518
+#, php-format
+msgid "Deleted destination #%d"
+msgstr "已删除目标 #%d"
+
+#: includes/reports.php:519
+#, php-format
+msgid "%d destinations"
+msgstr "%d 个目标"
+
+#: includes/reports.php:531
+msgid "Delivered"
+msgstr "已投递"
+
+#: includes/reports.php:531
+msgid "Failed"
+msgstr "失败"
+
+#: includes/reports.php:531
+msgid "Pending"
+msgstr "待处理"
+
+#: includes/reports.php:531
+msgid "Sending"
+msgstr "正在发送"
+
+#: includes/reports.php:541
+msgid "Processing failed"
+msgstr "处理失败"
+
+#: includes/reports.php:542
+msgid "Pending processing"
+msgstr "等待处理"
+
+#: includes/reports.php:543 includes/web_view.php:264
+msgid "Processing"
+msgstr "正在处理"
+
+#: includes/reports.php:544
+msgid "No matching integration"
+msgstr "无匹配的集成"
+
+#: includes/reports.php:544
+msgid "Suppressed"
+msgstr "已抑制"
+
+#: includes/routing.php:106
+msgid "Device description"
+msgstr "设备描述"
+
+#: includes/routing.php:106
+msgid "Hostname"
+msgstr "主机名"
+
+#: includes/routing.php:106
+msgid "Location"
+msgstr "位置"
+
+#: includes/routing.php:106
+msgid "SNMP system location"
+msgstr "SNMP 系统位置"
+
+#: includes/routing.php:110 includes/routing.php:125
+msgid "Collector"
+msgstr "采集器"
+
+#: includes/routing.php:110
+msgid "Device Site Association"
+msgstr "选择设备站点"
+
+#: includes/routing.php:110
+msgid "Device Template"
+msgstr "设备模板"
+
+#: includes/routing.php:121
+msgid "Alarm change"
+msgstr "告警变更"
+
+#: includes/routing.php:121
+msgid "Alarm source"
+msgstr "告警来源"
+
+#: includes/routing.php:121
+msgid "Alarm summary"
+msgstr "告警摘要"
+
+#: includes/routing.php:121 includes/web_view.php:161
+msgid "Severity"
+msgstr "严重"
+
+#: includes/routing.php:125
+msgid "Device"
+msgstr "设备"
+
+#: includes/routing.php:128
+msgid "Device tag"
+msgstr "设备标签"
+
+#: includes/web_view.php:93
+msgid "Report unavailable or permission denied."
+msgstr "报告不可用或权限被拒绝。"
+
+#: includes/web_view.php:119
+msgid "Statistics could not be rendered."
+msgstr "无法呈现统计信息。"
+
+#: includes/web_view.php:129 setup.php:131 setup.php:273 setup.php:289
+#: setup.php:290
+msgid "Alarm Manager"
+msgstr "告警管理器"
+
+#: includes/web_view.php:136
+msgid "Alarm Manager pages"
+msgstr "告警管理器页面"
+
+#: includes/web_view.php:149 includes/web_view.php:152
+msgid "Alarm statistics"
+msgstr "告警统计"
+
+#: includes/web_view.php:149
+msgid "Filters"
+msgstr "过滤器"
+
+#: includes/web_view.php:152
+msgid "Time range"
+msgstr "时间范围"
+
+#: includes/web_view.php:158
+msgid "Off"
+msgstr "关闭"
+
+#: includes/web_view.php:158
+msgid "Refresh"
+msgstr "刷新"
+
+#: includes/web_view.php:160
+msgid "Advanced filter JSON"
+msgstr "高级过滤 JSON"
+
+#: includes/web_view.php:160
+msgid "Filter document"
+msgstr "过滤文档"
+
+#: includes/web_view.php:160
+msgid "Quick filters"
+msgstr "快速筛选"
+
+#: includes/web_view.php:160
+msgid "Search conditions"
+msgstr "搜索条件"
+
+#: includes/web_view.php:161 includes/web_view.php:181
+msgid "All"
+msgstr "所有"
+
+#: includes/web_view.php:161
+msgid "Source"
+msgstr "来源"
+
+#: includes/web_view.php:168
+msgid "Device ID"
+msgstr "设备 ID"
+
+#: includes/web_view.php:171
+msgid "Status type"
+msgstr "状态类型"
+
+#: includes/web_view.php:190
+msgid "event_id"
+msgstr "事件 ID"
+
+#: includes/web_view.php:195
+msgid "Collector ID"
+msgstr "采集器 ID"
+
+#: includes/web_view.php:195
+msgid "Local and mirrored collectors"
+msgstr "本地及镜像采集器"
+
+#: includes/web_view.php:198
+msgid "mirrored"
+msgstr "已镜像"
+
+#: includes/web_view.php:203
+msgid "Mirrored events carry no Record ID and no detail view."
+msgstr "镜像事件不包含记录 ID，也没有详情视图。"
+
+#: includes/web_view.php:205
+msgid "Mirrored collector events are always included here unless you narrow by a specific remote Collector ID."
+msgstr "除非您按特定的远程采集器 ID 进行筛选，否则此处始终包含镜像采集器的事件。"
+
+#: includes/web_view.php:211
+msgid "Apply"
+msgstr "应用"
+
+#: includes/web_view.php:211
+msgid "Reset"
+msgstr "重置"
+
+#: includes/web_view.php:213
+msgid "Historical window uses UTC. Current conditions and queues ignore the time window."
+msgstr "历史时间窗口使用 UTC。当前状态和队列不受时间窗口限制。"
+
+#: includes/web_view.php:235
+msgid "Loading statistics…"
+msgstr "正在加载统计信息…"
+
+#: includes/web_view.php:248
+msgid "Collapse"
+msgstr "折叠"
+
+#: includes/web_view.php:261
+msgid "Integration results"
+msgstr "集成结果"
+
+#: includes/web_view.php:262
+msgid "Delivery attempts"
+msgstr "投递尝试"
+
+#: includes/web_view.php:263
+msgid "Routing decisions"
+msgstr "路由决策"
+
+#: includes/web_view.php:265
+msgid "conditions"
+msgstr "个条件"
+
+#: includes/web_view.php:270
+msgid "No matching records."
+msgstr "无匹配记录。"
+
+#: includes/web_view.php:290
+msgid "Integration status"
+msgstr "集成状态"
+
+#: includes/web_view.php:291
+msgid "Collector Name"
+msgstr "采集器名称"
+
+#: includes/web_view.php:292
+msgid "Attempts in current retry cycle"
+msgstr "当前重试周期的尝试次数"
+
+#: includes/web_view.php:298
+msgid "Action"
+msgstr "启动"
+
+#: includes/web_view.php:314
+msgid "Display"
+msgstr "显示"
+
+#: includes/web_view.php:349
+msgid "Latest 100 records for this event."
+msgstr "此事件的最新 100 条记录。"
+
+#: includes/web_view.php:354
+msgid "Showing at most 50 records per page."
+msgstr "每页最多显示 50 条记录。"
+
+#: includes/web_view.php:355
+msgid "Pages"
+msgstr "页数"
+
+#: includes/web_view.php:358
+msgid "Previous"
+msgstr "上一页"
+
+#: includes/web_view.php:361
+#, php-format
+msgid "Page %d"
+msgstr "第 %d 页"
+
+#: includes/web_view.php:364
+msgid "Next"
+msgstr "下一页"
+
+#: includes/web_view.php:371
+msgid "Selected event details"
+msgstr "所选事件详情"
+
+#: includes/web_view.php:378
+msgid "Show metadata"
+msgstr "显示元数据"
+
+#: includes/web_view.php:400
+msgid "Confirm replay may repeat an external effect"
+msgstr "确认重放可能会重复产生外部影响"
+
+#: setup.php:102
+msgid "Alarm Manager View"
+msgstr "告警管理器视图"
+
+#: setup.php:103
+msgid "Alarm Manager Administration"
+msgstr "告警管理器管理"
+
+#: setup.php:133
+msgid "0 Worker Processes"
+msgstr "0 个工作进程"
+
+#: setup.php:133
+msgid "1 Worker Process"
+msgstr "1 个工作进程"
+
+#: setup.php:136
+#, php-format
+msgid "%d Worker Processes"
+msgstr "%d 个工作进程"
+
+#: setup.php:144
+msgid "Device Alarm Summaries"
+msgstr "设备告警摘要"
+
+#: setup.php:148
+msgid "Offline Summary"
+msgstr "离线摘要"
+
+#: setup.php:149
+msgid "Summary for new Cacti device down alarms. Existing history retains its original summary."
+msgstr "新建 Cacti 设备宕机告警的摘要。已有历史记录将保留原始摘要。"
+
+#: setup.php:156
+msgid "Recovering Summary"
+msgstr "恢复中摘要"
+
+#: setup.php:157
+msgid "Summary for device recovering updates within the same outage."
+msgstr "同一中断期间设备恢复中更新的摘要。"
+
+#: setup.php:164
+msgid "Online Summary"
+msgstr "在线摘要"
+
+#: setup.php:165
+msgid "Summary for device recovery alarms once Cacti confirms the device is up."
+msgstr "Cacti 确认设备恢复正常后的设备恢复告警摘要。"
+
+#: setup.php:172
+msgid "Alert History Retention"
+msgstr "告警历史保留期"
+
+#: setup.php:177
+msgid "Keep Alert History For"
+msgstr "告警历史保留时长"
+
+#: setup.php:178
+msgid "Enter how many days, weeks or months to keep alert history, or choose Indefinitely to keep everything (the number is then ignored). Maximum 3650 days, 520 weeks or 120 months. A purge job runs with the Cacti poller and removes aged events with their decisions, deliveries and attempts. Active conditions and queued or failed work are never purged. Each collector purges its own history."
+msgstr "输入告警历史的保留天数、周数或月数，或选择“永久”以保留全部记录（此时将忽略数值）。上限为 3650 天、520 周或 120 个月。清理作业会随 Cacti 轮询器运行，移除过期的事件及其决策、投递与尝试记录。活动状态的条件以及排队中或失败的任务永远不会被清理。每个采集器各自清理其历史记录。"
+
+#: setup.php:187
+msgid "Retention Unit"
+msgstr "保留单位"
+
+#: setup.php:188
+msgid "The unit for the retention period."
+msgstr "保留期的单位。"
+
+#: setup.php:191
+msgid "Indefinitely"
+msgstr "无限期地"
+
+#: setup.php:191
+msgid "Months"
+msgstr "月"
+
+#: setup.php:191
+msgid "Weeks"
+msgstr "周"
+
+#: setup.php:194
+msgid "Daemon"
+msgstr "守护进程"
+
+#: setup.php:198
+msgid "Enable Daemon"
+msgstr "启用守护进程"
+
+#: setup.php:199
+msgid "Run processing and delivery workers in the resident Alarm Manager service instead of the Cacti poller. The service must be installed and running; disabling it lets current jobs finish and returns processing to the poller. Changes apply within a few seconds and synchronize to collectors."
+msgstr "在常驻告警管理器服务中运行处理和投递工作进程，而不使用 Cacti 轮询器。该服务必须已安装并运行；禁用后将等待当前作业完成，并将处理交回轮询器。更改会在几秒内生效并同步到各采集器。"
+
+#: setup.php:204
+msgid "Processing Workers"
+msgstr "处理工作进程"
+
+#: setup.php:205
+msgid "Number of daemon workers that evaluate rules."
+msgstr "用于评估规则的守护进程工作进程数量。"
+
+#: setup.php:211
+msgid "Delivery Workers"
+msgstr "投递工作进程"
+
+#: setup.php:212
+msgid "Number of daemon workers that deliver notifications."
+msgstr "用于投递通知的守护进程工作进程数量。"
+
+#: setup.php:257
+msgid "Import/Export"
+msgstr "导入/导出"
+
+#: setup.php:259 setup.php:265 setup.php:271
+msgid "Alarm Manager Settings"
+msgstr "告警管理器设置"

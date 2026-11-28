@@ -1,0 +1,1230 @@
+# Swahili translations for Alarm Manager package.
+# Copyright (C) 2004-2026 The Cacti Group
+# This file is distributed under the same license as the Alarm Manager package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Alarm Manager 0.12.2\n"
+"Report-Msgid-Bugs-To: https://github.com/bmfmancini/plugin_alarmmanager/issues\n"
+"POT-Creation-Date: 2026-11-02 13:02-0500\n"
+"PO-Revision-Date: 2026-11-28 02:15+0000\n"
+"Last-Translator: Thomas Vincent <thomasvincent@gmail.com>\n"
+"Language-Team: Swahili <developers@cacti.net>\n"
+"Language: sw_KE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: alarmmanager_admin.php:50
+msgid "The administration action succeeded."
+msgstr "Kitendo cha usimamizi kimefanikiwa."
+
+#: alarmmanager_admin.php:86
+msgid "Administration unavailable or permission denied."
+msgstr "Usimamizi haupatikani au ruhusa imekataliwa."
+
+#: includes/admin_view.php:78
+msgid "Choose the alarm information to send to any service. Use Combined text to arrange device details, or Use device message to start with a complete message. Email uses Subject and Message; API destinations use the field names required by the receiving service."
+msgstr "Chagua taarifa za kengele za kutuma kwa huduma yoyote. Tumia Maandishi yaliyounganishwa kupanga maelezo ya kifaa, au Tumia ujumbe wa kifaa kuanza na ujumbe kamili. Barua pepe hutumia Mada na Ujumbe; vituo lengwa vya API hutumia majina ya uga yanayohitajika na huduma inayopokea."
+
+#: includes/admin_view.php:79
+msgid "Advanced message configuration"
+msgstr "Usanidi wa juu wa ujumbe"
+
+#: includes/admin_view.php:90
+msgid "New endpoint"
+msgstr "Kituo kipya cha mwisho"
+
+#: includes/admin_view.php:100
+msgid "Custom integration"
+msgstr "Muunganisho maalum"
+
+#: includes/admin_view.php:100
+msgid "Integration provider"
+msgstr "Mtoa huduma wa muunganisho"
+
+#: includes/admin_view.php:112
+msgid "API Key SID and Secret (recommended)"
+msgstr "API Key SID na Siri (inapendekezwa)"
+
+#: includes/admin_view.php:112
+msgid "Account SID and Auth Token"
+msgstr "Account SID na Tokeni ya Uthibitishaji"
+
+#: includes/admin_view.php:112
+msgid "Twilio credentials"
+msgstr "Vitambulisho vya Twilio"
+
+#: includes/admin_view.php:113
+msgid "Send using"
+msgstr "Tuma ukitumia"
+
+#: includes/admin_view.php:125
+msgid "Event"
+msgstr "Tukio"
+
+#: includes/admin_view.php:125
+msgid "Incident"
+msgstr "Kisa"
+
+#: includes/admin_view.php:125
+msgid "ServiceNow record type"
+msgstr "Aina ya rekodi ya ServiceNow"
+
+#: includes/admin_view.php:126
+msgid "Changing the record type replaces the destination table, message fields and recovery settings with its defaults. Your instance and credentials are retained."
+msgstr "Kubadilisha aina ya rekodi hubadilisha jedwali lengwa, sehemu za ujumbe na mipangilio ya kurejesha kuwa chaguo-msingi zake. Mfano wako na vitambulisho huhifadhiwa."
+
+#: includes/admin_view.php:149
+msgid "Destination"
+msgstr "Lengo"
+
+#: includes/admin_view.php:154
+msgid "Email settings"
+msgstr "Mipangilio ya barua pepe"
+
+#: includes/admin_view.php:161
+msgid "Delivery uses the Cacti mail settings. Add the people who should receive these alarms."
+msgstr "Uwasilishaji hutumia mipangilio ya barua pepe ya Cacti. Ongeza watu wanaopaswa kupokea kengele hizi."
+
+#: includes/admin_view.php:162
+msgid "Script settings"
+msgstr "Mipangilio ya hati"
+
+#: includes/admin_view.php:167
+msgid "JSON output is sent to the script on standard input."
+msgstr "Tokeo la JSON hutumwa kwa hati kupitia ingizo la kawaida."
+
+#: includes/admin_view.php:167
+msgid "The executable must exist and be executable by the worker on every delivering poller. Arguments are passed directly without a shell."
+msgstr "Programu inayotekelezwa lazima iwepo na iweze kutekelezwa na mfanyakazi kwenye kila poller inayowasilisha. Hoja hupitishwa moja kwa moja bila ganda."
+
+#: includes/admin_view.php:169
+msgid "WebSocket delivery is not implemented."
+msgstr "Uwasilishaji wa WebSocket haujatekelezwa."
+
+#: includes/admin_view.php:171
+msgid "Advanced delivery settings"
+msgstr "Mipangilio ya juu ya uwasilishaji"
+
+#: includes/admin_view.php:176
+msgid "Connection options"
+msgstr "Chaguo za muunganisho"
+
+#: includes/admin_view.php:179
+msgid "Method"
+msgstr "Mbinu"
+
+#: includes/admin_view.php:186
+msgid "Certificate and hostname verification remain enabled. Provision the PEM file on every poller. Saved credentials are never displayed."
+msgstr "Uthibitishaji wa cheti na jina la mwenyeji unaendelea kuwezeshwa. Weka faili ya PEM kwenye kila poller. Vitambulisho vilivyohifadhiwa havionyeshwi kamwe."
+
+#: includes/admin_view.php:187
+msgid "Other delivery options"
+msgstr "Chaguo zingine za uwasilishaji"
+
+#: includes/admin_view.php:189 includes/admin_view.php:458
+msgid "Cancel"
+msgstr "Ghairi"
+
+#: includes/admin_view.php:189
+msgid "Test destination saves the current settings and queues a sample alarm for this destination. Enable the destination before testing."
+msgstr "Jaribu kituo lengwa huhifadhi mipangilio ya sasa na kuweka kengele ya mfano kwenye foleni kwa kituo hiki lengwa. Wezesha kituo lengwa kabla ya kujaribu."
+
+#: includes/admin_view.php:190
+msgid "Save endpoint"
+msgstr "Hifadhi kituo cha mwisho"
+
+#: includes/admin_view.php:190
+msgid "Test destination"
+msgstr "Jaribu kituo lengwa"
+
+#: includes/admin_view.php:194
+msgid "Delete endpoint"
+msgstr "Futa kituo cha mwisho"
+
+#: includes/admin_view.php:194
+msgid "Delete this endpoint, its delivery settings and saved credentials"
+msgstr "Futa kituo hiki cha mwisho, mipangilio yake ya uwasilishaji na vitambulisho vilivyohifadhiwa"
+
+#: includes/admin_view.php:194
+msgid "Deleting stops future delivery and removes the saved settings and credentials. Remove notification rule references and resolve queued or running deliveries first. Completed and failed delivery history is preserved."
+msgstr "Kufuta husitisha uwasilishaji wa baadaye na kuondoa mipangilio na vitambulisho vilivyohifadhiwa. Ondoa marejeleo ya kanuni za arifa na usuluhishe uwasilishaji ulio kwenye foleni au unaoendelea kwanza. Historia ya uwasilishaji uliokamilika na ulioshindwa huhifadhiwa."
+
+#: includes/admin_view.php:205
+msgid "Chat and messaging"
+msgstr "Mazungumzo na ujumbe"
+
+#: includes/admin_view.php:206
+msgid "Post alarms to a Slack channel."
+msgstr "Chapisha kengele kwenye kituo cha Slack."
+
+#: includes/admin_view.php:207
+msgid "Post alarm cards through a Teams Workflow."
+msgstr "Chapisha kadi za kengele kupitia Teams Workflow."
+
+#: includes/admin_view.php:208
+msgid "Send alarms from a Telegram bot."
+msgstr "Tuma kengele kutoka kwa roboti ya Telegram."
+
+#: includes/admin_view.php:209
+msgid "Text alarms to phone numbers."
+msgstr "Tuma kengele za maandishi kwa nambari za simu."
+
+#: includes/admin_view.php:210
+msgid "Send approved WhatsApp templates."
+msgstr "Tuma violezo vya WhatsApp vilivyoidhinishwa."
+
+#: includes/admin_view.php:211
+msgid "Incident management"
+msgstr "Usimamizi wa visa"
+
+#: includes/admin_view.php:212
+msgid "Trigger and resolve PagerDuty incidents."
+msgstr "Anzisha na usuluhishe visa vya PagerDuty."
+
+#: includes/admin_view.php:213
+msgid "Open and resolve ServiceNow incidents or events."
+msgstr "Fungua na usuluhishe visa au matukio ya ServiceNow."
+
+#: includes/admin_view.php:214
+msgid "Network management"
+msgstr "Usimamizi wa mtandao"
+
+#: includes/admin_view.php:215
+msgid "Send SNMPv2c or SNMPv3 traps and INFORMs."
+msgstr "Tuma mitego ya SNMPv2c au SNMPv3 na INFORM."
+
+#: includes/admin_view.php:216
+msgid "Forward RFC 5424 or RFC 3164 messages over UDP, TCP or TLS."
+msgstr "Sambaza ujumbe wa RFC 5424 au RFC 3164 kupitia UDP, TCP au TLS."
+
+#: includes/admin_view.php:217
+msgid "Custom"
+msgstr "Maalum"
+
+#: includes/admin_view.php:218
+msgid "Start from an empty endpoint."
+msgstr "Anza kutoka kituo cha mwisho tupu."
+
+#: includes/admin_view.php:219
+msgid "POST alarm JSON to any HTTPS endpoint."
+msgstr "Tuma JSON ya kengele kupitia POST kwa kituo chochote cha mwisho cha HTTPS."
+
+#: includes/admin_view.php:220
+msgid "Call an API with your own method, authentication and response checks."
+msgstr "Piga API ukitumia mbinu yako mwenyewe, uthibitishaji na ukaguzi wa majibu."
+
+#: includes/admin_view.php:221
+msgid "Run a local executable with the alarm as JSON input."
+msgstr "Endesha programu inayotekelezwa ya ndani na kengele kama ingizo la JSON."
+
+#: includes/admin_view.php:227
+msgid "Add integration"
+msgstr "Ongeza muunganisho"
+
+#: includes/admin_view.php:228
+msgid "Choose a template. It opens as a disabled draft; nothing is sent until you enable it."
+msgstr "Chagua kiolezo. Hufunguka kama rasimu iliyozimwa; hakuna kinachotumwa hadi ukiwezeshe."
+
+#: includes/admin_view.php:228
+msgid "Search integrations"
+msgstr "Tafuta miunganisho"
+
+#: includes/admin_view.php:234
+msgid "Blank endpoint"
+msgstr "Kituo cha mwisho tupu"
+
+#: includes/admin_view.php:239
+msgid "No integrations match your search."
+msgstr "Hakuna miunganisho inayolingana na utafutaji wako."
+
+#: includes/admin_view.php:243
+msgid "SNMP trap settings"
+msgstr "Mipangilio ya mtego wa SNMP"
+
+#: includes/admin_view.php:259
+msgid "Saved community and passphrases are encrypted and never displayed. Leave them blank to keep the saved values; entering any value replaces all saved SNMP secrets."
+msgstr "Jamii na kaulisiri zilizohifadhiwa zimesimbwa kwa njia fiche na hazionyeshwi kamwe. Ziache tupu ili kuhifadhi thamani zilizohifadhiwa; kuingiza thamani yoyote hubadilisha siri zote za SNMP zilizohifadhiwa."
+
+#: includes/admin_view.php:260
+msgid "Traps are sent as Cacti's CACTI-MIB cactiNotify with the snmptrap binary from Cacti Settings > Paths on every delivering poller. Add one destination per receiver."
+msgstr "Mitego hutumwa kama CACTI-MIB cactiNotify ya Cacti kwa kutumia faili ya snmptrap kutoka Mipangilio ya Cacti > Njia kwenye kila poller inayowasilisha. Ongeza kituo lengwa kimoja kwa kila mpokeaji."
+
+#: includes/admin_view.php:261
+msgid "Syslog settings"
+msgstr "Mipangilio ya Syslog"
+
+#: includes/admin_view.php:269
+msgid "TLS verifies the receiver certificate and hostname. Use port 6514 for TLS. UDP and TCP are unencrypted, and a UDP message is confirmed only as sent."
+msgstr "TLS huthibitisha cheti cha mpokeaji na jina la mwenyeji. Tumia mlango 6514 kwa TLS. UDP na TCP hazijasimbwa kwa njia fiche, na ujumbe wa UDP huthibitishwa tu kuwa umetumwa."
+
+#: includes/admin_view.php:278 setup.php:191
+msgid "Days"
+msgstr "Siku"
+
+#: includes/admin_view.php:283
+msgid "Timezone"
+msgstr "Saa za eneo"
+
+#: includes/admin_view.php:291
+msgid "Times use the selected timezone and the alarm event time. An end time before the start runs overnight. Equal times cover the entire selected day."
+msgstr "Muda hutumia saa za eneo zilizochaguliwa na muda wa tukio la kengele. Muda wa mwisho kabla ya mwanzo huendelea usiku kucha. Muda sawa hufunika siku nzima iliyochaguliwa."
+
+#: includes/admin_view.php:332 includes/admin_view.php:521
+msgid "Create a rule"
+msgstr "Unda kanuni"
+
+#: includes/admin_view.php:332
+msgid "Enabled"
+msgstr "Imewashwa"
+
+#: includes/admin_view.php:332
+msgid "Priority"
+msgstr "Kipaumbele"
+
+#: includes/admin_view.php:334
+msgid "Rule and destination"
+msgstr "Kanuni na kituo lengwa"
+
+#: includes/admin_view.php:338
+msgid "Alarm Destination"
+msgstr "Marudio ya Kengele"
+
+#: includes/admin_view.php:341
+msgid "disabled"
+msgstr "imezimwa"
+
+#: includes/admin_view.php:343
+msgid "Select one or more alarm destinations. Disabled destinations do not send alarms."
+msgstr "Chagua kituo lengwa kimoja au zaidi cha kengele. Vituo lengwa vilivyozimwa havitumi kengele."
+
+#: includes/admin_view.php:345
+msgid "Message template"
+msgstr "Kiolezo cha ujumbe"
+
+#: includes/admin_view.php:345
+msgid "Use each destination default, or customize its message for this rule. Customization starts with a copy of the destination template and does not change other rules. If several rules match the same destination, the first matching rule in priority and ID order supplies its template."
+msgstr "Tumia chaguo-msingi la kila kituo lengwa, au binafsisha ujumbe wake kwa kanuni hii. Ubinafsishaji huanza na nakala ya kiolezo cha kituo lengwa na haubadilishi kanuni zingine. Ikiwa kanuni kadhaa zinalingana na kituo lengwa kimoja, kanuni ya kwanza inayolingana kwa mpangilio wa kipaumbele na ID hutoa kiolezo chake."
+
+#: includes/admin_view.php:352
+msgid "Custom template"
+msgstr "Kiolezo maalum"
+
+#: includes/admin_view.php:355
+msgid "Destination recipient"
+msgstr "Mpokeaji wa kituo lengwa"
+
+#: includes/admin_view.php:355
+#, php-format
+msgid "Recipients: %d"
+msgstr "Wapokeaji: %d"
+
+#: includes/admin_view.php:357
+msgid "Customize message for this rule"
+msgstr "Binafsisha ujumbe kwa kanuni hii"
+
+#: includes/admin_view.php:357
+msgid "Unchecked: Use destination default."
+msgstr "Bila alama: Tumia chaguo-msingi la kituo lengwa."
+
+#: includes/admin_view.php:361
+msgid "Optional: add each phone number in international format, such as +15551234567. These numbers replace the destination recipient for this rule. Leave the list empty to use the destination default. Each number has its own delivery status and retries."
+msgstr "Hiari: ongeza kila nambari ya simu katika muundo wa kimataifa, kama +15551234567. Nambari hizi huchukua nafasi ya mpokeaji wa kituo lengwa kwa kanuni hii. Acha orodha tupu ili kutumia chaguo-msingi la kituo lengwa. Kila nambari ina hali yake ya uwasilishaji na majaribio ya kurudia."
+
+#: includes/admin_view.php:374
+msgid "None"
+msgstr "Hakuna"
+
+#: includes/admin_view.php:376
+msgid "Build device conditions using AND, OR and groups. These conditions use the current Cacti device settings and must also satisfy any alarm filters below. With no device conditions, all devices can match."
+msgstr "Unda masharti ya kifaa ukitumia AND, OR na vikundi. Masharti haya hutumia mipangilio ya sasa ya kifaa cha Cacti na lazima pia yatimize vichujio vyovyote vya kengele hapa chini. Bila masharti ya kifaa, vifaa vyote vinaweza kulingana."
+
+#: includes/admin_view.php:376
+msgid "Match devices"
+msgstr "Linganisha vifaa"
+
+#: includes/admin_view.php:387
+msgid "Cacti_Admin_Notifications"
+msgstr "Cacti_Admin_Notifications"
+
+#: includes/admin_view.php:387
+msgid "Device Status"
+msgstr "Hali ya Kifaa"
+
+#: includes/admin_view.php:387
+msgid "Syslog"
+msgstr "Syslog"
+
+#: includes/admin_view.php:387
+msgid "Thold"
+msgstr "Thold"
+
+#: includes/admin_view.php:392
+msgid "Build alarm conditions using AND, OR, NOT and groups. Alarms must also match the device conditions above."
+msgstr "Unda masharti ya kengele ukitumia AND, OR, NOT na vikundi. Kengele lazima pia zilingane na masharti ya kifaa hapo juu."
+
+#: includes/admin_view.php:392
+msgid "Match alarms"
+msgstr "Linganisha kengele"
+
+#: includes/admin_view.php:395
+msgid "No alarm sources detected yet. Sources appear after their first alarm."
+msgstr "Hakuna vyanzo vya kengele vilivyogunduliwa bado. Vyanzo huonekana baada ya kengele yao ya kwanza."
+
+#: includes/admin_view.php:397
+msgid "By default, matching alarms can notify at any time. Turn on a schedule to limit when this rule matches."
+msgstr "Kwa chaguo-msingi, kengele zinazolingana zinaweza kutoa arifa wakati wowote. Washa ratiba ili kudhibiti wakati kanuni hii inalingana."
+
+#: includes/admin_view.php:397
+msgid "Notification hours"
+msgstr "Saa za arifa"
+
+#: includes/admin_view.php:399
+msgid "Suppress notifications"
+msgstr "Zuia arifa"
+
+#: includes/admin_view.php:399
+msgid "Suppressed alarms remain in history. Recovery notifications bypass acknowledgment, cooldown and duplicate suppression, but still follow notification hours and maintenance windows."
+msgstr "Kengele zilizozuiwa hubaki kwenye historia. Arifa za kurejesha hupita ukubali, muda wa kusubiri na uzuiaji wa nakala, lakini bado hufuata saa za arifa na madirisha ya matengenezo."
+
+#: includes/admin_view.php:403
+msgid "Set a duration to 0 to turn it off."
+msgstr "Weka muda kuwa 0 ili kuizima."
+
+#: includes/admin_view.php:405
+msgid "Rule order"
+msgstr "Mpangilio wa kanuni"
+
+#: includes/admin_view.php:408
+msgid "Create rule"
+msgstr "Unda kanuni"
+
+#: includes/admin_view.php:408
+msgid "Rules with equal priority run in ID order. Stopping also applies when this rule suppresses notifications."
+msgstr "Kanuni zenye kipaumbele sawa huendeshwa kwa mpangilio wa ID. Kusimamisha pia hutumika wakati kanuni hii inazuia arifa."
+
+#: includes/admin_view.php:417
+msgid "Configuration Backup/Restore"
+msgstr "Nakala Rudufu/Urejeshaji wa Usanidi"
+
+#: includes/admin_view.php:427
+msgid "Paused"
+msgstr "Imesitishwa"
+
+#: includes/admin_view.php:427
+msgid "Running"
+msgstr "Inaendelea"
+
+#: includes/admin_view.php:428
+msgid "everything has been delivered"
+msgstr "kila kitu kimewasilishwa"
+
+#: includes/admin_view.php:428
+#, php-format
+msgid "oldest queued %s UTC"
+msgstr "ya zamani zaidi kwenye foleni %s UTC"
+
+#: includes/admin_view.php:428
+msgid "waiting messages"
+msgstr "ujumbe unaosubiri"
+
+#: includes/admin_view.php:431
+msgid "Hide messages"
+msgstr "Ficha ujumbe"
+
+#: includes/admin_view.php:431
+msgid "View messages"
+msgstr "Tazama ujumbe"
+
+#: includes/admin_view.php:441
+msgid "Endpoint"
+msgstr "Kituo cha Mwisho"
+
+#: includes/admin_view.php:441
+msgid "ID"
+msgstr "Kitambulisho"
+
+#: includes/admin_view.php:441
+msgid "Message"
+msgstr "Ujumbe"
+
+#: includes/admin_view.php:441
+msgid "Next try"
+msgstr "Jaribio lijalo"
+
+#: includes/admin_view.php:441 includes/reports.php:458
+msgid "Queued"
+msgstr "Imewekwa kwenye foleni"
+
+#: includes/admin_view.php:441
+msgid "Tries"
+msgstr "Majaribio"
+
+#: includes/admin_view.php:451
+msgid "Times in UTC · first 100 shown"
+msgstr "Muda katika UTC · 100 za kwanza zinaonyeshwa"
+
+#: includes/admin_view.php:455
+msgid "Pause delivery"
+msgstr "Sitisha uwasilishaji"
+
+#: includes/admin_view.php:455
+msgid "Resume delivery"
+msgstr "Endelea na uwasilishaji"
+
+#: includes/admin_view.php:458
+msgid "Clear queue"
+msgstr "Futa foleni"
+
+#: includes/admin_view.php:459
+#, php-format
+msgid "Discard all %d waiting notifications on this poller?"
+msgstr "Tupa arifa zote %d zinazosubiri kwenye poller hii?"
+
+#: includes/admin_view.php:460
+msgid "Includes retries. They stay in delivery history as failed, reason queue_cleared."
+msgstr "Inajumuisha majaribio ya kurudia. Hubaki kwenye historia ya uwasilishaji kama iliyoshindwa, sababu queue_cleared."
+
+#: includes/admin_view.php:461
+msgid "Messages already sending and alarm state are kept."
+msgstr "Ujumbe ambao tayari unatumwa na hali ya kengele huhifadhiwa."
+
+#: includes/admin_view.php:462
+msgid "Tip: pause delivery first during maintenance."
+msgstr "Dokezo: sitisha uwasilishaji kwanza wakati wa matengenezo."
+
+#: includes/admin_view.php:463
+msgid "Clear queue…"
+msgstr "Inafuta foleni…"
+
+#: includes/admin_view.php:464
+msgid "Controls apply to this poller. While paused, alarms are still received and queued; Resume sends them."
+msgstr "Vidhibiti vinatumika kwa poller hii. Wakati imesitishwa, kengele bado hupokelewa na kuwekwa kwenye foleni; Endelea huzituma."
+
+#: includes/admin_view.php:467
+msgid "View delivery results"
+msgstr "Tazama matokeo ya uwasilishaji"
+
+#: includes/admin_view.php:470
+msgid "Create an integration, configure its destination and credentials, test a sample alarm here, then select it directly in a rule."
+msgstr "Unda muunganisho, sanidi kituo chake lengwa na vitambulisho, jaribu kengele ya mfano hapa, kisha uichague moja kwa moja kwenye kanuni."
+
+#: includes/admin_view.php:476
+msgid "Configured integrations"
+msgstr "Miunganisho iliyosanidiwa"
+
+#: includes/admin_view.php:479
+msgid "No integrations yet. Choose a template above to create one."
+msgstr "Hakuna miunganisho bado. Chagua kiolezo hapo juu ili kuunda mmoja."
+
+#: includes/admin_view.php:490
+msgid "Alarm Rules"
+msgstr "Kanuni za Kengele"
+
+#: includes/admin_view.php:490
+msgid "Choose which alarms should notify, where to send them and when to pause notifications. Rules run from lowest to highest priority."
+msgstr "Chagua kengele zipi zitoe arifa, mahali pa kuzituma na wakati wa kusitisha arifa. Kanuni huendeshwa kutoka kipaumbele cha chini hadi cha juu."
+
+#: includes/admin_view.php:493
+msgid "Create an integration before saving your first rule."
+msgstr "Unda muunganisho kabla ya kuhifadhi kanuni yako ya kwanza."
+
+#: includes/admin_view.php:493
+msgid "Create integration"
+msgstr "Unda muunganisho"
+
+#: includes/admin_view.php:495
+msgid "Clear"
+msgstr "Futa"
+
+#: includes/admin_view.php:495
+msgid "Critical"
+msgstr "Hatari"
+
+#: includes/admin_view.php:495
+msgid "Information"
+msgstr "Taarifa"
+
+#: includes/admin_view.php:495
+msgid "Major"
+msgstr "Kubwa"
+
+#: includes/admin_view.php:495
+msgid "Minor"
+msgstr "Ndogo"
+
+#: includes/admin_view.php:495
+msgid "Occurrence"
+msgstr "Kutokea"
+
+#: includes/admin_view.php:495
+msgid "Raised"
+msgstr "Imepandishwa"
+
+#: includes/admin_view.php:495
+msgid "Recovered"
+msgstr "Imerejeshwa"
+
+#: includes/admin_view.php:495
+msgid "Reminder"
+msgstr "Kikumbusho"
+
+#: includes/admin_view.php:495
+msgid "Updated"
+msgstr "Umesasishwa"
+
+#: includes/admin_view.php:495
+msgid "Warning"
+msgstr "Onyo"
+
+#: includes/admin_view.php:520
+msgid "Alarm notifications require an enabled matching Alarm Rule. Without one, alarms remain in history but no notifications are sent."
+msgstr "Arifa za kengele zinahitaji Kanuni ya Kengele iliyowezeshwa inayolingana. Bila hiyo, kengele hubaki kwenye historia lakini hakuna arifa zinazotumwa."
+
+#: includes/admin_view.php:524
+msgid "No rules yet. Create a rule below to start routing alarms to your notification destinations."
+msgstr "Hakuna kanuni bado. Unda kanuni hapa chini ili kuanza kuelekeza kengele kwenye vituo vyako lengwa vya arifa."
+
+#: includes/admin_view.php:533
+msgid "Credential values are never loaded into this page. Saving replaces the endpoint record; blank values do not preserve an old password. Use the CLI for protected backup/restore and poller provisioning."
+msgstr "Thamani za vitambulisho hazipakiwi kamwe kwenye ukurasa huu. Kuhifadhi hubadilisha rekodi ya kituo cha mwisho; thamani tupu hazihifadhi nenosiri la zamani. Tumia CLI kwa nakala rudufu/urejeshaji uliolindwa na uwekaji wa poller."
+
+#: includes/admin_view.php:536
+msgid "Create endpoint"
+msgstr "Unda kituo cha mwisho"
+
+#: includes/admin_view.php:536
+msgid "No REST API or webhook endpoints have been saved. Create an endpoint to enter its bearer token, Basic authentication username and password, or API-key headers."
+msgstr "Hakuna vituo vya mwisho vya REST API au webhook vilivyohifadhiwa. Unda kituo cha mwisho ili kuingiza tokeni yake ya bearer, jina la mtumiaji na nenosiri la uthibitishaji wa Basic, au vichwa vya ufunguo wa API."
+
+#: includes/admin_view.php:540
+msgid "Configured"
+msgstr "Imesanidiwa"
+
+#: includes/admin_view.php:543
+msgid "Replace credential"
+msgstr "Badilisha kitambulisho"
+
+#: includes/admin_view.php:549
+msgid "Rotate local key"
+msgstr "Zungusha ufunguo wa ndani"
+
+#: includes/admin_view.php:553
+msgid "Event log"
+msgstr "Kumbukumbu ya matukio"
+
+#: includes/admin_view.php:553
+msgid "Writes every event as it is processed, independent of which rules match or whether any destination is notified — a complete audit trail for external analysis, for example with Splunk."
+msgstr "Huandika kila tukio linapochakatwa, bila kujali ni kanuni zipi zinalingana au ikiwa kituo lengwa chochote kimearifiwa - kumbukumbu kamili ya ukaguzi kwa uchambuzi wa nje, kwa mfano kwa kutumia Splunk."
+
+#: includes/admin_view.php:555
+msgid "Cacti log"
+msgstr "Kumbukumbu ya Cacti"
+
+#: includes/admin_view.php:555
+msgid "External file"
+msgstr "Faili ya nje"
+
+#: includes/admin_view.php:555
+msgid "Write to"
+msgstr "Andika kwa"
+
+#: includes/admin_view.php:559
+msgid "One JSON object per line (occurred_at, transition, severity, device, alarm key…). The path must already exist, outside the plugin directory and Cacti's web root. Past the size limit, the file rotates to one .1 backup."
+msgstr "Kipengee kimoja cha JSON kwa kila mstari (occurred_at, transition, severity, device, ufunguo wa kengele…). Njia lazima tayari iwepo, nje ya saraka ya programu-jalizi na mzizi wa wavuti wa Cacti. Baada ya kufikia kikomo cha ukubwa, faili huzungushwa hadi nakala rudufu moja ya .1."
+
+#: includes/admin_view.php:559
+msgid "Save event log settings"
+msgstr "Hifadhi mipangilio ya kumbukumbu ya matukio"
+
+#: includes/admin_view.php:561
+msgid "Backup and restore"
+msgstr "Nakala rudufu na urejeshaji"
+
+#: includes/admin_view.php:561
+msgid "Export"
+msgstr "Hamisha"
+
+#: includes/admin_view.php:562
+msgid "Endpoints, message templates, and rules as JSON. Credentials and settings are not included. Endpoint URLs can contain secrets, so keep the file private."
+msgstr "Vituo vya mwisho, violezo vya ujumbe na kanuni kama JSON. Vitambulisho na mipangilio havijumuishwi. URL za vituo vya mwisho zinaweza kuwa na siri, kwa hivyo weka faili kuwa ya faragha."
+
+#: includes/admin_view.php:563
+msgid "Export configuration"
+msgstr "Hamisha usanidi"
+
+#: includes/admin_view.php:563
+msgid "Import"
+msgstr "Ingiza"
+
+#: includes/admin_view.php:567
+msgid "Replaces the routing configuration using the IDs in the file. Endpoints and rules missing from the file are disabled, not deleted. Saved credentials are kept."
+msgstr "Hubadilisha usanidi wa uelekezaji ukitumia vitambulisho vilivyo kwenye faili. Vituo vya mwisho na kanuni zisizopo kwenye faili huzimwa, hazifutwi. Vitambulisho vilivyohifadhiwa huhifadhiwa."
+
+#: includes/admin_view.php:568
+msgid "Import configuration"
+msgstr "Leta usanidi"
+
+#: includes/admin_view.php:572
+msgid "Local queue health"
+msgstr "Afya ya foleni ya ndani"
+
+#: includes/admin_view.php:573
+msgid "Jobs"
+msgstr "Kazi"
+
+#: includes/admin_view.php:573
+msgid "Oldest job age (seconds)"
+msgstr "Umri wa kazi ya zamani zaidi (sekunde)"
+
+#: includes/admin_view.php:573
+msgid "Queue"
+msgstr "Foleni"
+
+#: includes/admin_view.php:573
+msgid "Retries"
+msgstr "Majaribio Tena"
+
+#: includes/admin_view.php:573 includes/admin_view.php:592
+#: includes/web_view.php:181
+msgid "Status"
+msgstr "Hali"
+
+#: includes/admin_view.php:588
+msgid "No queue activity recorded."
+msgstr "Hakuna shughuli ya foleni iliyorekodiwa."
+
+#: includes/admin_view.php:591
+msgid "Local worker health"
+msgstr "Afya ya mfanyakazi wa ndani"
+
+#: includes/admin_view.php:592
+msgid "Current job"
+msgstr "Kazi ya sasa"
+
+#: includes/admin_view.php:592
+msgid "Heartbeat age (seconds)"
+msgstr "Umri wa mapigo ya moyo (sekunde)"
+
+#: includes/admin_view.php:592
+msgid "PID"
+msgstr "PID"
+
+#: includes/admin_view.php:592
+msgid "Poller"
+msgstr "Kikusanyaji"
+
+#: includes/admin_view.php:592
+msgid "Role"
+msgstr "Jukumu"
+
+#: includes/admin_view.php:592
+msgid "Worker"
+msgstr "Mfanyakazi"
+
+#: includes/admin_view.php:607
+msgid "No local worker heartbeats recorded."
+msgstr "Hakuna mapigo ya moyo ya mfanyakazi wa ndani yaliyorekodiwa."
+
+#: includes/admin_view.php:610
+msgid "Completed delivery jobs in the last 300 seconds"
+msgstr "Kazi za uwasilishaji zilizokamilika katika sekunde 300 zilizopita"
+
+#: includes/admin_view.php:610
+msgid "Completed processing jobs in the last 300 seconds"
+msgstr "Kazi za uchakataji zilizokamilika katika sekunde 300 zilizopita"
+
+#: includes/admin_view.php:610
+msgid "Processing streams blocked behind a failed predecessor"
+msgstr "Mitiririko ya uchakataji iliyozuiwa nyuma ya mtangulizi aliyeshindwa"
+
+#: includes/admin_view.php:613
+msgid "Pending jobs for destination types without a qualified transport"
+msgstr "Kazi zinazosubiri kwa aina za vituo lengwa zisizo na njia ya usafirishaji inayofaa"
+
+#: includes/admin_view.php:620
+msgid "Failed deliveries and replay"
+msgstr "Uwasilishaji ulioshindwa na kurudia"
+
+#: includes/admin_view.php:620
+msgid "Failed processing jobs and replay"
+msgstr "Kazi za uchakataji zilizoshindwa na kurudia"
+
+#: includes/admin_view.php:625
+msgid "Authentication"
+msgstr "Uthibitishaji"
+
+#: includes/admin_view.php:625
+msgid "Authentication type"
+msgstr "Aina ya uthibitishaji"
+
+#: includes/admin_view.php:649
+msgid "Saved credentials are encrypted and never displayed. New values replace the saved credential record."
+msgstr "Vitambulisho vilivyohifadhiwa vimesimbwa kwa njia fiche na havionyeshwi kamwe. Thamani mpya huchukua nafasi ya rekodi ya kitambulisho iliyohifadhiwa."
+
+#: includes/polling.php:150
+msgid "Start the Alarm Manager service on this collector before enabling daemon workers."
+msgstr "Anzisha huduma ya Alarm Manager kwenye kikusanyaji hiki kabla ya kuwezesha wafanyakazi wa daemon."
+
+#: includes/polling.php:163
+msgid "Daemon settings could not be saved. Check the Cacti cache directory permissions."
+msgstr "Mipangilio ya Daemon haikuweza kuhifadhiwa. Kagua ruhusa za saraka ya akiba ya Cacti."
+
+#: includes/reports.php:430
+msgid "Remote history"
+msgstr "Historia ya mbali"
+
+#: includes/reports.php:459
+msgid "Test send"
+msgstr "Jaribu kutuma"
+
+#: includes/reports.php:460
+msgid "No matching rule"
+msgstr "Hakuna kanuni inayolingana"
+
+#: includes/reports.php:461
+msgid "Destination disabled"
+msgstr "Kituo lengwa kimezimwa"
+
+#: includes/reports.php:462
+msgid "Suppressed by source"
+msgstr "Imezuiwa na chanzo"
+
+#: includes/reports.php:463
+msgid "Maintenance window"
+msgstr "Dirisha la matengenezo"
+
+#: includes/reports.php:464
+msgid "Acknowledged"
+msgstr "Imekubaliwa"
+
+#: includes/reports.php:465
+msgid "Cooldown"
+msgstr "Muda wa kusubiri"
+
+#: includes/reports.php:466
+msgid "Duplicate"
+msgstr "Rudufu"
+
+#: includes/reports.php:467
+msgid "Already routed"
+msgstr "Tayari imeelekezwa"
+
+#: includes/reports.php:468
+msgid "Out of order"
+msgstr "Nje ya mpangilio"
+
+#: includes/reports.php:469
+msgid "Ignored episode"
+msgstr "Tukio lililopuuzwa"
+
+#: includes/reports.php:470
+msgid "History only"
+msgstr "Historia pekee"
+
+#: includes/reports.php:518
+#, php-format
+msgid "Deleted destination #%d"
+msgstr "Kituo lengwa #%d kimefutwa"
+
+#: includes/reports.php:519
+#, php-format
+msgid "%d destinations"
+msgstr "Vituo lengwa %d"
+
+#: includes/reports.php:531
+msgid "Delivered"
+msgstr "Imewasilishwa"
+
+#: includes/reports.php:531
+msgid "Failed"
+msgstr "Imeshindwa"
+
+#: includes/reports.php:531
+msgid "Pending"
+msgstr "Inasubiri"
+
+#: includes/reports.php:531
+msgid "Sending"
+msgstr "Inatuma"
+
+#: includes/reports.php:541
+msgid "Processing failed"
+msgstr "Uchakataji umeshindwa"
+
+#: includes/reports.php:542
+msgid "Pending processing"
+msgstr "Inasubiri uchakataji"
+
+#: includes/reports.php:543 includes/web_view.php:264
+msgid "Processing"
+msgstr "Inachakata"
+
+#: includes/reports.php:544
+msgid "No matching integration"
+msgstr "Hakuna muunganisho unaolingana"
+
+#: includes/reports.php:544
+msgid "Suppressed"
+msgstr "Imezuiwa"
+
+#: includes/routing.php:106
+msgid "Device description"
+msgstr "Maelezo ya kifaa"
+
+#: includes/routing.php:106
+msgid "Hostname"
+msgstr "Jina la Mpangishi"
+
+#: includes/routing.php:106
+msgid "Location"
+msgstr "Mahali"
+
+#: includes/routing.php:106
+msgid "SNMP system location"
+msgstr "Mahali pa mfumo wa SNMP"
+
+#: includes/routing.php:110 includes/routing.php:125
+msgid "Collector"
+msgstr "Kikusanyaji"
+
+#: includes/routing.php:110
+msgid "Device Site Association"
+msgstr "Uhusiano wa Eneo la Kifaa"
+
+#: includes/routing.php:110
+msgid "Device Template"
+msgstr "Kiolezo cha Kifaa"
+
+#: includes/routing.php:121
+msgid "Alarm change"
+msgstr "Mabadiliko ya kengele"
+
+#: includes/routing.php:121
+msgid "Alarm source"
+msgstr "Chanzo cha kengele"
+
+#: includes/routing.php:121
+msgid "Alarm summary"
+msgstr "Muhtasari wa kengele"
+
+#: includes/routing.php:121 includes/web_view.php:161
+msgid "Severity"
+msgstr "Ukali"
+
+#: includes/routing.php:125
+msgid "Device"
+msgstr "Kifaa"
+
+#: includes/routing.php:128
+msgid "Device tag"
+msgstr "Lebo ya kifaa"
+
+#: includes/web_view.php:93
+msgid "Report unavailable or permission denied."
+msgstr "Ripoti haipatikani au ruhusa imekataliwa."
+
+#: includes/web_view.php:119
+msgid "Statistics could not be rendered."
+msgstr "Takwimu hazikuweza kuonyeshwa."
+
+#: includes/web_view.php:129 setup.php:131 setup.php:273 setup.php:289
+#: setup.php:290
+msgid "Alarm Manager"
+msgstr "Kidhibiti cha Kengele"
+
+#: includes/web_view.php:136
+msgid "Alarm Manager pages"
+msgstr "Kurasa za Alarm Manager"
+
+#: includes/web_view.php:149 includes/web_view.php:152
+msgid "Alarm statistics"
+msgstr "Takwimu za kengele"
+
+#: includes/web_view.php:149
+msgid "Filters"
+msgstr "Vichujio"
+
+#: includes/web_view.php:152
+msgid "Time range"
+msgstr "Muda wa kipindi"
+
+#: includes/web_view.php:158
+msgid "Off"
+msgstr "Imezimwa"
+
+#: includes/web_view.php:158
+msgid "Refresh"
+msgstr "Onyesha Upya"
+
+#: includes/web_view.php:160
+msgid "Advanced filter JSON"
+msgstr "JSON ya kichujio cha juu"
+
+#: includes/web_view.php:160
+msgid "Filter document"
+msgstr "Hati ya kichujio"
+
+#: includes/web_view.php:160
+msgid "Quick filters"
+msgstr "Vichujio vya haraka"
+
+#: includes/web_view.php:160
+msgid "Search conditions"
+msgstr "Tafuta masharti"
+
+#: includes/web_view.php:161 includes/web_view.php:181
+msgid "All"
+msgstr "Zote"
+
+#: includes/web_view.php:161
+msgid "Source"
+msgstr "Chanzo"
+
+#: includes/web_view.php:168
+msgid "Device ID"
+msgstr "Kitambulisho cha Kifaa"
+
+#: includes/web_view.php:171
+msgid "Status type"
+msgstr "Aina ya hali"
+
+#: includes/web_view.php:190
+msgid "event_id"
+msgstr "event_id"
+
+#: includes/web_view.php:195
+msgid "Collector ID"
+msgstr "Kitambulisho cha Kikusanyaji"
+
+#: includes/web_view.php:195
+msgid "Local and mirrored collectors"
+msgstr "Vikusanyaji vya ndani na vilivyoakisiwa"
+
+#: includes/web_view.php:198
+msgid "mirrored"
+msgstr "iliyoakisiwa"
+
+#: includes/web_view.php:203
+msgid "Mirrored events carry no Record ID and no detail view."
+msgstr "Matukio yaliyoakisiwa hayana Kitambulisho cha Rekodi wala mwonekano wa maelezo."
+
+#: includes/web_view.php:205
+msgid "Mirrored collector events are always included here unless you narrow by a specific remote Collector ID."
+msgstr "Matukio ya vikusanyaji vilivyoakisiwa hujumuishwa hapa kila wakati isipokuwa upunguze kwa Kitambulisho maalum cha Kikusanyaji cha mbali."
+
+#: includes/web_view.php:211
+msgid "Apply"
+msgstr "Tumia"
+
+#: includes/web_view.php:211
+msgid "Reset"
+msgstr "Weka Upya"
+
+#: includes/web_view.php:213
+msgid "Historical window uses UTC. Current conditions and queues ignore the time window."
+msgstr "Dirisha la historia hutumia UTC. Masharti ya sasa na foleni hupuuza dirisha la muda."
+
+#: includes/web_view.php:235
+msgid "Loading statistics…"
+msgstr "Inapakia takwimu…"
+
+#: includes/web_view.php:248
+msgid "Collapse"
+msgstr "Kunja"
+
+#: includes/web_view.php:261
+msgid "Integration results"
+msgstr "Matokeo ya muunganisho"
+
+#: includes/web_view.php:262
+msgid "Delivery attempts"
+msgstr "Majaribio ya uwasilishaji"
+
+#: includes/web_view.php:263
+msgid "Routing decisions"
+msgstr "Maamuzi ya uelekezaji"
+
+#: includes/web_view.php:265
+msgid "conditions"
+msgstr "masharti"
+
+#: includes/web_view.php:270
+msgid "No matching records."
+msgstr "Hakuna rekodi zinazolingana."
+
+#: includes/web_view.php:290
+msgid "Integration status"
+msgstr "Hali ya muunganisho"
+
+#: includes/web_view.php:291
+msgid "Collector Name"
+msgstr "Jina la Mkusanyaji"
+
+#: includes/web_view.php:292
+msgid "Attempts in current retry cycle"
+msgstr "Majaribio katika mzunguko wa sasa wa kujaribu tena"
+
+#: includes/web_view.php:298
+msgid "Action"
+msgstr "Kitendo"
+
+#: includes/web_view.php:314
+msgid "Display"
+msgstr "Onyesho"
+
+#: includes/web_view.php:349
+msgid "Latest 100 records for this event."
+msgstr "Rekodi 100 za hivi karibuni za tukio hili."
+
+#: includes/web_view.php:354
+msgid "Showing at most 50 records per page."
+msgstr "Inaonyesha si zaidi ya rekodi 50 kwa kila ukurasa."
+
+#: includes/web_view.php:355
+msgid "Pages"
+msgstr "Kurasa"
+
+#: includes/web_view.php:358
+msgid "Previous"
+msgstr "Iliyotangulia"
+
+#: includes/web_view.php:361
+#, php-format
+msgid "Page %d"
+msgstr "Ukurasa wa %d"
+
+#: includes/web_view.php:364
+msgid "Next"
+msgstr "Inayofuata"
+
+#: includes/web_view.php:371
+msgid "Selected event details"
+msgstr "Maelezo ya tukio lililochaguliwa"
+
+#: includes/web_view.php:378
+msgid "Show metadata"
+msgstr "Onyesha metadata"
+
+#: includes/web_view.php:400
+msgid "Confirm replay may repeat an external effect"
+msgstr "Thibitisha kuwa kurudia kunaweza kurudia athari ya nje"
+
+#: setup.php:102
+msgid "Alarm Manager View"
+msgstr "Mwonekano wa Alarm Manager"
+
+#: setup.php:103
+msgid "Alarm Manager Administration"
+msgstr "Usimamizi wa Alarm Manager"
+
+#: setup.php:133
+msgid "0 Worker Processes"
+msgstr "Michakato 0 ya Wafanyakazi"
+
+#: setup.php:133
+msgid "1 Worker Process"
+msgstr "Mchakato 1 wa Mfanyakazi"
+
+#: setup.php:136
+#, php-format
+msgid "%d Worker Processes"
+msgstr "Michakato %d ya Kazi"
+
+#: setup.php:144
+msgid "Device Alarm Summaries"
+msgstr "Muhtasari wa Kengele za Vifaa"
+
+#: setup.php:148
+msgid "Offline Summary"
+msgstr "Muhtasari wa Nje ya Mtandao"
+
+#: setup.php:149
+msgid "Summary for new Cacti device down alarms. Existing history retains its original summary."
+msgstr "Muhtasari wa kengele mpya za kifaa cha Cacti kuzima. Historia iliyopo huhifadhi muhtasari wake wa awali."
+
+#: setup.php:156
+msgid "Recovering Summary"
+msgstr "Muhtasari wa Kurejesha"
+
+#: setup.php:157
+msgid "Summary for device recovering updates within the same outage."
+msgstr "Muhtasari wa masasisho ya kurejesha kifaa ndani ya katizo lilelile."
+
+#: setup.php:164
+msgid "Online Summary"
+msgstr "Muhtasari wa Mtandaoni"
+
+#: setup.php:165
+msgid "Summary for device recovery alarms once Cacti confirms the device is up."
+msgstr "Muhtasari wa kengele za kurejesha kifaa pindi Cacti inapothibitisha kifaa kiko hewani."
+
+#: setup.php:172
+msgid "Alert History Retention"
+msgstr "Uhifadhi wa Historia ya Tahadhari"
+
+#: setup.php:177
+msgid "Keep Alert History For"
+msgstr "Hifadhi Historia ya Tahadhari Kwa"
+
+#: setup.php:178
+msgid "Enter how many days, weeks or months to keep alert history, or choose Indefinitely to keep everything (the number is then ignored). Maximum 3650 days, 520 weeks or 120 months. A purge job runs with the Cacti poller and removes aged events with their decisions, deliveries and attempts. Active conditions and queued or failed work are never purged. Each collector purges its own history."
+msgstr "Ingiza idadi ya siku, wiki au miezi ya kuhifadhi historia ya tahadhari, au chagua Milele ili kuhifadhi kila kitu (nambari itapuuzwa). Kiwango cha juu ni siku 3650, wiki 520 au miezi 120. Kazi ya kusafisha huendeshwa na poller ya Cacti na huondoa matukio ya zamani pamoja na maamuzi, uwasilishaji na majaribio yake. Masharti amilifu na kazi zilizoko kwenye foleni au zilizoshindwa hazisafishwi kamwe. Kila kikusanyaji husafisha historia yake chenyewe."
+
+#: setup.php:187
+msgid "Retention Unit"
+msgstr "Kipimo cha Uhifadhi"
+
+#: setup.php:188
+msgid "The unit for the retention period."
+msgstr "Kipimo cha muda wa uhifadhi."
+
+#: setup.php:191
+msgid "Indefinitely"
+msgstr "Bila kikomo cha muda"
+
+#: setup.php:191
+msgid "Months"
+msgstr "Miezi"
+
+#: setup.php:191
+msgid "Weeks"
+msgstr "Wiki"
+
+#: setup.php:194
+msgid "Daemon"
+msgstr "Daemon"
+
+#: setup.php:198
+msgid "Enable Daemon"
+msgstr "Wezesha Daemon"
+
+#: setup.php:199
+msgid "Run processing and delivery workers in the resident Alarm Manager service instead of the Cacti poller. The service must be installed and running; disabling it lets current jobs finish and returns processing to the poller. Changes apply within a few seconds and synchronize to collectors."
+msgstr "Endesha wafanyakazi wa uchakataji na uwasilishaji katika huduma ya mkazi ya Alarm Manager badala ya poller ya Cacti. Huduma lazima iwe imesakinishwa na inaendeshwa; kuizima huruhusu kazi za sasa kukamilika na kurejesha uchakataji kwa poller. Mabadiliko hutumika ndani ya sekunde chache na kusawazishwa kwa vikusanyaji."
+
+#: setup.php:204
+msgid "Processing Workers"
+msgstr "Wafanyakazi wa Uchakataji"
+
+#: setup.php:205
+msgid "Number of daemon workers that evaluate rules."
+msgstr "Idadi ya wafanyakazi wa daemon wanaotathmini kanuni."
+
+#: setup.php:211
+msgid "Delivery Workers"
+msgstr "Wafanyakazi wa Uwasilishaji"
+
+#: setup.php:212
+msgid "Number of daemon workers that deliver notifications."
+msgstr "Idadi ya wafanyakazi wa daemon wanaowasilisha arifa."
+
+#: setup.php:257
+msgid "Import/Export"
+msgstr "Leta/Hamisha"
+
+#: setup.php:259 setup.php:265 setup.php:271
+msgid "Alarm Manager Settings"
+msgstr "Mipangilio ya Alarm Manager"

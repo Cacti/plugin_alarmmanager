@@ -1,0 +1,1230 @@
+# Croatian translations for Alarm Manager package.
+# Copyright (C) 2004-2026 The Cacti Group
+# This file is distributed under the same license as the Alarm Manager package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Alarm Manager 0.12.2\n"
+"Report-Msgid-Bugs-To: https://github.com/bmfmancini/plugin_alarmmanager/issues\n"
+"POT-Creation-Date: 2026-11-02 13:02-0500\n"
+"PO-Revision-Date: 2026-11-28 02:15+0000\n"
+"Last-Translator: Thomas Vincent <thomasvincent@gmail.com>\n"
+"Language-Team: Croatian <developers@cacti.net>\n"
+"Language: hr-HR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
+
+#: alarmmanager_admin.php:50
+msgid "The administration action succeeded."
+msgstr "Administrativna radnja je uspjela."
+
+#: alarmmanager_admin.php:86
+msgid "Administration unavailable or permission denied."
+msgstr "Administracija nije dostupna ili je pristup odbijen."
+
+#: includes/admin_view.php:78
+msgid "Choose the alarm information to send to any service. Use Combined text to arrange device details, or Use device message to start with a complete message. Email uses Subject and Message; API destinations use the field names required by the receiving service."
+msgstr "Odaberite informacije o alarmu koje želite poslati bilo kojem servisu. Koristite Kombinirani tekst za raspored pojedinosti uređaja ili Koristi poruku uređaja za početak s cjelovitom porukom. E-pošta koristi Naslov i Poruku; API odredišta koriste nazive polja koje zahtijeva primateljski servis."
+
+#: includes/admin_view.php:79
+msgid "Advanced message configuration"
+msgstr "Napredna konfiguracija poruke"
+
+#: includes/admin_view.php:90
+msgid "New endpoint"
+msgstr "Nova krajnja točka"
+
+#: includes/admin_view.php:100
+msgid "Custom integration"
+msgstr "Prilagođena integracija"
+
+#: includes/admin_view.php:100
+msgid "Integration provider"
+msgstr "Davatelj integracije"
+
+#: includes/admin_view.php:112
+msgid "API Key SID and Secret (recommended)"
+msgstr "API Key SID i tajna (preporučeno)"
+
+#: includes/admin_view.php:112
+msgid "Account SID and Auth Token"
+msgstr "Account SID i Auth Token"
+
+#: includes/admin_view.php:112
+msgid "Twilio credentials"
+msgstr "Twilio vjerodajnice"
+
+#: includes/admin_view.php:113
+msgid "Send using"
+msgstr "Pošalji koristeći"
+
+#: includes/admin_view.php:125
+msgid "Event"
+msgstr "Događaj"
+
+#: includes/admin_view.php:125
+msgid "Incident"
+msgstr "Incident"
+
+#: includes/admin_view.php:125
+msgid "ServiceNow record type"
+msgstr "Vrsta ServiceNow zapisa"
+
+#: includes/admin_view.php:126
+msgid "Changing the record type replaces the destination table, message fields and recovery settings with its defaults. Your instance and credentials are retained."
+msgstr "Promjena vrste zapisa zamjenjuje odredišnu tablicu, polja poruke i postavke oporavka njihovim zadanim vrijednostima. Vaša instanca i vjerodajnice ostaju sačuvane."
+
+#: includes/admin_view.php:149
+msgid "Destination"
+msgstr "Odredište"
+
+#: includes/admin_view.php:154
+msgid "Email settings"
+msgstr "Postavke e-pošte"
+
+#: includes/admin_view.php:161
+msgid "Delivery uses the Cacti mail settings. Add the people who should receive these alarms."
+msgstr "Isporuka koristi Cacti postavke e-pošte. Dodajte osobe koje trebaju primati ove alarme."
+
+#: includes/admin_view.php:162
+msgid "Script settings"
+msgstr "Postavke skripte"
+
+#: includes/admin_view.php:167
+msgid "JSON output is sent to the script on standard input."
+msgstr "JSON izlaz šalje se skripti na standardni ulaz."
+
+#: includes/admin_view.php:167
+msgid "The executable must exist and be executable by the worker on every delivering poller. Arguments are passed directly without a shell."
+msgstr "Izvršna datoteka mora postojati i radni proces je mora moći izvršiti na svakom polleru koji obavlja isporuku. Argumenti se prosljeđuju izravno bez ljuske."
+
+#: includes/admin_view.php:169
+msgid "WebSocket delivery is not implemented."
+msgstr "WebSocket isporuka nije implementirana."
+
+#: includes/admin_view.php:171
+msgid "Advanced delivery settings"
+msgstr "Napredne postavke isporuke"
+
+#: includes/admin_view.php:176
+msgid "Connection options"
+msgstr "Opcije povezivanja"
+
+#: includes/admin_view.php:179
+msgid "Method"
+msgstr "Metoda"
+
+#: includes/admin_view.php:186
+msgid "Certificate and hostname verification remain enabled. Provision the PEM file on every poller. Saved credentials are never displayed."
+msgstr "Provjera certifikata i naziva poslužitelja ostaje omogućena. Postavite PEM datoteku na svaki poller. Spremljene vjerodajnice nikada se ne prikazuju."
+
+#: includes/admin_view.php:187
+msgid "Other delivery options"
+msgstr "Ostale opcije isporuke"
+
+#: includes/admin_view.php:189 includes/admin_view.php:458
+msgid "Cancel"
+msgstr "Odustani"
+
+#: includes/admin_view.php:189
+msgid "Test destination saves the current settings and queues a sample alarm for this destination. Enable the destination before testing."
+msgstr "Testiraj odredište sprema trenutne postavke i stavlja probni alarm u red čekanja za ovo odredište. Omogućite odredište prije testiranja."
+
+#: includes/admin_view.php:190
+msgid "Save endpoint"
+msgstr "Spremi krajnju točku"
+
+#: includes/admin_view.php:190
+msgid "Test destination"
+msgstr "Testiraj odredište"
+
+#: includes/admin_view.php:194
+msgid "Delete endpoint"
+msgstr "Izbriši krajnju točku"
+
+#: includes/admin_view.php:194
+msgid "Delete this endpoint, its delivery settings and saved credentials"
+msgstr "Izbriši ovu krajnju točku, njezine postavke isporuke i spremljene vjerodajnice"
+
+#: includes/admin_view.php:194
+msgid "Deleting stops future delivery and removes the saved settings and credentials. Remove notification rule references and resolve queued or running deliveries first. Completed and failed delivery history is preserved."
+msgstr "Brisanje zaustavlja buduću isporuku i uklanja spremljene postavke i vjerodajnice. Prvo uklonite reference iz pravila obavijesti i riješite isporuke u redu čekanja ili u tijeku. Povijest završenih i neuspjelih isporuka ostaje sačuvana."
+
+#: includes/admin_view.php:205
+msgid "Chat and messaging"
+msgstr "Razgovor i poruke"
+
+#: includes/admin_view.php:206
+msgid "Post alarms to a Slack channel."
+msgstr "Objavi alarme u Slack kanal."
+
+#: includes/admin_view.php:207
+msgid "Post alarm cards through a Teams Workflow."
+msgstr "Objavi kartice alarma putem Teams radnog tijeka."
+
+#: includes/admin_view.php:208
+msgid "Send alarms from a Telegram bot."
+msgstr "Šalji alarme putem Telegram bota."
+
+#: includes/admin_view.php:209
+msgid "Text alarms to phone numbers."
+msgstr "Pošalji tekstualne alarme na telefonske brojeve."
+
+#: includes/admin_view.php:210
+msgid "Send approved WhatsApp templates."
+msgstr "Šalji odobrene WhatsApp predloške."
+
+#: includes/admin_view.php:211
+msgid "Incident management"
+msgstr "Upravljanje incidentima"
+
+#: includes/admin_view.php:212
+msgid "Trigger and resolve PagerDuty incidents."
+msgstr "Pokrenite i riješite PagerDuty incidente."
+
+#: includes/admin_view.php:213
+msgid "Open and resolve ServiceNow incidents or events."
+msgstr "Otvorite i riješite ServiceNow incidente ili događaje."
+
+#: includes/admin_view.php:214
+msgid "Network management"
+msgstr "Upravljanje mrežom"
+
+#: includes/admin_view.php:215
+msgid "Send SNMPv2c or SNMPv3 traps and INFORMs."
+msgstr "Šalji SNMPv2c ili SNMPv3 trap i INFORM poruke."
+
+#: includes/admin_view.php:216
+msgid "Forward RFC 5424 or RFC 3164 messages over UDP, TCP or TLS."
+msgstr "Proslijedi RFC 5424 ili RFC 3164 poruke putem UDP-a, TCP-a ili TLS-a."
+
+#: includes/admin_view.php:217
+msgid "Custom"
+msgstr "Prilagođeno"
+
+#: includes/admin_view.php:218
+msgid "Start from an empty endpoint."
+msgstr "Započni od prazne krajnje točke."
+
+#: includes/admin_view.php:219
+msgid "POST alarm JSON to any HTTPS endpoint."
+msgstr "Pošalji alarm kao JSON putem POST zahtjeva na bilo koju HTTPS krajnju točku."
+
+#: includes/admin_view.php:220
+msgid "Call an API with your own method, authentication and response checks."
+msgstr "Pozovite API koristeći vlastitu metodu, autentifikaciju i provjere odgovora."
+
+#: includes/admin_view.php:221
+msgid "Run a local executable with the alarm as JSON input."
+msgstr "Pokreni lokalnu izvršnu datoteku s alarmom kao JSON ulazom."
+
+#: includes/admin_view.php:227
+msgid "Add integration"
+msgstr "Dodaj integraciju"
+
+#: includes/admin_view.php:228
+msgid "Choose a template. It opens as a disabled draft; nothing is sent until you enable it."
+msgstr "Odaberite predložak. Otvara se kao onemogućeni nacrt; ništa se ne šalje dok ga ne omogućite."
+
+#: includes/admin_view.php:228
+msgid "Search integrations"
+msgstr "Pretraži integracije"
+
+#: includes/admin_view.php:234
+msgid "Blank endpoint"
+msgstr "Prazna krajnja točka"
+
+#: includes/admin_view.php:239
+msgid "No integrations match your search."
+msgstr "Nijedna integracija ne odgovara vašoj pretrazi."
+
+#: includes/admin_view.php:243
+msgid "SNMP trap settings"
+msgstr "Postavke SNMP trap poruka"
+
+#: includes/admin_view.php:259
+msgid "Saved community and passphrases are encrypted and never displayed. Leave them blank to keep the saved values; entering any value replaces all saved SNMP secrets."
+msgstr "Spremljena zajednica i pristupne fraze su šifrirane i nikada se ne prikazuju. Ostavite ih praznima da zadržite spremljene vrijednosti; unos bilo koje vrijednosti zamjenjuje sve spremljene SNMP tajne."
+
+#: includes/admin_view.php:260
+msgid "Traps are sent as Cacti's CACTI-MIB cactiNotify with the snmptrap binary from Cacti Settings > Paths on every delivering poller. Add one destination per receiver."
+msgstr "Trap poruke šalju se kao Cactijev CACTI-MIB cactiNotify pomoću binarne datoteke snmptrap iz Cacti Postavke > Putanje na svakom polleru koji obavlja isporuku. Dodajte po jedno odredište za svakog primatelja."
+
+#: includes/admin_view.php:261
+msgid "Syslog settings"
+msgstr "Postavke Sysloga"
+
+#: includes/admin_view.php:269
+msgid "TLS verifies the receiver certificate and hostname. Use port 6514 for TLS. UDP and TCP are unencrypted, and a UDP message is confirmed only as sent."
+msgstr "TLS provjerava certifikat i naziv poslužitelja primatelja. Koristite port 6514 za TLS. UDP i TCP nisu šifrirani, a UDP poruka potvrđuje se samo kao poslana."
+
+#: includes/admin_view.php:278 setup.php:191
+msgid "Days"
+msgstr "Dani"
+
+#: includes/admin_view.php:283
+msgid "Timezone"
+msgstr "Vremenska zona"
+
+#: includes/admin_view.php:291
+msgid "Times use the selected timezone and the alarm event time. An end time before the start runs overnight. Equal times cover the entire selected day."
+msgstr "Vremena koriste odabranu vremensku zonu i vrijeme događaja alarma. Vrijeme završetka prije početka traje preko noći. Jednaka vremena pokrivaju cijeli odabrani dan."
+
+#: includes/admin_view.php:332 includes/admin_view.php:521
+msgid "Create a rule"
+msgstr "Izradi pravilo"
+
+#: includes/admin_view.php:332
+msgid "Enabled"
+msgstr "Omogućeno"
+
+#: includes/admin_view.php:332
+msgid "Priority"
+msgstr "Prioritetno"
+
+#: includes/admin_view.php:334
+msgid "Rule and destination"
+msgstr "Pravilo i odredište"
+
+#: includes/admin_view.php:338
+msgid "Alarm Destination"
+msgstr "Odredište alarma"
+
+#: includes/admin_view.php:341
+msgid "disabled"
+msgstr "onemogućeno"
+
+#: includes/admin_view.php:343
+msgid "Select one or more alarm destinations. Disabled destinations do not send alarms."
+msgstr "Odaberite jedno ili više odredišta alarma. Onemogućena odredišta ne šalju alarme."
+
+#: includes/admin_view.php:345
+msgid "Message template"
+msgstr "Predložak poruke"
+
+#: includes/admin_view.php:345
+msgid "Use each destination default, or customize its message for this rule. Customization starts with a copy of the destination template and does not change other rules. If several rules match the same destination, the first matching rule in priority and ID order supplies its template."
+msgstr "Koristite zadane postavke svakog odredišta ili prilagodite njegovu poruku za ovo pravilo. Prilagodba započinje kopijom predloška odredišta i ne mijenja druga pravila. Ako više pravila odgovara istom odredištu, prvo odgovarajuće pravilo po prioritetu i ID-u daje svoj predložak."
+
+#: includes/admin_view.php:352
+msgid "Custom template"
+msgstr "Prilagođeni predložak"
+
+#: includes/admin_view.php:355
+msgid "Destination recipient"
+msgstr "Primatelj odredišta"
+
+#: includes/admin_view.php:355
+#, php-format
+msgid "Recipients: %d"
+msgstr "Primatelji: %d"
+
+#: includes/admin_view.php:357
+msgid "Customize message for this rule"
+msgstr "Prilagodi poruku za ovo pravilo"
+
+#: includes/admin_view.php:357
+msgid "Unchecked: Use destination default."
+msgstr "Neoznačeno: koristi zadano odredište."
+
+#: includes/admin_view.php:361
+msgid "Optional: add each phone number in international format, such as +15551234567. These numbers replace the destination recipient for this rule. Leave the list empty to use the destination default. Each number has its own delivery status and retries."
+msgstr "Neobavezno: dodajte svaki telefonski broj u međunarodnom formatu, kao što je +15551234567. Ovi brojevi zamjenjuju primatelja odredišta za ovo pravilo. Ostavite popis praznim za korištenje zadanog odredišta. Svaki broj ima vlastiti status isporuke i ponovne pokušaje."
+
+#: includes/admin_view.php:374
+msgid "None"
+msgstr "Nijedan"
+
+#: includes/admin_view.php:376
+msgid "Build device conditions using AND, OR and groups. These conditions use the current Cacti device settings and must also satisfy any alarm filters below. With no device conditions, all devices can match."
+msgstr "Izgradite uvjete uređaja koristeći AND, OR i grupe. Ovi uvjeti koriste trenutne postavke Cacti uređaja i moraju zadovoljiti sve filtre alarma ispod. Bez uvjeta uređaja mogu se podudarati svi uređaji."
+
+#: includes/admin_view.php:376
+msgid "Match devices"
+msgstr "Podudaranje uređaja"
+
+#: includes/admin_view.php:387
+msgid "Cacti_Admin_Notifications"
+msgstr "Cacti_Admin_Notifications"
+
+#: includes/admin_view.php:387
+msgid "Device Status"
+msgstr "Status uređaja"
+
+#: includes/admin_view.php:387
+msgid "Syslog"
+msgstr "Syslog"
+
+#: includes/admin_view.php:387
+msgid "Thold"
+msgstr "Thold"
+
+#: includes/admin_view.php:392
+msgid "Build alarm conditions using AND, OR, NOT and groups. Alarms must also match the device conditions above."
+msgstr "Izgradite uvjete alarma koristeći AND, OR, NOT i grupe. Alarmi također moraju odgovarati uvjetima uređaja iznad."
+
+#: includes/admin_view.php:392
+msgid "Match alarms"
+msgstr "Podudaranje alarma"
+
+#: includes/admin_view.php:395
+msgid "No alarm sources detected yet. Sources appear after their first alarm."
+msgstr "Još nije otkriven nijedan izvor alarma. Izvori se pojavljuju nakon svojeg prvog alarma."
+
+#: includes/admin_view.php:397
+msgid "By default, matching alarms can notify at any time. Turn on a schedule to limit when this rule matches."
+msgstr "Zadano odgovarajući alarmi mogu slati obavijesti u bilo koje vrijeme. Uključite raspored kako biste ograničili kada se ovo pravilo podudara."
+
+#: includes/admin_view.php:397
+msgid "Notification hours"
+msgstr "Sati za obavijesti"
+
+#: includes/admin_view.php:399
+msgid "Suppress notifications"
+msgstr "Potisni obavijesti"
+
+#: includes/admin_view.php:399
+msgid "Suppressed alarms remain in history. Recovery notifications bypass acknowledgment, cooldown and duplicate suppression, but still follow notification hours and maintenance windows."
+msgstr "Potisnuti alarmi ostaju u povijesti. Obavijesti o oporavku zaobilaze potvrdu, vrijeme hlađenja i potiskivanje duplikata, ali i dalje poštuju sate za obavijesti i prozore održavanja."
+
+#: includes/admin_view.php:403
+msgid "Set a duration to 0 to turn it off."
+msgstr "Postavite trajanje na 0 da isključite ovu opciju."
+
+#: includes/admin_view.php:405
+msgid "Rule order"
+msgstr "Redoslijed pravila"
+
+#: includes/admin_view.php:408
+msgid "Create rule"
+msgstr "Izradi pravilo"
+
+#: includes/admin_view.php:408
+msgid "Rules with equal priority run in ID order. Stopping also applies when this rule suppresses notifications."
+msgstr "Pravila s jednakim prioritetom izvršavaju se po redoslijedu ID-a. Zaustavljanje se primjenjuje i kada ovo pravilo potiskuje obavijesti."
+
+#: includes/admin_view.php:417
+msgid "Configuration Backup/Restore"
+msgstr "Sigurnosna kopija i vraćanje konfiguracije"
+
+#: includes/admin_view.php:427
+msgid "Paused"
+msgstr "Pauzirano"
+
+#: includes/admin_view.php:427
+msgid "Running"
+msgstr "U tijeku"
+
+#: includes/admin_view.php:428
+msgid "everything has been delivered"
+msgstr "sve je isporučeno"
+
+#: includes/admin_view.php:428
+#, php-format
+msgid "oldest queued %s UTC"
+msgstr "najstariji u redu %s UTC"
+
+#: includes/admin_view.php:428
+msgid "waiting messages"
+msgstr "poruke na čekanju"
+
+#: includes/admin_view.php:431
+msgid "Hide messages"
+msgstr "Sakrij poruke"
+
+#: includes/admin_view.php:431
+msgid "View messages"
+msgstr "Pregled poruka"
+
+#: includes/admin_view.php:441
+msgid "Endpoint"
+msgstr "Krajnja točka"
+
+#: includes/admin_view.php:441
+msgid "ID"
+msgstr "ID"
+
+#: includes/admin_view.php:441
+msgid "Message"
+msgstr "Poruka"
+
+#: includes/admin_view.php:441
+msgid "Next try"
+msgstr "Sljedeći pokušaj"
+
+#: includes/admin_view.php:441 includes/reports.php:458
+msgid "Queued"
+msgstr "U redu čekanja"
+
+#: includes/admin_view.php:441
+msgid "Tries"
+msgstr "Pokušaji"
+
+#: includes/admin_view.php:451
+msgid "Times in UTC · first 100 shown"
+msgstr "Vremena u UTC · prikazano prvih 100"
+
+#: includes/admin_view.php:455
+msgid "Pause delivery"
+msgstr "Pauziraj isporuku"
+
+#: includes/admin_view.php:455
+msgid "Resume delivery"
+msgstr "Nastavi isporuku"
+
+#: includes/admin_view.php:458
+msgid "Clear queue"
+msgstr "Isprazni red čekanja"
+
+#: includes/admin_view.php:459
+#, php-format
+msgid "Discard all %d waiting notifications on this poller?"
+msgstr "Odbaciti svih %d obavijesti na čekanju na ovom polleru?"
+
+#: includes/admin_view.php:460
+msgid "Includes retries. They stay in delivery history as failed, reason queue_cleared."
+msgstr "Uključuje ponovne pokušaje. Ostaju u povijesti isporuke kao neuspjeli, razlog queue_cleared."
+
+#: includes/admin_view.php:461
+msgid "Messages already sending and alarm state are kept."
+msgstr "Poruke koje se već šalju i stanje alarma ostaju sačuvani."
+
+#: includes/admin_view.php:462
+msgid "Tip: pause delivery first during maintenance."
+msgstr "Savjet: prvo pauzirajte isporuku tijekom održavanja."
+
+#: includes/admin_view.php:463
+msgid "Clear queue…"
+msgstr "Pražnjenje reda čekanja…"
+
+#: includes/admin_view.php:464
+msgid "Controls apply to this poller. While paused, alarms are still received and queued; Resume sends them."
+msgstr "Kontrole se primjenjuju na ovaj poller. Dok je pauzirano, alarmi se i dalje primaju i stavljaju u red čekanja; Nastavi ih šalje."
+
+#: includes/admin_view.php:467
+msgid "View delivery results"
+msgstr "Pregled rezultata isporuke"
+
+#: includes/admin_view.php:470
+msgid "Create an integration, configure its destination and credentials, test a sample alarm here, then select it directly in a rule."
+msgstr "Izradite integraciju, podesite njezino odredište i vjerodajnice, ovdje testirajte probni alarm, a zatim je odaberite izravno u pravilu."
+
+#: includes/admin_view.php:476
+msgid "Configured integrations"
+msgstr "Podešene integracije"
+
+#: includes/admin_view.php:479
+msgid "No integrations yet. Choose a template above to create one."
+msgstr "Još nema integracija. Odaberite predložak iznad kako biste izradili jednu."
+
+#: includes/admin_view.php:490
+msgid "Alarm Rules"
+msgstr "Pravila alarma"
+
+#: includes/admin_view.php:490
+msgid "Choose which alarms should notify, where to send them and when to pause notifications. Rules run from lowest to highest priority."
+msgstr "Odaberite koji alarmi trebaju slati obavijesti, kamo ih poslati i kada pauzirati obavijesti. Pravila se izvršavaju od najnižeg prema najvišem prioritetu."
+
+#: includes/admin_view.php:493
+msgid "Create an integration before saving your first rule."
+msgstr "Izradite integraciju prije spremanja prvog pravila."
+
+#: includes/admin_view.php:493
+msgid "Create integration"
+msgstr "Izradi integraciju"
+
+#: includes/admin_view.php:495
+msgid "Clear"
+msgstr "Očisti"
+
+#: includes/admin_view.php:495
+msgid "Critical"
+msgstr "Kritično"
+
+#: includes/admin_view.php:495
+msgid "Information"
+msgstr "Informacije"
+
+#: includes/admin_view.php:495
+msgid "Major"
+msgstr "Ozbiljno"
+
+#: includes/admin_view.php:495
+msgid "Minor"
+msgstr "Manje važno"
+
+#: includes/admin_view.php:495
+msgid "Occurrence"
+msgstr "Pojavljivanje"
+
+#: includes/admin_view.php:495
+msgid "Raised"
+msgstr "Aktiviran"
+
+#: includes/admin_view.php:495
+msgid "Recovered"
+msgstr "Oporavljeno"
+
+#: includes/admin_view.php:495
+msgid "Reminder"
+msgstr "Podsjetnik"
+
+#: includes/admin_view.php:495
+msgid "Updated"
+msgstr "Ažuriran"
+
+#: includes/admin_view.php:495
+msgid "Warning"
+msgstr "Upozorenje"
+
+#: includes/admin_view.php:520
+msgid "Alarm notifications require an enabled matching Alarm Rule. Without one, alarms remain in history but no notifications are sent."
+msgstr "Obavijesti o alarmima zahtijevaju omogućeno odgovarajuće pravilo alarma. Bez njega alarmi ostaju u povijesti, ali se obavijesti ne šalju."
+
+#: includes/admin_view.php:524
+msgid "No rules yet. Create a rule below to start routing alarms to your notification destinations."
+msgstr "Još nema pravila. Izradite pravilo ispod kako biste započeli usmjeravanje alarma prema svojim odredištima obavijesti."
+
+#: includes/admin_view.php:533
+msgid "Credential values are never loaded into this page. Saving replaces the endpoint record; blank values do not preserve an old password. Use the CLI for protected backup/restore and poller provisioning."
+msgstr "Vrijednosti vjerodajnica nikada se ne učitavaju na ovu stranicu. Spremanje zamjenjuje zapis krajnje točke; prazne vrijednosti ne zadržavaju staru lozinku. Koristite CLI za zaštićenu sigurnosnu kopiju/vraćanje i postavljanje na pollere."
+
+#: includes/admin_view.php:536
+msgid "Create endpoint"
+msgstr "Izradi krajnju točku"
+
+#: includes/admin_view.php:536
+msgid "No REST API or webhook endpoints have been saved. Create an endpoint to enter its bearer token, Basic authentication username and password, or API-key headers."
+msgstr "Nijedna REST API ili webhook krajnja točka nije spremljena. Izradite krajnju točku kako biste unijeli njezin bearer token, korisničko ime i lozinku za Basic autentifikaciju ili zaglavlja API ključa."
+
+#: includes/admin_view.php:540
+msgid "Configured"
+msgstr "Konfigurirano"
+
+#: includes/admin_view.php:543
+msgid "Replace credential"
+msgstr "Zamijeni vjerodajnicu"
+
+#: includes/admin_view.php:549
+msgid "Rotate local key"
+msgstr "Rotiraj lokalni ključ"
+
+#: includes/admin_view.php:553
+msgid "Event log"
+msgstr "Zapisnik događaja"
+
+#: includes/admin_view.php:553
+msgid "Writes every event as it is processed, independent of which rules match or whether any destination is notified — a complete audit trail for external analysis, for example with Splunk."
+msgstr "Zapisuje svaki događaj tijekom njegove obrade, neovisno o tome koja se pravila podudaraju ili je li neko odredište obaviješteno - potpuni revizijski trag za vanjsku analizu, na primjer pomoću Splunka."
+
+#: includes/admin_view.php:555
+msgid "Cacti log"
+msgstr "Cacti zapisnik"
+
+#: includes/admin_view.php:555
+msgid "External file"
+msgstr "Vanjska datoteka"
+
+#: includes/admin_view.php:555
+msgid "Write to"
+msgstr "Zapiši u"
+
+#: includes/admin_view.php:559
+msgid "One JSON object per line (occurred_at, transition, severity, device, alarm key…). The path must already exist, outside the plugin directory and Cacti's web root. Past the size limit, the file rotates to one .1 backup."
+msgstr "Jedan JSON objekt po retku (occurred_at, transition, severity, device, ključ alarma…). Putanja već mora postojati, izvan direktorija dodatka i web korijena Cactija. Nakon prekoračenja ograničenja veličine datoteka se rotira u jednu .1 sigurnosnu kopiju."
+
+#: includes/admin_view.php:559
+msgid "Save event log settings"
+msgstr "Spremi postavke zapisnika događaja"
+
+#: includes/admin_view.php:561
+msgid "Backup and restore"
+msgstr "Sigurnosna kopija i vraćanje"
+
+#: includes/admin_view.php:561
+msgid "Export"
+msgstr "Izvezi"
+
+#: includes/admin_view.php:562
+msgid "Endpoints, message templates, and rules as JSON. Credentials and settings are not included. Endpoint URLs can contain secrets, so keep the file private."
+msgstr "Krajnje točke, predlošci poruka i pravila u JSON formatu. Vjerodajnice i postavke nisu uključene. URL-ovi krajnjih točaka mogu sadržavati tajne, stoga datoteku čuvajte privatnom."
+
+#: includes/admin_view.php:563
+msgid "Export configuration"
+msgstr "Izvezi konfiguraciju"
+
+#: includes/admin_view.php:563
+msgid "Import"
+msgstr "Uvezi"
+
+#: includes/admin_view.php:567
+msgid "Replaces the routing configuration using the IDs in the file. Endpoints and rules missing from the file are disabled, not deleted. Saved credentials are kept."
+msgstr "Zamjenjuje konfiguraciju usmjeravanja koristeći ID-ove iz datoteke. Krajnje točke i pravila koja nedostaju u datoteci onemogućuju se, a ne brišu. Spremljene vjerodajnice ostaju sačuvane."
+
+#: includes/admin_view.php:568
+msgid "Import configuration"
+msgstr "Uvezi konfiguraciju"
+
+#: includes/admin_view.php:572
+msgid "Local queue health"
+msgstr "Stanje lokalnog reda čekanja"
+
+#: includes/admin_view.php:573
+msgid "Jobs"
+msgstr "Poslovi"
+
+#: includes/admin_view.php:573
+msgid "Oldest job age (seconds)"
+msgstr "Starost najstarijeg posla (sekunde)"
+
+#: includes/admin_view.php:573
+msgid "Queue"
+msgstr "Red čekanja"
+
+#: includes/admin_view.php:573
+msgid "Retries"
+msgstr "Ponovni pokušaji"
+
+#: includes/admin_view.php:573 includes/admin_view.php:592
+#: includes/web_view.php:181
+msgid "Status"
+msgstr "Status"
+
+#: includes/admin_view.php:588
+msgid "No queue activity recorded."
+msgstr "Nije zabilježena aktivnost reda čekanja."
+
+#: includes/admin_view.php:591
+msgid "Local worker health"
+msgstr "Stanje lokalnih radnih procesa"
+
+#: includes/admin_view.php:592
+msgid "Current job"
+msgstr "Trenutni posao"
+
+#: includes/admin_view.php:592
+msgid "Heartbeat age (seconds)"
+msgstr "Starost otkucaja (sekunde)"
+
+#: includes/admin_view.php:592
+msgid "PID"
+msgstr "PID"
+
+#: includes/admin_view.php:592
+msgid "Poller"
+msgstr "Prikupljač"
+
+#: includes/admin_view.php:592
+msgid "Role"
+msgstr "Uloga"
+
+#: includes/admin_view.php:592
+msgid "Worker"
+msgstr "Radni proces"
+
+#: includes/admin_view.php:607
+msgid "No local worker heartbeats recorded."
+msgstr "Nisu zabilježeni otkucaji lokalnih radnih procesa."
+
+#: includes/admin_view.php:610
+msgid "Completed delivery jobs in the last 300 seconds"
+msgstr "Završeni poslovi isporuke u posljednjih 300 sekundi"
+
+#: includes/admin_view.php:610
+msgid "Completed processing jobs in the last 300 seconds"
+msgstr "Završeni poslovi obrade u posljednjih 300 sekundi"
+
+#: includes/admin_view.php:610
+msgid "Processing streams blocked behind a failed predecessor"
+msgstr "Tokovi obrade blokirani iza neuspjelog prethodnika"
+
+#: includes/admin_view.php:613
+msgid "Pending jobs for destination types without a qualified transport"
+msgstr "Poslovi na čekanju za vrste odredišta bez kvalificiranog prijenosa"
+
+#: includes/admin_view.php:620
+msgid "Failed deliveries and replay"
+msgstr "Neuspjele isporuke i ponovno slanje"
+
+#: includes/admin_view.php:620
+msgid "Failed processing jobs and replay"
+msgstr "Neuspjeli poslovi obrade i ponovno izvođenje"
+
+#: includes/admin_view.php:625
+msgid "Authentication"
+msgstr "Autentifikacija"
+
+#: includes/admin_view.php:625
+msgid "Authentication type"
+msgstr "Vrsta autentifikacije"
+
+#: includes/admin_view.php:649
+msgid "Saved credentials are encrypted and never displayed. New values replace the saved credential record."
+msgstr "Spremljene vjerodajnice su šifrirane i nikada se ne prikazuju. Nove vrijednosti zamjenjuju spremljeni zapis vjerodajnice."
+
+#: includes/polling.php:150
+msgid "Start the Alarm Manager service on this collector before enabling daemon workers."
+msgstr "Pokrenite servis Upravitelja alarma na ovom kolektoru prije omogućavanja radnih procesa pozadinskog servisa."
+
+#: includes/polling.php:163
+msgid "Daemon settings could not be saved. Check the Cacti cache directory permissions."
+msgstr "Postavke pozadinskog servisa nisu se mogle spremiti. Provjerite dozvole Cacti direktorija predmemorije."
+
+#: includes/reports.php:430
+msgid "Remote history"
+msgstr "Udaljena povijest"
+
+#: includes/reports.php:459
+msgid "Test send"
+msgstr "Probno slanje"
+
+#: includes/reports.php:460
+msgid "No matching rule"
+msgstr "Nema odgovarajućeg pravila"
+
+#: includes/reports.php:461
+msgid "Destination disabled"
+msgstr "Odredište onemogućeno"
+
+#: includes/reports.php:462
+msgid "Suppressed by source"
+msgstr "Potisnuto od strane izvora"
+
+#: includes/reports.php:463
+msgid "Maintenance window"
+msgstr "Prozor održavanja"
+
+#: includes/reports.php:464
+msgid "Acknowledged"
+msgstr "Potvrđeno"
+
+#: includes/reports.php:465
+msgid "Cooldown"
+msgstr "Vrijeme hlađenja"
+
+#: includes/reports.php:466
+msgid "Duplicate"
+msgstr "Dupliciraj"
+
+#: includes/reports.php:467
+msgid "Already routed"
+msgstr "Već usmjereno"
+
+#: includes/reports.php:468
+msgid "Out of order"
+msgstr "Izvan redoslijeda"
+
+#: includes/reports.php:469
+msgid "Ignored episode"
+msgstr "Zanemarena epizoda"
+
+#: includes/reports.php:470
+msgid "History only"
+msgstr "Samo povijest"
+
+#: includes/reports.php:518
+#, php-format
+msgid "Deleted destination #%d"
+msgstr "Izbrisano odredište #%d"
+
+#: includes/reports.php:519
+#, php-format
+msgid "%d destinations"
+msgstr "%d odredišta"
+
+#: includes/reports.php:531
+msgid "Delivered"
+msgstr "Isporučeno"
+
+#: includes/reports.php:531
+msgid "Failed"
+msgstr "Neuspjelo"
+
+#: includes/reports.php:531
+msgid "Pending"
+msgstr "Na čekanju"
+
+#: includes/reports.php:531
+msgid "Sending"
+msgstr "Slanje"
+
+#: includes/reports.php:541
+msgid "Processing failed"
+msgstr "Obrada nije uspjela"
+
+#: includes/reports.php:542
+msgid "Pending processing"
+msgstr "Obrada na čekanju"
+
+#: includes/reports.php:543 includes/web_view.php:264
+msgid "Processing"
+msgstr "Obrada"
+
+#: includes/reports.php:544
+msgid "No matching integration"
+msgstr "Nema odgovarajuće integracije"
+
+#: includes/reports.php:544
+msgid "Suppressed"
+msgstr "Potisnuto"
+
+#: includes/routing.php:106
+msgid "Device description"
+msgstr "Opis uređaja"
+
+#: includes/routing.php:106
+msgid "Hostname"
+msgstr "Naziv glavnog računala"
+
+#: includes/routing.php:106
+msgid "Location"
+msgstr "Lokacija"
+
+#: includes/routing.php:106
+msgid "SNMP system location"
+msgstr "SNMP lokacija sustava"
+
+#: includes/routing.php:110 includes/routing.php:125
+msgid "Collector"
+msgstr "Prikupljač"
+
+#: includes/routing.php:110
+msgid "Device Site Association"
+msgstr "Povezivanje uređaja s lokacijom"
+
+#: includes/routing.php:110
+msgid "Device Template"
+msgstr "Predložak uređaja"
+
+#: includes/routing.php:121
+msgid "Alarm change"
+msgstr "Promjena alarma"
+
+#: includes/routing.php:121
+msgid "Alarm source"
+msgstr "Izvor alarma"
+
+#: includes/routing.php:121
+msgid "Alarm summary"
+msgstr "Sažetak alarma"
+
+#: includes/routing.php:121 includes/web_view.php:161
+msgid "Severity"
+msgstr "Ozbiljnost"
+
+#: includes/routing.php:125
+msgid "Device"
+msgstr "Uređaj"
+
+#: includes/routing.php:128
+msgid "Device tag"
+msgstr "Oznaka uređaja"
+
+#: includes/web_view.php:93
+msgid "Report unavailable or permission denied."
+msgstr "Izvješće nije dostupno ili je pristup odbijen."
+
+#: includes/web_view.php:119
+msgid "Statistics could not be rendered."
+msgstr "Statistika se nije mogla prikazati."
+
+#: includes/web_view.php:129 setup.php:131 setup.php:273 setup.php:289
+#: setup.php:290
+msgid "Alarm Manager"
+msgstr "Upravitelj alarma"
+
+#: includes/web_view.php:136
+msgid "Alarm Manager pages"
+msgstr "Stranice upravitelja alarma"
+
+#: includes/web_view.php:149 includes/web_view.php:152
+msgid "Alarm statistics"
+msgstr "Statistika alarma"
+
+#: includes/web_view.php:149
+msgid "Filters"
+msgstr "Filtri"
+
+#: includes/web_view.php:152
+msgid "Time range"
+msgstr "Vremenski raspon"
+
+#: includes/web_view.php:158
+msgid "Off"
+msgstr "Isključeno"
+
+#: includes/web_view.php:158
+msgid "Refresh"
+msgstr "Osvježi"
+
+#: includes/web_view.php:160
+msgid "Advanced filter JSON"
+msgstr "Napredni JSON filtar"
+
+#: includes/web_view.php:160
+msgid "Filter document"
+msgstr "Dokument filtra"
+
+#: includes/web_view.php:160
+msgid "Quick filters"
+msgstr "Brzi filtri"
+
+#: includes/web_view.php:160
+msgid "Search conditions"
+msgstr "Uvjeti pretrage"
+
+#: includes/web_view.php:161 includes/web_view.php:181
+msgid "All"
+msgstr "Sve"
+
+#: includes/web_view.php:161
+msgid "Source"
+msgstr "Izvor"
+
+#: includes/web_view.php:168
+msgid "Device ID"
+msgstr "ID uređaja"
+
+#: includes/web_view.php:171
+msgid "Status type"
+msgstr "Vrsta statusa"
+
+#: includes/web_view.php:190
+msgid "event_id"
+msgstr "event_id"
+
+#: includes/web_view.php:195
+msgid "Collector ID"
+msgstr "ID kolektora"
+
+#: includes/web_view.php:195
+msgid "Local and mirrored collectors"
+msgstr "Lokalni i zrcalni kolektori"
+
+#: includes/web_view.php:198
+msgid "mirrored"
+msgstr "zrcaljeno"
+
+#: includes/web_view.php:203
+msgid "Mirrored events carry no Record ID and no detail view."
+msgstr "Zrcalni događaji nemaju ID zapisa ni detaljni prikaz."
+
+#: includes/web_view.php:205
+msgid "Mirrored collector events are always included here unless you narrow by a specific remote Collector ID."
+msgstr "Događaji zrcalnih kolektora uvijek su ovdje uključeni osim ako ne suzite prikaz na određeni udaljeni ID kolektora."
+
+#: includes/web_view.php:211
+msgid "Apply"
+msgstr "Primijeni"
+
+#: includes/web_view.php:211
+msgid "Reset"
+msgstr "Ponovno postavi"
+
+#: includes/web_view.php:213
+msgid "Historical window uses UTC. Current conditions and queues ignore the time window."
+msgstr "Povijesni vremenski raspon koristi UTC. Trenutni uvjeti i redovi čekanja zanemaruju vremenski raspon."
+
+#: includes/web_view.php:235
+msgid "Loading statistics…"
+msgstr "Učitavanje statistike…"
+
+#: includes/web_view.php:248
+msgid "Collapse"
+msgstr "Sažmi"
+
+#: includes/web_view.php:261
+msgid "Integration results"
+msgstr "Rezultati integracije"
+
+#: includes/web_view.php:262
+msgid "Delivery attempts"
+msgstr "Pokušaji isporuke"
+
+#: includes/web_view.php:263
+msgid "Routing decisions"
+msgstr "Odluke usmjeravanja"
+
+#: includes/web_view.php:265
+msgid "conditions"
+msgstr "uvjeti"
+
+#: includes/web_view.php:270
+msgid "No matching records."
+msgstr "Nema odgovarajućih zapisa."
+
+#: includes/web_view.php:290
+msgid "Integration status"
+msgstr "Status integracije"
+
+#: includes/web_view.php:291
+msgid "Collector Name"
+msgstr "Naziv prikupljača"
+
+#: includes/web_view.php:292
+msgid "Attempts in current retry cycle"
+msgstr "Pokušaji u trenutnom ciklusu ponavljanja"
+
+#: includes/web_view.php:298
+msgid "Action"
+msgstr "Radnja"
+
+#: includes/web_view.php:314
+msgid "Display"
+msgstr "Prikaz"
+
+#: includes/web_view.php:349
+msgid "Latest 100 records for this event."
+msgstr "Posljednjih 100 zapisa za ovaj događaj."
+
+#: includes/web_view.php:354
+msgid "Showing at most 50 records per page."
+msgstr "Prikazuje se najviše 50 zapisa po stranici."
+
+#: includes/web_view.php:355
+msgid "Pages"
+msgstr "Stranice"
+
+#: includes/web_view.php:358
+msgid "Previous"
+msgstr "Prethodno"
+
+#: includes/web_view.php:361
+#, php-format
+msgid "Page %d"
+msgstr "Stranica %d"
+
+#: includes/web_view.php:364
+msgid "Next"
+msgstr "Sljedeće"
+
+#: includes/web_view.php:371
+msgid "Selected event details"
+msgstr "Pojedinosti odabranog događaja"
+
+#: includes/web_view.php:378
+msgid "Show metadata"
+msgstr "Prikaži metapodatke"
+
+#: includes/web_view.php:400
+msgid "Confirm replay may repeat an external effect"
+msgstr "Potvrdite da ponovno izvođenje može ponoviti vanjski učinak"
+
+#: setup.php:102
+msgid "Alarm Manager View"
+msgstr "Pregled upravitelja alarma"
+
+#: setup.php:103
+msgid "Alarm Manager Administration"
+msgstr "Administracija upravitelja alarma"
+
+#: setup.php:133
+msgid "0 Worker Processes"
+msgstr "0 radnih procesa"
+
+#: setup.php:133
+msgid "1 Worker Process"
+msgstr "1 radni proces"
+
+#: setup.php:136
+#, php-format
+msgid "%d Worker Processes"
+msgstr "%d radnih procesa"
+
+#: setup.php:144
+msgid "Device Alarm Summaries"
+msgstr "Sažeci alarma uređaja"
+
+#: setup.php:148
+msgid "Offline Summary"
+msgstr "Sažetak izvan mreže"
+
+#: setup.php:149
+msgid "Summary for new Cacti device down alarms. Existing history retains its original summary."
+msgstr "Sažetak za nove Cacti alarme nedostupnosti uređaja. Postojeća povijest zadržava svoj izvorni sažetak."
+
+#: setup.php:156
+msgid "Recovering Summary"
+msgstr "Sažetak oporavka"
+
+#: setup.php:157
+msgid "Summary for device recovering updates within the same outage."
+msgstr "Sažetak za ažuriranja oporavka uređaja unutar istog prekida."
+
+#: setup.php:164
+msgid "Online Summary"
+msgstr "Sažetak na mreži"
+
+#: setup.php:165
+msgid "Summary for device recovery alarms once Cacti confirms the device is up."
+msgstr "Sažetak za alarme oporavka uređaja kada Cacti potvrdi da je uređaj ponovno dostupan."
+
+#: setup.php:172
+msgid "Alert History Retention"
+msgstr "Zadržavanje povijesti uzbuna"
+
+#: setup.php:177
+msgid "Keep Alert History For"
+msgstr "Zadrži povijest uzbuna za"
+
+#: setup.php:178
+msgid "Enter how many days, weeks or months to keep alert history, or choose Indefinitely to keep everything (the number is then ignored). Maximum 3650 days, 520 weeks or 120 months. A purge job runs with the Cacti poller and removes aged events with their decisions, deliveries and attempts. Active conditions and queued or failed work are never purged. Each collector purges its own history."
+msgstr "Unesite koliko dana, tjedana ili mjeseci želite čuvati povijest uzbuna ili odaberite Neograničeno za čuvanje svega (broj se tada zanemaruje). Najviše 3650 dana, 520 tjedana ili 120 mjeseci. Posao čišćenja pokreće se uz Cacti poller i uklanja stare događaje zajedno s njihovim odlukama, isporukama i pokušajima. Aktivni uvjeti te poslovi u redu čekanja ili neuspjeli poslovi nikada se ne brišu. Svaki kolektor čisti vlastitu povijest."
+
+#: setup.php:187
+msgid "Retention Unit"
+msgstr "Jedinica zadržavanja"
+
+#: setup.php:188
+msgid "The unit for the retention period."
+msgstr "Jedinica za razdoblje zadržavanja."
+
+#: setup.php:191
+msgid "Indefinitely"
+msgstr "Neograničeno"
+
+#: setup.php:191
+msgid "Months"
+msgstr "Mjeseci"
+
+#: setup.php:191
+msgid "Weeks"
+msgstr "Tjedni"
+
+#: setup.php:194
+msgid "Daemon"
+msgstr "Pozadinski servis"
+
+#: setup.php:198
+msgid "Enable Daemon"
+msgstr "Omogući pozadinski servis"
+
+#: setup.php:199
+msgid "Run processing and delivery workers in the resident Alarm Manager service instead of the Cacti poller. The service must be installed and running; disabling it lets current jobs finish and returns processing to the poller. Changes apply within a few seconds and synchronize to collectors."
+msgstr "Pokrenite radne procese obrade i isporuke u stalnom servisu Upravitelja alarma umjesto u Cacti polleru. Servis mora biti instaliran i pokrenut; njegovo onemogućavanje omogućuje završetak trenutnih poslova i vraća obradu na poller. Promjene se primjenjuju u roku od nekoliko sekundi i sinkroniziraju s kolektorima."
+
+#: setup.php:204
+msgid "Processing Workers"
+msgstr "Radni procesi obrade"
+
+#: setup.php:205
+msgid "Number of daemon workers that evaluate rules."
+msgstr "Broj radnih procesa pozadinskog servisa koji procjenjuju pravila."
+
+#: setup.php:211
+msgid "Delivery Workers"
+msgstr "Radni procesi isporuke"
+
+#: setup.php:212
+msgid "Number of daemon workers that deliver notifications."
+msgstr "Broj radnih procesa pozadinskog servisa koji isporučuju obavijesti."
+
+#: setup.php:257
+msgid "Import/Export"
+msgstr "Uvoz/izvoz"
+
+#: setup.php:259 setup.php:265 setup.php:271
+msgid "Alarm Manager Settings"
+msgstr "Postavke upravitelja alarma"
